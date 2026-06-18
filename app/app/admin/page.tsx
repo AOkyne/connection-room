@@ -7,7 +7,9 @@ import { getAllBadges } from "@/lib/data/badges";
 import { getUpcomingEvents } from "@/lib/data/events";
 import { getAllOffers } from "@/lib/data/offers";
 import { Card, CardHeader } from "@/components/Card";
-import { IconConnection, IconDemo, IconSpaces, IconBadges, IconProgress, IconUpcoming, IconAlert } from "@/components/Icons";
+import { IconConnection, IconDemo, IconSpaces, IconBadges, IconProgress, IconUpcoming, IconAlert, IconForYou } from "@/components/Icons";
+import { getBadgeIcon } from "@/lib/badge-icons";
+import { getOfferIcon } from "@/lib/offer-icons";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -149,13 +151,16 @@ export default function AdminPage() {
       <Card>
         <CardHeader title="Available Badges" icon={<IconBadges size={20} />} />
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {badges.map((badge) => (
-            <div key={badge.id} className="text-center p-3 bg-[#f3ede5] rounded">
-              <p className="text-2xl mb-2">{badge.icon}</p>
-              <p className="font-medium text-[#2a2318] text-sm">{badge.name}</p>
-              <p className="text-xs text-[#a0968a] mt-1">{badge.description}</p>
-            </div>
-          ))}
+          {badges.map((badge) => {
+            const BadgeIcon = getBadgeIcon(badge.id);
+            return (
+              <div key={badge.id} className="text-center p-3 bg-[#f3ede5] rounded">
+                <BadgeIcon size={28} className="mx-auto mb-2 text-[#d4a574]" />
+                <p className="font-medium text-[#2a2318] text-sm">{badge.name}</p>
+                <p className="text-xs text-[#a0968a] mt-1">{badge.description}</p>
+              </div>
+            );
+          })}
         </div>
       </Card>
 
@@ -183,15 +188,18 @@ export default function AdminPage() {
 
       {/* Offers */}
       <Card>
-        <CardHeader title="Active Offers" icon="🎁" />
+        <CardHeader title="Active Offers" icon={<IconForYou size={20} />} />
         <div className="grid md:grid-cols-2 gap-4">
-          {offers.map((offer) => (
-            <div key={offer.id} className="p-3 bg-[#f3ede5] rounded">
-              <p className="text-xl mb-1">{offer.icon}</p>
-              <p className="font-medium text-[#2a2318] text-sm">{offer.title}</p>
-              <p className="text-xs text-[#6b5f52] mt-1">{offer.description}</p>
-            </div>
-          ))}
+          {offers.map((offer) => {
+            const OfferIcon = getOfferIcon(offer.id);
+            return (
+              <div key={offer.id} className="p-3 bg-[#f3ede5] rounded">
+                <OfferIcon size={24} className="mb-1 text-[#d4a574]" />
+                <p className="font-medium text-[#2a2318] text-sm">{offer.title}</p>
+                <p className="text-xs text-[#6b5f52] mt-1">{offer.description}</p>
+              </div>
+            );
+          })}
         </div>
       </Card>
 

@@ -9,6 +9,7 @@ import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { IconIntegration, IconSpaces, IconConnection, IconProfileNav, IconBadges, IconProfile } from "@/components/Icons";
+import { getBadgeIcon } from "@/lib/badge-icons";
 import Link from "next/link";
 
 export default function JourneyPage() {
@@ -166,15 +167,18 @@ export default function JourneyPage() {
           <CardHeader title="Achievements" icon={<IconBadges size={20} />} />
           {badges.length > 0 ? (
             <div className="space-y-2">
-              {badges.map((badge) => (
-                <div key={badge.id} className="flex items-center gap-2 p-2 bg-[#f3ede5] rounded">
-                  <span className="text-xl">{badge.icon}</span>
-                  <div>
-                    <p className="text-sm font-medium text-[#2a2318]">{badge.name}</p>
-                    <p className="text-xs text-[#a0968a]">{badge.description}</p>
+              {badges.map((badge) => {
+                const BadgeIcon = getBadgeIcon(badge.id);
+                return (
+                  <div key={badge.id} className="flex items-center gap-2 p-2 bg-[#f3ede5] rounded">
+                    <BadgeIcon size={20} className="text-[#d4a574] flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-[#2a2318]">{badge.name}</p>
+                      <p className="text-xs text-[#a0968a]">{badge.description}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               <p className="text-xs text-[#a0968a] pt-2">Earn more as you explore the community</p>
             </div>
           ) : (

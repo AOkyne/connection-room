@@ -10,6 +10,7 @@ import { getRelevantOffers } from "@/lib/data/offers";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { IconReflection, IconProgress, IconUpcoming, IconBadges, IconForYou, IconDemo } from "@/components/Icons";
+import { getBadgeIcon } from "@/lib/badge-icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -166,15 +167,18 @@ export default function AppHome() {
           <Card>
             <CardHeader title="Badges Earned" icon={<IconBadges size={20} />} />
             <div className="space-y-2">
-              {badges.slice(0, 2).map((badge) => (
-                <div key={badge.id} className="flex items-center gap-2 p-2 bg-[#f3ede5] rounded">
-                  <span className="text-xl">{badge.icon}</span>
-                  <div className="text-sm">
-                    <p className="font-medium text-[#2a2318]">{badge.name}</p>
-                    <p className="text-xs text-[#a0968a]">{badge.description}</p>
+              {badges.slice(0, 2).map((badge) => {
+                const BadgeIcon = getBadgeIcon(badge.id);
+                return (
+                  <div key={badge.id} className="flex items-center gap-2 p-2 bg-[#f3ede5] rounded">
+                    <BadgeIcon size={20} className="text-[#d4a574] flex-shrink-0" />
+                    <div className="text-sm">
+                      <p className="font-medium text-[#2a2318]">{badge.name}</p>
+                      <p className="text-xs text-[#a0968a]">{badge.description}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               {badges.length > 2 && (
                 <p className="text-xs text-[#a0968a] pt-2">{badges.length - 2} more badges →</p>
               )}
