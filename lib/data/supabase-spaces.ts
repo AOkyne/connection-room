@@ -45,6 +45,8 @@ export async function getUserJoinedSpaces(userId: string): Promise<Space[]> {
   if (!supabase) return [];
 
   try {
+    console.log("Fetching space memberships for user:", userId);
+
     // Get space IDs that user has joined
     const { data: memberships, error: membershipError } = await supabase
       .from("space_memberships")
@@ -55,6 +57,8 @@ export async function getUserJoinedSpaces(userId: string): Promise<Space[]> {
       console.error("Error fetching user space memberships:", membershipError);
       return [];
     }
+
+    console.log("Space memberships found:", memberships?.length || 0);
 
     if (!memberships || memberships.length === 0) {
       return [];

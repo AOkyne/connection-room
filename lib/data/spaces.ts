@@ -43,11 +43,15 @@ export async function getSpaces(): Promise<Space[]> {
   const userId = await getCurrentUserId();
   if (userId && supabase) {
     try {
+      console.log("Getting Supabase spaces for user:", userId);
       const supabaseSpaces = await getSupabaseSpaces();
+      console.log("Supabase spaces:", supabaseSpaces.length);
+
       const joinedSpaces = await getUserJoinedSpaces(userId);
+      console.log("User joined spaces:", joinedSpaces.length);
       const joinedIds = new Set(joinedSpaces.map((s) => s.id));
 
-      return supabaseSpaces.map((space) => ({
+      const result = supabaseSpaces.map((space) => ({
         id: space.id,
         name: space.name,
         description: space.description || "",
@@ -56,10 +60,15 @@ export async function getSpaces(): Promise<Space[]> {
         memberCount: 0,
         isJoined: joinedIds.has(space.id),
       }));
+
+      console.log("Returning spaces:", result.length);
+      return result;
     } catch (err) {
       console.error("Error getting Supabase spaces:", err);
     }
   }
+
+  console.log("Falling back to demo spaces (no userId or supabase)");
 
   // Fallback to demo/localStorage
   const stored = localStorage.getItem(SPACES_STORAGE_KEY);
