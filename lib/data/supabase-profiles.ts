@@ -3,6 +3,10 @@ import type { Profile, CoupleProfile } from "./profiles";
 
 // Create or update profile in Supabase
 export async function saveProfileToSupabase(profile: Profile): Promise<Profile | null> {
+  if (!supabase) {
+    return null;
+  }
+
   const { data, error } = await supabase
     .from("profiles")
     .upsert(
@@ -68,6 +72,10 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
 export async function getProfileFromSupabase(
   userId: string
 ): Promise<Profile | null> {
+  if (!supabase) {
+    return null;
+  }
+
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
