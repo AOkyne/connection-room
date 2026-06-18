@@ -64,7 +64,8 @@ export async function signUpWithPassword(
   }
 
   try {
-    const { error } = await supabase.auth.signUp({
+    // First, sign up the user
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -75,10 +76,23 @@ export async function signUpWithPassword(
       },
     });
 
-    if (error) {
+    if (signUpError) {
       return {
         success: false,
-        error: error.message,
+        error: signUpError.message,
+      };
+    }
+
+    // For password signup, immediately sign them in (no email confirmation needed for password auth)
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError) {
+      return {
+        success: false,
+        error: signInError.message,
       };
     }
 
