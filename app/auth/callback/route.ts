@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
 
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const code = searchParams.get("code");
-  const error = searchParams.get("error");
-  const errorDescription = searchParams.get("error_description");
+  const url = new URL(request.url);
+  const searchParams = url.searchParams;
+  const hashParams = new URLSearchParams(url.hash.substring(1)); // Parse hash fragment
 
-  console.log("Callback route hit. Code:", !!code, "Error:", error, "Params:", Object.fromEntries(searchParams));
+  const code = searchParams.get("code");
+  const error = searchParams.get("error") || hashParams.get("error");
+  const errorDescription = searchParams.get("error_description") || hashParams.get("error_description");
+  const errorCode = hashParams.get("error_code");
+
+  console.log("Callback route hit. Code:", !!code, "Error:", error, "ErrorCode:", errorCode);
 
   if (!supabase) {
     console.error("Supabase not configured");
