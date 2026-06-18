@@ -7,7 +7,7 @@ import { getAllBadges } from "@/lib/data/badges";
 import { getUpcomingEvents } from "@/lib/data/events";
 import { getAllOffers } from "@/lib/data/offers";
 import { Card, CardHeader } from "@/components/Card";
-import { IconConnection, IconDemo, IconSpaces, IconBadges, IconProgress, IconUpcoming, IconAlert, IconForYou, IconChat } from "@/components/Icons";
+import { IconConnection, IconDemo, IconSpaces, IconBadges, IconProgress, IconUpcoming, IconAlert, IconForYou, IconChat, IconProfileNav } from "@/components/Icons";
 import { getBadgeIcon } from "@/lib/badge-icons";
 import { getOfferIcon } from "@/lib/offer-icons";
 
@@ -54,7 +54,7 @@ export default function AdminPage() {
 
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
-          <CardHeader title="Total Members" icon="👥" />
+          <CardHeader title="Total Members" icon={<IconProfileNav size={20} />} />
           <p className="text-3xl font-bold text-[#d4a574]">247</p>
           <p className="text-sm text-[#a0968a] mt-2">+12 this week</p>
         </Card>
@@ -138,7 +138,7 @@ export default function AdminPage() {
         </Card>
 
         <Card>
-          <CardHeader title="Quick Stats" icon="📈" />
+          <CardHeader title="Quick Stats" icon={<IconProgress size={20} />} />
           <div className="space-y-2 text-sm">
             <p className="text-[#6b5f52]">Avg comments per post: 2.4</p>
             <p className="text-[#6b5f52]">Pairing opt-in rate: 67%</p>
