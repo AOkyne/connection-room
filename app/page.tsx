@@ -16,7 +16,7 @@ export default function Home() {
             <img
               src="/Connection-room-logo.png"
               alt="The Connection Room"
-              className="h-24 w-auto"
+              className="h-32 w-auto"
             />
           </Link>
           <Link href="/auth">
