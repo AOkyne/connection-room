@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getSession, clearSession, type DemoSession } from "@/lib/session";
+import { getSession, clearSession, type AppSession } from "@/lib/session";
 import { Button } from "@/components/Button";
 import { IconHome, IconJourney, IconPairingsNav, IconProfileNav, IconAdmin, IconSpaces } from "@/components/Icons";
 import Link from "next/link";
@@ -13,18 +13,22 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const router = useRouter();
-  const [session, setSession] = useState<DemoSession | null>(null);
+  const [session, setSession] = useState<AppSession | null>(null);
   const [mounted, setMounted] = useState(false);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
-    setMounted(true);
-    const s = getSession();
-    if (!s) {
-      router.push("/auth");
-    } else {
-      setSession(s);
-    }
+    const checkSession = async () => {
+      const s = await getSession();
+      if (!s) {
+        router.push("/auth");
+      } else {
+        setSession(s);
+      }
+      setMounted(true);
+    };
+
+    checkSession();
   }, [router]);
 
   // Don't render until mounted and session checked
@@ -37,8 +41,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
     return null;
   }
 
-  const handleLogout = () => {
-    clearSession();
+  const handleLogout = async () => {
+    await clearSession();
     router.push("/");
   };
 

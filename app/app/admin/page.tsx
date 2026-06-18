@@ -20,23 +20,29 @@ export default function AdminPage() {
   const [concerns, setConcerns] = useState<any[]>([]);
 
   useEffect(() => {
-    const session = getSession();
-    if (!session || session.type !== "admin") {
-      router.push("/app");
-    }
-
-    setMounted(true);
-    setBadges(getAllBadges());
-    setEvents(getUpcomingEvents());
-    setOffers(getAllOffers());
-
-    // Load reported concerns from localStorage
-    if (typeof window !== "undefined") {
-      const storedConcerns = localStorage.getItem("connection-room:pairing-reports");
-      if (storedConcerns) {
-        setConcerns(JSON.parse(storedConcerns));
+    const checkAuth = async () => {
+      const session = await getSession();
+      if (!session || session.type !== "admin") {
+        router.push("/app");
+        return;
       }
-    }
+
+      setBadges(getAllBadges());
+      setEvents(getUpcomingEvents());
+      setOffers(getAllOffers());
+
+      // Load reported concerns from localStorage
+      if (typeof window !== "undefined") {
+        const storedConcerns = localStorage.getItem("connection-room:pairing-reports");
+        if (storedConcerns) {
+          setConcerns(JSON.parse(storedConcerns));
+        }
+      }
+
+      setMounted(true);
+    };
+
+    checkAuth();
   }, [router]);
 
   if (!mounted) {

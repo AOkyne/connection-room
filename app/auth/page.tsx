@@ -1,15 +1,125 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
 import { createMemberSession, createAdminSession } from "@/lib/session";
 import { createDemoProfile } from "@/lib/data/profiles";
 import { IconDemo } from "@/components/Icons";
+import { isBetaMode } from "@/lib/app-mode";
+import { signInWithEmail } from "@/lib/auth/supabase";
 import Link from "next/link";
 
-function AuthContent() {
+function BetaAuthContent() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const handleBetaSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const result = await signInWithEmail(email);
+    if (result.success) {
+      setSuccess(true);
+      setTimeout(() => {
+        router.push("/auth/check-email");
+      }, 1000);
+    } else {
+      setError(result.error || "Failed to send magic link");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#fdfbf7] flex flex-col">
+      <header className="border-b border-[#e8e3db] bg-white/80 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
+          <Link href="/" className="flex items-center">
+            <img
+              src="/Connection-room-logo.png"
+              alt="The Connection Room"
+              className="h-32 w-auto"
+            />
+          </Link>
+        </div>
+      </header>
+
+      <div className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md">
+          <div className="bg-white rounded-xl p-8 shadow-md border border-[#e8e3db] space-y-6">
+            <div className="text-center space-y-2">
+              <h2 className="text-3xl font-bold text-[#1a1714]">Beta Sign In</h2>
+              <p className="text-[#6b6460]">Enter your email to get started</p>
+            </div>
+
+            {success && (
+              <div className="bg-[#e8f5e9] border border-[#8fa878] rounded-lg p-4">
+                <p className="text-sm text-[#2a5e2a]">
+                  Check your email for a magic link to sign in!
+                </p>
+              </div>
+            )}
+
+            {error && (
+              <div className="bg-[#ffebee] border border-[#b86a52] rounded-lg p-4">
+                <p className="text-sm text-[#6b2c1f]">{error}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleBetaSignIn} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[#1a1714] mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
+                />
+              </div>
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                className="w-full"
+                disabled={loading || !email}
+              >
+                {loading ? "Sending magic link..." : "Send Magic Link"}
+              </Button>
+            </form>
+
+            <div className="bg-[#f8f6f2] rounded-lg p-4 text-sm text-[#6b6460] space-y-2">
+              <p className="font-medium text-[#1a1714]">Welcome to Beta Testing</p>
+              <ul className="space-y-1">
+                <li>• Check your email for a magic link</li>
+                <li>• Click the link to sign in</li>
+                <li>• Complete your profile setup</li>
+                <li>• Explore the community</li>
+              </ul>
+            </div>
+
+            <div className="text-center space-y-2 pt-4 border-t border-[#e8e3db]">
+              <Link href="/" className="block text-[#8b6f47] hover:text-[#c9a876] font-medium">
+                ← Back to Home
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DemoAuthContent() {
   const router = useRouter();
 
   const [displayName, setDisplayName] = useState("");
@@ -44,7 +154,6 @@ function AuthContent() {
 
   return (
     <div className="min-h-screen bg-[#fdfbf7] flex flex-col">
-      {/* Header */}
       <header className="border-b border-[#e8e3db] bg-white/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center">
@@ -57,7 +166,6 @@ function AuthContent() {
         </div>
       </header>
 
-      {/* Main Content */}
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-xl p-8 shadow-md border border-[#e8e3db] space-y-6">
@@ -66,7 +174,6 @@ function AuthContent() {
               <p className="text-[#6b6460]">Enter the community to explore</p>
             </div>
 
-            {/* Quick Demo Access */}
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-[#1a1714] mb-2">
@@ -105,7 +212,6 @@ function AuthContent() {
               </Button>
             </div>
 
-            {/* Or Skip to Quick Tour */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-[#e8e3db]"></div>
@@ -125,18 +231,15 @@ function AuthContent() {
               Quick Demo Tour (No Name)
             </Button>
 
-            {/* Info Text */}
             <div className="bg-[#f8f6f2] rounded-lg p-4 text-sm text-[#6b6460] space-y-2">
-              <p className="font-medium text-[#1a1714] flex items-center gap-2"><IconDemo size={16} /> Demo Mode Notes:</p>
+              <p className="font-medium text-[#1a1714] flex items-center gap-2"><IconDemo size={16} /> Demo Mode</p>
               <ul className="space-y-1 list-disc list-inside">
                 <li>All data is local and resets on refresh</li>
                 <li>No account creation needed yet</li>
                 <li>Experience the full community interface</li>
-                <li>Real Supabase integration coming in Phase 2</li>
               </ul>
             </div>
 
-            {/* Footer Links */}
             <div className="text-center space-y-2 pt-4 border-t border-[#e8e3db]">
               <Link href="/" className="block text-[#8b6f47] hover:text-[#c9a876] font-medium">
                 ← Back to Home
@@ -153,6 +256,16 @@ function AuthContent() {
       </div>
     </div>
   );
+}
+
+function AuthContent() {
+  const betaMode = isBetaMode();
+
+  if (betaMode) {
+    return <BetaAuthContent />;
+  }
+
+  return <DemoAuthContent />;
 }
 
 export default function AuthPage() {
