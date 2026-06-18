@@ -1,12 +1,13 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
 import { createMemberSession, createAdminSession } from "@/lib/session";
 import { createDemoProfile } from "@/lib/data/profiles";
-import { IconLogo, IconDemo } from "@/components/Icons";
+import { IconDemo } from "@/components/Icons";
 import Link from "next/link";
 
 function AuthContent() {
@@ -46,10 +47,16 @@ function AuthContent() {
     <div className="min-h-screen bg-[#fdfbf7] flex flex-col">
       {/* Header */}
       <header className="border-b border-[#e8e3db] bg-white/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2">
-            <IconLogo size={40} />
-            <h1 className="text-xl font-bold text-[#1a1714]">{appConfig.name}</h1>
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/Connection-room-logo.png"
+              alt="The Connection Room"
+              width={280}
+              height={80}
+              priority
+              className="h-16 w-auto"
+            />
           </Link>
         </div>
       </header>

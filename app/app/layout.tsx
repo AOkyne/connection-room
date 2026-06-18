@@ -1,10 +1,11 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { getSession, clearSession, type DemoSession } from "@/lib/session";
 import { Button } from "@/components/Button";
-import { IconHome, IconJourney, IconPairingsNav, IconProfileNav, IconLogo, IconAdmin, IconSpaces } from "@/components/Icons";
+import { IconHome, IconJourney, IconPairingsNav, IconProfileNav, IconAdmin, IconSpaces } from "@/components/Icons";
 import Link from "next/link";
 
 interface AppLayoutProps {
@@ -54,11 +55,17 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <div className="min-h-screen bg-[#fdfbf7] flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white border-b border-[#e8e3db]">
-        <div className="px-4 py-3 sm:px-6 lg:px-8">
+        <div className="px-4 py-2 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
-            <Link href="/app" className="flex items-center gap-2">
-              <IconLogo size={36} />
-              <h1 className="text-lg font-bold text-[#1a1714]">The Connection Room</h1>
+            <Link href="/app" className="flex items-center">
+              <Image
+                src="/Connection-room-logo.png"
+                alt="The Connection Room"
+                width={280}
+                height={80}
+                priority
+                className="h-14 w-auto"
+              />
             </Link>
             <div className="flex items-center gap-4">
               <span className="text-sm text-[#6b6460]">{session.name}</span>

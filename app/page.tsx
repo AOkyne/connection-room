@@ -1,9 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
-import { IconLogo, IconEmbodiment, IconConnection, IconIntegration, IconDemo } from "@/components/Icons";
+import { IconEmbodiment, IconConnection, IconIntegration, IconDemo } from "@/components/Icons";
 import Link from "next/link";
 
 export default function Home() {
@@ -11,11 +12,17 @@ export default function Home() {
     <div className="min-h-screen bg-[#fdfbf7] flex flex-col">
       {/* Header */}
       <header className="border-b border-[#e8e3db] sticky top-0 z-40 bg-white/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <IconLogo size={40} />
-            <h1 className="text-xl font-bold text-[#1a1714]">{appConfig.name}</h1>
-          </div>
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex justify-between items-center">
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/Connection-room-logo.png"
+              alt="The Connection Room"
+              width={280}
+              height={80}
+              priority
+              className="h-16 w-auto"
+            />
+          </Link>
           <Link href="/auth">
             <Button variant="outline" size="md">
               Sign In
