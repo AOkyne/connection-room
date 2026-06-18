@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession, clearSession, type DemoSession } from "@/lib/session";
 import { Button } from "@/components/Button";
+import { IconHome, IconJourney, IconPairingsNav, IconProfileNav } from "@/components/Icons";
 import Link from "next/link";
 
 interface AppLayoutProps {
@@ -42,11 +43,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
   };
 
   const navItems = [
-    { href: "/app", label: "Home", icon: "🏠" },
-    { href: "/app/spaces", label: "Spaces", icon: "🏛️" },
-    { href: "/app/journey", label: "My Journey", icon: "🗺️" },
-    { href: "/app/pairings", label: "Pairings", icon: "🤝" },
-    { href: "/app/profile", label: "Profile", icon: "👤" },
+    { href: "/app", label: "Home", icon: IconHome },
+    { href: "/app/spaces", label: "Spaces", icon: null },
+    { href: "/app/journey", label: "My Journey", icon: IconJourney },
+    { href: "/app/pairings", label: "Pairings", icon: IconPairingsNav },
+    { href: "/app/profile", label: "Profile", icon: IconProfileNav },
   ];
 
   return (
@@ -79,7 +80,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 href={item.href}
                 className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#6b6460] hover:bg-[#f8f6f2] transition-colors"
               >
-                <span className="text-lg">{item.icon}</span>
+                {item.icon ? <item.icon size={20} /> : <span className="text-lg">🏛️</span>}
                 <span>{item.label}</span>
               </Link>
             ))}
@@ -111,7 +112,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 href={item.href}
                 className="flex flex-col items-center gap-1 px-3 py-2 text-[#6b6460] hover:text-[#8b6f47] text-xs whitespace-nowrap"
               >
-                <span className="text-lg">{item.icon}</span>
+                {item.icon ? <item.icon size={18} /> : <span className="text-lg">🏛️</span>}
                 <span>{item.label}</span>
               </Link>
             ))}
