@@ -192,24 +192,27 @@ export default function AppHome() {
         )}
 
         {/* Personalized Offers */}
-        {offers.length > 0 && (
-          <Card className="md:col-span-2 bg-gradient-to-r from-[#f3ede5] to-[#fffbf7]">
-            <CardHeader title="For You" icon={<>{(() => { const Icon = getOfferIcon(offers[0].id); return <Icon size={20} />; })()}</>} />
-            <div className="space-y-3">
-              {offers.slice(0, 1).map((offer) => (
-                <div key={offer.id}>
-                  <p className="font-medium text-[#2a2318]">{offer.title}</p>
-                  <p className="text-sm text-[#6b5f52] mt-1">{offer.description}</p>
-                  <a href={offer.url} target="_blank" rel="noopener noreferrer">
-                    <Button variant="primary" size="sm" className="mt-3">
-                      {offer.cta} →
-                    </Button>
-                  </a>
-                </div>
-              ))}
-            </div>
-          </Card>
-        )}
+        {offers.length > 0 && (() => {
+          const OfferIcon = getOfferIcon(offers[0].id);
+          return (
+            <Card className="md:col-span-2 bg-gradient-to-r from-[#f3ede5] to-[#fffbf7]">
+              <CardHeader title="For You" icon={<OfferIcon size={20} />} />
+              <div className="space-y-3">
+                {offers.slice(0, 1).map((offer) => (
+                  <div key={offer.id}>
+                    <p className="font-medium text-[#2a2318]">{offer.title}</p>
+                    <p className="text-sm text-[#6b5f52] mt-1">{offer.description}</p>
+                    <a href={offer.url} target="_blank" rel="noopener noreferrer">
+                      <Button variant="primary" size="sm" className="mt-3">
+                        {offer.cta} →
+                      </Button>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          );
+        })()}
 
         {/* Quick Actions */}
         <Card>
