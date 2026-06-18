@@ -7,7 +7,7 @@ import { getAllBadges } from "@/lib/data/badges";
 import { getUpcomingEvents } from "@/lib/data/events";
 import { getAllOffers } from "@/lib/data/offers";
 import { Card, CardHeader } from "@/components/Card";
-import { IconConnection, IconDemo, IconSpaces, IconBadges } from "@/components/Icons";
+import { IconConnection, IconDemo, IconSpaces, IconBadges, IconProgress, IconUpcoming, IconAlert } from "@/components/Icons";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -96,7 +96,7 @@ export default function AdminPage() {
         </Card>
 
         <Card>
-          <CardHeader title="Member Types" icon="📊" />
+          <CardHeader title="Member Types" icon={<IconProgress size={20} />} />
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-[#6b5f52]">Individual</span>
@@ -114,7 +114,7 @@ export default function AdminPage() {
         </Card>
 
         <Card>
-          <CardHeader title="Reported Concerns" icon="⚠️" />
+          <CardHeader title="Reported Concerns" icon={<IconAlert size={20} />} />
           <div className="space-y-3">
             {concerns.length > 0 ? (
               <>
@@ -161,7 +161,7 @@ export default function AdminPage() {
 
       {/* Upcoming Events */}
       <Card>
-        <CardHeader title="Upcoming Events" icon="📅" />
+        <CardHeader title="Upcoming Events" icon={<IconUpcoming size={20} />} />
         <div className="space-y-3">
           {events.length > 0 ? (
             events.slice(0, 3).map((event) => (

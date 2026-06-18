@@ -358,3 +358,14 @@ export function IconDemo({ className = "", size = 24 }: IconProps) {
     </svg>
   );
 }
+
+// Alert - warning triangle
+export function IconAlert({ className = "", size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
+      <path d="M12 2L2 20H22L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="12" cy="17" r="1" fill="currentColor"/>
+    </svg>
+  );
+}

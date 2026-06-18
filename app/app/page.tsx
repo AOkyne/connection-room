@@ -9,7 +9,7 @@ import { getUpcomingEvents } from "@/lib/data/events";
 import { getRelevantOffers } from "@/lib/data/offers";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
-import { IconReflection, IconProgress, IconUpcoming, IconBadges, IconForYou } from "@/components/Icons";
+import { IconReflection, IconProgress, IconUpcoming, IconBadges, IconForYou, IconDemo } from "@/components/Icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -227,7 +227,7 @@ export default function AppHome() {
 
       {/* Info Banner */}
       <div className="bg-[#f3ede5] border border-[#e8ddd2] rounded-lg p-4 text-sm text-[#6b5f52]">
-        <p className="font-medium text-[#2a2318] mb-2">🧪 Demo Mode</p>
+        <p className="font-medium text-[#2a2318] mb-2 flex items-center gap-2"><IconDemo size={16} /> Demo Mode</p>
         <p>
           You're exploring in demo mode. All data is local and resets on browser refresh. In Phase
           2, we'll connect to Supabase for persistent accounts.

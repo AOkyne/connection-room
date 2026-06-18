@@ -14,7 +14,7 @@ import {
 } from "@/lib/data/pairings";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
-import { IconConnection } from "@/components/Icons";
+import { IconConnection, IconForYou } from "@/components/Icons";
 
 export default function PairingsPage() {
   const [profile, setProfile] = useState<any>(null);
@@ -95,7 +95,7 @@ export default function PairingsPage() {
 
       {/* Preferences */}
       <Card>
-        <CardHeader title="Your Preferences" icon="🎯" />
+        <CardHeader title="Your Preferences" icon={<IconForYou size={20} />} />
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-[#2a2318] mb-3">

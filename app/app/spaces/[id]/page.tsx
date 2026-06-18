@@ -9,7 +9,7 @@ import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { SpaceIconSVG } from "@/components/SpaceIconSVG";
-import { IconIntegration } from "@/components/Icons";
+import { IconIntegration, IconReflection } from "@/components/Icons";
 import Link from "next/link";
 
 interface Post {
@@ -116,7 +116,7 @@ export default function SpaceDetailPage() {
       {/* Featured Prompt */}
       {space.featuredPrompt && (
         <Card className="bg-gradient-to-r from-[#f3ede5] to-[#fffbf7]">
-          <CardHeader title="Today's Prompt" icon="💭" />
+          <CardHeader title="Today's Prompt" icon={<IconReflection size={20} />} />
           <p className="text-[#6b5f52] italic text-lg mb-4">"{space.featuredPrompt}"</p>
           <Button variant="secondary" size="md">
             Respond to Prompt

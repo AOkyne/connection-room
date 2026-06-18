@@ -6,7 +6,7 @@ import { getProfile, updateProfile, type Profile } from "@/lib/data/profiles";
 import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
 import { Card, CardHeader } from "@/components/Card";
-import { IconConnection, IconIntegration, IconProfile } from "@/components/Icons";
+import { IconConnection, IconIntegration, IconProfile, IconCouples, IconReflection } from "@/components/Icons";
 import Link from "next/link";
 
 type Step = "welcome" | "agreements" | "member-type" | "basics" | "photo" | "interests" | "pairings" | "couples" | "prompt" | "complete";
@@ -386,7 +386,7 @@ export default function OnboardingPage() {
 
           {currentStep === "couples" && coupleMode && (
             <Card>
-              <CardHeader title="Couples Profile" icon="🕊️" />
+              <CardHeader title="Couples Profile" icon={<IconCouples size={20} />} />
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-[#2a2318] mb-2">Couple Name (optional)</label>
@@ -426,7 +426,7 @@ export default function OnboardingPage() {
 
           {currentStep === "prompt" && (
             <Card>
-              <CardHeader title="First Reflection" icon="💭" />
+              <CardHeader title="First Reflection" icon={<IconReflection size={20} />} />
               <div className="space-y-4">
                 <div className="bg-[#f3ede5] p-4 rounded-lg italic text-[#6b5f52]">
                   "What kind of connection are you craving this week, and what part of you feels hesitant to ask for it?"

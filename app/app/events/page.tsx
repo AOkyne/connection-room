@@ -5,6 +5,7 @@ import { getProfile } from "@/lib/data/profiles";
 import { getUpcomingEvents, toggleEventInterest, getUserEventInterests } from "@/lib/data/events";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { IconUpcoming } from "@/components/Icons";
 
 export default function EventsPage() {
   const [profile, setProfile] = useState<any>(null);
@@ -118,7 +119,7 @@ export default function EventsPage() {
 
       {/* Info Card */}
       <Card className="bg-[#f3ede5]">
-        <CardHeader title="About Events" icon="📅" />
+        <CardHeader title="About Events" icon={<IconUpcoming size={20} />} />
         <ul className="space-y-3 text-[#6b5f52] text-sm">
           <li className="flex items-start gap-3">
             <span className="text-[#d4a574]">✓</span>
