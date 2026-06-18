@@ -45,24 +45,42 @@ export async function getUserJoinedSpaces(userId: string): Promise<Space[]> {
   if (!supabase) return [];
 
   try {
-    const { data, error } = await supabase
+    // Get space IDs that user has joined
+    const { data: memberships, error: membershipError } = await supabase
       .from("space_memberships")
-      .select("space_id, spaces(*)")
+      .select("space_id")
       .eq("user_id", userId);
 
-    if (error) {
-      console.error("Error fetching user spaces:", error);
+    if (membershipError) {
+      console.error("Error fetching user space memberships:", membershipError);
+      return [];
+    }
+
+    if (!memberships || memberships.length === 0) {
+      return [];
+    }
+
+    const spaceIds = memberships.map((m: any) => m.space_id);
+
+    // Fetch space details for those IDs
+    const { data: spaces, error: spacesError } = await supabase
+      .from("spaces")
+      .select("*")
+      .in("id", spaceIds);
+
+    if (spacesError) {
+      console.error("Error fetching space details:", spacesError);
       return [];
     }
 
     return (
-      data?.map((membership: any) => ({
-        id: membership.spaces.id,
-        name: membership.spaces.name,
-        slug: membership.spaces.slug,
-        description: membership.spaces.description,
-        icon: membership.spaces.icon,
-        visibility: membership.spaces.visibility,
+      spaces?.map((space) => ({
+        id: space.id,
+        name: space.name,
+        slug: space.slug,
+        description: space.description,
+        icon: space.icon,
+        visibility: space.visibility,
       })) || []
     );
   } catch (err) {
