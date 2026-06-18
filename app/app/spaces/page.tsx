@@ -10,19 +10,25 @@ import { getSpaces, joinSpace, leaveSpace, type Space } from "@/lib/data/spaces"
 export default function SpacesPage() {
   const [spaces, setSpaces] = useState<Space[]>([]);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
-    setSpaces(getSpaces());
+    const loadSpaces = async () => {
+      const s = await getSpaces();
+      setSpaces(s);
+    };
+
+    loadSpaces();
   }, []);
 
-  const handleJoinSpace = (spaceId: string) => {
-    joinSpace(spaceId);
-    setSpaces(getSpaces());
+  const handleJoinSpace = async (spaceId: string) => {
+    await joinSpace(spaceId);
+    const s = await getSpaces();
+    setSpaces(s);
   };
 
-  const handleLeaveSpace = (spaceId: string) => {
-    leaveSpace(spaceId);
-    setSpaces(getSpaces());
+  const handleLeaveSpace = async (spaceId: string) => {
+    await leaveSpace(spaceId);
+    const s = await getSpaces();
+    setSpaces(s);
   };
 
   const joinedSpaces = spaces.filter((s) => s.isJoined);

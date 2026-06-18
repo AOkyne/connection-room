@@ -19,18 +19,22 @@ export default function JourneyPage() {
   const [badges, setBadges] = useState<any[]>([]);
   const [mounted, setMounted] = useState(false);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
-    setMounted(true);
-    const p = getProfile();
-    setProfile(p);
-    const s = getSpaces();
-    setSpaces(s);
+    const loadData = async () => {
+      const p = await getProfile();
+      setProfile(p);
+      const s = await getSpaces();
+      setSpaces(s);
 
-    if (p) {
-      const b = getUserBadges(p.id);
-      setBadges(b);
-    }
+      if (p) {
+        const b = getUserBadges(p.id);
+        setBadges(b);
+      }
+
+      setMounted(true);
+    };
+
+    loadData();
   }, []);
 
   if (!mounted || !profile) return <div>Loading...</div>;

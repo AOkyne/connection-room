@@ -11,15 +11,18 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [saved, setSaved] = useState(false);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
-    const p = getProfile();
-    setProfile(p);
+    const loadProfile = async () => {
+      const p = await getProfile();
+      setProfile(p);
+    };
+
+    loadProfile();
   }, []);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (profile) {
-      updateProfile(profile);
+      await updateProfile(profile);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     }

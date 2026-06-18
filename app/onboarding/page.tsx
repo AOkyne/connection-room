@@ -18,15 +18,19 @@ export default function OnboardingPage() {
   const [coupleMode, setCoupleMode] = useState(false);
 
   useEffect(() => {
-    const p = getProfile();
-    if (!p) {
-      router.push("/auth");
-    } else {
-      setProfile(p);
-      if (p.completedOnboarding) {
-        router.push("/app");
+    const loadProfile = async () => {
+      const p = await getProfile();
+      if (!p) {
+        router.push("/auth");
+      } else {
+        setProfile(p);
+        if (p.completedOnboarding) {
+          router.push("/app");
+        }
       }
-    }
+    };
+
+    loadProfile();
   }, [router]);
 
   if (!profile) return null;
@@ -52,16 +56,16 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleUpdate = (updates: Partial<Profile>) => {
+  const handleUpdate = async (updates: Partial<Profile>) => {
     const updated = { ...profile, ...updates };
     setProfile(updated);
-    updateProfile(updated);
+    await updateProfile(updated);
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     const updated = { ...profile, completedOnboarding: true };
     setProfile(updated);
-    updateProfile(updated);
+    await updateProfile(updated);
     router.push("/app");
   };
 

@@ -29,16 +29,43 @@ export async function GET(request: NextRequest) {
 
       const { user } = data.session;
 
-      // Check if user has completed onboarding
       if (user?.id) {
-        const { data: profile } = await supabase
+        // Check if profile exists
+        const { data: existingProfile, error: profileError } = await supabase
           .from("profiles")
-          .select("completed_onboarding")
+          .select("id, completed_onboarding")
           .eq("user_id", user.id)
           .single();
 
-        if (profile?.completed_onboarding) {
-          return NextResponse.redirect(new URL("/app/dashboard", request.url));
+        // If profile doesn't exist, create it
+        if (!existingProfile && !profileError) {
+          const displayName = user.email?.split("@")[0] || "User";
+          const initials = displayName
+            .split(".")
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase()
+            .slice(0, 2);
+
+          const avatarDataUrl = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect fill='%23d4a574' width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' font-size='80' font-weight='bold' fill='white' text-anchor='middle' dy='.3em'%3E${initials}%3C/text%3E%3C/svg%3E`;
+
+          const { error: insertError } = await supabase.from("profiles").insert({
+            user_id: user.id,
+            display_name: displayName,
+            member_type: "individual",
+            interests: [],
+            profile_photo: avatarDataUrl,
+            completed_onboarding: false,
+          });
+
+          if (insertError) {
+            console.error("Error creating profile:", insertError);
+          }
+        }
+
+        // Check if onboarding is complete
+        if (existingProfile?.completed_onboarding) {
+          return NextResponse.redirect(new URL("/app", request.url));
         }
       }
 

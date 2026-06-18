@@ -1,6 +1,11 @@
-// Posts and comments data access layer - demo mode with localStorage
-
+import { supabase } from "@/lib/supabase/client";
 import { demoPosts, demoBadges } from "./demo-data";
+import {
+  getSupabasePosts,
+  createSupabasePost,
+  getSupabaseComments,
+  createSupabaseComment,
+} from "./supabase-posts";
 
 export interface Post {
   id: string;
@@ -28,12 +33,31 @@ export interface Comment {
 const POSTS_STORAGE_KEY = "connection-room:posts";
 const COMMENTS_STORAGE_KEY = "connection-room:comments";
 
+// Get current authenticated user ID
+async function getCurrentUserId(): Promise<string | null> {
+  if (typeof window === "undefined" || !supabase) return null;
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    return session?.user?.id || null;
+  } catch (err) {
+    return null;
+  }
+}
+
 // Get all posts (or posts for a specific space)
-export function getPosts(spaceId?: string): Post[] {
+export async function getPosts(spaceId?: string): Promise<Post[]> {
   if (typeof window === "undefined") {
     return demoPosts;
   }
 
+  const userId = await getCurrentUserId();
+  if (userId && supabase) {
+    return await getSupabasePosts(spaceId);
+  }
+
+  // Demo mode fallback
   const stored = localStorage.getItem(POSTS_STORAGE_KEY);
   const posts = stored ? JSON.parse(stored) : demoPosts;
 
@@ -45,20 +69,42 @@ export function getPosts(spaceId?: string): Post[] {
 }
 
 // Get single post
-export function getPost(postId: string): Post | null {
-  const posts = getPosts();
+export async function getPost(postId: string): Promise<Post | null> {
+  const posts = await getPosts();
   return posts.find((p) => p.id === postId) || null;
 }
 
 // Create new post
-export function createPost(
+export async function createPost(
   spaceId: string,
   authorName: string,
   content: string,
   isPromptResponse: boolean = false,
   promptId?: string,
   authorPronouns?: string
-): Post {
+): Promise<Post> {
+  if (typeof window === "undefined") {
+    return {
+      id: `post-${Date.now()}`,
+      spaceId,
+      authorName,
+      authorPronouns,
+      promptId,
+      content,
+      isPromptResponse,
+      createdAt: new Date(),
+      reactions: {},
+      commentCount: 0,
+    };
+  }
+
+  const userId = await getCurrentUserId();
+  if (userId && supabase) {
+    const post = await createSupabasePost(spaceId, userId, content, isPromptResponse, promptId);
+    if (post) return post;
+  }
+
+  // Demo mode fallback
   const post: Post = {
     id: `post-${Date.now()}`,
     spaceId,
@@ -72,24 +118,28 @@ export function createPost(
     commentCount: 0,
   };
 
-  if (typeof window !== "undefined") {
-    const posts = getPosts();
-    posts.unshift(post);
-    localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
-  }
+  const posts = await getPosts();
+  posts.unshift(post);
+  localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
 
   return post;
 }
 
 // Add reaction to post
-export function addPostReaction(postId: string, reactionType: string, userName: string): void {
+export async function addPostReaction(postId: string, reactionType: string, userName: string): Promise<void> {
   if (typeof window === "undefined") return;
 
-  const posts = getPosts();
+  const userId = await getCurrentUserId();
+  if (userId && supabase) {
+    // Supabase will handle reactions table
+    return;
+  }
+
+  // Demo mode fallback
+  const posts = await getPosts();
   const post = posts.find((p: Post) => p.id === postId);
   if (!post) return;
 
-  const reactionKey = `${reactionType}|${userName}`;
   if (!post.reactions[reactionType]) {
     post.reactions[reactionType] = 0;
   }
@@ -99,9 +149,15 @@ export function addPostReaction(postId: string, reactionType: string, userName: 
 }
 
 // Get comments for a post
-export function getComments(postId: string): Comment[] {
+export async function getComments(postId: string): Promise<Comment[]> {
   if (typeof window === "undefined") return [];
 
+  const userId = await getCurrentUserId();
+  if (userId && supabase) {
+    return await getSupabaseComments(postId);
+  }
+
+  // Demo mode fallback
   const stored = localStorage.getItem(COMMENTS_STORAGE_KEY);
   const comments = stored ? JSON.parse(stored) : [];
 
@@ -109,12 +165,31 @@ export function getComments(postId: string): Comment[] {
 }
 
 // Create comment
-export function createComment(
+export async function createComment(
   postId: string,
   authorName: string,
   content: string,
   authorPronouns?: string
-): Comment {
+): Promise<Comment> {
+  if (typeof window === "undefined") {
+    return {
+      id: `comment-${Date.now()}`,
+      postId,
+      authorName,
+      authorPronouns,
+      content,
+      createdAt: new Date(),
+      reactions: {},
+    };
+  }
+
+  const userId = await getCurrentUserId();
+  if (userId && supabase) {
+    const comment = await createSupabaseComment(postId, userId, content);
+    if (comment) return comment;
+  }
+
+  // Demo mode fallback
   const comment: Comment = {
     id: `comment-${Date.now()}`,
     postId,
@@ -125,36 +200,31 @@ export function createComment(
     reactions: {},
   };
 
-  if (typeof window !== "undefined") {
-    const comments = getComments(postId);
-    comments.push(comment);
-    localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(comments));
+  const comments = await getComments(postId);
+  comments.push(comment);
+  localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(comments));
 
-    // Increment post comment count
-    const posts = getPosts();
-    const post = posts.find((p: Post) => p.id === postId);
-    if (post) {
-      post.commentCount++;
-      localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
-    }
+  // Increment post comment count
+  const posts = await getPosts();
+  const post = posts.find((p: Post) => p.id === postId);
+  if (post) {
+    post.commentCount++;
+    localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
   }
 
   return comment;
 }
 
 // Add reaction to comment
-export function addCommentReaction(commentId: string, reactionType: string): void {
+export async function addCommentReaction(commentId: string, reactionType: string): Promise<void> {
   if (typeof window === "undefined") return;
 
-  const postId = ""; // We'd need to store this differently in a real app
-  const comments = getComments(postId);
-  const comment = comments.find((c: Comment) => c.id === commentId);
-  if (!comment) return;
-
-  if (!comment.reactions[reactionType]) {
-    comment.reactions[reactionType] = 0;
+  const userId = await getCurrentUserId();
+  if (userId && supabase) {
+    // Supabase will handle reactions table
+    return;
   }
-  comment.reactions[reactionType]++;
 
-  localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(comments));
+  // Demo mode fallback - note: this is incomplete without postId
+  // In a real implementation, comments would track their postId
 }

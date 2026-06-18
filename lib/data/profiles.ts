@@ -1,5 +1,5 @@
-// Profile data access layer - demo mode only for Phase 1
-// In Phase 2, this will switch between local/demo and Supabase
+import { supabase } from "@/lib/supabase/client";
+import { saveProfileToSupabase, getProfileFromSupabase } from "@/lib/data/supabase-profiles";
 
 export interface Profile {
   id: string;
@@ -41,22 +41,51 @@ export interface CoupleProfile {
 const PROFILE_STORAGE_KEY = "connection-room:profile";
 const COUPLE_PROFILE_STORAGE_KEY = "connection-room:couple-profile";
 
-// Get current profile from localStorage
-export function getProfile(): Profile | null {
+// Get current authenticated Supabase user ID (client-side only)
+async function getCurrentSupabaseUserId(): Promise<string | null> {
+  if (typeof window === "undefined" || !supabase) return null;
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    return session?.user?.id || null;
+  } catch (err) {
+    return null;
+  }
+}
+
+// Get current profile from Supabase (if authenticated) or localStorage
+export async function getProfile(): Promise<Profile | null> {
   if (typeof window === "undefined") return null;
+
+  const userId = await getCurrentSupabaseUserId();
+  if (userId && supabase) {
+    const profile = await getProfileFromSupabase(userId);
+    if (profile) return profile;
+  }
+
   const stored = localStorage.getItem(PROFILE_STORAGE_KEY);
   return stored ? JSON.parse(stored) : null;
 }
 
-// Save profile to localStorage
-export function saveProfile(profile: Profile): void {
+// Save profile to Supabase (if authenticated) or localStorage
+export async function saveProfile(profile: Profile): Promise<void> {
   if (typeof window === "undefined") return;
-  localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+
+  const userId = await getCurrentSupabaseUserId();
+  if (userId && supabase) {
+    const profileWithUserId = {
+      ...profile,
+      id: userId,
+    };
+    await saveProfileToSupabase(profileWithUserId);
+  } else {
+    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+  }
 }
 
-// Create a new demo profile
+// Create a new demo profile (localStorage only, for demo mode)
 export function createDemoProfile(displayName: string, memberType: string): Profile {
-  // Generate a default avatar based on initials
   const initials = displayName
     .split(" ")
     .map((n) => n[0])
@@ -73,7 +102,34 @@ export function createDemoProfile(displayName: string, memberType: string): Prof
     completedOnboarding: false,
     joinedAt: new Date(),
   };
-  saveProfile(profile);
+  localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+  return profile;
+}
+
+// Initialize profile for newly authenticated Supabase user
+export async function initializeSupabaseProfile(email: string): Promise<Profile | null> {
+  const userId = await getCurrentSupabaseUserId();
+  if (!userId || !supabase) return null;
+
+  const displayName = email.split("@")[0];
+  const initials = displayName
+    .split(".")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  const profile: Profile = {
+    id: userId,
+    displayName,
+    memberType: "individual",
+    interests: [],
+    profilePhoto: generateAvatarUrl(initials),
+    completedOnboarding: false,
+    joinedAt: new Date(),
+  };
+
+  await saveProfile(profile);
   return profile;
 }
 
@@ -100,11 +156,11 @@ function generateAvatarUrl(initials: string): string {
 }
 
 // Update profile fields
-export function updateProfile(updates: Partial<Profile>): Profile | null {
-  const profile = getProfile();
+export async function updateProfile(updates: Partial<Profile>): Promise<Profile | null> {
+  const profile = await getProfile();
   if (!profile) return null;
   const updated = { ...profile, ...updates };
-  saveProfile(updated);
+  await saveProfile(updated);
   return updated;
 }
 

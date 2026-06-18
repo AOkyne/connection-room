@@ -43,55 +43,73 @@ export default function SpaceDetailPage() {
   const [profile, setProfile] = useState<any>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [expandedPost, setExpandedPost] = useState<string | null>(null);
+  const [comments, setComments] = useState<Record<string, Comment[]>>({});
   const [newPostContent, setNewPostContent] = useState("");
   const [newCommentContent, setNewCommentContent] = useState<Record<string, string>>({});
   const [mounted, setMounted] = useState(false);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
-    setMounted(true);
-    const s = getSpace(spaceId);
-    if (!s) {
-      router.push("/app/spaces");
-      return;
-    }
-    setSpace(s);
+    const loadData = async () => {
+      const s = await getSpace(spaceId);
+      if (!s) {
+        router.push("/app/spaces");
+        return;
+      }
+      setSpace(s);
 
-    const p = getProfile();
-    setProfile(p);
+      const p = await getProfile();
+      setProfile(p);
 
-    const spacePosts = getPosts(spaceId);
-    setPosts(spacePosts);
+      const spacePosts = await getPosts(spaceId);
+      setPosts(spacePosts);
+
+      setMounted(true);
+    };
+
+    loadData();
   }, [spaceId, router]);
 
   if (!mounted || !space || !profile) {
     return <div>Loading...</div>;
   }
 
-  const handleCreatePost = () => {
+  const handleCreatePost = async () => {
     if (!newPostContent.trim()) return;
 
-    const newPost = createPost(spaceId, profile.displayName, newPostContent, false, undefined, profile.pronouns);
+    const newPost = await createPost(spaceId, profile.displayName, newPostContent, false, undefined, profile.pronouns);
     setPosts([newPost, ...posts]);
     setNewPostContent("");
   };
 
-  const handleAddComment = (postId: string) => {
+  const handleAddComment = async (postId: string) => {
     const content = newCommentContent[postId];
     if (!content || !content.trim()) return;
 
-    createComment(postId, profile.displayName, content, profile.pronouns);
+    await createComment(postId, profile.displayName, content, profile.pronouns);
     setNewCommentContent({ ...newCommentContent, [postId]: "" });
 
     // Refresh posts to show updated comment count
-    const updatedPosts = getPosts(spaceId);
+    const updatedPosts = await getPosts(spaceId);
     setPosts(updatedPosts);
   };
 
-  const handleReaction = (postId: string, reactionType: string) => {
-    addPostReaction(postId, reactionType, profile.displayName);
-    const updatedPosts = getPosts(spaceId);
+  const handleReaction = async (postId: string, reactionType: string) => {
+    await addPostReaction(postId, reactionType, profile.displayName);
+    const updatedPosts = await getPosts(spaceId);
     setPosts(updatedPosts);
+  };
+
+  const toggleExpandPost = async (postId: string) => {
+    if (expandedPost === postId) {
+      setExpandedPost(null);
+    } else {
+      setExpandedPost(postId);
+      // Load comments for this post
+      if (!comments[postId]) {
+        const postComments = await getComments(postId);
+        setComments({ ...comments, [postId]: postComments });
+      }
+    }
   };
 
   return (
@@ -192,7 +210,7 @@ export default function SpaceDetailPage() {
 
               {/* Comments Toggle */}
               <button
-                onClick={() => setExpandedPost(expandedPost === post.id ? null : post.id)}
+                onClick={() => toggleExpandPost(post.id)}
                 className="text-sm text-[#d4a574] hover:text-[#9d7f5c] font-medium"
               >
                 {post.commentCount} {post.commentCount === 1 ? "comment" : "comments"}
@@ -202,7 +220,7 @@ export default function SpaceDetailPage() {
               {expandedPost === post.id && (
                 <div className="mt-4 pt-4 border-t border-[#e8ddd2] space-y-4">
                   {/* Existing Comments */}
-                  {getComments(post.id).map((comment: Comment) => (
+                  {(comments[post.id] || []).map((comment: Comment) => (
                     <div key={comment.id} className="bg-[#f3ede5] p-3 rounded-lg">
                       <p className="text-sm font-medium text-[#2a2318]">
                         {comment.authorName} {comment.authorPronouns && `(${comment.authorPronouns})`}

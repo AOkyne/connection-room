@@ -24,19 +24,23 @@ export default function PairingsPage() {
   const [reportConcern, setReportConcern] = useState("");
   const [mounted, setMounted] = useState(false);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
-    setMounted(true);
-    const p = getProfile();
-    setProfile(p);
+    const loadData = async () => {
+      const p = await getProfile();
+      setProfile(p);
 
-    if (p) {
-      const prefs = getPairingPreferences(p.id);
-      setPreferences(prefs);
+      if (p) {
+        const prefs = getPairingPreferences(p.id);
+        setPreferences(prefs);
 
-      const pairing = getCurrentPairing(p.id);
-      setCurrentPairingState(pairing);
-    }
+        const pairing = getCurrentPairing(p.id);
+        setCurrentPairingState(pairing);
+      }
+
+      setMounted(true);
+    };
+
+    loadData();
   }, []);
 
   if (!mounted || !profile || !preferences) {

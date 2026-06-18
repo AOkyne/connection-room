@@ -1,0 +1,157 @@
+import { supabase } from "@/lib/supabase/client";
+import type { Post, Comment } from "./posts";
+
+// Get posts from Supabase
+export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
+  if (!supabase) return [];
+
+  try {
+    let query = supabase
+      .from("posts")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (spaceId) {
+      query = query.eq("space_id", spaceId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Error fetching posts:", error);
+      return [];
+    }
+
+    return (
+      data?.map((post) => ({
+        id: post.id,
+        spaceId: post.space_id,
+        authorName: post.user_id,
+        promptId: post.prompt_id,
+        content: post.body,
+        isPromptResponse: !!post.prompt_id,
+        createdAt: new Date(post.created_at),
+        reactions: {},
+        commentCount: 0,
+      })) || []
+    );
+  } catch (err) {
+    console.error("Error in getSupabasePosts:", err);
+    return [];
+  }
+}
+
+// Create post in Supabase
+export async function createSupabasePost(
+  spaceId: string,
+  userId: string,
+  content: string,
+  isPromptResponse: boolean = false,
+  promptId?: string
+): Promise<Post | null> {
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from("posts")
+      .insert({
+        user_id: userId,
+        space_id: spaceId,
+        prompt_id: promptId || null,
+        body: content,
+        title: null,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating post:", error);
+      return null;
+    }
+
+    return {
+      id: data.id,
+      spaceId: data.space_id,
+      authorName: data.user_id,
+      promptId: data.prompt_id,
+      content: data.body,
+      isPromptResponse: !!data.prompt_id,
+      createdAt: new Date(data.created_at),
+      reactions: {},
+      commentCount: 0,
+    };
+  } catch (err) {
+    console.error("Error in createSupabasePost:", err);
+    return null;
+  }
+}
+
+// Get comments for a post from Supabase
+export async function getSupabaseComments(postId: string): Promise<Comment[]> {
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("comments")
+      .select("*")
+      .eq("post_id", postId)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching comments:", error);
+      return [];
+    }
+
+    return (
+      data?.map((comment) => ({
+        id: comment.id,
+        postId: comment.post_id,
+        authorName: comment.user_id,
+        content: comment.body,
+        createdAt: new Date(comment.created_at),
+        reactions: {},
+      })) || []
+    );
+  } catch (err) {
+    console.error("Error in getSupabaseComments:", err);
+    return [];
+  }
+}
+
+// Create comment in Supabase
+export async function createSupabaseComment(
+  postId: string,
+  userId: string,
+  content: string
+): Promise<Comment | null> {
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from("comments")
+      .insert({
+        user_id: userId,
+        post_id: postId,
+        body: content,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating comment:", error);
+      return null;
+    }
+
+    return {
+      id: data.id,
+      postId: data.post_id,
+      authorName: data.user_id,
+      content: data.body,
+      createdAt: new Date(data.created_at),
+      reactions: {},
+    };
+  } catch (err) {
+    console.error("Error in createSupabaseComment:", err);
+    return null;
+  }
+}

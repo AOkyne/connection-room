@@ -23,25 +23,33 @@ export default function AppHome() {
   const [badges, setBadges] = useState<any[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [offers, setOffers] = useState<any[]>([]);
+  const [suggestedSpace, setSuggestedSpace] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
-    setMounted(true);
-    const p = getProfile();
-    setProfile(p);
-    const s = getSpaces();
-    setSpaces(s);
+    const loadData = async () => {
+      const p = await getProfile();
+      setProfile(p);
+      const s = await getSpaces();
+      setSpaces(s);
 
-    if (p) {
-      const b = getUserBadges(p.id);
-      setBadges(b);
-      const o = getRelevantOffers(p);
-      setOffers(o);
-    }
+      if (p) {
+        const b = getUserBadges(p.id);
+        setBadges(b);
+        const o = getRelevantOffers(p);
+        setOffers(o);
+      }
 
-    const e = getUpcomingEvents();
-    setUpcomingEvents(e.slice(0, 2)); // Show first 2 events
+      const e = getUpcomingEvents();
+      setUpcomingEvents(e.slice(0, 2));
+
+      const suggested = await getSuggestedSpace();
+      setSuggestedSpace(suggested);
+
+      setMounted(true);
+    };
+
+    loadData();
   }, []);
 
   if (!mounted || !profile) {
@@ -50,7 +58,6 @@ export default function AppHome() {
 
   const nextStep = getRecommendedNextStep(profile);
   const todaysPrompt = getTodaysPrompt();
-  const suggestedSpace = getSuggestedSpace();
   const joinedSpacesCount = (profile.spacesJoined?.length ?? 0);
   const hasQuizResult = profile.quizResult && profile.quizResult !== "I have not taken the quiz yet";
 

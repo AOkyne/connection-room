@@ -13,19 +13,23 @@ export default function EventsPage() {
   const [interests, setInterests] = useState<Set<string>>(new Set());
   const [mounted, setMounted] = useState(false);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
-    setMounted(true);
-    const p = getProfile();
-    setProfile(p);
+    const loadData = async () => {
+      const p = await getProfile();
+      setProfile(p);
 
-    const e = getUpcomingEvents();
-    setEvents(e);
+      const e = getUpcomingEvents();
+      setEvents(e);
 
-    if (p) {
-      const i = getUserEventInterests(p.id);
-      setInterests(i);
-    }
+      if (p) {
+        const i = getUserEventInterests(p.id);
+        setInterests(i);
+      }
+
+      setMounted(true);
+    };
+
+    loadData();
   }, []);
 
   if (!mounted || !profile) {
