@@ -369,3 +369,18 @@ export function IconAlert({ className = "", size = 24 }: IconProps) {
     </svg>
   );
 }
+
+// Logo - triangular design
+export function IconLogo({ className = "", size = 24 }: IconProps) {
+  const scale = size / 24;
+  return (
+    <svg width={size} height={size} viewBox="0 0 120 40" fill="none" className={className}>
+      {/* Top yellow triangle */}
+      <polygon points="110,8 120,0 115,15" fill="#FFD700" />
+      {/* Middle dark triangle */}
+      <polygon points="105,20 115,8 110,25" fill="#6B5F52" />
+      {/* Bottom orange triangle */}
+      <polygon points="100,32 112,18 110,35" fill="#FF9500" />
+    </svg>
+  );
+}

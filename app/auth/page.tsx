@@ -6,7 +6,7 @@ import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
 import { createMemberSession, createAdminSession } from "@/lib/session";
 import { createDemoProfile } from "@/lib/data/profiles";
-import { IconCandle, IconDemo } from "@/components/Icons";
+import { IconLogo, IconDemo } from "@/components/Icons";
 import Link from "next/link";
 
 function AuthContent() {
@@ -48,7 +48,7 @@ function AuthContent() {
       <header className="border-b border-[#e8e3db] bg-white/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
-            <IconCandle size={32} />
+            <IconLogo size={40} />
             <h1 className="text-xl font-bold text-[#1a1714]">{appConfig.name}</h1>
           </Link>
         </div>

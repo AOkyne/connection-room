@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession, clearSession, type DemoSession } from "@/lib/session";
 import { Button } from "@/components/Button";
-import { IconHome, IconJourney, IconPairingsNav, IconProfileNav, IconCandle, IconAdmin, IconSpaces } from "@/components/Icons";
+import { IconHome, IconJourney, IconPairingsNav, IconProfileNav, IconLogo, IconAdmin, IconSpaces } from "@/components/Icons";
 import Link from "next/link";
 
 interface AppLayoutProps {
@@ -57,7 +57,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <div className="px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <Link href="/app" className="flex items-center gap-2">
-              <IconCandle size={28} />
+              <IconLogo size={36} />
               <h1 className="text-lg font-bold text-[#1a1714]">The Connection Room</h1>
             </Link>
             <div className="flex items-center gap-4">

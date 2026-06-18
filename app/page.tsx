@@ -3,7 +3,7 @@
 import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
-import { IconCandle, IconEmbodiment, IconConnection, IconIntegration, IconDemo } from "@/components/Icons";
+import { IconLogo, IconEmbodiment, IconConnection, IconIntegration, IconDemo } from "@/components/Icons";
 import Link from "next/link";
 
 export default function Home() {
@@ -13,7 +13,7 @@ export default function Home() {
       <header className="border-b border-[#e8e3db] sticky top-0 z-40 bg-white/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <IconCandle size={32} />
+            <IconLogo size={40} />
             <h1 className="text-xl font-bold text-[#1a1714]">{appConfig.name}</h1>
           </div>
           <Link href="/auth">
