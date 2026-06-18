@@ -8,14 +8,14 @@ import { createMemberSession, createAdminSession } from "@/lib/session";
 import { createDemoProfile } from "@/lib/data/profiles";
 import { IconDemo } from "@/components/Icons";
 import { isBetaMode } from "@/lib/app-mode";
-import { signInWithEmail, signUpWithPassword } from "@/lib/auth/supabase";
+import { signInWithEmail, signUpWithPassword, signInWithPassword } from "@/lib/auth/supabase";
 import Link from "next/link";
 
 function BetaAuthContent() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [usePassword, setUsePassword] = useState(false);
+  const [authMode, setAuthMode] = useState<"magic-link" | "password-signup" | "password-signin">("magic-link");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -25,18 +25,7 @@ function BetaAuthContent() {
     setLoading(true);
     setError("");
 
-    if (usePassword) {
-      // Email/password signup
-      const result = await signUpWithPassword(email, password);
-      if (result.success) {
-        // For password auth, user is immediately logged in
-        setTimeout(() => {
-          router.push("/onboarding");
-        }, 500);
-      } else {
-        setError(result.error || "Failed to sign up");
-      }
-    } else {
+    if (authMode === "magic-link") {
       // Magic link
       const result = await signInWithEmail(email);
       if (result.success) {
@@ -46,6 +35,26 @@ function BetaAuthContent() {
         }, 1000);
       } else {
         setError(result.error || "Failed to send magic link");
+      }
+    } else if (authMode === "password-signup") {
+      // Email/password signup
+      const result = await signUpWithPassword(email, password);
+      if (result.success) {
+        setTimeout(() => {
+          router.push("/app");
+        }, 500);
+      } else {
+        setError(result.error || "Failed to sign up");
+      }
+    } else {
+      // Email/password signin
+      const result = await signInWithPassword(email, password);
+      if (result.success) {
+        setTimeout(() => {
+          router.push("/app");
+        }, 500);
+      } else {
+        setError(result.error || "Invalid email or password");
       }
     }
     setLoading(false);
@@ -68,9 +77,57 @@ function BetaAuthContent() {
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-xl p-8 shadow-md border border-[#e8e3db] space-y-6">
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-4">
               <h2 className="text-3xl font-bold text-[#1a1714]">Beta Sign In</h2>
-              <p className="text-[#6b6460]">Enter your email to get started</p>
+              <div className="flex gap-2 justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode("magic-link");
+                    setError("");
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    authMode === "magic-link"
+                      ? "bg-[#d4a574] text-white"
+                      : "bg-[#f3ede5] text-[#6b6460] hover:bg-[#e8ddd2]"
+                  }`}
+                >
+                  Magic Link
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode("password-signup");
+                    setError("");
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    authMode === "password-signup"
+                      ? "bg-[#d4a574] text-white"
+                      : "bg-[#f3ede5] text-[#6b6460] hover:bg-[#e8ddd2]"
+                  }`}
+                >
+                  Sign Up
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode("password-signin");
+                    setError("");
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    authMode === "password-signin"
+                      ? "bg-[#d4a574] text-white"
+                      : "bg-[#f3ede5] text-[#6b6460] hover:bg-[#e8ddd2]"
+                  }`}
+                >
+                  Sign In
+                </button>
+              </div>
+              <p className="text-[#6b6460]">
+                {authMode === "magic-link" && "Enter your email to get a magic link"}
+                {authMode === "password-signup" && "Create a new account"}
+                {authMode === "password-signin" && "Log in with your existing account"}
+              </p>
             </div>
 
             {success && (
@@ -102,18 +159,18 @@ function BetaAuthContent() {
                 />
               </div>
 
-              {usePassword && (
+              {authMode !== "magic-link" && (
                 <div>
                   <label className="block text-sm font-medium text-[#1a1714] mb-2">
-                    Password (min 8 characters)
+                    Password {authMode === "password-signup" && "(min 8 characters)"}
                   </label>
                   <input
                     type="password"
-                    placeholder="Choose a password"
+                    placeholder={authMode === "password-signup" ? "Choose a password" : "Enter your password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    minLength={8}
+                    minLength={authMode === "password-signup" ? 8 : undefined}
                     className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
                   />
                 </div>
@@ -124,38 +181,40 @@ function BetaAuthContent() {
                 variant="primary"
                 size="lg"
                 className="w-full"
-                disabled={loading || !email || (usePassword && !password)}
+                disabled={loading || !email || (authMode !== "magic-link" && !password)}
               >
-                {loading ? (usePassword ? "Creating account..." : "Sending magic link...") : (usePassword ? "Create Account" : "Send Magic Link")}
+                {loading ? (
+                  authMode === "magic-link" ? "Sending magic link..." : authMode === "password-signup" ? "Creating account..." : "Signing in..."
+                ) : (
+                  authMode === "magic-link" ? "Send Magic Link" : authMode === "password-signup" ? "Create Account" : "Sign In"
+                )}
               </Button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setUsePassword(!usePassword);
-                  setError("");
-                }}
-                className="w-full text-sm text-[#8b6f47] hover:text-[#c9a876] font-medium"
-              >
-                {usePassword ? "← Use magic link instead" : "Use password instead →"}
-              </button>
             </form>
 
             <div className="bg-[#f8f6f2] rounded-lg p-4 text-sm text-[#6b6460] space-y-2">
               <p className="font-medium text-[#1a1714]">Welcome to Beta Testing</p>
-              {usePassword ? (
+              {authMode === "magic-link" && (
+                <ul className="space-y-1">
+                  <li>• Check your email for a magic link</li>
+                  <li>• Click the link to sign in</li>
+                  <li>• Complete your profile setup</li>
+                  <li>• Explore the community</li>
+                </ul>
+              )}
+              {authMode === "password-signup" && (
                 <ul className="space-y-1">
                   <li>• Create an account with your email and password</li>
                   <li>• You'll be logged in immediately</li>
                   <li>• Complete your profile setup</li>
                   <li>• Explore the community</li>
                 </ul>
-              ) : (
+              )}
+              {authMode === "password-signin" && (
                 <ul className="space-y-1">
-                  <li>• Check your email for a magic link</li>
-                  <li>• Click the link to sign in</li>
-                  <li>• Complete your profile setup</li>
-                  <li>• Explore the community</li>
+                  <li>• Enter your email and password</li>
+                  <li>• You'll be logged in immediately</li>
+                  <li>• Return to your dashboard</li>
+                  <li>• Continue exploring</li>
                 </ul>
               )}
             </div>
