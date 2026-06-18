@@ -7,6 +7,7 @@ import { getAllBadges } from "@/lib/data/badges";
 import { getUpcomingEvents } from "@/lib/data/events";
 import { getAllOffers } from "@/lib/data/offers";
 import { Card, CardHeader } from "@/components/Card";
+import { IconConnection, IconDemo, IconSpaces, IconBadges } from "@/components/Icons";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -69,7 +70,7 @@ export default function AdminPage() {
         </Card>
 
         <Card>
-          <CardHeader title="Pairings Completed" icon="🤝" />
+          <CardHeader title="Pairings Completed" icon={<IconConnection size={20} />} />
           <p className="text-3xl font-bold text-[#d4a574]">89</p>
           <p className="text-sm text-[#a0968a] mt-2">High satisfaction</p>
         </Card>
@@ -77,7 +78,7 @@ export default function AdminPage() {
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
-          <CardHeader title="Most Active Spaces" icon="🏛️" />
+          <CardHeader title="Most Active Spaces" icon={<IconSpaces size={20} />} />
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-[#6b5f52]">The Commons</span>
@@ -146,7 +147,7 @@ export default function AdminPage() {
 
       {/* Badges */}
       <Card>
-        <CardHeader title="Available Badges" icon="🏆" />
+        <CardHeader title="Available Badges" icon={<IconBadges size={20} />} />
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {badges.map((badge) => (
             <div key={badge.id} className="text-center p-3 bg-[#f3ede5] rounded">
@@ -195,7 +196,7 @@ export default function AdminPage() {
       </Card>
 
       <Card className="bg-[#f3ede5]">
-        <CardHeader title="Demo Mode Features" icon="🧪" />
+        <CardHeader title="Demo Mode Features" icon={<IconDemo size={20} />} />
         <p className="text-[#6b5f52] mb-4">
           This admin dashboard shows demo data. In Phase 2, you&apos;ll be able to:
         </p>

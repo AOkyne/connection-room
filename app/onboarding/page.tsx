@@ -6,6 +6,7 @@ import { getProfile, updateProfile, type Profile } from "@/lib/data/profiles";
 import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
 import { Card, CardHeader } from "@/components/Card";
+import { IconConnection, IconIntegration, IconProfile } from "@/components/Icons";
 import Link from "next/link";
 
 type Step = "welcome" | "agreements" | "member-type" | "basics" | "photo" | "interests" | "pairings" | "couples" | "prompt" | "complete";
@@ -110,7 +111,7 @@ export default function OnboardingPage() {
 
           {currentStep === "agreements" && (
             <Card>
-              <CardHeader title="Community Agreements" icon="🤝" />
+              <CardHeader title="Community Agreements" icon={<IconConnection size={20} />} />
               <div className="space-y-4">
                 <p className="text-[#6b5f52] mb-4">
                   We're building a safe, respectful space. Please read and acknowledge these agreements:
@@ -141,7 +142,7 @@ export default function OnboardingPage() {
 
           {currentStep === "member-type" && (
             <Card>
-              <CardHeader title="Who Are You?" icon="👤" />
+              <CardHeader title="Who Are You?" icon={<IconProfile size={20} />} />
               <div className="space-y-3">
                 {appConfig.memberTypeOptions.map((option) => (
                   <button
@@ -180,7 +181,7 @@ export default function OnboardingPage() {
 
           {currentStep === "basics" && (
             <Card>
-              <CardHeader title="Your Profile" icon="✨" />
+              <CardHeader title="Your Profile" icon={<IconIntegration size={20} />} />
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-[#2a2318] mb-2">Display Name *</label>
@@ -297,7 +298,7 @@ export default function OnboardingPage() {
 
           {currentStep === "interests" && (
             <Card>
-              <CardHeader title="Your Interests" icon="🌟" />
+              <CardHeader title="Your Interests" icon={<IconIntegration size={20} />} />
               <p className="text-[#6b5f52] mb-4">What draws you here? (Select all that apply)</p>
               <div className="space-y-2">
                 {appConfig.interests.map((interest) => (
@@ -347,7 +348,7 @@ export default function OnboardingPage() {
 
           {currentStep === "pairings" && (
             <Card>
-              <CardHeader title="Connection Pairings" icon="🤝" />
+              <CardHeader title="Connection Pairings" icon={<IconConnection size={20} />} />
               <div className="space-y-4">
                 <p className="text-[#6b5f52]">
                   We offer optional pairings with other members for 20-minute conversations. Would you like to participate?

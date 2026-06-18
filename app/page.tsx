@@ -3,6 +3,7 @@
 import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { IconCandle, IconEmbodiment, IconConnection, IconIntegration, IconDemo } from "@/components/Icons";
 import Link from "next/link";
 
 export default function Home() {
@@ -12,7 +13,7 @@ export default function Home() {
       <header className="border-b border-[#e8e3db] sticky top-0 z-40 bg-white/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-[#8b6f47]">🕯️</span>
+            <IconCandle size={32} />
             <h1 className="text-xl font-bold text-[#1a1714]">{appConfig.name}</h1>
           </div>
           <Link href="/auth">
@@ -61,8 +62,8 @@ export default function Home() {
             </Link>
           </div>
 
-          <p className="text-sm text-[#9d9490] pt-6">
-            🧪 This is a demo version. All data resets when you refresh.
+          <p className="text-sm text-[#9d9490] pt-6 flex items-center justify-center gap-2">
+            <IconDemo size={16} /> This is a demo version. All data resets when you refresh.
           </p>
         </div>
       </section>
@@ -76,19 +77,25 @@ export default function Home() {
 
           <div className="grid sm:grid-cols-3 gap-6">
             <Card className="text-center">
-              <div className="text-4xl mb-4">🧘</div>
+              <div className="flex justify-center mb-4">
+                <IconEmbodiment size={48} className="text-[#d4a574]" />
+              </div>
               <h4 className="text-lg font-bold text-[#1a1714] mb-2">Embodiment</h4>
               <p className="text-[#6b6460]">Come back to your body. Notice sensation, presence, and aliveness.</p>
             </Card>
 
             <Card className="text-center">
-              <div className="text-4xl mb-4">🤝</div>
+              <div className="flex justify-center mb-4">
+                <IconConnection size={48} className="text-[#d4a574]" />
+              </div>
               <h4 className="text-lg font-bold text-[#1a1714] mb-2">Connection</h4>
               <p className="text-[#6b6460]">Practice honest expression, vulnerability, and relational presence.</p>
             </Card>
 
             <Card className="text-center">
-              <div className="text-4xl mb-4">✨</div>
+              <div className="flex justify-center mb-4">
+                <IconIntegration size={48} className="text-[#d4a574]" />
+              </div>
               <h4 className="text-lg font-bold text-[#1a1714] mb-2">Integration</h4>
               <p className="text-[#6b6460]">Bring together spirit, sexuality, emotion, and embodiment.</p>
             </Card>

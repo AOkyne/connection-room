@@ -14,6 +14,7 @@ import {
 } from "@/lib/data/pairings";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { IconConnection } from "@/components/Icons";
 
 export default function PairingsPage() {
   const [profile, setProfile] = useState<any>(null);
@@ -147,7 +148,7 @@ export default function PairingsPage() {
       {/* Current Pairing */}
       {currentPairing ? (
         <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-2 border-[#d4a574]">
-          <CardHeader title="Your Pairing This Week" icon="🤝" />
+          <CardHeader title="Your Pairing This Week" icon={<IconConnection size={20} />} />
           <div className="space-y-4">
             {/* Partner Info */}
             <div className="bg-white rounded-lg p-4">

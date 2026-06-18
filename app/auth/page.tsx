@@ -6,6 +6,7 @@ import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
 import { createMemberSession, createAdminSession } from "@/lib/session";
 import { createDemoProfile } from "@/lib/data/profiles";
+import { IconCandle, IconDemo } from "@/components/Icons";
 import Link from "next/link";
 
 function AuthContent() {
@@ -47,7 +48,7 @@ function AuthContent() {
       <header className="border-b border-[#e8e3db] bg-white/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-[#8b6f47]">🕯️</span>
+            <IconCandle size={32} />
             <h1 className="text-xl font-bold text-[#1a1714]">{appConfig.name}</h1>
           </Link>
         </div>
@@ -123,7 +124,7 @@ function AuthContent() {
 
             {/* Info Text */}
             <div className="bg-[#f8f6f2] rounded-lg p-4 text-sm text-[#6b6460] space-y-2">
-              <p className="font-medium text-[#1a1714]">🧪 Demo Mode Notes:</p>
+              <p className="font-medium text-[#1a1714] flex items-center gap-2"><IconDemo size={16} /> Demo Mode Notes:</p>
               <ul className="space-y-1 list-disc list-inside">
                 <li>All data is local and resets on refresh</li>
                 <li>No account creation needed yet</li>

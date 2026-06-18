@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession, clearSession, type DemoSession } from "@/lib/session";
 import { Button } from "@/components/Button";
-import { IconHome, IconJourney, IconPairingsNav, IconProfileNav } from "@/components/Icons";
+import { IconHome, IconJourney, IconPairingsNav, IconProfileNav, IconCandle, IconAdmin, IconSpaces } from "@/components/Icons";
 import Link from "next/link";
 
 interface AppLayoutProps {
@@ -57,7 +57,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <div className="px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <Link href="/app" className="flex items-center gap-2">
-              <span className="text-xl font-bold text-[#8b6f47]">🕯️</span>
+              <IconCandle size={28} />
               <h1 className="text-lg font-bold text-[#1a1714]">The Connection Room</h1>
             </Link>
             <div className="flex items-center gap-4">
@@ -80,7 +80,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 href={item.href}
                 className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#6b6460] hover:bg-[#f8f6f2] transition-colors"
               >
-                {item.icon ? <item.icon size={20} /> : <span className="text-lg">🏛️</span>}
+                {item.icon ? <item.icon size={20} /> : <IconSpaces size={20} />}
                 <span>{item.label}</span>
               </Link>
             ))}
@@ -93,7 +93,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 href="/app/admin"
                 className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#f8f6f2] text-[#8b6f47] font-medium hover:bg-[#e8e3db] transition-colors"
               >
-                <span className="text-lg">⚙️</span>
+                <IconAdmin size={20} />
                 <span>Admin Dashboard</span>
               </Link>
             </div>
@@ -112,7 +112,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 href={item.href}
                 className="flex flex-col items-center gap-1 px-3 py-2 text-[#6b6460] hover:text-[#8b6f47] text-xs whitespace-nowrap"
               >
-                {item.icon ? <item.icon size={18} /> : <span className="text-lg">🏛️</span>}
+                {item.icon ? <item.icon size={18} /> : <IconSpaces size={18} />}
                 <span>{item.label}</span>
               </Link>
             ))}
@@ -121,7 +121,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 href="/app/admin"
                 className="flex flex-col items-center gap-1 px-3 py-2 text-[#8b6f47] text-xs whitespace-nowrap"
               >
-                <span className="text-lg">⚙️</span>
+                <IconAdmin size={18} />
                 <span>Admin</span>
               </Link>
             )}

@@ -5,6 +5,7 @@ import { getProfile, updateProfile, type Profile } from "@/lib/data/profiles";
 import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { IconIntegration, IconConnection, IconProfileNav, IconProfile } from "@/components/Icons";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -45,7 +46,7 @@ export default function ProfilePage() {
       </div>
 
       <Card>
-        <CardHeader title="Basic Information" icon="👤" />
+        <CardHeader title="Basic Information" icon={<IconProfile size={20} />} />
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-[#1a1714] mb-2">
@@ -101,7 +102,7 @@ export default function ProfilePage() {
       </Card>
 
       <Card>
-        <CardHeader title="Interests" icon="✨" />
+        <CardHeader title="Interests" icon={<IconIntegration size={20} />} />
         <div className="space-y-2">
           {appConfig.interests.map((interest) => (
             <label key={interest} className="flex items-center gap-3 p-2 hover:bg-[#f8f6f2] rounded">
@@ -117,7 +118,7 @@ export default function ProfilePage() {
       </Card>
 
       <Card>
-        <CardHeader title="Pairing Preferences" icon="🤝" />
+        <CardHeader title="Pairing Preferences" icon={<IconConnection size={20} />} />
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-[#1a1714] mb-2">

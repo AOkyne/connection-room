@@ -9,6 +9,7 @@ import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { SpaceIconSVG } from "@/components/SpaceIconSVG";
+import { IconIntegration } from "@/components/Icons";
 import Link from "next/link";
 
 interface Post {
@@ -125,7 +126,7 @@ export default function SpaceDetailPage() {
 
       {/* Create Post */}
       <Card>
-        <CardHeader title="Share Your Thoughts" icon="✨" />
+        <CardHeader title="Share Your Thoughts" icon={<IconIntegration size={20} />} />
         <textarea
           value={newPostContent}
           onChange={(e) => setNewPostContent(e.target.value)}

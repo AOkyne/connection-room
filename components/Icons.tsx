@@ -295,3 +295,66 @@ export function IconForYou({ className = "", size = 24 }: IconProps) {
     </svg>
   );
 }
+
+// Connection - handshake
+export function IconConnection({ className = "", size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
+      <path d="M3 12C3 7.58172 6.58172 4 12 4C17.4183 4 21 7.58172 21 12C21 16.4183 17.4183 20 12 20C6.58172 20 3 16.4183 3 12Z" stroke="currentColor" strokeWidth="2" fill="none"/>
+      <path d="M8 13C7 12 6 13 6 14C6 15.5 7.5 16.5 9 16.5M16 13C17 12 18 13 18 14C18 15.5 16.5 16.5 15 16.5M10 12L14 12M10.5 13.5L13.5 10.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+// Integration - overlapping circles (Venn diagram)
+export function IconIntegration({ className = "", size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
+      <circle cx="9" cy="12" r="6" stroke="currentColor" strokeWidth="2" fill="none"/>
+      <circle cx="15" cy="12" r="6" stroke="currentColor" strokeWidth="2" fill="none"/>
+      <path d="M12 9L12 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// Candle - flame
+export function IconCandle({ className = "", size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
+      <path d="M12 2C12 2 13 4 13 6C13 8 12 10 12 10C12 10 11 8 11 6C11 4 12 2 12 2Z" fill="currentColor"/>
+      <rect x="11" y="10" width="2" height="6" fill="currentColor"/>
+      <rect x="9" y="16" width="6" height="4" rx="1" stroke="currentColor" strokeWidth="2" fill="none"/>
+    </svg>
+  );
+}
+
+// Admin - settings/gear
+export function IconAdmin({ className = "", size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" fill="none"/>
+      <path d="M12 1V4M12 20V23M23 12H20M4 12H1M20.485 3.515L18.364 5.636M5.636 18.364L3.515 20.485M20.485 20.485L18.364 18.364M5.636 5.636L3.515 3.515" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// Spaces/Commons - columns
+export function IconSpaces({ className = "", size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
+      <rect x="3" y="5" width="3" height="14" rx="1" stroke="currentColor" strokeWidth="2" fill="none"/>
+      <rect x="10.5" y="5" width="3" height="14" rx="1" stroke="currentColor" strokeWidth="2" fill="none"/>
+      <rect x="18" y="5" width="3" height="14" rx="1" stroke="currentColor" strokeWidth="2" fill="none"/>
+    </svg>
+  );
+}
+
+// Demo - beaker/flask
+export function IconDemo({ className = "", size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
+      <path d="M9 3H15V6H20L14 18H10L4 6H9V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <line x1="11" y1="9" x2="13" y2="9" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+}

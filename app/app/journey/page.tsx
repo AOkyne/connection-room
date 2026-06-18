@@ -8,6 +8,7 @@ import { getRecommendedNextStep, getTodaysPrompt } from "@/lib/data/recommendati
 import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { IconIntegration, IconSpaces, IconConnection, IconProfileNav, IconBadges, IconProfile } from "@/components/Icons";
 import Link from "next/link";
 
 export default function JourneyPage() {
@@ -51,7 +52,7 @@ export default function JourneyPage() {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Profile Summary */}
         <Card>
-          <CardHeader title="Who You Are" icon="👤" />
+          <CardHeader title="Who You Are" icon={<IconProfile size={20} />} />
           <div className="space-y-4">
             <div>
               <p className="text-xs text-[#a0968a] uppercase tracking-wide">Display Name</p>
@@ -83,7 +84,7 @@ export default function JourneyPage() {
 
         {/* Interests */}
         <Card>
-          <CardHeader title="Your Interests" icon="✨" />
+          <CardHeader title="Your Interests" icon={<IconIntegration size={20} />} />
           {profile.interests && profile.interests.length > 0 ? (
             <div className="space-y-2">
               {profile.interests.slice(0, 5).map((interest: string) => (
@@ -105,7 +106,7 @@ export default function JourneyPage() {
 
         {/* Quiz Result */}
         <Card>
-          <CardHeader title="Your Profile" icon="🧭" />
+          <CardHeader title="Your Profile" icon={<IconProfile size={20} />} />
           {hasQuizResult ? (
             <div>
               <p className="text-lg font-medium text-[#2a2318]">{profile.quizResult}</p>
@@ -130,7 +131,7 @@ export default function JourneyPage() {
 
         {/* Spaces */}
         <Card className="md:col-span-2 lg:col-span-1">
-          <CardHeader title="Communities" icon="🏛️" />
+          <CardHeader title="Communities" icon={<IconSpaces size={20} />} />
           {joinedSpaces.length > 0 ? (
             <div className="space-y-2">
               {joinedSpaces.slice(0, 4).map((space) => (
@@ -162,7 +163,7 @@ export default function JourneyPage() {
 
         {/* Badges */}
         <Card className="md:col-span-2 lg:col-span-1">
-          <CardHeader title="Achievements" icon="🏆" />
+          <CardHeader title="Achievements" icon={<IconBadges size={20} />} />
           {badges.length > 0 ? (
             <div className="space-y-2">
               {badges.map((badge) => (
@@ -183,7 +184,7 @@ export default function JourneyPage() {
 
         {/* Pairings */}
         <Card className="md:col-span-2 lg:col-span-1">
-          <CardHeader title="Connections" icon="🤝" />
+          <CardHeader title="Connections" icon={<IconConnection size={20} />} />
           {profile.pairingComfortLevel && profile.pairingComfortLevel !== "pause" ? (
             <div>
               <p className="text-sm text-[#6b5f52] mb-3">You're open to pairings</p>
@@ -232,7 +233,7 @@ export default function JourneyPage() {
 
       {/* Services Section */}
       <Card className="bg-[#f3ede5]">
-        <CardHeader title="Explore Trevor James Services" icon="🌟" />
+        <CardHeader title="Explore Trevor James Services" icon={<IconIntegration size={20} />} />
         <div className="space-y-3 text-sm">
           <p className="text-[#6b5f52]">
             Deepen your practice with personalized coaching, workshops, and more.
