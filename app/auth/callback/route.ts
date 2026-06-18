@@ -7,11 +7,15 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
 
+  console.log("Callback route hit. Code:", !!code, "Error:", error, "Params:", Object.fromEntries(searchParams));
+
   if (!supabase) {
+    console.error("Supabase not configured");
     return NextResponse.redirect(new URL("/auth?error=no-supabase", request.url));
   }
 
   if (error) {
+    console.error("Auth error:", error, errorDescription);
     return NextResponse.redirect(
       new URL(`/auth?error=${error}&description=${errorDescription || ""}`, request.url)
     );
@@ -19,14 +23,24 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     try {
+      console.log("Exchanging code for session...");
       const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
 
-      if (sessionError || !data.session) {
+      if (sessionError) {
+        console.error("Session exchange error:", sessionError);
         return NextResponse.redirect(
-          new URL(`/auth?error=invalid-code&description=${sessionError?.message || ""}`, request.url)
+          new URL(`/auth?error=invalid-code&description=${sessionError.message}`, request.url)
         );
       }
 
+      if (!data.session) {
+        console.error("No session in response");
+        return NextResponse.redirect(
+          new URL(`/auth?error=no-session`, request.url)
+        );
+      }
+
+      console.log("Session created for user:", data.session.user?.id);
       const { user } = data.session;
 
       if (user?.id) {
