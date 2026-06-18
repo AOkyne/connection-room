@@ -243,3 +243,55 @@ export function IconProfileNav({ className = "", size = 24 }: IconProps) {
     </svg>
   );
 }
+
+// Reflection/Prompt - speech bubble
+export function IconReflection({ className = "", size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+    </svg>
+  );
+}
+
+// Progress - chart bars
+export function IconProgress({ className = "", size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
+      <rect x="3" y="12" width="3" height="9" stroke="currentColor" strokeWidth="2" fill="none"/>
+      <rect x="10" y="5" width="3" height="16" stroke="currentColor" strokeWidth="2" fill="none"/>
+      <rect x="17" y="2" width="3" height="19" stroke="currentColor" strokeWidth="2" fill="none"/>
+    </svg>
+  );
+}
+
+// Upcoming - calendar
+export function IconUpcoming({ className = "", size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
+      <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2" fill="none"/>
+      <path d="M3 9h18" stroke="currentColor" strokeWidth="2"/>
+      <path d="M7 2v5M17 2v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// Badges - trophy
+export function IconBadges({ className = "", size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
+      <path d="M6 9C6 5.13401 8.68629 2 12 2C15.3137 2 18 5.13401 18 9V13C18 14.1046 17.1046 15 16 15H8C6.89543 15 6 14.1046 6 13V9Z" stroke="currentColor" strokeWidth="2" fill="none"/>
+      <path d="M5 15H19M8 18H10M14 18H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+// For You - lightbulb/offer
+export function IconForYou({ className = "", size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
+      <path d="M12 2C6.48 2 2 6.48 2 12S6.48 22 12 22S22 17.52 22 12S17.52 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4S20 7.59 20 12S16.41 20 12 20Z" fill="currentColor" opacity="0.3"/>
+      <circle cx="12" cy="12" r="5" stroke="currentColor" strokeWidth="2" fill="none"/>
+      <path d="M12 9V15M9 12H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+}

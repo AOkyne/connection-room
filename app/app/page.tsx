@@ -9,6 +9,7 @@ import { getUpcomingEvents } from "@/lib/data/events";
 import { getRelevantOffers } from "@/lib/data/offers";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { IconReflection, IconProgress, IconUpcoming, IconBadges, IconForYou } from "@/components/Icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -88,7 +89,7 @@ export default function AppHome() {
 
         {/* Today's Prompt */}
         <Card className="md:col-span-2">
-          <CardHeader title="Today's Reflection" icon="💭" />
+          <CardHeader title="Today's Reflection" icon={<IconReflection size={20} />} />
           <div className="bg-[#f3ede5] rounded-lg p-4 space-y-3">
             <p className="text-[#6b5f52] italic text-lg">"{todaysPrompt}"</p>
             <Button variant="secondary" size="md">
@@ -115,7 +116,7 @@ export default function AppHome() {
 
         {/* Quick Overview */}
         <Card>
-          <CardHeader title="Your Progress" icon="📊" />
+          <CardHeader title="Your Progress" icon={<IconProgress size={20} />} />
           <div className="space-y-3 text-sm">
             <div className="flex justify-between items-center">
               <span className="text-[#6b5f52]">Profile</span>
@@ -143,7 +144,7 @@ export default function AppHome() {
         {/* Upcoming Event */}
         {upcomingEvents.length > 0 && (
           <Card>
-            <CardHeader title="Upcoming" icon="📅" />
+            <CardHeader title="Upcoming" icon={<IconUpcoming size={20} />} />
             <div className="space-y-3">
               <div>
                 <p className="font-medium text-[#2a2318]">{upcomingEvents[0].title}</p>
@@ -163,7 +164,7 @@ export default function AppHome() {
         {/* Badges */}
         {badges.length > 0 && (
           <Card>
-            <CardHeader title="Badges Earned" icon="🏆" />
+            <CardHeader title="Badges Earned" icon={<IconBadges size={20} />} />
             <div className="space-y-2">
               {badges.slice(0, 2).map((badge) => (
                 <div key={badge.id} className="flex items-center gap-2 p-2 bg-[#f3ede5] rounded">
@@ -203,7 +204,7 @@ export default function AppHome() {
 
         {/* Quick Actions */}
         <Card>
-          <CardHeader title="Navigate" icon="🧭" />
+          <CardHeader title="Navigate" icon={<IconForYou size={20} />} />
           <div className="space-y-2">
             <Link href="/app/spaces">
               <Button variant="outline" size="sm" className="w-full text-left">
