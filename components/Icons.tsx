@@ -205,9 +205,9 @@ export function IconMenu({ className = "", size = 24 }: IconProps) {
 // Home - house
 export function IconHome({ className = "", size = 24 }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
-      <path d="M3 12L12 3L21 12V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V12Z" stroke={COLOR} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-      <path d="M9 21V12H15V21" stroke={COLOR} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
+      <path d="M3 12L12 3L21 12V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19V12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <path d="M9 21V12H15V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 }
@@ -215,9 +215,9 @@ export function IconHome({ className = "", size = 24 }: IconProps) {
 // Journey - path/book
 export function IconJourney({ className = "", size = 24 }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
-      <path d="M4 3H14C15.1046 3 16 3.89543 16 5V21C16 20.4477 15.5523 20 15 20H5C4.44772 20 4 20.4477 4 21V3Z" stroke={COLOR} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-      <path d="M8 7H12M8 11H12M8 15H12" stroke={COLOR} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
+      <path d="M4 3H14C15.1046 3 16 3.89543 16 5V21C16 20.4477 15.5523 20 15 20H5C4.44772 20 4 20.4477 4 21V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <path d="M8 7H12M8 11H12M8 15H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 }
@@ -225,11 +225,11 @@ export function IconJourney({ className = "", size = 24 }: IconProps) {
 // Pairings - two connected circles
 export function IconPairingsNav({ className = "", size = 24 }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
-      <circle cx="8" cy="10" r="4" stroke={COLOR} strokeWidth="2" fill="none"/>
-      <circle cx="16" cy="10" r="4" stroke={COLOR} strokeWidth="2" fill="none"/>
-      <path d="M12 14C14 16 16 17 18 18" stroke={COLOR} strokeWidth="2" strokeLinecap="round"/>
-      <path d="M12 14C10 16 8 17 6 18" stroke={COLOR} strokeWidth="2" strokeLinecap="round"/>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
+      <circle cx="8" cy="10" r="4" stroke="currentColor" strokeWidth="2" fill="none"/>
+      <circle cx="16" cy="10" r="4" stroke="currentColor" strokeWidth="2" fill="none"/>
+      <path d="M12 14C14 16 16 17 18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <path d="M12 14C10 16 8 17 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
     </svg>
   );
 }
@@ -237,9 +237,9 @@ export function IconPairingsNav({ className = "", size = 24 }: IconProps) {
 // Profile - person
 export function IconProfileNav({ className = "", size = 24 }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
-      <circle cx="12" cy="7" r="3.5" stroke={COLOR} strokeWidth="2" fill="none"/>
-      <path d="M5 21C5 17.134 8.13401 14 12 14C15.866 14 19 17.134 19 21" stroke={COLOR} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
+      <circle cx="12" cy="7" r="3.5" stroke="currentColor" strokeWidth="2" fill="none"/>
+      <path d="M5 21C5 17.134 8.13401 14 12 14C15.866 14 19 17.134 19 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
     </svg>
   );
 }
