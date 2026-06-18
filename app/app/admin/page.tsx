@@ -7,7 +7,7 @@ import { getAllBadges } from "@/lib/data/badges";
 import { getUpcomingEvents } from "@/lib/data/events";
 import { getAllOffers } from "@/lib/data/offers";
 import { Card, CardHeader } from "@/components/Card";
-import { IconConnection, IconDemo, IconSpaces, IconBadges, IconProgress, IconUpcoming, IconAlert, IconForYou } from "@/components/Icons";
+import { IconConnection, IconDemo, IconSpaces, IconBadges, IconProgress, IconUpcoming, IconAlert, IconForYou, IconChat } from "@/components/Icons";
 import { getBadgeIcon } from "@/lib/badge-icons";
 import { getOfferIcon } from "@/lib/offer-icons";
 
@@ -60,13 +60,13 @@ export default function AdminPage() {
         </Card>
 
         <Card>
-          <CardHeader title="Active This Week" icon="🔥" />
+          <CardHeader title="Active This Week" icon={<IconAlert size={20} />} />
           <p className="text-3xl font-bold text-[#d4a574]">156</p>
           <p className="text-sm text-[#a0968a] mt-2">63% engagement</p>
         </Card>
 
         <Card>
-          <CardHeader title="Posts & Responses" icon="💬" />
+          <CardHeader title="Posts & Responses" icon={<IconChat size={20} />} />
           <p className="text-3xl font-bold text-[#d4a574]">423</p>
           <p className="text-sm text-[#a0968a] mt-2">+45 this week</p>
         </Card>

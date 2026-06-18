@@ -10,6 +10,7 @@ import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { IconIntegration, IconSpaces, IconConnection, IconProfileNav, IconBadges, IconProfile } from "@/components/Icons";
 import { getBadgeIcon } from "@/lib/badge-icons";
+import { getIconComponent } from "@/lib/icon-lookup";
 import Link from "next/link";
 
 export default function JourneyPage() {
@@ -214,7 +215,7 @@ export default function JourneyPage() {
       {/* Recommended Next Step - Full Width */}
       {nextStep && (
         <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-2 border-[#d4a574]">
-          <CardHeader title={nextStep.title} icon={nextStep.icon} />
+          <CardHeader title={nextStep.title} icon={nextStep.icon ? <>{(() => { const Icon = getIconComponent(nextStep.icon); return <Icon size={20} />; })()} </> : undefined} />
           <div className="space-y-4">
             <p className="text-[#6b5f52]">{nextStep.description}</p>
             <div className="flex gap-3">

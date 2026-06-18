@@ -11,6 +11,7 @@ import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { IconReflection, IconProgress, IconUpcoming, IconBadges, IconForYou, IconDemo } from "@/components/Icons";
 import { getBadgeIcon } from "@/lib/badge-icons";
+import { getIconComponent } from "@/lib/icon-lookup";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -73,7 +74,10 @@ export default function AppHome() {
                   <h2 className="text-2xl text-[#2a2318]">{nextStep.title}</h2>
                   <p className="text-[#6b5f52] mt-1">{nextStep.description}</p>
                 </div>
-                <span className="text-3xl">{nextStep.icon}</span>
+                {nextStep.icon && (() => {
+                  const Icon = getIconComponent(nextStep.icon);
+                  return <Icon size={32} className="text-[#d4a574]" />;
+                })()}
               </div>
               <Link href={nextStep.href}>
                 <Button
@@ -101,7 +105,7 @@ export default function AppHome() {
 
         {/* Suggested Space */}
         <Card>
-          <CardHeader title="Suggested Space" icon={suggestedSpace.icon} />
+          <CardHeader title="Suggested Space" icon={<>{(() => { const Icon = getIconComponent(suggestedSpace.icon); return <Icon size={20} />; })()}</>} />
           <div className="space-y-3">
             <div>
               <h3 className="font-medium text-[#2a2318]">{suggestedSpace.name}</h3>
