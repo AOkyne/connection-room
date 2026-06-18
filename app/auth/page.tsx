@@ -8,12 +8,14 @@ import { createMemberSession, createAdminSession } from "@/lib/session";
 import { createDemoProfile } from "@/lib/data/profiles";
 import { IconDemo } from "@/components/Icons";
 import { isBetaMode } from "@/lib/app-mode";
-import { signInWithEmail } from "@/lib/auth/supabase";
+import { signInWithEmail, signUpWithPassword } from "@/lib/auth/supabase";
 import Link from "next/link";
 
 function BetaAuthContent() {
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [usePassword, setUsePassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -23,14 +25,28 @@ function BetaAuthContent() {
     setLoading(true);
     setError("");
 
-    const result = await signInWithEmail(email);
-    if (result.success) {
-      setSuccess(true);
-      setTimeout(() => {
-        router.push("/auth/check-email");
-      }, 1000);
+    if (usePassword) {
+      // Email/password signup
+      const result = await signUpWithPassword(email, password);
+      if (result.success) {
+        // For password auth, user is immediately logged in
+        setTimeout(() => {
+          router.push("/onboarding");
+        }, 500);
+      } else {
+        setError(result.error || "Failed to sign up");
+      }
     } else {
-      setError(result.error || "Failed to send magic link");
+      // Magic link
+      const result = await signInWithEmail(email);
+      if (result.success) {
+        setSuccess(true);
+        setTimeout(() => {
+          router.push("/auth/check-email");
+        }, 1000);
+      } else {
+        setError(result.error || "Failed to send magic link");
+      }
     }
     setLoading(false);
   };
@@ -86,25 +102,62 @@ function BetaAuthContent() {
                 />
               </div>
 
+              {usePassword && (
+                <div>
+                  <label className="block text-sm font-medium text-[#1a1714] mb-2">
+                    Password (min 8 characters)
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Choose a password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={8}
+                    className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
+                  />
+                </div>
+              )}
+
               <Button
                 type="submit"
                 variant="primary"
                 size="lg"
                 className="w-full"
-                disabled={loading || !email}
+                disabled={loading || !email || (usePassword && !password)}
               >
-                {loading ? "Sending magic link..." : "Send Magic Link"}
+                {loading ? (usePassword ? "Creating account..." : "Sending magic link...") : (usePassword ? "Create Account" : "Send Magic Link")}
               </Button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setUsePassword(!usePassword);
+                  setError("");
+                }}
+                className="w-full text-sm text-[#8b6f47] hover:text-[#c9a876] font-medium"
+              >
+                {usePassword ? "← Use magic link instead" : "Use password instead →"}
+              </button>
             </form>
 
             <div className="bg-[#f8f6f2] rounded-lg p-4 text-sm text-[#6b6460] space-y-2">
               <p className="font-medium text-[#1a1714]">Welcome to Beta Testing</p>
-              <ul className="space-y-1">
-                <li>• Check your email for a magic link</li>
-                <li>• Click the link to sign in</li>
-                <li>• Complete your profile setup</li>
-                <li>• Explore the community</li>
-              </ul>
+              {usePassword ? (
+                <ul className="space-y-1">
+                  <li>• Create an account with your email and password</li>
+                  <li>• You'll be logged in immediately</li>
+                  <li>• Complete your profile setup</li>
+                  <li>• Explore the community</li>
+                </ul>
+              ) : (
+                <ul className="space-y-1">
+                  <li>• Check your email for a magic link</li>
+                  <li>• Click the link to sign in</li>
+                  <li>• Complete your profile setup</li>
+                  <li>• Explore the community</li>
+                </ul>
+              )}
             </div>
 
             <div className="text-center space-y-2 pt-4 border-t border-[#e8e3db]">
