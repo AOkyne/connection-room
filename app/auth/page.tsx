@@ -51,7 +51,7 @@ function AuthContent() {
             <img
               src="/Connection-room-logo.png"
               alt="The Connection Room"
-              className="h-16 w-auto"
+              className="h-24 w-auto"
             />
           </Link>
         </div>
