@@ -1,7 +1,6 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { getSession, clearSession, type DemoSession } from "@/lib/session";
 import { Button } from "@/components/Button";
@@ -58,12 +57,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <div className="px-4 py-2 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <Link href="/app" className="flex items-center">
-              <Image
+              <img
                 src="/Connection-room-logo.png"
                 alt="The Connection Room"
-                width={280}
-                height={80}
-                priority
                 className="h-14 w-auto"
               />
             </Link>

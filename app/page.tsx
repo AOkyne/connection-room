@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -14,12 +13,9 @@ export default function Home() {
       <header className="border-b border-[#e8e3db] sticky top-0 z-40 bg-white/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex justify-between items-center">
           <Link href="/" className="flex items-center">
-            <Image
+            <img
               src="/Connection-room-logo.png"
               alt="The Connection Room"
-              width={280}
-              height={80}
-              priority
               className="h-16 w-auto"
             />
           </Link>

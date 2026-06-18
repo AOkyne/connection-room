@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
@@ -49,12 +48,9 @@ function AuthContent() {
       <header className="border-b border-[#e8e3db] bg-white/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center">
-            <Image
+            <img
               src="/Connection-room-logo.png"
               alt="The Connection Room"
-              width={280}
-              height={80}
-              priority
               className="h-16 w-auto"
             />
           </Link>
