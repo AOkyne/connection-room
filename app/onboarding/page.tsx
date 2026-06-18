@@ -69,9 +69,15 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-[#faf7f2] flex flex-col">
       {/* Header */}
       <header className="bg-white border-b border-[#e8ddd2] sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto px-4 py-4 sm:px-6">
+        <div className="max-w-4xl mx-auto px-4 py-2 sm:px-6">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl text-[#2a2318]">The Connection Room</h1>
+            <Link href="/" className="flex items-center">
+              <img
+                src="/Connection-room-logo.png"
+                alt="The Connection Room"
+                className="h-20 w-auto"
+              />
+            </Link>
             {currentStep !== "welcome" && (
               <span className="text-sm text-[#a0968a]">
                 Step {currentIndex + 1} of {steps.length}
