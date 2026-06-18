@@ -11,6 +11,7 @@ import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { IconReflection, IconProgress, IconUpcoming, IconBadges, IconForYou, IconDemo } from "@/components/Icons";
 import { getBadgeIcon } from "@/lib/badge-icons";
+import { getOfferIcon } from "@/lib/offer-icons";
 import { getIconComponent } from "@/lib/icon-lookup";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -193,7 +194,7 @@ export default function AppHome() {
         {/* Personalized Offers */}
         {offers.length > 0 && (
           <Card className="md:col-span-2 bg-gradient-to-r from-[#f3ede5] to-[#fffbf7]">
-            <CardHeader title="For You" icon={offers[0].icon} />
+            <CardHeader title="For You" icon={<>{(() => { const Icon = getOfferIcon(offers[0].id); return <Icon size={20} />; })()}</>} />
             <div className="space-y-3">
               {offers.slice(0, 1).map((offer) => (
                 <div key={offer.id}>
