@@ -88,6 +88,39 @@ export async function createSupabasePost(
   }
 }
 
+// Add reaction to post in Supabase
+export async function addSupabasePostReaction(
+  postId: string,
+  userId: string,
+  reactionType: string
+): Promise<boolean> {
+  if (!supabase) return false;
+
+  try {
+    // Try to upsert (insert or update)
+    const { error } = await supabase
+      .from("reactions")
+      .upsert(
+        {
+          user_id: userId,
+          post_id: postId,
+          reaction_type: reactionType,
+        },
+        { onConflict: "user_id,post_id" }
+      );
+
+    if (error) {
+      console.error("Error adding post reaction:", error);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error("Error in addSupabasePostReaction:", err);
+    return false;
+  }
+}
+
 // Get comments for a post from Supabase
 export async function getSupabaseComments(postId: string): Promise<Comment[]> {
   if (!supabase) return [];

@@ -5,6 +5,7 @@ import {
   createSupabasePost,
   getSupabaseComments,
   createSupabaseComment,
+  addSupabasePostReaction,
 } from "./supabase-posts";
 
 export interface Post {
@@ -131,7 +132,7 @@ export async function addPostReaction(postId: string, reactionType: string, user
 
   const userId = await getCurrentUserId();
   if (userId && supabase) {
-    // Supabase will handle reactions table
+    await addSupabasePostReaction(postId, userId, reactionType);
     return;
   }
 
