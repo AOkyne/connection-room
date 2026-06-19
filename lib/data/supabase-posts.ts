@@ -22,19 +22,29 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
       return [];
     }
 
-    return (
-      data?.map((post) => ({
-        id: post.id,
-        spaceId: post.space_id,
-        authorName: post.author_name || post.user_id,
-        promptId: post.prompt_id,
-        content: post.content,
-        isPromptResponse: !!post.is_prompt_response,
-        createdAt: new Date(post.created_at),
-        reactions: {},
-        commentCount: post.comment_count || 0,
-      })) || []
+    // For each post, get the actual comment count from comments table
+    const postsWithCounts = await Promise.all(
+      (data || []).map(async (post) => {
+        const { count, error: countError } = await supabase
+          .from("comments")
+          .select("*", { count: "exact", head: true })
+          .eq("post_id", post.id);
+
+        return {
+          id: post.id,
+          spaceId: post.space_id,
+          authorName: post.author_name || post.user_id,
+          promptId: post.prompt_id,
+          content: post.content,
+          isPromptResponse: !!post.is_prompt_response,
+          createdAt: new Date(post.created_at),
+          reactions: {},
+          commentCount: count || 0,
+        };
+      })
     );
+
+    return postsWithCounts;
   } catch (err) {
     console.error("Error in getSupabasePosts:", err);
     return [];
