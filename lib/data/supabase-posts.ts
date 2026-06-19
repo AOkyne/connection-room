@@ -113,14 +113,7 @@ export async function addSupabasePostReaction(
   if (!supabase) return false;
 
   try {
-    // First, delete any existing reaction for this user/post
-    await supabase
-      .from("reactions")
-      .delete()
-      .eq("user_id", userId)
-      .eq("post_id", postId);
-
-    // Then insert the new reaction
+    // Try to insert the reaction
     const { error } = await supabase
       .from("reactions")
       .insert({
@@ -128,6 +121,11 @@ export async function addSupabasePostReaction(
         post_id: postId,
         reaction_type: reactionType,
       });
+
+    // If unique constraint violation, the reaction already exists - that's fine
+    if (error && error.code === "23505") {
+      return true;
+    }
 
     if (error) {
       console.error("Error adding post reaction:", error);
