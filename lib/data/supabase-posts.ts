@@ -57,8 +57,8 @@ export async function createSupabasePost(
       .insert({
         user_id: userId,
         space_id: spaceId,
-        prompt_id: promptId || null,
         content: content,
+        is_prompt_response: isPromptResponse || false,
       })
       .select()
       .single();
