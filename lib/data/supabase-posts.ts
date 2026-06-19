@@ -26,13 +26,13 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
       data?.map((post) => ({
         id: post.id,
         spaceId: post.space_id,
-        authorName: post.user_id,
+        authorName: post.author_name || post.user_id,
         promptId: post.prompt_id,
-        content: post.body,
-        isPromptResponse: !!post.prompt_id,
+        content: post.content,
+        isPromptResponse: !!post.is_prompt_response,
         createdAt: new Date(post.created_at),
         reactions: {},
-        commentCount: 0,
+        commentCount: post.comment_count || 0,
       })) || []
     );
   } catch (err) {
@@ -58,8 +58,7 @@ export async function createSupabasePost(
         user_id: userId,
         space_id: spaceId,
         prompt_id: promptId || null,
-        body: content,
-        title: null,
+        content: content,
       })
       .select()
       .single();
@@ -73,13 +72,13 @@ export async function createSupabasePost(
     return {
       id: data.id,
       spaceId: data.space_id,
-      authorName: data.user_id,
+      authorName: data.author_name || data.user_id,
       promptId: data.prompt_id,
-      content: data.body,
-      isPromptResponse: !!data.prompt_id,
+      content: data.content,
+      isPromptResponse: !!data.is_prompt_response,
       createdAt: new Date(data.created_at),
       reactions: {},
-      commentCount: 0,
+      commentCount: data.comment_count || 0,
     };
   } catch (err) {
     console.error("Error in createSupabasePost:", err);
@@ -108,7 +107,7 @@ export async function getSupabaseComments(postId: string): Promise<Comment[]> {
         id: comment.id,
         postId: comment.post_id,
         authorName: comment.user_id,
-        content: comment.body,
+        content: comment.content,
         createdAt: new Date(comment.created_at),
         reactions: {},
       })) || []
@@ -133,13 +132,14 @@ export async function createSupabaseComment(
       .insert({
         user_id: userId,
         post_id: postId,
-        body: content,
+        content: content,
       })
       .select()
       .single();
 
     if (error) {
       console.error("Error creating comment:", error);
+      console.error("Error details - code:", error.code, "message:", error.message);
       return null;
     }
 
@@ -147,7 +147,7 @@ export async function createSupabaseComment(
       id: data.id,
       postId: data.post_id,
       authorName: data.user_id,
-      content: data.body,
+      content: data.content,
       createdAt: new Date(data.created_at),
       reactions: {},
     };
