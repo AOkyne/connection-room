@@ -63,7 +63,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           <div className="flex justify-between items-center">
             <Link href="/app" className="flex items-center">
               <img
-                src="/Connection-room-logo.png"
+                src="/Connection-room-logo.png?v=2"
                 alt="The Connection Room"
                 className="h-32 w-auto"
               />
