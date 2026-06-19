@@ -133,29 +133,27 @@ function BetaAuthContent() {
                 />
               </div>
 
-              {authMode !== "magic-link" && (
-                <div>
-                  <label className="block text-sm font-medium text-[#1a1714] mb-2">
-                    Password {authMode === "password-signup" && "(min 8 characters)"}
-                  </label>
-                  <input
-                    type="password"
-                    placeholder={authMode === "password-signup" ? "Choose a password" : "Enter your password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={authMode === "password-signup" ? 8 : undefined}
-                    className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
-                  />
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-[#1a1714] mb-2">
+                  Password {authMode === "password-signup" && "(min 8 characters)"}
+                </label>
+                <input
+                  type="password"
+                  placeholder={authMode === "password-signup" ? "Choose a password" : "Enter your password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={authMode === "password-signup" ? 8 : undefined}
+                  className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
+                />
+              </div>
 
               <Button
                 type="submit"
                 variant="primary"
                 size="lg"
                 className="w-full"
-                disabled={loading || !email || (authMode !== "magic-link" && !password)}
+                disabled={loading || !email || !password}
               >
                 {loading ? (
                   authMode === "password-signup" ? "Creating account..." : "Signing in..."
