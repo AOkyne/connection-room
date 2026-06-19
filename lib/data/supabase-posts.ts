@@ -66,6 +66,7 @@ export async function createSupabasePost(
 
     if (error) {
       console.error("Error creating post:", error);
+      console.error("Error details - code:", error.code, "message:", error.message, "details:", error.details);
       return null;
     }
 
