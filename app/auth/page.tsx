@@ -41,7 +41,7 @@ function BetaAuthContent() {
       const result = await signUpWithPassword(email, password);
       if (result.success) {
         setTimeout(() => {
-          router.push("/app");
+          router.push("/onboarding");
         }, 500);
       } else {
         setError(result.error || "Failed to sign up");
