@@ -15,7 +15,7 @@ function BetaAuthContent() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [authMode, setAuthMode] = useState<"magic-link" | "password-signup" | "password-signin">("magic-link");
+  const [authMode, setAuthMode] = useState<"password-signup" | "password-signin">("password-signup");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -25,18 +25,7 @@ function BetaAuthContent() {
     setLoading(true);
     setError("");
 
-    if (authMode === "magic-link") {
-      // Magic link
-      const result = await signInWithEmail(email);
-      if (result.success) {
-        setSuccess(true);
-        setTimeout(() => {
-          router.push("/auth/check-email");
-        }, 1000);
-      } else {
-        setError(result.error || "Failed to send magic link");
-      }
-    } else if (authMode === "password-signup") {
+    if (authMode === "password-signup") {
       // Email/password signup
       const result = await signUpWithPassword(email, password);
       if (result.success) {
@@ -83,20 +72,6 @@ function BetaAuthContent() {
                 <button
                   type="button"
                   onClick={() => {
-                    setAuthMode("magic-link");
-                    setError("");
-                  }}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                    authMode === "magic-link"
-                      ? "bg-[#d4a574] text-white"
-                      : "bg-[#f3ede5] text-[#6b6460] hover:bg-[#e8ddd2]"
-                  }`}
-                >
-                  Magic Link
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
                     setAuthMode("password-signup");
                     setError("");
                   }}
@@ -124,7 +99,6 @@ function BetaAuthContent() {
                 </button>
               </div>
               <p className="text-[#6b6460]">
-                {authMode === "magic-link" && "Enter your email to get a magic link"}
                 {authMode === "password-signup" && "Create a new account"}
                 {authMode === "password-signin" && "Log in with your existing account"}
               </p>
@@ -184,23 +158,15 @@ function BetaAuthContent() {
                 disabled={loading || !email || (authMode !== "magic-link" && !password)}
               >
                 {loading ? (
-                  authMode === "magic-link" ? "Sending magic link..." : authMode === "password-signup" ? "Creating account..." : "Signing in..."
+                  authMode === "password-signup" ? "Creating account..." : "Signing in..."
                 ) : (
-                  authMode === "magic-link" ? "Send Magic Link" : authMode === "password-signup" ? "Create Account" : "Sign In"
+                  authMode === "password-signup" ? "Create Account" : "Sign In"
                 )}
               </Button>
             </form>
 
             <div className="bg-[#f8f6f2] rounded-lg p-4 text-sm text-[#6b6460] space-y-2">
               <p className="font-medium text-[#1a1714]">Welcome to Beta Testing</p>
-              {authMode === "magic-link" && (
-                <ul className="space-y-1">
-                  <li>• Check your email for a magic link</li>
-                  <li>• Click the link to sign in</li>
-                  <li>• Complete your profile setup</li>
-                  <li>• Explore the community</li>
-                </ul>
-              )}
               {authMode === "password-signup" && (
                 <ul className="space-y-1">
                   <li>• Create an account with your email and password</li>
