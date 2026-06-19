@@ -442,15 +442,6 @@ interface Offer {
 
 export const demoOffers: Offer[] = [
   {
-    id: "offer-quiz",
-    title: "Take the Quiz",
-    description: "Discover your profile and get personalized recommendations",
-    cta: "Take the Quiz",
-    url: "https://ayite-b2wlbsk2.scoreapp.com",
-    icon: "🧭",
-    condition: (profile) => !profile.quizResult || profile.quizResult === "I have not taken the quiz yet",
-  },
-  {
     id: "offer-consult",
     title: "Intimate Reset Consultation",
     description: "A free session with Trevor James to explore your unique path",
