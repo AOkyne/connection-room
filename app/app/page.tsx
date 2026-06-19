@@ -178,16 +178,14 @@ export default function AppHome() {
         <Card className="md:col-span-2">
           <CardHeader title="Take A Quiz" icon={<>{(() => { const Icon = getIconComponent("🧭"); return <Icon size={20} />; })()}</>} />
           <div className="space-y-3">
-            <a href="https://ayite-b2wlbsk2.scoreapp.com" target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" size="sm" className="w-full text-left">
-                What's Your Intimacy Pattern? →
+            <Link href="/app/quizzes">
+              <Button variant="primary" size="sm" className="w-full text-left">
+                Take A Quiz →
               </Button>
-            </a>
-            <a href="https://ayite-9uajacay.scoreapp.com" target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" size="sm" className="w-full text-left">
-                The Erotic Relationship Evaluator →
-              </Button>
-            </a>
+            </Link>
+            <p className="text-sm text-[#6b5f52]">
+              Discover your intimacy patterns and relationship dynamics with our curated quizzes.
+            </p>
           </div>
         </Card>
 
