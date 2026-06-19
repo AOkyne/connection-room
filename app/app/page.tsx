@@ -105,6 +105,7 @@ export default function AppHome() {
           <CardHeader title="Today's Reflection" icon={<IconReflection size={20} />} />
           <div className="bg-[#f3ede5] rounded-lg p-4 space-y-3">
             <p className="text-[#6b5f52] italic text-lg">"{todaysPrompt}"</p>
+            <p className="text-sm text-[#8fa878]">A sentence or two is enough. No need to write a memoir unless the memoir insists.</p>
             <Button variant="secondary" size="md">
               Respond to Prompt
             </Button>
