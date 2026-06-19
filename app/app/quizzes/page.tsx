@@ -1,20 +1,26 @@
 "use client";
 
-import { useEffect } from "react";
 import { Card } from "@/components/Card";
+import { Button } from "@/components/Button";
+import Link from "next/link";
 
 export default function QuizzesPage() {
-  useEffect(() => {
-    // Load ScoreApp embedding script
-    const script = document.createElement("script");
-    script.src = "https://static.scoreapp.com/js/integration/v1/embedding.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
+  const quizzes = [
+    {
+      id: "intimacy-pattern",
+      title: "What's Your Intimacy Pattern?",
+      description: "Discover your attachment style and how it shows up in your intimate relationships.",
+      href: "/app/quizzes/intimacy-pattern",
+      icon: "💭",
+    },
+    {
+      id: "erotic-relationship",
+      title: "The Erotic Relationship Evaluator",
+      description: "Explore the erotic dimension of your relationship and identify areas for deeper connection.",
+      href: "/app/quizzes/erotic-relationship",
+      icon: "🔥",
+    },
+  ];
 
   return (
     <div className="space-y-8">
@@ -25,38 +31,23 @@ export default function QuizzesPage() {
         </p>
       </div>
 
-      <div className="space-y-8">
-        {/* What's Your Intimacy Pattern? */}
-        <Card>
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-[#2a2318]">What's Your Intimacy Pattern?</h2>
-            <p className="text-[#6b5f52]">
-              Discover your attachment style and how it shows up in your intimate relationships.
-            </p>
-            <div
-              data-sa-url="https://48e501b8-107c-4da7-a99d-658eea336303.scoreapp.com/?sa_target=_top"
-              data-sa-view="inline"
-              style={{ maxWidth: "100%", width: "100%" }}
-              data-sa-auto-height="1"
-            />
-          </div>
-        </Card>
-
-        {/* The Erotic Relationship Evaluator */}
-        <Card>
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-[#2a2318]">The Erotic Relationship Evaluator</h2>
-            <p className="text-[#6b5f52]">
-              Explore the erotic dimension of your relationship and identify areas for deeper connection.
-            </p>
-            <div
-              data-sa-url="https://be5f288c-8c1d-4a16-b7f1-0397ad441ba3.scoreapp.com/?sa_target=_top"
-              data-sa-view="inline"
-              style={{ maxWidth: "100%", width: "100%" }}
-              data-sa-auto-height="1"
-            />
-          </div>
-        </Card>
+      <div className="grid md:grid-cols-2 gap-6">
+        {quizzes.map((quiz) => (
+          <Link key={quiz.id} href={quiz.href}>
+            <Card className="h-full hover:border-[#d4a574] hover:shadow-md transition-all cursor-pointer">
+              <div className="space-y-4">
+                <div className="text-4xl">{quiz.icon}</div>
+                <div>
+                  <h2 className="text-2xl font-bold text-[#2a2318]">{quiz.title}</h2>
+                  <p className="text-[#6b5f52] mt-2">{quiz.description}</p>
+                </div>
+                <Button variant="primary" size="sm" className="w-full">
+                  Take Quiz →
+                </Button>
+              </div>
+            </Card>
+          </Link>
+        ))}
       </div>
     </div>
   );
