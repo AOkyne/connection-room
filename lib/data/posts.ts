@@ -11,6 +11,7 @@ import {
 export interface Post {
   id: string;
   spaceId: string;
+  userId: string;
   authorName: string;
   authorPronouns?: string;
   authorPhoto?: string;
@@ -25,6 +26,7 @@ export interface Post {
 export interface Comment {
   id: string;
   postId: string;
+  userId: string;
   authorName: string;
   authorPronouns?: string;
   authorPhoto?: string;

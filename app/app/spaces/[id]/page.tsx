@@ -223,15 +223,15 @@ export default function SpaceDetailPage() {
           posts.map((post) => (
             <Card key={post.id}>
               <div className="flex items-start justify-between mb-3">
-                <div className="flex items-start gap-3 flex-1">
+                <Link href={`/app/users/${post.userId}`} className="flex items-start gap-3 flex-1 hover:opacity-80 transition-opacity">
                   {post.authorPhoto && (
                     <img
                       src={post.authorPhoto}
                       alt={post.authorName}
-                      className="w-10 h-10 rounded-full flex-shrink-0"
+                      className="w-10 h-10 rounded-full flex-shrink-0 cursor-pointer"
                     />
                   )}
-                  <div>
+                  <div className="cursor-pointer">
                     <p className="font-medium text-[#2a2318]">
                       {post.authorName} {post.authorPronouns && `(${post.authorPronouns})`}
                     </p>
@@ -240,7 +240,7 @@ export default function SpaceDetailPage() {
                       {new Date(post.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
-                </div>
+                </Link>
               </div>
 
               <p className="text-[#6b5f52] mb-4">{post.content}</p>
@@ -280,19 +280,21 @@ export default function SpaceDetailPage() {
                   {(comments[post.id] || []).map((comment: Comment) => (
                     <div key={comment.id} className="bg-[#f3ede5] p-3 rounded-lg">
                       <div className="flex items-start gap-2">
-                        {comment.authorPhoto && (
-                          <img
-                            src={comment.authorPhoto}
-                            alt={comment.authorName}
-                            className="w-7 h-7 rounded-full flex-shrink-0"
-                          />
-                        )}
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-[#2a2318]">
-                            {comment.authorName} {comment.authorPronouns && `(${comment.authorPronouns})`}
-                          </p>
-                          <p className="text-sm text-[#6b5f52] mt-1">{comment.content}</p>
-                        </div>
+                        <Link href={`/app/users/${comment.userId}`} className="flex items-start gap-2 flex-1 hover:opacity-80 transition-opacity">
+                          {comment.authorPhoto && (
+                            <img
+                              src={comment.authorPhoto}
+                              alt={comment.authorName}
+                              className="w-7 h-7 rounded-full flex-shrink-0 cursor-pointer"
+                            />
+                          )}
+                          <div className="flex-1 cursor-pointer">
+                            <p className="text-sm font-medium text-[#2a2318]">
+                              {comment.authorName} {comment.authorPronouns && `(${comment.authorPronouns})`}
+                            </p>
+                            <p className="text-sm text-[#6b5f52] mt-1">{comment.content}</p>
+                          </div>
+                        </Link>
                       </div>
                     </div>
                   ))}

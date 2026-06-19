@@ -44,6 +44,7 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
         return {
           id: post.id,
           spaceId: post.space_id,
+          userId: post.user_id,
           authorName: post.author_name || post.user_id,
           authorPronouns: profile?.pronouns,
           authorPhoto: profile?.profile_photo,
@@ -96,6 +97,7 @@ export async function createSupabasePost(
     return {
       id: data.id,
       spaceId: data.space_id,
+      userId: data.user_id,
       authorName: data.author_name || data.user_id,
       authorPronouns: profile?.pronouns,
       authorPhoto: profile?.profile_photo,
@@ -174,6 +176,7 @@ export async function getSupabaseComments(postId: string): Promise<Comment[]> {
         return {
           id: comment.id,
           postId: comment.post_id,
+          userId: comment.user_id,
           authorName: comment.author_name || comment.user_id,
           authorPronouns: profile?.pronouns,
           authorPhoto: profile?.profile_photo,
@@ -220,6 +223,7 @@ export async function createSupabaseComment(
     return {
       id: data.id,
       postId: data.post_id,
+      userId: data.user_id,
       authorName: data.author_name || data.user_id,
       authorPronouns: profile?.pronouns,
       authorPhoto: profile?.profile_photo,
