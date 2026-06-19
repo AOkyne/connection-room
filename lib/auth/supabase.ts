@@ -108,9 +108,8 @@ export async function signUpWithPassword(
       console.log("Creating profile for user:", signUpData.user.id);
       const { error: profileError } = await supabase.from("profiles").insert({
         id: signUpData.user.id,
-        email,
         display_name: displayName || email.split("@")[0],
-        profile_type: "individual",
+        member_type: "individual",
         completed_onboarding: false,
       });
       if (profileError) {
