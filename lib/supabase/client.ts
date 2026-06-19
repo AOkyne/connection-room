@@ -10,18 +10,14 @@ export const isSupabaseConfigured =
 // Create Supabase client only if configured
 let supabase: SupabaseClient | null = null;
 
-if (isSupabaseConfigured) {
+if (isSupabaseConfigured && typeof window !== "undefined") {
   supabase = createClient(supabaseUrl!, supabaseAnonKey!, {
     auth: {
       storageKey: "connection-room-auth",
-      storage:
-        typeof window !== "undefined"
-          ? window.localStorage
-          : undefined,
+      storage: typeof window !== "undefined" ? window.localStorage : undefined,
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
-      flowType: "pkce",
     },
   });
 }
