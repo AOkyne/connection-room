@@ -8,7 +8,7 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
   try {
     let query = supabase
       .from("posts")
-      .select("*")
+      .select("*, profiles(display_name, pronouns, profile_photo)")
       .order("created_at", { ascending: false });
 
     if (spaceId) {
@@ -39,17 +39,22 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
     });
 
     return (
-      data?.map((post) => ({
-        id: post.id,
-        spaceId: post.space_id,
-        authorName: post.author_name || post.user_id,
-        promptId: post.prompt_id,
-        content: post.content,
-        isPromptResponse: !!post.is_prompt_response,
-        createdAt: new Date(post.created_at),
-        reactions: reactionsMap[post.id] || {},
-        commentCount: post.comment_count || 0,
-      })) || []
+      data?.map((post) => {
+        const profile = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles;
+        return {
+          id: post.id,
+          spaceId: post.space_id,
+          authorName: post.author_name || post.user_id,
+          authorPronouns: profile?.pronouns,
+          authorPhoto: profile?.profile_photo,
+          promptId: post.prompt_id,
+          content: post.content,
+          isPromptResponse: !!post.is_prompt_response,
+          createdAt: new Date(post.created_at),
+          reactions: reactionsMap[post.id] || {},
+          commentCount: post.comment_count || 0,
+        };
+      }) || []
     );
   } catch (err) {
     console.error("Error in getSupabasePosts:", err);
@@ -78,7 +83,7 @@ export async function createSupabasePost(
         content: content,
         is_prompt_response: isPromptResponse || false,
       })
-      .select()
+      .select("*, profiles(display_name, pronouns, profile_photo)")
       .single();
 
     if (error) {
@@ -87,10 +92,13 @@ export async function createSupabasePost(
       return null;
     }
 
+    const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles;
     return {
       id: data.id,
       spaceId: data.space_id,
       authorName: data.author_name || data.user_id,
+      authorPronouns: profile?.pronouns,
+      authorPhoto: profile?.profile_photo,
       promptId: data.prompt_id,
       content: data.content,
       isPromptResponse: !!data.is_prompt_response,
@@ -151,7 +159,7 @@ export async function getSupabaseComments(postId: string): Promise<Comment[]> {
   try {
     const { data, error } = await supabase
       .from("comments")
-      .select("*")
+      .select("*, profiles(display_name, pronouns, profile_photo)")
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
 
@@ -161,14 +169,19 @@ export async function getSupabaseComments(postId: string): Promise<Comment[]> {
     }
 
     return (
-      data?.map((comment) => ({
-        id: comment.id,
-        postId: comment.post_id,
-        authorName: comment.author_name || comment.user_id,
-        content: comment.content,
-        createdAt: new Date(comment.created_at),
-        reactions: {},
-      })) || []
+      data?.map((comment) => {
+        const profile = Array.isArray(comment.profiles) ? comment.profiles[0] : comment.profiles;
+        return {
+          id: comment.id,
+          postId: comment.post_id,
+          authorName: comment.author_name || comment.user_id,
+          authorPronouns: profile?.pronouns,
+          authorPhoto: profile?.profile_photo,
+          content: comment.content,
+          createdAt: new Date(comment.created_at),
+          reactions: {},
+        };
+      }) || []
     );
   } catch (err) {
     console.error("Error in getSupabaseComments:", err);
@@ -194,7 +207,7 @@ export async function createSupabaseComment(
         author_name: authorName,
         content: content,
       })
-      .select()
+      .select("*, profiles(display_name, pronouns, profile_photo)")
       .single();
 
     if (error) {
@@ -203,10 +216,13 @@ export async function createSupabaseComment(
       return null;
     }
 
+    const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles;
     return {
       id: data.id,
       postId: data.post_id,
       authorName: data.author_name || data.user_id,
+      authorPronouns: profile?.pronouns,
+      authorPhoto: profile?.profile_photo,
       content: data.content,
       createdAt: new Date(data.created_at),
       reactions: {},

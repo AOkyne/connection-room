@@ -3,6 +3,27 @@
 
 import type { Profile } from "./profiles";
 
+function generateAvatarUrl(initials: string): string {
+  const colors = [
+    "#d4a574",
+    "#9d7f5c",
+    "#8fa878",
+    "#b86a52",
+    "#6b5f52",
+    "#a0968a",
+  ];
+  const color = colors[initials.charCodeAt(0) % colors.length];
+
+  const svg = `
+    <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+      <rect width="200" height="200" fill="${color}"/>
+      <text x="100" y="120" font-size="80" font-weight="bold" fill="white" text-anchor="middle" font-family="system-ui">${initials}</text>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+}
+
 export interface Space {
   id: string;
   name: string;
@@ -27,6 +48,7 @@ export interface Post {
   id: string;
   authorName: string;
   authorPronouns?: string;
+  authorPhoto?: string;
   spaceId: string;
   promptId?: string;
   content: string;
@@ -40,6 +62,7 @@ export interface Comment {
   id: string;
   postId: string;
   authorName: string;
+  authorPhoto?: string;
   content: string;
   createdAt: Date;
   reactions: Record<string, number>;
@@ -222,6 +245,7 @@ export const demoPosts: Post[] = [
     id: "post-001",
     authorName: "Marcus",
     authorPronouns: "he/him",
+    authorPhoto: generateAvatarUrl("M"),
     spaceId: "commons",
     promptId: undefined,
     content:
@@ -234,6 +258,7 @@ export const demoPosts: Post[] = [
   {
     id: "post-002",
     authorName: "James & Sarah",
+    authorPhoto: generateAvatarUrl("JS"),
     spaceId: "couples",
     promptId: "space-002",
     content:
@@ -247,6 +272,7 @@ export const demoPosts: Post[] = [
     id: "post-003",
     authorName: "David",
     authorPronouns: "he/him",
+    authorPhoto: generateAvatarUrl("D"),
     spaceId: "start-here",
     content:
       "I took the quiz and got 'Disconnected Overthinker' – which made me laugh because it's so accurate. I think I analyze connection instead of letting myself feel it. Looking forward to practicing something different here.",
@@ -259,6 +285,7 @@ export const demoPosts: Post[] = [
     id: "post-004",
     authorName: "Elena",
     authorPronouns: "she/her",
+    authorPhoto: generateAvatarUrl("E"),
     spaceId: "embodiment",
     promptId: undefined,
     content:

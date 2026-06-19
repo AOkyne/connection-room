@@ -76,7 +76,7 @@ export default function SpaceDetailPage() {
   const handleCreatePost = async () => {
     if (!newPostContent.trim()) return;
 
-    const newPost = await createPost(spaceId, profile.displayName, newPostContent, false, undefined, profile.pronouns);
+    const newPost = await createPost(spaceId, profile.displayName, newPostContent, false, undefined, profile.pronouns, profile.profilePhoto);
     setPosts([newPost, ...posts]);
     setNewPostContent("");
   };
@@ -85,7 +85,7 @@ export default function SpaceDetailPage() {
     const content = newCommentContent[postId];
     if (!content || !content.trim()) return;
 
-    await createComment(postId, profile.displayName, content, profile.pronouns);
+    await createComment(postId, profile.displayName, content, profile.pronouns, profile.profilePhoto);
     setNewCommentContent({ ...newCommentContent, [postId]: "" });
 
     // Refresh posts to show updated comment count
@@ -245,14 +245,23 @@ export default function SpaceDetailPage() {
           posts.map((post) => (
             <Card key={post.id}>
               <div className="flex items-start justify-between mb-3">
-                <div>
-                  <p className="font-medium text-[#2a2318]">
-                    {post.authorName} {post.authorPronouns && `(${post.authorPronouns})`}
-                  </p>
-                  <p className="text-xs text-[#a0968a]">
-                    {new Date(post.createdAt).toLocaleDateString()} at{" "}
-                    {new Date(post.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </p>
+                <div className="flex items-start gap-3 flex-1">
+                  {post.authorPhoto && (
+                    <img
+                      src={post.authorPhoto}
+                      alt={post.authorName}
+                      className="w-10 h-10 rounded-full flex-shrink-0"
+                    />
+                  )}
+                  <div>
+                    <p className="font-medium text-[#2a2318]">
+                      {post.authorName} {post.authorPronouns && `(${post.authorPronouns})`}
+                    </p>
+                    <p className="text-xs text-[#a0968a]">
+                      {new Date(post.createdAt).toLocaleDateString()} at{" "}
+                      {new Date(post.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -292,10 +301,21 @@ export default function SpaceDetailPage() {
                   {/* Existing Comments */}
                   {(comments[post.id] || []).map((comment: Comment) => (
                     <div key={comment.id} className="bg-[#f3ede5] p-3 rounded-lg">
-                      <p className="text-sm font-medium text-[#2a2318]">
-                        {comment.authorName} {comment.authorPronouns && `(${comment.authorPronouns})`}
-                      </p>
-                      <p className="text-sm text-[#6b5f52] mt-1">{comment.content}</p>
+                      <div className="flex items-start gap-2">
+                        {comment.authorPhoto && (
+                          <img
+                            src={comment.authorPhoto}
+                            alt={comment.authorName}
+                            className="w-7 h-7 rounded-full flex-shrink-0"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-[#2a2318]">
+                            {comment.authorName} {comment.authorPronouns && `(${comment.authorPronouns})`}
+                          </p>
+                          <p className="text-sm text-[#6b5f52] mt-1">{comment.content}</p>
+                        </div>
+                      </div>
                     </div>
                   ))}
 

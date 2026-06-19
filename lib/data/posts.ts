@@ -13,6 +13,7 @@ export interface Post {
   spaceId: string;
   authorName: string;
   authorPronouns?: string;
+  authorPhoto?: string;
   promptId?: string;
   content: string;
   isPromptResponse: boolean;
@@ -26,6 +27,7 @@ export interface Comment {
   postId: string;
   authorName: string;
   authorPronouns?: string;
+  authorPhoto?: string;
   content: string;
   createdAt: Date;
   reactions: Record<string, number>;
@@ -82,7 +84,8 @@ export async function createPost(
   content: string,
   isPromptResponse: boolean = false,
   promptId?: string,
-  authorPronouns?: string
+  authorPronouns?: string,
+  authorPhoto?: string
 ): Promise<Post> {
   if (typeof window === "undefined") {
     return {
@@ -90,6 +93,7 @@ export async function createPost(
       spaceId,
       authorName,
       authorPronouns,
+      authorPhoto,
       promptId,
       content,
       isPromptResponse,
@@ -111,6 +115,7 @@ export async function createPost(
     spaceId,
     authorName,
     authorPronouns,
+    authorPhoto,
     promptId,
     content,
     isPromptResponse,
@@ -170,7 +175,8 @@ export async function createComment(
   postId: string,
   authorName: string,
   content: string,
-  authorPronouns?: string
+  authorPronouns?: string,
+  authorPhoto?: string
 ): Promise<Comment> {
   if (typeof window === "undefined") {
     return {
@@ -178,6 +184,7 @@ export async function createComment(
       postId,
       authorName,
       authorPronouns,
+      authorPhoto,
       content,
       createdAt: new Date(),
       reactions: {},
@@ -196,6 +203,7 @@ export async function createComment(
     postId,
     authorName,
     authorPronouns,
+    authorPhoto,
     content,
     createdAt: new Date(),
     reactions: {},
