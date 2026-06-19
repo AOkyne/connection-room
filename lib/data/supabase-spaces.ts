@@ -3,7 +3,6 @@ import { supabase } from "@/lib/supabase/client";
 export interface Space {
   id: string;
   name: string;
-  slug: string;
   description?: string;
   icon?: string;
   visibility: string;
@@ -28,7 +27,6 @@ export async function getSupabaseSpaces(): Promise<Space[]> {
       data?.map((space) => ({
         id: space.id,
         name: space.name,
-        slug: space.slug,
         description: space.description,
         icon: space.icon,
         visibility: space.visibility,
@@ -81,7 +79,6 @@ export async function getUserJoinedSpaces(userId: string): Promise<Space[]> {
       spaces?.map((space) => ({
         id: space.id,
         name: space.name,
-        slug: space.slug,
         description: space.description,
         icon: space.icon,
         visibility: space.visibility,
