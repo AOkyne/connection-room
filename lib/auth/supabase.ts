@@ -64,6 +64,7 @@ export async function signUpWithPassword(
   }
 
   try {
+    console.log("Attempting signup with email:", email);
     // First, sign up the user
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email,
@@ -77,11 +78,14 @@ export async function signUpWithPassword(
     });
 
     if (signUpError) {
+      console.error("Signup error:", signUpError);
       return {
         success: false,
         error: signUpError.message,
       };
     }
+
+    console.log("Signup success, user id:", signUpData.user?.id);
 
     // For password signup, immediately sign them in (no email confirmation needed for password auth)
     const { error: signInError } = await supabase.auth.signInWithPassword({
@@ -90,27 +94,37 @@ export async function signUpWithPassword(
     });
 
     if (signInError) {
+      console.error("Sign-in error after signup:", signInError);
       return {
         success: false,
         error: signInError.message,
       };
     }
 
+    console.log("Sign-in successful after signup");
+
     // Create profile for the new user
     if (signUpData.user) {
-      await supabase.from("profiles").insert({
+      console.log("Creating profile for user:", signUpData.user.id);
+      const { error: profileError } = await supabase.from("profiles").insert({
         id: signUpData.user.id,
         email,
         display_name: displayName || email.split("@")[0],
         profile_type: "individual",
         completed_onboarding: false,
       });
+      if (profileError) {
+        console.error("Profile insert error:", profileError);
+      } else {
+        console.log("Profile created successfully");
+      }
     }
 
     return {
       success: true,
     };
   } catch (err) {
+    console.error("Signup exception:", err);
     return {
       success: false,
       error: err instanceof Error ? err.message : "Unknown error",
