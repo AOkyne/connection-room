@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession, clearSession, type AppSession } from "@/lib/session";
 import { Button } from "@/components/Button";
-import { IconHome, IconJourney, IconPairingsNav, IconProfileNav, IconAdmin, IconSpaces } from "@/components/Icons";
+import { IconHome, IconJourney, IconPairingsNav, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming } from "@/components/Icons";
 import Link from "next/link";
 
 interface AppLayoutProps {
@@ -51,6 +51,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     { href: "/app/spaces", label: "Spaces", icon: null },
     { href: "/app/journey", label: "My Journey", icon: IconJourney },
     { href: "/app/pairings", label: "Pairings", icon: IconPairingsNav },
+    { href: "/app/events", label: "Events", icon: IconUpcoming },
     { href: "/app/profile", label: "Profile", icon: IconProfileNav },
   ];
 

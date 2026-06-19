@@ -177,6 +177,26 @@ export const demoSpaces: Space[] = [
     memberCount: 89,
     isJoined: false,
   },
+  {
+    id: "masculinity-sex-sexuality",
+    name: "Masculinity, Sex, and Sexuality",
+    description: "Exploring masculine sexuality, desire, vulnerability, and authentic expression without performance or shame",
+    icon: "sexuality",
+    color: "bg-indigo-50",
+    memberCount: 145,
+    isJoined: false,
+    featuredPrompt: "What does it mean to you to be sexually authentic as a man?",
+  },
+  {
+    id: "sacred-sexuality",
+    name: "Sacred Sexuality Practices",
+    description: "Spiritual approaches to sexuality, tantra, embodiment, and the sacred union of body and spirit",
+    icon: "spirituality",
+    color: "bg-violet-50",
+    memberCount: 78,
+    isJoined: false,
+    featuredPrompt: "How do you experience the sacred in your sexuality?",
+  },
 ];
 
 export const demoPrompts: Prompt[] = [
