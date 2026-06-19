@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getSpace } from "@/lib/data/spaces";
-import { getPosts, createPost, addPostReaction, getComments, createComment } from "@/lib/data/posts";
+import { getPosts, createPost, addPostReaction, getComments, createComment, type Post, type Comment } from "@/lib/data/posts";
 import { getProfile } from "@/lib/data/profiles";
 import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
@@ -11,28 +11,6 @@ import { Button } from "@/components/Button";
 import { SpaceIconSVG } from "@/components/SpaceIconSVG";
 import { IconIntegration, IconReflection } from "@/components/Icons";
 import Link from "next/link";
-
-interface Post {
-  id: string;
-  spaceId: string;
-  authorName: string;
-  authorPronouns?: string;
-  content: string;
-  isPromptResponse: boolean;
-  createdAt: Date;
-  reactions: Record<string, number>;
-  commentCount: number;
-}
-
-interface Comment {
-  id: string;
-  postId: string;
-  authorName: string;
-  authorPronouns?: string;
-  content: string;
-  createdAt: Date;
-  reactions: Record<string, number>;
-}
 
 export default function SpaceDetailPage() {
   const router = useRouter();
