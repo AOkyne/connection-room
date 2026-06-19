@@ -175,7 +175,7 @@ export default function AppHome() {
         )}
 
         {/* Take A Quiz */}
-        <Card className="md:col-span-2">
+        <Card>
           <CardHeader title="Take A Quiz" icon={<>{(() => { const Icon = getIconComponent("🧭"); return <Icon size={20} />; })()}</>} />
           <div className="space-y-3">
             <Link href="/app/quizzes">
