@@ -113,6 +113,7 @@ export async function addSupabasePostReaction(
   if (!supabase) return false;
 
   try {
+    console.log("Adding reaction:", { postId, userId, reactionType });
     // Try to insert the reaction
     const { error } = await supabase
       .from("reactions")
@@ -124,14 +125,18 @@ export async function addSupabasePostReaction(
 
     // If unique constraint violation, the reaction already exists - that's fine
     if (error && error.code === "23505") {
+      console.log("Reaction already exists");
       return true;
     }
 
     if (error) {
       console.error("Error adding post reaction:", error);
+      console.error("Error code:", error.code);
+      console.error("Error message:", error.message);
       return false;
     }
 
+    console.log("Reaction added successfully");
     return true;
   } catch (err) {
     console.error("Error in addSupabasePostReaction:", err);
