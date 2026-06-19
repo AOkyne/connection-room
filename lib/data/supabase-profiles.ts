@@ -84,6 +84,17 @@ export async function getProfileFromSupabase(
 
   if (error || !data) return null;
 
+  // Fetch joined spaces from space_memberships table
+  let spacesJoined: string[] = [];
+  const { data: memberships, error: membershipsError } = await supabase
+    .from("space_memberships")
+    .select("space_id")
+    .eq("user_id", userId);
+
+  if (!membershipsError && memberships) {
+    spacesJoined = memberships.map((m) => m.space_id);
+  }
+
   return {
     id: data.id,
     displayName: data.display_name,
@@ -103,7 +114,7 @@ export async function getProfileFromSupabase(
     firstPromptResponse: data.first_prompt_response,
     firstPromptIsPublic: data.first_prompt_is_public,
     completedOnboarding: data.completed_onboarding,
-    spacesJoined: data.spaces_joined || [],
+    spacesJoined: spacesJoined,
     joinedAt: new Date(data.joined_at),
   };
 }
