@@ -124,6 +124,7 @@ export async function getSupabaseComments(postId: string): Promise<Comment[]> {
 export async function createSupabaseComment(
   postId: string,
   userId: string,
+  authorName: string,
   content: string
 ): Promise<Comment | null> {
   if (!supabase) return null;
@@ -134,6 +135,7 @@ export async function createSupabaseComment(
       .insert({
         user_id: userId,
         post_id: postId,
+        author_name: authorName,
         content: content,
       })
       .select()

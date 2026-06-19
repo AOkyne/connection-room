@@ -185,7 +185,7 @@ export async function createComment(
 
   const userId = await getCurrentUserId();
   if (userId && supabase) {
-    const comment = await createSupabaseComment(postId, userId, content);
+    const comment = await createSupabaseComment(postId, userId, authorName, content);
     if (comment) return comment;
   }
 
