@@ -14,10 +14,12 @@ import { getBadgeIcon } from "@/lib/badge-icons";
 import { getOfferIcon } from "@/lib/offer-icons";
 import { getIconComponent } from "@/lib/icon-lookup";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { createPost } from "@/lib/data/posts";
 
 export default function AppHome() {
   const router = useRouter();
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [spaces, setSpaces] = useState<any[]>([]);
   const [badges, setBadges] = useState<any[]>([]);
@@ -25,28 +27,36 @@ export default function AppHome() {
   const [offers, setOffers] = useState<any[]>([]);
   const [suggestedSpace, setSuggestedSpace] = useState<any>(null);
   const [mounted, setMounted] = useState(false);
+  const [promptResponse, setPromptResponse] = useState("");
+  const [selectedSpaceId, setSelectedSpaceId] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
-      const p = await getProfile();
-      setProfile(p);
-      const s = await getSpaces();
-      setSpaces(s);
+      try {
+        const p = await getProfile();
+        setProfile(p);
+        const s = await getSpaces();
+        setSpaces(s);
 
-      if (p) {
-        const b = getUserBadges(p.id);
-        setBadges(b);
-        const o = getRelevantOffers(p);
-        setOffers(o);
+        if (p) {
+          const b = getUserBadges(p.id);
+          setBadges(b);
+          const o = getRelevantOffers(p);
+          setOffers(o);
+        }
+
+        const e = getUpcomingEvents();
+        setUpcomingEvents(e.slice(0, 2));
+
+        const suggested = await getSuggestedSpace();
+        setSuggestedSpace(suggested);
+
+        setMounted(true);
+      } catch (error) {
+        console.error("Error loading data:", error);
+        setMounted(true);
       }
-
-      const e = getUpcomingEvents();
-      setUpcomingEvents(e.slice(0, 2));
-
-      const suggested = await getSuggestedSpace();
-      setSuggestedSpace(suggested);
-
-      setMounted(true);
     };
 
     loadData();
@@ -106,7 +116,16 @@ export default function AppHome() {
           <div className="bg-[#f3ede5] rounded-lg p-4 space-y-3">
             <p className="text-[#6b5f52] italic text-lg">"{todaysPrompt}"</p>
             <p className="text-sm text-[#8fa878]">A sentence or two is enough. No need to write a memoir unless the memoir insists.</p>
-            <Button variant="secondary" size="md">
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={() => {
+                setPromptResponse("");
+                const commonsSpace = spaces.find(s => s.id === "commons");
+                setSelectedSpaceId(commonsSpace?.id || spaces[0]?.id || "");
+                dialogRef.current?.showModal();
+              }}
+            >
               Respond to Prompt
             </Button>
           </div>
@@ -268,6 +287,96 @@ export default function AppHome() {
           2, we'll connect to Supabase for persistent accounts.
         </p>
       </div>
+
+      {/* Prompt Response Modal */}
+      <dialog
+        ref={dialogRef}
+        className="backdrop:bg-black/50 rounded-xl shadow-xl p-6 border border-[#e8ddd2] w-full max-w-md"
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold text-[#2a2318]">Respond to Prompt</h2>
+          <button
+            onClick={() => dialogRef.current?.close()}
+            className="text-[#a0968a] hover:text-[#6b5f52] text-2xl font-bold leading-none"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+          <div className="bg-[#f3ede5] rounded-lg p-4">
+            <p className="text-[#6b5f52] italic">"{todaysPrompt}"</p>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-[#2a2318]">
+              Your Response
+            </label>
+            <textarea
+              value={promptResponse}
+              onChange={(e) => setPromptResponse(e.target.value)}
+              placeholder="Share your thoughts..."
+              className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-[#2a2318] bg-white"
+              rows={4}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-[#2a2318]">
+              Share in Space
+            </label>
+            <select
+              value={selectedSpaceId}
+              onChange={(e) => setSelectedSpaceId(e.target.value)}
+              className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-[#2a2318] bg-white"
+            >
+              {spaces.map((space) => (
+                <option key={space.id} value={space.id}>
+                  {space.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={() => dialogRef.current?.close()}
+              className="flex-1 font-medium rounded-lg transition-all duration-150 focus:outline-none border-2 border-[#d4a574] text-[#9d7f5c] hover:bg-[#faf7f2] px-4 py-2 text-base"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                if (!promptResponse.trim() || !selectedSpaceId) return;
+                setSubmitting(true);
+                try {
+                  await createPost(
+                    selectedSpaceId,
+                    profile.displayName,
+                    promptResponse,
+                    true,
+                    undefined,
+                    profile.pronouns,
+                    profile.profilePhoto
+                  );
+                  setPromptResponse("");
+                  dialogRef.current?.close();
+                } catch (error) {
+                  console.error("Error creating post:", error);
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+              disabled={submitting || !promptResponse.trim() || !selectedSpaceId}
+              className="flex-1 font-medium rounded-lg transition-all duration-150 focus:outline-none bg-[#9d7f5c] text-white hover:bg-[#7d6245] active:bg-[#6a523a] disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 text-base"
+            >
+              {submitting ? "Posting..." : "Post Response"}
+            </button>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 }
