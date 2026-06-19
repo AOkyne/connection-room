@@ -92,6 +92,7 @@ export async function createPost(
   if (typeof window === "undefined") {
     return {
       id: `post-${Date.now()}`,
+      userId: `user-demo-${Date.now()}`,
       spaceId,
       authorName,
       authorPronouns,
@@ -114,6 +115,7 @@ export async function createPost(
   // Demo mode fallback
   const post: Post = {
     id: `post-${Date.now()}`,
+    userId: `user-demo-${Date.now()}`,
     spaceId,
     authorName,
     authorPronouns,
@@ -184,6 +186,7 @@ export async function createComment(
     return {
       id: `comment-${Date.now()}`,
       postId,
+      userId: `user-demo-${Date.now()}`,
       authorName,
       authorPronouns,
       authorPhoto,
@@ -203,6 +206,7 @@ export async function createComment(
   const comment: Comment = {
     id: `comment-${Date.now()}`,
     postId,
+    userId: `user-demo-${Date.now()}`,
     authorName,
     authorPronouns,
     authorPhoto,

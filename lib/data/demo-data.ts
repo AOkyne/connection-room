@@ -46,6 +46,7 @@ export interface Prompt {
 
 export interface Post {
   id: string;
+  userId: string;
   authorName: string;
   authorPronouns?: string;
   authorPhoto?: string;
@@ -61,6 +62,7 @@ export interface Post {
 export interface Comment {
   id: string;
   postId: string;
+  userId: string;
   authorName: string;
   authorPhoto?: string;
   content: string;
@@ -263,6 +265,7 @@ export const demoPrompts: Prompt[] = [
 export const demoPosts: Post[] = [
   {
     id: "post-001",
+    userId: "user-marcus",
     authorName: "Marcus",
     authorPronouns: "he/him",
     authorPhoto: generateAvatarUrl("M"),
@@ -277,6 +280,7 @@ export const demoPosts: Post[] = [
   },
   {
     id: "post-002",
+    userId: "user-james-sarah",
     authorName: "James & Sarah",
     authorPhoto: generateAvatarUrl("JS"),
     spaceId: "couples",
@@ -290,6 +294,7 @@ export const demoPosts: Post[] = [
   },
   {
     id: "post-003",
+    userId: "user-david",
     authorName: "David",
     authorPronouns: "he/him",
     authorPhoto: generateAvatarUrl("D"),
@@ -303,6 +308,7 @@ export const demoPosts: Post[] = [
   },
   {
     id: "post-004",
+    userId: "user-elena",
     authorName: "Elena",
     authorPronouns: "she/her",
     authorPhoto: generateAvatarUrl("E"),
