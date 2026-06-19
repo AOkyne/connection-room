@@ -131,6 +131,76 @@ export default function SpaceDetailPage() {
         </Link>
       </div>
 
+      {/* Space Introduction */}
+      {space.id === "start-here" && (
+        <Card className="bg-[#f3ede5] border-l-4 border-[#d4a574]">
+          <div className="space-y-4 text-[#2a2318]">
+            <h2 className="text-2xl font-bold">Welcome to The Connection Room by Trevor James.</h2>
+
+            <p className="text-[#6b5f52]">
+              This is a private community for men and couples who want to practice more honest connection, embodied intimacy, emotional openness, spirituality, sexuality, and integration without shame, pressure, or performance.
+            </p>
+
+            <div className="space-y-2 text-[#6b5f52]">
+              <p className="font-medium">This is not a hookup space.</p>
+              <p>It is not a dating app.</p>
+              <p>It is not a place where you have to perform vulnerability, say something profound, or arrive fully "healed" before you belong.</p>
+            </div>
+
+            <p className="italic">Think of this as a practice room. A place to slow down, notice what is true, explore what connection brings up in you, and participate at a pace that feels honest and respectful.</p>
+
+            <p className="text-[#6b5f52]">You are welcome here whether you are feeling open, guarded, curious, nervous, tender, skeptical, quietly hopeful, or all of the above before breakfast.</p>
+
+            <div className="pt-4 border-t border-[#d4a574]">
+              <h3 className="font-bold mb-3">How to begin:</h3>
+              <ul className="space-y-2 text-sm text-[#6b5f52]">
+                <li><strong>Complete your profile</strong> — Share as much or as little as feels appropriate.</li>
+                <li><strong>Choose one or two spaces</strong> — Start with what speaks to you.</li>
+                <li><strong>Respond to one prompt</strong> — A small honest response is enough.</li>
+                <li><strong>Read with care</strong> — Receive shares with respect. A simple "I relate" goes a long way.</li>
+                <li><strong>Return when you can</strong> — This is designed to build a rhythm, not endless scrolling.</li>
+              </ul>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {space.id === "commons" && (
+        <Card className="bg-[#f3ede5] border-l-4 border-[#d4a574]">
+          <div className="space-y-4 text-[#2a2318]">
+            <h2 className="text-2xl font-bold">Welcome to The Commons.</h2>
+
+            <p className="text-[#6b5f52]">
+              This is the main gathering space for the community: a place for reflections, questions, introductions, check-ins, shared insights, and the small human moments that help a room feel alive.
+            </p>
+
+            <p className="italic text-[#6b5f52]">Think of The Commons as the front room of The Connection Room — the warmer version where you can say hello, share what you are noticing, and connect with others.</p>
+
+            <div className="pt-4 border-t border-[#d4a574]">
+              <h3 className="font-bold mb-3">What to post here:</h3>
+              <ul className="space-y-1 text-sm text-[#6b5f52]">
+                <li>• A short introduction or what brought you here</li>
+                <li>• What kind of connection you are craving more of</li>
+                <li>• Something you are learning about intimacy or vulnerability</li>
+                <li>• A reflection from a prompt or question you are sitting with</li>
+                <li>• A small win, moment of insight, or something tender/funny</li>
+              </ul>
+            </div>
+
+            <div className="pt-4 border-t border-[#d4a574]">
+              <h3 className="font-bold mb-3">How to respond:</h3>
+              <p className="text-sm text-[#6b5f52] mb-2">Lead with presence. Helpful responses include:</p>
+              <ul className="space-y-1 text-sm text-[#6b5f52]">
+                <li>• "I relate to this."</li>
+                <li>• "Thank you for sharing."</li>
+                <li>• "I appreciate how honestly you said this."</li>
+                <li>• "Would you like reflection, or mostly to be witnessed?"</li>
+              </ul>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Featured Prompt */}
       {space.featuredPrompt && (
         <Card className="bg-gradient-to-r from-[#f3ede5] to-[#fffbf7]">
