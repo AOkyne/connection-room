@@ -22,6 +22,22 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
       return [];
     }
 
+    // Fetch reactions for all posts
+    const { data: reactionsData } = await supabase
+      .from("reactions")
+      .select("post_id, reaction_type")
+      .in("post_id", (data || []).map((p) => p.id));
+
+    // Aggregate reactions by post and type
+    const reactionsMap: Record<string, Record<string, number>> = {};
+    (reactionsData || []).forEach((reaction: any) => {
+      if (!reactionsMap[reaction.post_id]) {
+        reactionsMap[reaction.post_id] = {};
+      }
+      const type = reaction.reaction_type;
+      reactionsMap[reaction.post_id][type] = (reactionsMap[reaction.post_id][type] || 0) + 1;
+    });
+
     return (
       data?.map((post) => ({
         id: post.id,
@@ -31,7 +47,7 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
         content: post.content,
         isPromptResponse: !!post.is_prompt_response,
         createdAt: new Date(post.created_at),
-        reactions: {},
+        reactions: reactionsMap[post.id] || {},
         commentCount: post.comment_count || 0,
       })) || []
     );
