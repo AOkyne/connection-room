@@ -11,7 +11,19 @@ export const isSupabaseConfigured =
 let supabase: SupabaseClient | null = null;
 
 if (isSupabaseConfigured) {
-  supabase = createClient(supabaseUrl!, supabaseAnonKey!);
+  supabase = createClient(supabaseUrl!, supabaseAnonKey!, {
+    auth: {
+      storageKey: "connection-room-auth",
+      storage:
+        typeof window !== "undefined"
+          ? window.localStorage
+          : undefined,
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: "pkce",
+    },
+  });
 }
 
 export { supabase };
