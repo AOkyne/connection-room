@@ -91,8 +91,8 @@ export async function getProfileFromSupabase(
     .select("space_id")
     .eq("user_id", userId);
 
-  if (!membershipsError && memberships) {
-    spacesJoined = memberships.map((m) => m.space_id);
+  if (!membershipsError && memberships && Array.isArray(memberships)) {
+    spacesJoined = memberships.map((m: any) => m.space_id);
   }
 
   return {
