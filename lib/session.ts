@@ -23,10 +23,27 @@ export async function getSession(): Promise<AppSession | null> {
       } = await supabase.auth.getSession();
 
       if (session?.user) {
+        // Fetch profile to get display name
+        let displayName = session.user.email?.split("@")[0] || "User";
+        try {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("display_name")
+            .eq("id", session.user.id)
+            .single();
+
+          if (profile?.display_name) {
+            displayName = profile.display_name;
+          }
+        } catch (err) {
+          // Fall back to email username if profile fetch fails
+          console.debug("Could not fetch profile for session display name");
+        }
+
         return {
           id: session.user.id,
           type: "member",
-          name: session.user.email?.split("@")[0] || "User",
+          name: displayName,
           email: session.user.email,
           supabaseUserId: session.user.id,
           isBeta: true,
