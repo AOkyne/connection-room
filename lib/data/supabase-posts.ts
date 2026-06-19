@@ -25,10 +25,14 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
     // For each post, get the actual comment count from comments table
     const postsWithCounts = await Promise.all(
       (data || []).map(async (post) => {
-        const { count, error: countError } = await supabase
-          .from("comments")
-          .select("*", { count: "exact", head: true })
-          .eq("post_id", post.id);
+        let commentCount = 0;
+        if (supabase) {
+          const { count } = await supabase
+            .from("comments")
+            .select("*", { count: "exact", head: true })
+            .eq("post_id", post.id);
+          commentCount = count || 0;
+        }
 
         return {
           id: post.id,
@@ -39,7 +43,7 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
           isPromptResponse: !!post.is_prompt_response,
           createdAt: new Date(post.created_at),
           reactions: {},
-          commentCount: count || 0,
+          commentCount,
         };
       })
     );
