@@ -108,7 +108,7 @@ export async function getSupabaseComments(postId: string): Promise<Comment[]> {
       data?.map((comment) => ({
         id: comment.id,
         postId: comment.post_id,
-        authorName: comment.user_id,
+        authorName: comment.author_name || comment.user_id,
         content: comment.content,
         createdAt: new Date(comment.created_at),
         reactions: {},
@@ -150,7 +150,7 @@ export async function createSupabaseComment(
     return {
       id: data.id,
       postId: data.post_id,
-      authorName: data.user_id,
+      authorName: data.author_name || data.user_id,
       content: data.content,
       createdAt: new Date(data.created_at),
       reactions: {},
