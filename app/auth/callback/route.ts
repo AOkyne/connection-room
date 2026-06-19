@@ -52,11 +52,11 @@ export async function GET(request: NextRequest) {
         const { data: existingProfile, error: profileError } = await supabase
           .from("profiles")
           .select("id, completed_onboarding")
-          .eq("user_id", user.id)
+          .eq("id", user.id)
           .single();
 
         // If profile doesn't exist, create it
-        if (!existingProfile && !profileError) {
+        if (!existingProfile) {
           const displayName = user.email?.split("@")[0] || "User";
           const initials = displayName
             .split(".")
@@ -68,11 +68,10 @@ export async function GET(request: NextRequest) {
           const avatarDataUrl = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect fill='%23d4a574' width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' font-size='80' font-weight='bold' fill='white' text-anchor='middle' dy='.3em'%3E${initials}%3C/text%3E%3C/svg%3E`;
 
           const { error: insertError } = await supabase.from("profiles").insert({
-            user_id: user.id,
+            id: user.id,
+            email: user.email,
             display_name: displayName,
-            member_type: "individual",
-            interests: [],
-            profile_photo: avatarDataUrl,
+            profile_type: "individual",
             completed_onboarding: false,
           });
 

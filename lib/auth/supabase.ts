@@ -96,6 +96,17 @@ export async function signUpWithPassword(
       };
     }
 
+    // Create profile for the new user
+    if (signUpData.user) {
+      await supabase.from("profiles").insert({
+        id: signUpData.user.id,
+        email,
+        display_name: displayName || email.split("@")[0],
+        profile_type: "individual",
+        completed_onboarding: false,
+      });
+    }
+
     return {
       success: true,
     };
