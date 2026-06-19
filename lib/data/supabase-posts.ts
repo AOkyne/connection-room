@@ -45,6 +45,7 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
 export async function createSupabasePost(
   spaceId: string,
   userId: string,
+  authorName: string,
   content: string,
   isPromptResponse: boolean = false,
   promptId?: string
@@ -57,6 +58,7 @@ export async function createSupabasePost(
       .insert({
         user_id: userId,
         space_id: spaceId,
+        author_name: authorName,
         content: content,
         is_prompt_response: isPromptResponse || false,
       })

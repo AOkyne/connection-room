@@ -100,7 +100,7 @@ export async function createPost(
 
   const userId = await getCurrentUserId();
   if (userId && supabase) {
-    const post = await createSupabasePost(spaceId, userId, content, isPromptResponse, promptId);
+    const post = await createSupabasePost(spaceId, userId, authorName, content, isPromptResponse, promptId);
     if (post) return post;
   }
 
