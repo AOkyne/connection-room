@@ -76,6 +76,15 @@ export async function GET(request: NextRequest) {
 
           if (insertError) {
             console.error("Error creating profile:", insertError);
+          } else {
+            // Auto-join user to default spaces
+            const defaultSpaces = ["start-here", "commons"];
+            for (const spaceId of defaultSpaces) {
+              await supabase.from("space_memberships").insert({
+                user_id: user.id,
+                space_id: spaceId,
+              });
+            }
           }
         }
 

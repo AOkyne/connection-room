@@ -117,6 +117,15 @@ export async function signUpWithPassword(
       } else {
         console.log("Profile created successfully");
       }
+
+      // Auto-join user to default spaces
+      const defaultSpaces = ["start-here", "commons"];
+      for (const spaceId of defaultSpaces) {
+        await supabase.from("space_memberships").insert({
+          user_id: signUpData.user.id,
+          space_id: spaceId,
+        });
+      }
     }
 
     return {
