@@ -51,7 +51,7 @@ async function getCurrentUserId(): Promise<string | null> {
   }
 }
 
-// Get all posts (or posts for a specific space)
+// Get all posts from Supabase or demo data (or posts for a specific space)
 export async function getPosts(spaceId?: string): Promise<Post[]> {
   if (typeof window === "undefined") {
     return demoPosts;
