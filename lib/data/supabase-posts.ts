@@ -97,17 +97,21 @@ export async function addSupabasePostReaction(
   if (!supabase) return false;
 
   try {
-    // Try to upsert (insert or update)
+    // First, delete any existing reaction for this user/post
+    await supabase
+      .from("reactions")
+      .delete()
+      .eq("user_id", userId)
+      .eq("post_id", postId);
+
+    // Then insert the new reaction
     const { error } = await supabase
       .from("reactions")
-      .upsert(
-        {
-          user_id: userId,
-          post_id: postId,
-          reaction_type: reactionType,
-        },
-        { onConflict: "user_id,post_id" }
-      );
+      .insert({
+        user_id: userId,
+        post_id: postId,
+        reaction_type: reactionType,
+      });
 
     if (error) {
       console.error("Error adding post reaction:", error);
