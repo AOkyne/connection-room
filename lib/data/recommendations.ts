@@ -39,18 +39,6 @@ export function getRecommendedNextStep(profile: Profile | null): Recommendation 
     };
   }
 
-  // No quiz result
-  if (!profile.quizResult || profile.quizResult === "I have not taken the quiz yet") {
-    return {
-      title: "Take the Quiz",
-      description: "Discover your profile and get personalized insights",
-      action: "Take Quiz",
-      href: appConfig.urls.quiz,
-      icon: "🧭",
-      type: "external",
-    };
-  }
-
   // Couples member but incomplete couples profile
   if (profile.memberType === "couple" && !profile.relationshipStatus) {
     return {
