@@ -15,6 +15,7 @@ import { getIconComponent } from "@/lib/icon-lookup";
 import { SevenDoorsOverview } from "@/components/journey/SevenDoorsOverview";
 import { GuidedRhythmOverview } from "@/components/guided-rhythm/GuidedRhythmOverview";
 import { ConnectionPracticeSummary } from "@/components/connection/ConnectionPracticeSummary";
+import { clearOldBadgeData } from "@/lib/data/badges";
 import Link from "next/link";
 
 export default function JourneyPage() {
@@ -25,6 +26,9 @@ export default function JourneyPage() {
 
   useEffect(() => {
     const loadData = async () => {
+      // Clear old badge data from localStorage
+      clearOldBadgeData();
+
       const p = await getProfile();
       setProfile(p);
       const s = await getSpaces();
