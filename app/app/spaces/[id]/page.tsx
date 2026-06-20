@@ -11,6 +11,9 @@ import { Button } from "@/components/Button";
 import { SpaceIconSVG } from "@/components/SpaceIconSVG";
 import { StartHereChecklist } from "@/components/StartHereChecklist";
 import { FirstWeekStartHereCard } from "@/components/journey/FirstWeekStartHereCard";
+import { EmptySpaceInvitation } from "@/components/connection/EmptySpaceInvitation";
+import { WeeklyCommonsThread } from "@/components/connection/WeeklyCommonsThread";
+import { CommentingGuideHelper } from "@/components/connection/CommentingGuideHelper";
 import { IconIntegration, IconReflection } from "@/components/Icons";
 import Link from "next/link";
 
@@ -209,6 +212,9 @@ export default function SpaceDetailPage() {
         </Card>
       )}
 
+      {/* Weekly Commons Thread */}
+      {spaceId === "commons" && <WeeklyCommonsThread />}
+
       {/* Start Here Checklist */}
       {spaceId === "start-here" && <StartHereChecklist />}
 
@@ -216,7 +222,7 @@ export default function SpaceDetailPage() {
       {spaceId === "start-here" && <FirstWeekStartHereCard />}
 
       {/* Create Post */}
-      <Card>
+      <Card id="create-post-section">
         <CardHeader title="Share Your Thoughts" icon={<IconIntegration size={20} />} />
         <textarea
           value={newPostContent}
@@ -241,9 +247,13 @@ export default function SpaceDetailPage() {
       {/* Posts Feed */}
       <div className="space-y-6">
         {posts.length === 0 ? (
-          <Card className="text-center py-8">
-            <p className="text-[#a0968a]">No posts yet. Be the first to share.</p>
-          </Card>
+          <EmptySpaceInvitation
+            spaceId={spaceId}
+            onStartPost={() => {
+              // Scroll to post creation
+              document.getElementById("create-post-section")?.scrollIntoView({ behavior: "smooth" });
+            }}
+          />
         ) : (
           posts.map((post) => (
             <Card key={post.id}>
@@ -323,6 +333,11 @@ export default function SpaceDetailPage() {
                       </div>
                     </div>
                   ))}
+
+                  {/* Commenting Guide */}
+                  <div className="mb-3">
+                    <CommentingGuideHelper compact={true} />
+                  </div>
 
                   {/* Add Comment */}
                   <div className="space-y-2">
