@@ -14,6 +14,7 @@ import { getBadgeIcon } from "@/lib/badge-icons";
 import { getIconComponent } from "@/lib/icon-lookup";
 import { SevenDoorsOverview } from "@/components/journey/SevenDoorsOverview";
 import { GuidedRhythmOverview } from "@/components/guided-rhythm/GuidedRhythmOverview";
+import { ConnectionPracticeSummary } from "@/components/connection/ConnectionPracticeSummary";
 import Link from "next/link";
 
 export default function JourneyPage() {
@@ -62,6 +63,13 @@ export default function JourneyPage() {
 
       {/* Guided Rhythm */}
       <GuidedRhythmOverview />
+
+      {/* Your Connection Practice */}
+      <ConnectionPracticeSummary
+        postCount={0}
+        commentCount={0}
+        spacesJoinedCount={joinedSpaces.length}
+      />
 
       {/* Main Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
