@@ -146,6 +146,14 @@ export const guidedRhythm: Month[] = [
         "What did you notice this month about touch, affection, embodiment, or your capacity to receive?",
       suggestedNextStep:
         "Visit the Touch & Affection or Embodiment Practice space and respond to one prompt.",
+      nextSteps: [
+        { label: "Revisit your quiz result", href: "/app/quiz" },
+        { label: "Join a connection pairing", href: "/app/pairing" },
+        { label: "Attend an event", href: "/app/events" },
+        { label: "Explore a workshop or retreat", href: "/app/workshops" },
+        { label: "Book a consultation", href: "https://trevorjamesla.as.me/free-consult" },
+        { label: "Return to The Seven Doors", href: "/app/journey" },
+      ],
     },
   },
   {
@@ -218,6 +226,14 @@ export const guidedRhythm: Month[] = [
         "What did you learn this month about desire, shame, sexuality, or performance?",
       suggestedNextStep:
         "Take or revisit the What's Your Intimacy Pattern quiz, then reflect on what feels accurate now.",
+      nextSteps: [
+        { label: "Revisit your quiz result", href: "/app/quiz" },
+        { label: "Join a connection pairing", href: "/app/pairing" },
+        { label: "Attend an event", href: "/app/events" },
+        { label: "Explore a workshop or retreat", href: "/app/workshops" },
+        { label: "Book a consultation", href: "https://trevorjamesla.as.me/free-consult" },
+        { label: "Return to The Seven Doors", href: "/app/journey" },
+      ],
     },
   },
   {
@@ -290,6 +306,14 @@ export const guidedRhythm: Month[] = [
         "What did you notice this month about communication, conflict, repair, or closeness?",
       suggestedNextStep:
         "If you are partnered, visit Couples, Closeness & Repair. If you are single, reflect on how repair shows up in friendship, dating, family, or self-relationship.",
+      nextSteps: [
+        { label: "Revisit your quiz result", href: "/app/quiz" },
+        { label: "Join a connection pairing", href: "/app/pairing" },
+        { label: "Attend an event", href: "/app/events" },
+        { label: "Explore a workshop or retreat", href: "/app/workshops" },
+        { label: "Book a consultation", href: "https://trevorjamesla.as.me/free-consult" },
+        { label: "Return to The Seven Doors", href: "/app/journey" },
+      ],
     },
   },
   {
@@ -363,6 +387,14 @@ export const guidedRhythm: Month[] = [
         "What did you learn this month about meaning, spirituality, integration, or wholeness?",
       suggestedNextStep:
         "Visit Spirituality, Sexuality & Integration and respond to one prompt that feels approachable.",
+      nextSteps: [
+        { label: "Revisit your quiz result", href: "/app/quiz" },
+        { label: "Join a connection pairing", href: "/app/pairing" },
+        { label: "Attend an event", href: "/app/events" },
+        { label: "Explore a workshop or retreat", href: "/app/workshops" },
+        { label: "Book a consultation", href: "https://trevorjamesla.as.me/free-consult" },
+        { label: "Return to The Seven Doors", href: "/app/journey" },
+      ],
     },
   },
   {
@@ -430,6 +462,14 @@ export const guidedRhythm: Month[] = [
         "Looking back over the last six months, what has shifted in how you understand yourself, your body, your desire, your relationships, or your need for connection?",
       suggestedNextStep:
         "Choose one: Revisit your quiz result, Join a connection pairing, Attend an event, Explore a workshop or retreat, Book a consultation, or Return to The Seven Doors and notice what feels different now.",
+      nextSteps: [
+        { label: "Revisit your quiz result", href: "/app/quiz" },
+        { label: "Join a connection pairing", href: "/app/pairing" },
+        { label: "Attend an event", href: "/app/events" },
+        { label: "Explore a workshop or retreat", href: "/app/workshops" },
+        { label: "Book a consultation", href: "https://trevorjamesla.as.me/free-consult" },
+        { label: "Return to The Seven Doors", href: "/app/journey" },
+      ],
     },
   },
 ];
