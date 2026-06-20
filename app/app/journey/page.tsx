@@ -9,9 +9,11 @@ import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { IconIntegration, IconSpaces, IconConnection, IconProfileNav, IconBadges, IconProfile } from "@/components/Icons";
+import { SpaceIconSVG } from "@/components/SpaceIconSVG";
 import { getBadgeIcon } from "@/lib/badge-icons";
 import { getIconComponent } from "@/lib/icon-lookup";
 import { SevenDoorsOverview } from "@/components/journey/SevenDoorsOverview";
+import { GuidedRhythmOverview } from "@/components/guided-rhythm/GuidedRhythmOverview";
 import Link from "next/link";
 
 export default function JourneyPage() {
@@ -57,6 +59,9 @@ export default function JourneyPage() {
 
       {/* Seven Doors of Connection */}
       <SevenDoorsOverview />
+
+      {/* Guided Rhythm */}
+      <GuidedRhythmOverview />
 
       {/* Main Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -145,8 +150,8 @@ export default function JourneyPage() {
           {joinedSpaces.length > 0 ? (
             <div className="space-y-2">
               {joinedSpaces.slice(0, 4).map((space) => (
-                <div key={space.id} className="text-sm p-2 bg-[#f3ede5] rounded">
-                  <span className="mr-2">{space.icon}</span>
+                <div key={space.id} className="text-sm p-2 bg-[#f3ede5] rounded flex items-center gap-2">
+                  <SpaceIconSVG spaceId={space.id} size={16} />
                   <span className="text-[#2a2318]">{space.name}</span>
                 </div>
               ))}

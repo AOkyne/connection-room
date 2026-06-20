@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Door } from "@/lib/content/first-week-journey";
+import { Door, DoorAction } from "@/lib/content/first-week-journey";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 
@@ -9,7 +9,7 @@ interface DoorCardProps {
   door: Door;
   isCompleted: boolean;
   isCurrentDoor: boolean;
-  onActionClick: (actionId: string) => void;
+  onActionClick: (action: DoorAction) => void;
   onComplete: () => void;
   onReflectionSave: (reflection: string) => void;
   savedReflection?: string;
@@ -26,10 +26,24 @@ export function DoorCard({
 }: DoorCardProps) {
   const [showReflection, setShowReflection] = useState(false);
   const [reflectionText, setReflectionText] = useState(savedReflection || "");
+  const [showPostModal, setShowPostModal] = useState(false);
+  const [postContent, setPostContent] = useState("");
 
   const handleSaveReflection = () => {
     onReflectionSave(reflectionText);
     setShowReflection(false);
+  };
+
+  const handlePostAction = (action: DoorAction) => {
+    setShowPostModal(true);
+  };
+
+  const handleSubmitPost = () => {
+    if (postContent.trim()) {
+      onActionClick({ ...door.actions.find(a => a.type === "post")!, id: "door-post" });
+      setPostContent("");
+      setShowPostModal(false);
+    }
   };
 
   return (
@@ -96,30 +110,37 @@ export function DoorCard({
         <p className="text-sm text-[#6b5f52] italic">{door.reflection}</p>
       </div>
 
-      {/* Actions */}
-      <div className="space-y-2 mb-4">
-        {door.actions.map((action) => (
-          <button
-            key={action.id}
-            onClick={() => {
-              if (action.type === "reflection") {
-                setShowReflection(true);
-              } else {
-                onActionClick(action.id);
-              }
-            }}
-            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-              action.type === "reflection"
-                ? "bg-[#f3ede5] text-[#6b5f52] hover:bg-[#e8ddd2]"
-                : "text-[#d4a574] hover:bg-[#f8f6f2]"
-            }`}
-          >
-            <span className="font-medium">{action.label}</span>
-            {action.description && (
-              <p className="text-xs text-[#a0968a] mt-1">{action.description}</p>
-            )}
-          </button>
-        ))}
+      {/* Actions - Clearly Marked as Clickable Buttons */}
+      <div className="space-y-2 mb-4 pt-2 border-t border-[#e8ddd2]">
+        <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-3">Actions for this door</p>
+        <div className="space-y-2">
+          {door.actions.map((action) => (
+            <button
+              key={action.id}
+              onClick={() => {
+                if (action.type === "reflection") {
+                  setShowReflection(true);
+                } else if (action.type === "post") {
+                  handlePostAction(action);
+                } else {
+                  onActionClick(action);
+                }
+              }}
+              className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                action.type === "reflection"
+                  ? "bg-[#8fa878] text-white hover:bg-[#7a9067]"
+                  : action.type === "post"
+                  ? "bg-[#d4a574] text-white hover:bg-[#c09560]"
+                  : "border-2 border-[#d4a574] text-[#d4a574] hover:bg-[#f3ede5]"
+              }`}
+            >
+              {action.label}
+              {action.description && (
+                <p className="text-xs opacity-90 mt-1 font-normal">{action.description}</p>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Private Reflection Box */}
@@ -152,13 +173,65 @@ export function DoorCard({
         </div>
       )}
 
+      {/* Post Modal */}
+      {showPostModal && (
+        <dialog
+          open
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/20"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowPostModal(false);
+            }
+          }}
+        >
+          <Card className="w-full max-w-2xl mx-4">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold text-[#2a2318]">
+                  {door.postTemplate?.title || "Share Your Thoughts"}
+                </h3>
+                <p className="text-sm text-[#6b5f52] mt-1">
+                  {door.postTemplate?.bodyStarter && "Use this as a starting point:"}
+                </p>
+              </div>
+
+              <textarea
+                value={postContent}
+                onChange={(e) => setPostContent(e.target.value)}
+                placeholder={door.postTemplate?.bodyStarter || "Share your thoughts..."}
+                className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm text-[#2a2318] bg-white"
+                rows={6}
+              />
+
+              <p className="text-xs text-[#8fa878]">A sentence or two is enough. No need to write a memoir unless the memoir insists.</p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowPostModal(false)}
+                  className="flex-1 px-4 py-2 text-sm text-[#6b5f52] hover:bg-[#f3ede5] rounded border border-[#e8ddd2]"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitPost}
+                  disabled={!postContent.trim()}
+                  className="flex-1 px-4 py-2 text-sm bg-[#d4a574] text-white rounded hover:bg-[#c09560] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Post to The Commons
+                </button>
+              </div>
+            </div>
+          </Card>
+        </dialog>
+      )}
+
       {/* Mark Complete Button */}
       {!isCompleted && (
         <Button
           variant="outline"
           size="sm"
           onClick={onComplete}
-          className="w-full"
+          className="w-full mt-4"
         >
           Mark This Door Complete
         </Button>

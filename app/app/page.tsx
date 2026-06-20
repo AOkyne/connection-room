@@ -14,6 +14,7 @@ import { getBadgeIcon } from "@/lib/badge-icons";
 import { getOfferIcon } from "@/lib/offer-icons";
 import { getIconComponent } from "@/lib/icon-lookup";
 import { FirstWeekDashboardCard } from "@/components/journey/FirstWeekDashboardCard";
+import { MonthlyDashboardCard } from "@/components/guided-rhythm/MonthlyDashboardCard";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { createPost } from "@/lib/data/posts";
@@ -132,8 +133,9 @@ export default function AppHome() {
           </div>
         </Card>
 
-        {/* First Week Journey */}
+        {/* First Week Journey or Guided Rhythm */}
         <FirstWeekDashboardCard />
+        <MonthlyDashboardCard />
 
         {/* Suggested Space */}
         <Card>

@@ -5,7 +5,7 @@ import { Card } from "@/components/Card";
 
 export function FirstWeekStartHereCard() {
   return (
-    <Link href="/app/my-journey">
+    <Link href="/app/journey">
       <Card className="hover:shadow-md transition-shadow cursor-pointer bg-gradient-to-br from-[#f3ede5] to-[#f8f6f2]">
         <div className="space-y-4">
           <div className="space-y-1">

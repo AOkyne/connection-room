@@ -39,7 +39,7 @@ export function FirstWeekDashboardCard() {
   const isComplete = progress.completedDoors.length === 7;
 
   return (
-    <Link href="/app/my-journey">
+    <Link href="/app/journey">
       <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
         <div className="space-y-3">
           <div className="space-y-1">

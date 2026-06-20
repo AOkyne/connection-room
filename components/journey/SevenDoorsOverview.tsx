@@ -162,11 +162,12 @@ export function SevenDoorsOverview() {
             door={door}
             isCompleted={progress.completedDoors.includes(door.doorNumber)}
             isCurrentDoor={progress.currentDoor === door.doorNumber}
-            onActionClick={(actionId) => {
-              // Handle action navigation
-              const action = door.actions.find((a) => a.id === actionId);
-              if (action?.href) {
-                window.location.href = action.href;
+            onActionClick={(action) => {
+              // Handle action navigation for links
+              if (action.type === "link" || action.type === "profile" || action.type === "quiz" || action.type === "pairing") {
+                if (action.href) {
+                  window.location.href = action.href;
+                }
               }
             }}
             onComplete={() => handleCompleteDoor(door.doorNumber)}
