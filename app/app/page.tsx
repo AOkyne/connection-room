@@ -15,6 +15,8 @@ import { getOfferIcon } from "@/lib/offer-icons";
 import { getIconComponent } from "@/lib/icon-lookup";
 import { FirstWeekDashboardCard } from "@/components/journey/FirstWeekDashboardCard";
 import { MonthlyDashboardCard } from "@/components/guided-rhythm/MonthlyDashboardCard";
+import { WaysToConnectCard } from "@/components/connection/WaysToConnectCard";
+import { ReflectionsFromRoomCard } from "@/components/connection/ReflectionsFromRoomCard";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { createPost } from "@/lib/data/posts";
@@ -132,6 +134,10 @@ export default function AppHome() {
             </Button>
           </div>
         </Card>
+
+        {/* Connection Scaffolding Cards */}
+        <WaysToConnectCard />
+        <ReflectionsFromRoomCard />
 
         {/* First Week Journey or Guided Rhythm */}
         <FirstWeekDashboardCard />
