@@ -9,6 +9,7 @@ import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { SpaceIconSVG } from "@/components/SpaceIconSVG";
+import { StartHereChecklist } from "@/components/StartHereChecklist";
 import { IconIntegration, IconReflection } from "@/components/Icons";
 import Link from "next/link";
 
@@ -189,6 +190,9 @@ export default function SpaceDetailPage() {
           </Button>
         </Card>
       )}
+
+      {/* Start Here Checklist */}
+      {spaceId === "start-here" && <StartHereChecklist />}
 
       {/* Create Post */}
       <Card>
