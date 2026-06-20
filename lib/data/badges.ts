@@ -1,10 +1,14 @@
-// Badges data access layer - linked to connection milestones
+// Badges data access layer - both milestone-earned and activity-based
 
 import type { Badge } from "./demo-data";
+import { demoBadges } from "./demo-data";
 import { getConnectionMilestones } from "./connection-practice";
+import { getProfile } from "./profiles";
+import { getSpaces } from "./spaces";
+import { getPosts } from "./posts";
 
-// Badge template definitions (milestone type → badge info)
-const BADGE_TEMPLATES: Record<string, Badge> = {
+// New milestone-based badges
+const MILESTONE_BADGES: Record<string, Badge> = {
   "first-share": {
     id: "first-share",
     name: "First Share",
@@ -35,24 +39,80 @@ const BADGE_TEMPLATES: Record<string, Badge> = {
   },
 };
 
-// Get user's earned badges from milestones
+// Check which activity-based badges have been earned
+async function checkActivityBasedBadges(userId: string): Promise<Badge[]> {
+  const earned: Badge[] = [];
+
+  try {
+    const profile = await getProfile();
+    const spaces = await getSpaces();
+    const posts = await getPosts();
+
+    // Explorer: joined 3+ spaces
+    if (spaces) {
+      const joinedSpaces = spaces.filter((s) => s.isJoined).length;
+      if (joinedSpaces >= 3) {
+        const explorer = demoBadges.find((b) => b.id === "explorer");
+        if (explorer) earned.push(explorer);
+      }
+    }
+
+    // Truth Teller: 5+ posts
+    if (posts) {
+      const userPosts = posts.filter((p) => p.userId === userId);
+      if (userPosts.length >= 5) {
+        const truthTeller = demoBadges.find((b) => b.id === "truth-teller");
+        if (truthTeller) earned.push(truthTeller);
+      }
+    }
+
+    // Self-Aware: completed quiz
+    if (profile && profile.quizResult && profile.quizResult !== "I have not taken the quiz yet") {
+      const selfAware = demoBadges.find((b) => b.id === "self-aware");
+      if (selfAware) earned.push(selfAware);
+    }
+
+    // First Step: account exists (triggered on first visit)
+    if (profile) {
+      const firstStep = demoBadges.find((b) => b.id === "first-step");
+      if (firstStep) earned.push(firstStep);
+    }
+  } catch (error) {
+    console.error("Error checking activity-based badges:", error);
+  }
+
+  return earned;
+}
+
+// Get all earned badges (both milestone and activity-based)
 export async function getUserBadges(userId: string): Promise<Badge[]> {
   if (typeof window === "undefined") return [];
 
   try {
+    // Get milestone-earned badges
     const milestones = await getConnectionMilestones(userId);
-
-    return milestones
+    const milestoneEarned = milestones
       .map((m) => {
-        const template = BADGE_TEMPLATES[m.milestoneType];
+        const template = MILESTONE_BADGES[m.milestoneType];
         if (!template) return null;
-
         return {
           ...template,
           earnedAt: m.earnedAt,
         };
       })
       .filter((b): b is Badge => b !== null);
+
+    // Get activity-based badges
+    const activityBadges = await checkActivityBasedBadges(userId);
+
+    // Combine and deduplicate
+    const allBadges = [...milestoneEarned, ...activityBadges];
+    const uniqueIds = new Set<string>();
+    return allBadges.filter((b) => {
+      if (uniqueIds.has(b.id)) return false;
+      uniqueIds.add(b.id);
+      return true;
+    });
   } catch (error) {
     console.error("Error getting badges:", error);
     return [];
@@ -61,5 +121,5 @@ export async function getUserBadges(userId: string): Promise<Badge[]> {
 
 // Get all available badge templates
 export function getAllBadges(): Badge[] {
-  return Object.values(BADGE_TEMPLATES);
+  return [...Object.values(MILESTONE_BADGES), ...demoBadges];
 }
