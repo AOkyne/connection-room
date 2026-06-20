@@ -248,7 +248,15 @@ export async function getRhythmContent(): Promise<Month[]> {
   const customStored = localStorage.getItem("connection-room:custom-rhythm-content");
   if (customStored) {
     try {
-      return JSON.parse(customStored);
+      const custom = JSON.parse(customStored);
+      // Merge in nextSteps from default content if missing
+      return custom.map((month: Month, idx: number) => ({
+        ...month,
+        integration: {
+          ...month.integration,
+          nextSteps: month.integration?.nextSteps || guidedRhythm[idx]?.integration?.nextSteps,
+        },
+      }));
     } catch (e) {
       console.error("Error parsing custom content, using default");
     }
