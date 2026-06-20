@@ -96,7 +96,8 @@ export function MonthlyIntegrationCard({
                 <a
                   key={step.href}
                   href={step.href}
-                  className="inline-block px-3 py-2 bg-[#d4a574] text-[#ffffff] rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
+                  style={{ color: "#ffffff" }}
+                  className="inline-block px-3 py-2 bg-[#d4a574] rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
                 >
                   {step.label}
                 </a>
