@@ -49,18 +49,28 @@ export function WeeklyCommonsThread({ weekNumber }: WeeklyCommonsThreadProps) {
 
         {/* Call to Action */}
         <div className="flex gap-2">
-          <a
-            href="/app/spaces/commons"
-            className="flex-1 inline-block px-4 py-2 bg-[#d4a574] text-[#ffffff] rounded-lg text-sm font-medium text-center hover:bg-[#c09560] transition-colors"
+          <button
+            onClick={() => {
+              const createPostSection = document.getElementById("create-post-section");
+              if (createPostSection) {
+                createPostSection.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            }}
+            className="flex-1 px-4 py-2 bg-[#d4a574] text-[#ffffff] rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
           >
             Join This Week's Thread
-          </a>
-          <a
-            href="/app/spaces/commons"
-            className="flex-1 inline-block px-4 py-2 border border-[#d4a574] text-[#d4a574] rounded-lg text-sm font-medium text-center hover:bg-[#f3ede5] transition-colors"
+          </button>
+          <button
+            onClick={() => {
+              const postsFeed = document.getElementById("posts-feed");
+              if (postsFeed) {
+                postsFeed.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            }}
+            className="flex-1 px-4 py-2 border border-[#d4a574] text-[#d4a574] rounded-lg text-sm font-medium hover:bg-[#f3ede5] transition-colors"
           >
             Witness Others
-          </a>
+          </button>
         </div>
       </div>
     </Card>

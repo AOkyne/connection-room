@@ -287,7 +287,7 @@ export default function SpaceDetailPage() {
       )}
 
       {/* Posts Feed */}
-      <div className="space-y-6">
+      <div id="posts-feed" className="space-y-6">
         {posts.length === 0 ? (
           <EmptySpaceInvitation
             spaceId={spaceId}
