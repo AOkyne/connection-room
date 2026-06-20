@@ -31,7 +31,7 @@ export default function JourneyPage() {
       setSpaces(s);
 
       if (p) {
-        const b = getUserBadges(p.id);
+        const b = await getUserBadges(p.id);
         setBadges(b);
       }
 
