@@ -34,9 +34,16 @@ export function MonthlyThemeCard({ month, onSelectRitualOption }: MonthlyThemeCa
 
         {/* Trevor Note */}
         <div className="bg-white rounded-lg p-4 border border-[#e8ddd2]">
-          <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-2">
-            A Note from Trevor
-          </p>
+          <div className="flex items-start gap-3 mb-3">
+            <img
+              src="/trevor-photo.png"
+              alt="Trevor James"
+              className="w-16 h-16 rounded-full flex-shrink-0 object-cover"
+            />
+            <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide">
+              A Note from Trevor
+            </p>
+          </div>
           <p className="text-sm text-[#6b5f52] leading-relaxed italic">
             {month.trevorNote}
           </p>
