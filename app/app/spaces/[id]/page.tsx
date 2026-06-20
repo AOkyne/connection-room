@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { getSpace } from "@/lib/data/spaces";
+import { getSpace, recordStartHereVisit } from "@/lib/data/spaces";
 import { getPosts, createPost, addPostReaction, getComments, createComment, type Post, type Comment } from "@/lib/data/posts";
 import { getProfile } from "@/lib/data/profiles";
 import { appConfig } from "@/lib/config";
@@ -34,6 +34,7 @@ export default function SpaceDetailPage() {
         return;
       }
       setSpace(s);
+      if (spaceId === "start-here") { recordStartHereVisit(); }
 
       const p = await getProfile();
       setProfile(p);

@@ -21,6 +21,8 @@ export interface Space {
 
 const SPACES_STORAGE_KEY = "connection-room:spaces";
 const SPACE_ORDER_KEY = "connection-room:space-order";
+const START_HERE_VISITS_KEY = "connection-room:start-here-visits";
+const START_HERE_COMPLETE_KEY = "connection-room:start-here-complete";
 const REQUIRED_SPACES = ["start-here", "commons"];
 
 // Get current authenticated user ID
@@ -180,15 +182,65 @@ export function getSpaceOrder(): string[] {
   return stored ? JSON.parse(stored) : [];
 }
 
+// Check if Start Here is still required
+export function isStartHereRequired(): boolean {
+  if (typeof window === "undefined") return true;
+
+  // Check if marked as complete
+  const isComplete = localStorage.getItem(START_HERE_COMPLETE_KEY);
+  if (isComplete) return false;
+
+  // Check visit count (3 or more visits = no longer required)
+  const visits = getStartHereVisits();
+  if (visits >= 3) return false;
+
+  return true;
+}
+
+// Track a visit to Start Here
+export function recordStartHereVisit(): void {
+  if (typeof window === "undefined") return;
+
+  const visits = getStartHereVisits();
+  localStorage.setItem(START_HERE_VISITS_KEY, JSON.stringify(visits + 1));
+}
+
+// Get Start Here visit count
+export function getStartHereVisits(): number {
+  if (typeof window === "undefined") return 0;
+
+  const stored = localStorage.getItem(START_HERE_VISITS_KEY);
+  return stored ? parseInt(stored, 10) : 0;
+}
+
+// Mark Start Here as complete
+export function markStartHereComplete(): void {
+  if (typeof window === "undefined") return;
+
+  localStorage.setItem(START_HERE_COMPLETE_KEY, "true");
+}
+
+// Get dynamically required spaces
+function getDynamicRequiredSpaces(): string[] {
+  const required = ["commons"]; // The Commons is always required
+
+  if (isStartHereRequired()) {
+    required.unshift("start-here"); // Start Here is required only if condition not met
+  }
+
+  return required;
+}
+
 // Sort spaces by saved order, with required spaces first
 export function sortSpacesByPreference(spaces: Space[]): Space[] {
   const saved = getSpaceOrder();
+  const requiredSpaces = getDynamicRequiredSpaces();
 
   // Separate spaces into required and optional
-  const required = spaces.filter(s => REQUIRED_SPACES.includes(s.id));
-  const optional = spaces.filter(s => !REQUIRED_SPACES.includes(s.id));
+  const required = spaces.filter(s => requiredSpaces.includes(s.id));
+  const optional = spaces.filter(s => !requiredSpaces.includes(s.id));
 
-  // Sort required spaces: Start Here first, then The Commons
+  // Sort required spaces: Start Here first (if present), then The Commons
   required.sort((a, b) => {
     if (a.id === "start-here") return -1;
     if (b.id === "start-here") return 1;

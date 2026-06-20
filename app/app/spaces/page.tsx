@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { SpaceIconSVG } from "@/components/SpaceIconSVG";
-import { getSpaces, joinSpace, leaveSpace, ensureRequiredSpaces, sortSpacesByPreference, saveSpaceOrder, type Space } from "@/lib/data/spaces";
+import { getSpaces, joinSpace, leaveSpace, ensureRequiredSpaces, sortSpacesByPreference, saveSpaceOrder, isStartHereRequired, recordStartHereVisit, getStartHereVisits, type Space } from "@/lib/data/spaces";
 
 export default function SpacesPage() {
   const [spaces, setSpaces] = useState<Space[]>([]);
@@ -31,9 +31,15 @@ export default function SpacesPage() {
   };
 
   const handleLeaveSpace = async (spaceId: string) => {
-    // Prevent leaving required spaces
-    if (["start-here", "commons"].includes(spaceId)) {
-      alert("You cannot leave this required space");
+    // Prevent leaving The Commons (always required)
+    if (spaceId === "commons") {
+      alert("You cannot leave The Commons");
+      return;
+    }
+
+    // Prevent leaving Start Here if still required
+    if (spaceId === "start-here" && isStartHereRequired()) {
+      alert("You must complete Start Here before leaving");
       return;
     }
 
@@ -103,7 +109,11 @@ export default function SpacesPage() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {joinedSpaces.map((space) => {
-              const isRequired = ["start-here", "commons"].includes(space.id);
+              const isCommons = space.id === "commons";
+              const isStartHereStillRequired = space.id === "start-here" && isStartHereRequired();
+              const isRequired = isCommons || isStartHereStillRequired;
+              const visitsRemaining = space.id === "start-here" ? Math.max(0, 3 - getStartHereVisits()) : null;
+
               return (
                 <div
                   key={space.id}
@@ -117,6 +127,14 @@ export default function SpacesPage() {
                     {isRequired && (
                       <div className="text-xs font-medium text-[#8fa878] mb-2 flex items-center gap-1">
                         <span>✓ Required</span>
+                        {space.id === "start-here" && (
+                          <span className="text-[#a0968a]">({visitsRemaining} visits left)</span>
+                        )}
+                      </div>
+                    )}
+                    {space.id === "start-here" && !isStartHereRequired && (
+                      <div className="text-xs font-medium text-[#8fa878] mb-2 flex items-center gap-1">
+                        <span>✓ Complete</span>
                       </div>
                     )}
                     <CardHeader title={space.name} icon={<SpaceIconSVG spaceId={space.id} size={32} />} />
