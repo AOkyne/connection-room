@@ -20,6 +20,8 @@ export interface Space {
 }
 
 const SPACES_STORAGE_KEY = "connection-room:spaces";
+const SPACE_ORDER_KEY = "connection-room:space-order";
+const REQUIRED_SPACES = ["start-here", "commons"];
 
 // Get current authenticated user ID
 async function getCurrentUserId(): Promise<string | null> {
@@ -148,4 +150,61 @@ export async function getSuggestedSpace(): Promise<Space | null> {
   const notJoined = spaces.filter((s) => !s.isJoined);
   if (notJoined.length === 0) return null;
   return notJoined[Math.floor(Math.random() * notJoined.length)];
+}
+
+// Ensure required spaces are joined (Start Here and The Commons)
+export async function ensureRequiredSpaces(): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  const userId = await getCurrentUserId();
+  if (!userId) return;
+
+  for (const spaceId of REQUIRED_SPACES) {
+    const hasJoined = await checkHasJoinedSpace(userId, spaceId);
+    if (!hasJoined) {
+      await joinSupabaseSpace(userId, spaceId);
+    }
+  }
+}
+
+// Save space order preference
+export function saveSpaceOrder(spaceIds: string[]): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(SPACE_ORDER_KEY, JSON.stringify(spaceIds));
+}
+
+// Get saved space order preference
+export function getSpaceOrder(): string[] {
+  if (typeof window === "undefined") return [];
+  const stored = localStorage.getItem(SPACE_ORDER_KEY);
+  return stored ? JSON.parse(stored) : [];
+}
+
+// Sort spaces by saved order, with required spaces first
+export function sortSpacesByPreference(spaces: Space[]): Space[] {
+  const saved = getSpaceOrder();
+
+  // Separate spaces into required and optional
+  const required = spaces.filter(s => REQUIRED_SPACES.includes(s.id));
+  const optional = spaces.filter(s => !REQUIRED_SPACES.includes(s.id));
+
+  // Sort required spaces: Start Here first, then The Commons
+  required.sort((a, b) => {
+    if (a.id === "start-here") return -1;
+    if (b.id === "start-here") return 1;
+    return 0;
+  });
+
+  // Sort optional spaces by saved order if available
+  if (saved.length > 0) {
+    optional.sort((a, b) => {
+      const aIndex = saved.indexOf(a.id);
+      const bIndex = saved.indexOf(b.id);
+      const aPos = aIndex === -1 ? Infinity : aIndex;
+      const bPos = bIndex === -1 ? Infinity : bIndex;
+      return aPos - bPos;
+    });
+  }
+
+  return [...required, ...optional];
 }
