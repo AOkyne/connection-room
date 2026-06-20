@@ -19,8 +19,15 @@ export function TrevorCommunityNote({ variant = "dashboard" }: TrevorCommunityNo
       }`}
     >
       <div className="space-y-4">
-        {/* Header */}
-        <h3 className="text-lg font-semibold text-[#2a2318]">A Note from Trevor</h3>
+        {/* Header with Photo */}
+        <div className="flex items-start gap-4">
+          <img
+            src="/trevor-photo.png"
+            alt="Trevor James"
+            className="w-20 h-20 rounded-full flex-shrink-0 object-cover"
+          />
+          <h3 className="text-lg font-semibold text-[#2a2318]">A Note from Trevor</h3>
+        </div>
 
         {/* Note Content */}
         <div className="bg-[#f8f6f2] rounded-lg p-4">
