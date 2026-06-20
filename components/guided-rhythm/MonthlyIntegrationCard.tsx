@@ -59,7 +59,7 @@ export function MonthlyIntegrationCard({
         </div>
 
         {/* Reflection Box */}
-        <div>
+        <div className="space-y-2">
           <textarea
             value={text}
             onChange={(e) => {
@@ -70,6 +70,19 @@ export function MonthlyIntegrationCard({
             className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm text-[#2a2318] bg-white"
             rows={5}
           />
+          {/* Save Button - Right below reflection */}
+          <div className="flex gap-2 items-center">
+            <button
+              onClick={handleSave}
+              disabled={!text.trim() || isSaving}
+              className="px-4 py-2 bg-[#d4a574] text-white rounded-lg text-sm font-medium hover:bg-[#c09560] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isSaving ? "Saving..." : "Save Integration"}
+            </button>
+            {isSaved && (
+              <p className="text-xs text-[#8fa878] font-medium">✓ Saved</p>
+            )}
+          </div>
         </div>
 
         {/* Next Steps */}
@@ -83,7 +96,7 @@ export function MonthlyIntegrationCard({
                 <a
                   key={step.href}
                   href={step.href}
-                  className="inline-block px-3 py-2 bg-[#d4a574] text-[#f8f6f2] rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
+                  className="inline-block px-3 py-2 bg-[#d4a574] text-white rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
                 >
                   {step.label}
                 </a>
@@ -98,20 +111,6 @@ export function MonthlyIntegrationCard({
             <p className="text-sm text-[#6b5f52]">{integration.suggestedNextStep}</p>
           </div>
         )}
-
-        {/* Save Button */}
-        <div className="flex gap-2 items-center pt-2">
-          <button
-            onClick={handleSave}
-            disabled={!text.trim() || isSaving}
-            className="px-4 py-2 bg-[#d4a574] text-white rounded-lg text-sm font-medium hover:bg-[#c09560] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {isSaving ? "Saving..." : "Save Integration"}
-          </button>
-          {isSaved && (
-            <p className="text-xs text-[#8fa878] font-medium">✓ Saved</p>
-          )}
-        </div>
       </div>
     </Card>
   );
