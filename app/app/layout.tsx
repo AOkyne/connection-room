@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession, clearSession, type AppSession } from "@/lib/session";
+import { recordAppVisit } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
 import { IconHome, IconJourney, IconPairingsNav, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming } from "@/components/Icons";
 import Link from "next/link";
@@ -24,6 +25,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         router.push("/auth");
       } else {
         setSession(s);
+        recordAppVisit();
       }
       setMounted(true);
     };

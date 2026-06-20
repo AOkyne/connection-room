@@ -21,7 +21,7 @@ export interface Space {
 
 const SPACES_STORAGE_KEY = "connection-room:spaces";
 const SPACE_ORDER_KEY = "connection-room:space-order";
-const START_HERE_VISITS_KEY = "connection-room:start-here-visits";
+const APP_VISITS_KEY = "connection-room:app-visits";
 const START_HERE_COMPLETE_KEY = "connection-room:start-here-complete";
 const REQUIRED_SPACES = ["start-here", "commons"];
 
@@ -190,26 +190,26 @@ export function isStartHereRequired(): boolean {
   const isComplete = localStorage.getItem(START_HERE_COMPLETE_KEY);
   if (isComplete) return false;
 
-  // Check visit count (3 or more visits = no longer required)
-  const visits = getStartHereVisits();
+  // Check app visit count (3 or more app visits = no longer required)
+  const visits = getAppVisits();
   if (visits >= 3) return false;
 
   return true;
 }
 
-// Track a visit to Start Here
-export function recordStartHereVisit(): void {
+// Track an app visit
+export function recordAppVisit(): void {
   if (typeof window === "undefined") return;
 
-  const visits = getStartHereVisits();
-  localStorage.setItem(START_HERE_VISITS_KEY, JSON.stringify(visits + 1));
+  const visits = getAppVisits();
+  localStorage.setItem(APP_VISITS_KEY, JSON.stringify(visits + 1));
 }
 
-// Get Start Here visit count
-export function getStartHereVisits(): number {
+// Get total app visit count
+export function getAppVisits(): number {
   if (typeof window === "undefined") return 0;
 
-  const stored = localStorage.getItem(START_HERE_VISITS_KEY);
+  const stored = localStorage.getItem(APP_VISITS_KEY);
   return stored ? parseInt(stored, 10) : 0;
 }
 

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { SpaceIconSVG } from "@/components/SpaceIconSVG";
-import { getSpaces, joinSpace, leaveSpace, ensureRequiredSpaces, sortSpacesByPreference, saveSpaceOrder, isStartHereRequired, recordStartHereVisit, getStartHereVisits, type Space } from "@/lib/data/spaces";
+import { getSpaces, joinSpace, leaveSpace, ensureRequiredSpaces, sortSpacesByPreference, saveSpaceOrder, isStartHereRequired, getAppVisits, type Space } from "@/lib/data/spaces";
 
 export default function SpacesPage() {
   const [spaces, setSpaces] = useState<Space[]>([]);
@@ -112,7 +112,7 @@ export default function SpacesPage() {
               const isCommons = space.id === "commons";
               const isStartHereStillRequired = space.id === "start-here" && isStartHereRequired();
               const isRequired = isCommons || isStartHereStillRequired;
-              const visitsRemaining = space.id === "start-here" ? Math.max(0, 3 - getStartHereVisits()) : null;
+              const visitsRemaining = space.id === "start-here" ? Math.max(0, 3 - getAppVisits()) : null;
 
               return (
                 <div
