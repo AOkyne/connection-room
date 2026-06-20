@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
-import { demoPosts } from "./demo-data";
+import { demoPosts, demoBadges } from "./demo-data";
 import {
   getSupabasePosts,
   createSupabasePost,

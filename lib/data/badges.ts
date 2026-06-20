@@ -63,15 +63,3 @@ export async function getUserBadges(userId: string): Promise<Badge[]> {
 export function getAllBadges(): Badge[] {
   return Object.values(BADGE_TEMPLATES);
 }
-
-// Clear old localStorage badge data (migration from demo system)
-export function clearOldBadgeData(): void {
-  if (typeof window === "undefined") return;
-
-  // Remove old badge storage keys
-  Object.keys(localStorage).forEach((key) => {
-    if (key.startsWith("connection-room:badges")) {
-      localStorage.removeItem(key);
-    }
-  });
-}
