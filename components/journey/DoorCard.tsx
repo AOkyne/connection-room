@@ -87,10 +87,8 @@ export function DoorCard({
       </p>
 
       {/* Invitation */}
-      <div className="bg-[#f3ede5] rounded-lg p-4 mb-4">
-        <p className="text-sm text-[#2a2318] leading-relaxed">
-          {door.invitation}
-        </p>
+      <div className="text-sm text-[#6b5f52] leading-relaxed mb-4 italic">
+        {door.invitation}
       </div>
 
       {/* Empty State Message */}
@@ -102,34 +100,22 @@ export function DoorCard({
         </div>
       )}
 
-      {/* Reflection Question */}
-      <div className="mb-4 pb-4 border-b border-[#e8ddd2]">
-        <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-2">
-          Reflection
-        </p>
-        <p className="text-sm text-[#6b5f52] italic">{door.reflection}</p>
-      </div>
-
-      {/* Actions - Clearly Marked as Clickable Buttons */}
-      <div className="space-y-2 mb-4 pt-2 border-t border-[#e8ddd2]">
-        <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-3">Actions for this door</p>
+      {/* Actions - Grouped by Type */}
+      <div className="space-y-4 mb-4">
+        {/* Non-reflection actions */}
         <div className="space-y-2">
-          {door.actions.map((action) => (
+          {door.actions.filter(a => a.type !== "reflection").map((action) => (
             <button
               key={action.id}
               onClick={() => {
-                if (action.type === "reflection") {
-                  setShowReflection(true);
-                } else if (action.type === "post") {
+                if (action.type === "post") {
                   handlePostAction(action);
                 } else {
                   onActionClick(action);
                 }
               }}
               className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                action.type === "reflection"
-                  ? "bg-[#8fa878] text-white hover:bg-[#7a9067]"
-                  : action.type === "post"
+                action.type === "post"
                   ? "bg-[#d4a574] text-white hover:bg-[#c09560]"
                   : "border-2 border-[#d4a574] text-[#d4a574] hover:bg-[#f3ede5]"
               }`}
@@ -140,6 +126,22 @@ export function DoorCard({
               )}
             </button>
           ))}
+        </div>
+
+        {/* Reflection Prompt + Button + Textarea - Grouped Together */}
+        <div className="bg-[#f3ede5] rounded-lg p-4 space-y-3 border-l-4 border-[#8fa878]">
+          <div>
+            <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
+              Reflection
+            </p>
+            <p className="text-sm text-[#6b5f52] italic">{door.reflection}</p>
+          </div>
+          <button
+            onClick={() => setShowReflection(true)}
+            className="w-full bg-[#8fa878] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#7a9067] transition-all"
+          >
+            Write Private Reflection
+          </button>
         </div>
       </div>
 
