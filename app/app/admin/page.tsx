@@ -10,6 +10,7 @@ import { Card, CardHeader } from "@/components/Card";
 import { IconConnection, IconDemo, IconSpaces, IconBadges, IconProgress, IconUpcoming, IconAlert, IconForYou, IconChat, IconProfileNav } from "@/components/Icons";
 import { getBadgeIcon } from "@/lib/badge-icons";
 import { getOfferIcon } from "@/lib/offer-icons";
+import { RhythmContentAlert } from "@/components/admin/RhythmContentAlert";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -57,6 +58,9 @@ export default function AdminPage() {
           Community overview and management
         </p>
       </div>
+
+      {/* Content Alerts */}
+      <RhythmContentAlert />
 
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
