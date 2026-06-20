@@ -122,7 +122,7 @@ export function DoorCard({
         </div>
 
         {/* Reflection Prompt + Button + Textarea - Grouped Together */}
-        <div className="bg-[#f3ede5] rounded-lg p-4 space-y-3 border-l-4 border-[#8fa878]">
+        <div className="bg-[#f3ede5] rounded-lg p-4 space-y-3 border-l-4 border-[#d4a574]">
           <div>
             <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
               Reflection
