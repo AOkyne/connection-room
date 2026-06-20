@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase/client";
-import { GuidedRhythmProgress } from "@/lib/types/guided-rhythm";
+import { GuidedRhythmProgress, Month } from "@/lib/types/guided-rhythm";
+import { guidedRhythm } from "@/lib/content/guided-rhythm";
 
 const GUIDED_RHYTHM_STORAGE_KEY = "connection-room:guided-rhythm";
 
@@ -237,4 +238,22 @@ export async function ensureGuidedRhythmExists(): Promise<GuidedRhythmProgress> 
   }
 
   return progress;
+}
+
+// Get rhythm content (custom or default)
+export async function getRhythmContent(): Promise<Month[]> {
+  if (typeof window === "undefined") return guidedRhythm;
+
+  // Try to load custom content first
+  const customStored = localStorage.getItem("connection-room:custom-rhythm-content");
+  if (customStored) {
+    try {
+      return JSON.parse(customStored);
+    } catch (e) {
+      console.error("Error parsing custom content, using default");
+    }
+  }
+
+  // Fall back to default
+  return guidedRhythm;
 }

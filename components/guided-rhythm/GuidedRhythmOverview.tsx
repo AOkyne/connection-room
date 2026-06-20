@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { guidedRhythm } from "@/lib/content/guided-rhythm";
 import {
   getGuidedRhythmProgress,
   ensureGuidedRhythmExists,
@@ -12,7 +11,9 @@ import {
   getMonthlyIntegration,
   setMonthlyIntention,
   getMonthlyIntention,
+  getRhythmContent,
 } from "@/lib/data/guided-rhythm";
+import { Month } from "@/lib/types/guided-rhythm";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { MonthlyThemeCard } from "./MonthlyThemeCard";
@@ -23,6 +24,7 @@ import { CommunityInvitationCard } from "./CommunityInvitationCard";
 
 export function GuidedRhythmOverview() {
   const [progress, setProgress] = useState<any>(null);
+  const [rhythmContent, setRhythmContent] = useState<Month[]>([]);
   const [loading, setLoading] = useState(true);
   const [weeklyReflection, setWeeklyReflection] = useState("");
   const [monthlyIntegrationText, setMonthlyIntegrationText] = useState("");
@@ -31,7 +33,7 @@ export function GuidedRhythmOverview() {
   const [customIntention, setCustomIntention] = useState("");
 
   const { month, week } = getCurrentMonthAndWeek();
-  const currentMonth = guidedRhythm.find((m) => m.monthNumber === month);
+  const currentMonth = rhythmContent.find((m) => m.monthNumber === month);
   const currentWeek = currentMonth?.weeks.find((w) => w.weekNumber === week);
 
   useEffect(() => {
@@ -44,7 +46,11 @@ export function GuidedRhythmOverview() {
       const p = await getGuidedRhythmProgress();
       setProgress(p);
 
-      if (currentMonth && currentWeek) {
+      const content = await getRhythmContent();
+      setRhythmContent(content);
+
+      const currentMon = content.find((m) => m.monthNumber === month);
+      if (currentMon) {
         const reflection = await getPrivateReflection(month, week);
         setWeeklyReflection(reflection || "");
 

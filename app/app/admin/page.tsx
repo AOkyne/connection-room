@@ -11,6 +11,7 @@ import { IconConnection, IconDemo, IconSpaces, IconBadges, IconProgress, IconUpc
 import { getBadgeIcon } from "@/lib/badge-icons";
 import { getOfferIcon } from "@/lib/offer-icons";
 import { RhythmContentAlert } from "@/components/admin/RhythmContentAlert";
+import { RhythmContentEditor } from "@/components/admin/RhythmContentEditor";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -212,6 +213,11 @@ export default function AdminPage() {
           })}
         </div>
       </Card>
+
+      {/* Content Editor */}
+      <div className="border-t border-[#e8ddd2] pt-8">
+        <RhythmContentEditor />
+      </div>
 
       <Card className="bg-[#f3ede5]">
         <CardHeader title="Demo Mode Features" icon={<IconDemo size={20} />} />
