@@ -13,9 +13,15 @@ export interface MonthlyRitual {
   options?: string[];
 }
 
+export interface NextStepOption {
+  label: string;
+  href: string;
+}
+
 export interface MonthlyIntegration {
   prompt: string;
   suggestedNextStep: string;
+  nextSteps?: NextStepOption[];
 }
 
 export interface Month {

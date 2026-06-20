@@ -72,13 +72,32 @@ export function MonthlyIntegrationCard({
           />
         </div>
 
-        {/* Next Step */}
-        <div className="bg-[#f8f6f2] rounded-lg p-3">
-          <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
-            Next Step
-          </p>
-          <p className="text-sm text-[#6b5f52]">{integration.suggestedNextStep}</p>
-        </div>
+        {/* Next Steps */}
+        {integration.nextSteps && integration.nextSteps.length > 0 ? (
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide">
+              Next Step
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {integration.nextSteps.map((step) => (
+                <a
+                  key={step.href}
+                  href={step.href}
+                  className="inline-block px-3 py-2 bg-[#d4a574] text-white rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
+                >
+                  {step.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="bg-[#f8f6f2] rounded-lg p-3">
+            <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
+              Next Step
+            </p>
+            <p className="text-sm text-[#6b5f52]">{integration.suggestedNextStep}</p>
+          </div>
+        )}
 
         {/* Save Button */}
         <div className="flex gap-2 items-center pt-2">

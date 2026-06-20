@@ -71,6 +71,14 @@ export const guidedRhythm: Month[] = [
       prompt:
         "Looking back over this month, what did you learn about how you enter, avoid, or return to connection?",
       suggestedNextStep: "Choose one space you want to keep returning to.",
+      nextSteps: [
+        { label: "Revisit your quiz result", href: "/app/quiz" },
+        { label: "Join a connection pairing", href: "/app/pairing" },
+        { label: "Attend an event", href: "/app/events" },
+        { label: "Explore a workshop or retreat", href: "/app/workshops" },
+        { label: "Book a consultation", href: "https://trevorjamesla.as.me/free-consult" },
+        { label: "Return to The Seven Doors", href: "/app/journey" },
+      ],
     },
   },
   {
