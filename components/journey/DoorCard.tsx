@@ -61,7 +61,7 @@ export function DoorCard({
           <div
             className={`flex items-center justify-center w-8 h-8 rounded-full font-bold ${
               isCompleted
-                ? "bg-[#8fa878] text-white"
+                ? "bg-[#d4a574] text-white"
                 : "bg-[#f3ede5] text-[#d4a574]"
             }`}
           >
@@ -72,7 +72,7 @@ export function DoorCard({
           </h3>
         </div>
         {isCompleted && (
-          <span className="text-xs font-medium text-[#8fa878] px-2 py-1 bg-[#8fa878]/10 rounded">
+          <span className="text-xs font-medium text-[#8fa878] px-2 py-1 bg-[#d4a574]/10 rounded">
             Completed
           </span>
         )}
@@ -131,7 +131,7 @@ export function DoorCard({
           </div>
           <button
             onClick={() => setShowReflection(true)}
-            className="w-full bg-[#8fa878] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#7a9067] transition-all"
+            className="w-full bg-[#d4a574] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#c09560] transition-all"
           >
             Write Private Reflection
           </button>
@@ -160,7 +160,7 @@ export function DoorCard({
             </button>
             <button
               onClick={handleSaveReflection}
-              className="px-3 py-1 text-sm bg-[#8fa878] text-white rounded hover:bg-[#7a9067]"
+              className="px-3 py-1 text-sm bg-[#d4a574] text-white rounded hover:bg-[#c09560]"
             >
               Save
             </button>
