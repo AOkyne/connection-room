@@ -115,7 +115,7 @@ export default function AppHome() {
         )}
 
         {/* Today's Prompt */}
-        <Card className="md:col-span-2">
+        <Card id="todays-reflection" className="md:col-span-2">
           <CardHeader title="Today's Reflection" icon={<IconReflection size={20} />} />
           <div className="bg-[#f3ede5] rounded-lg p-4 space-y-3">
             <p className="text-[#6b5f52] italic text-lg">"{todaysPrompt}"</p>

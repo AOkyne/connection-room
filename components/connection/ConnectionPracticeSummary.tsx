@@ -99,7 +99,7 @@ export function ConnectionPracticeSummary({
                   <p className="text-sm font-medium text-[#2a2318]">
                     {milestone.milestoneType
                       .split("-")
-                      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
                       .join(" ")}
                   </p>
                   <p className="text-xs text-[#a0968a] mt-1">
