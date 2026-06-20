@@ -148,6 +148,55 @@ export default function SpaceDetailPage() {
         </Card>
       )}
 
+      {space.id === "start-here" && (
+        <Card className="bg-[#f3ede5] border-l-4 border-[#d4a574]">
+          <div className="space-y-4 text-[#2a2318]">
+            <h2 className="text-2xl font-bold">Welcome to The Connection Room by Trevor James.</h2>
+
+            <p className="text-[#6b5f52]">
+              This is a private community for men and couples who want to practice more honest connection, embodied intimacy, emotional openness, spirituality, sexuality, and integration without shame, pressure, or performance.
+            </p>
+
+            <div className="space-y-2 text-[#6b5f52]">
+              <p className="font-medium">This is not a hookup space.</p>
+              <p>It is not a dating app.</p>
+              <p>It is not a place where you have to perform vulnerability, say something profound, or arrive fully "healed" before you belong.</p>
+            </div>
+
+            <p className="italic">Think of this as a practice room. A place to slow down, notice what is true, explore what connection brings up in you, and participate at a pace that feels honest and respectful.</p>
+
+            <p className="text-[#6b5f52]">You are welcome here whether you are feeling open, guarded, curious, nervous, tender, skeptical, quietly hopeful, or all of the above before breakfast.</p>
+
+            <h3 className="font-bold pt-4">Our culture</h3>
+            <p className="text-sm text-[#6b5f52]">The culture here is built on consent, care, curiosity, and emotional honesty.</p>
+
+            <ul className="space-y-2 text-sm text-[#6b5f52]">
+              <li><strong>We speak from personal experience.</strong></li>
+              <li><strong>We do not diagnose, fix, pressure, pursue, or perform.</strong></li>
+              <li><strong>We respect different bodies, orientations, relationship structures, comfort levels, and life experiences.</strong></li>
+              <li><strong>We do not use the community to cruise, solicit, or send unwanted sexual energy toward other members.</strong></li>
+            </ul>
+
+            <p className="text-[#6b5f52] font-medium pt-2">Vulnerability is welcome here, but it is never demanded.</p>
+
+            <ul className="space-y-1 text-sm text-[#6b5f52]">
+              <li>You can participate quietly at first.</li>
+              <li>You can take your time.</li>
+              <li>You can be thoughtful without being dramatic.</li>
+              <li>You can be honest without oversharing.</li>
+            </ul>
+
+            <p className="text-[#6b5f52] font-medium pt-4">The invitation is simple:</p>
+            <ul className="space-y-1 text-sm text-[#6b5f52]">
+              <li>Come back to your body.</li>
+              <li>Notice what is true.</li>
+              <li>Practice connection with care.</li>
+              <li>Let this be a place where more of you can arrive.</li>
+            </ul>
+          </div>
+        </Card>
+      )}
+
       {/* Featured Prompt */}
       {space.featuredPrompt && (
         <Card className="bg-gradient-to-r from-[#f3ede5] to-[#fffbf7]">
