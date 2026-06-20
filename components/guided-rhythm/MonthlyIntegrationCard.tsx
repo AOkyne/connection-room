@@ -45,7 +45,7 @@ export function MonthlyIntegrationCard({
         {/* Header */}
         <div>
           <h3 className="text-lg font-semibold text-[#2a2318]">
-            Month {monthNumber} Integration
+            This Month's Integration
           </h3>
           <p className="text-sm text-[#6b5f52] mt-2 leading-relaxed">
             Take a moment to reflect on what you noticed, learned, and are

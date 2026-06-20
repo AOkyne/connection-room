@@ -415,7 +415,7 @@ export function RhythmContentEditor() {
           {/* Monthly Integration */}
           <Card className="space-y-4">
             <h4 className="text-lg font-semibold text-[#2a2318]">
-              Month {currentMonth.monthNumber} Integration
+              Integration
             </h4>
 
             <div>
