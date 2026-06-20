@@ -14,6 +14,8 @@ import { FirstWeekStartHereCard } from "@/components/journey/FirstWeekStartHereC
 import { EmptySpaceInvitation } from "@/components/connection/EmptySpaceInvitation";
 import { WeeklyCommonsThread } from "@/components/connection/WeeklyCommonsThread";
 import { CommentingGuideHelper } from "@/components/connection/CommentingGuideHelper";
+import { PostTemplateSelector } from "@/components/connection/PostTemplateSelector";
+import { postTemplates } from "@/lib/content/post-templates";
 import { IconIntegration, IconReflection } from "@/components/Icons";
 import Link from "next/link";
 
@@ -30,6 +32,8 @@ export default function SpaceDetailPage() {
   const [newPostContent, setNewPostContent] = useState("");
   const [newCommentContent, setNewCommentContent] = useState<Record<string, string>>({});
   const [mounted, setMounted] = useState(false);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -224,6 +228,12 @@ export default function SpaceDetailPage() {
       {/* Create Post */}
       <Card id="create-post-section">
         <CardHeader title="Share Your Thoughts" icon={<IconIntegration size={20} />} />
+
+        {/* Template Hint */}
+        <div className="mb-3 p-3 rounded-lg bg-[#f3ede5] text-sm text-[#6b5f52]">
+          <p className="mb-2">Not sure where to start? <button onClick={() => setShowTemplateSelector(true)} className="text-[#d4a574] hover:underline font-medium">Choose a post template</button> to help you.</p>
+        </div>
+
         <textarea
           value={newPostContent}
           onChange={(e) => setNewPostContent(e.target.value)}
@@ -243,6 +253,22 @@ export default function SpaceDetailPage() {
           </Button>
         </div>
       </Card>
+
+      {/* Post Template Selector */}
+      {showTemplateSelector && (
+        <PostTemplateSelector
+          onSelect={(templateId) => {
+            const template = postTemplates.find((t) => t.id === templateId);
+            if (template) {
+              const prompts = template.starterPrompts.join("\n");
+              setNewPostContent(prompts);
+              setSelectedTemplate(templateId);
+              setShowTemplateSelector(false);
+            }
+          }}
+          onSkip={() => setShowTemplateSelector(false)}
+        />
+      )}
 
       {/* Posts Feed */}
       <div className="space-y-6">
