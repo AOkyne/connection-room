@@ -67,12 +67,9 @@ export function DoorCard({
           >
             {door.doorNumber}
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-[#2a2318]">
-              {door.title}
-            </h3>
-            <p className="text-sm text-[#6b5f52] italic">{door.theme}</p>
-          </div>
+          <h3 className="text-lg font-semibold text-[#2a2318]">
+            {door.title}
+          </h3>
         </div>
         {isCompleted && (
           <span className="text-xs font-medium text-[#8fa878] px-2 py-1 bg-[#8fa878]/10 rounded">
@@ -81,24 +78,20 @@ export function DoorCard({
         )}
       </div>
 
+      {/* Theme Tagline - Prominent */}
+      <p className="text-base font-semibold text-[#6b5f52] mb-3 italic">
+        {door.theme}
+      </p>
+
       {/* Description */}
       <p className="text-sm text-[#6b5f52] mb-4 leading-relaxed">
         {door.description}
       </p>
 
-      {/* Invitation */}
-      <div className="text-sm text-[#6b5f52] leading-relaxed mb-4 italic">
+      {/* Invitation / Instruction */}
+      <p className="text-sm text-[#2a2318] mb-4 leading-relaxed">
         {door.invitation}
-      </div>
-
-      {/* Empty State Message */}
-      {door.emptyStateMessage && (
-        <div className="bg-[#f8f6f2] rounded-lg p-3 mb-4 border-l-2 border-[#d4a574]">
-          <p className="text-xs text-[#6b5f52] leading-relaxed">
-            {door.emptyStateMessage}
-          </p>
-        </div>
-      )}
+      </p>
 
       {/* Actions - Grouped by Type */}
       <div className="space-y-4 mb-4">
