@@ -9,6 +9,7 @@ const PAIRING_FORMATS = [
   { id: "text", label: "Text-only", description: "Written messages" },
   { id: "audio", label: "Audio call", description: "Phone/voice call" },
   { id: "video", label: "Video call", description: "Face-to-face video" },
+  { id: "in-person", label: "In-person meeting", description: "Face-to-face in person" },
 ];
 
 interface WeeklyPromptCardProps {
