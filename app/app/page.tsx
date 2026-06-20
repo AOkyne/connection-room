@@ -13,6 +13,7 @@ import { IconReflection, IconProgress, IconUpcoming, IconBadges, IconForYou, Ico
 import { getBadgeIcon } from "@/lib/badge-icons";
 import { getOfferIcon } from "@/lib/offer-icons";
 import { getIconComponent } from "@/lib/icon-lookup";
+import { FirstWeekDashboardCard } from "@/components/journey/FirstWeekDashboardCard";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { createPost } from "@/lib/data/posts";
@@ -130,6 +131,9 @@ export default function AppHome() {
             </Button>
           </div>
         </Card>
+
+        {/* First Week Journey */}
+        <FirstWeekDashboardCard />
 
         {/* Suggested Space */}
         <Card>

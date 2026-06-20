@@ -11,6 +11,7 @@ import { Button } from "@/components/Button";
 import { IconIntegration, IconSpaces, IconConnection, IconProfileNav, IconBadges, IconProfile } from "@/components/Icons";
 import { getBadgeIcon } from "@/lib/badge-icons";
 import { getIconComponent } from "@/lib/icon-lookup";
+import { SevenDoorsOverview } from "@/components/journey/SevenDoorsOverview";
 import Link from "next/link";
 
 export default function JourneyPage() {
@@ -53,6 +54,9 @@ export default function JourneyPage() {
           Your guided path through the community
         </p>
       </div>
+
+      {/* Seven Doors of Connection */}
+      <SevenDoorsOverview />
 
       {/* Main Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

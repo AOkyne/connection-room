@@ -10,6 +10,7 @@ import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { SpaceIconSVG } from "@/components/SpaceIconSVG";
 import { StartHereChecklist } from "@/components/StartHereChecklist";
+import { FirstWeekStartHereCard } from "@/components/journey/FirstWeekStartHereCard";
 import { IconIntegration, IconReflection } from "@/components/Icons";
 import Link from "next/link";
 
@@ -210,6 +211,9 @@ export default function SpaceDetailPage() {
 
       {/* Start Here Checklist */}
       {spaceId === "start-here" && <StartHereChecklist />}
+
+      {/* First Week Journey Card */}
+      {spaceId === "start-here" && <FirstWeekStartHereCard />}
 
       {/* Create Post */}
       <Card>
