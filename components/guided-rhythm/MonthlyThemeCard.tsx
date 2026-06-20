@@ -5,9 +5,10 @@ import { Card } from "@/components/Card";
 
 interface MonthlyThemeCardProps {
   month: Month;
+  onSelectRitualOption?: (option: string) => void;
 }
 
-export function MonthlyThemeCard({ month }: MonthlyThemeCardProps) {
+export function MonthlyThemeCard({ month, onSelectRitualOption }: MonthlyThemeCardProps) {
   return (
     <Card className="bg-gradient-to-br from-[#f3ede5] to-[#f8f6f2] border-l-4 border-[#d4a574]">
       <div className="space-y-4">
@@ -59,14 +60,17 @@ export function MonthlyThemeCard({ month }: MonthlyThemeCardProps) {
             </p>
             <p className="text-xs text-[#6b5f52] mb-3">{month.ritual.description}</p>
             {month.ritual.options && month.ritual.options.length > 0 && (
-              <ul className="space-y-1">
+              <div className="space-y-2">
                 {month.ritual.options.map((option, idx) => (
-                  <li key={idx} className="text-xs text-[#6b5f52] flex items-start gap-2">
-                    <span className="text-[#d4a574] mt-1">•</span>
-                    <span>{option}</span>
-                  </li>
+                  <button
+                    key={idx}
+                    onClick={() => onSelectRitualOption?.(option)}
+                    className="w-full text-left px-3 py-2 text-xs text-[#6b5f52] rounded-lg border border-[#d4a574] hover:bg-[#f3ede5] transition-colors"
+                  >
+                    {option}
+                  </button>
                 ))}
-              </ul>
+              </div>
             )}
           </div>
         )}

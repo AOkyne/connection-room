@@ -112,7 +112,10 @@ export function GuidedRhythmOverview() {
       </div>
 
       {/* Monthly Theme */}
-      <MonthlyThemeCard month={currentMonth} />
+      <MonthlyThemeCard
+        month={currentMonth}
+        onSelectRitualOption={handleSetIntention}
+      />
 
       {/* Weekly Prompt */}
       <WeeklyPromptCard week={currentWeek} isCurrentWeek />
