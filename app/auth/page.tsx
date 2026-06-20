@@ -163,6 +163,33 @@ function BetaAuthContent() {
               </Button>
             </form>
 
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[#e8e3db]"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-[#a0968a]">or</span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="w-full"
+              onClick={async () => {
+                setLoading(true);
+                createMemberSession("Demo Visitor");
+                createDemoProfile("Demo Visitor", "individual");
+                setTimeout(() => {
+                  router.push("/app");
+                }, 500);
+              }}
+              disabled={loading}
+            >
+              Try Demo (No Login Required)
+            </Button>
+
             <div className="bg-[#f8f6f2] rounded-lg p-4 text-sm text-[#6b6460] space-y-2">
               <p className="font-medium text-[#1a1714]">Welcome to Beta Testing</p>
               {authMode === "password-signup" && (
