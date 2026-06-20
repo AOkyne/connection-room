@@ -1,8 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { WeeklyPrompt } from "@/lib/types/guided-rhythm";
 import { Card } from "@/components/Card";
+import { getProfile, saveProfile } from "@/lib/data/profiles";
+
+const PAIRING_FORMATS = [
+  { id: "text", label: "Text-only", description: "Written messages" },
+  { id: "audio", label: "Audio call", description: "Phone/voice call" },
+  { id: "video", label: "Video call", description: "Face-to-face video" },
+];
 
 interface WeeklyPromptCardProps {
   week: WeeklyPrompt;
@@ -16,6 +23,17 @@ export function WeeklyPromptCard({
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareContent, setShareContent] = useState("");
   const [isSharing, setIsSharing] = useState(false);
+  const [selectedPairingFormat, setSelectedPairingFormat] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadPairingPreference = async () => {
+      const profile = await getProfile();
+      if (profile?.pairingComfortLevel) {
+        setSelectedPairingFormat(profile.pairingComfortLevel);
+      }
+    };
+    loadPairingPreference();
+  }, []);
 
   const handleShare = async () => {
     if (!shareContent.trim()) return;
@@ -27,6 +45,21 @@ export function WeeklyPromptCard({
       setShowShareModal(false);
     } finally {
       setIsSharing(false);
+    }
+  };
+
+  const handleSelectPairingFormat = async (formatId: string) => {
+    setSelectedPairingFormat(formatId);
+    try {
+      const profile = await getProfile();
+      if (profile) {
+        await saveProfile({
+          ...profile,
+          pairingComfortLevel: formatId,
+        });
+      }
+    } catch (error) {
+      console.error("Error saving pairing preference:", error);
     }
   };
   return (
@@ -91,14 +124,38 @@ export function WeeklyPromptCard({
           </button>
         </div>
 
-        {/* Pairing Prompt */}
-        <div>
-          <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-2">
-            For Connection Pairings
-          </p>
-          <p className="text-sm text-[#6b5f52] leading-relaxed">
-            {week.pairingPrompt}
-          </p>
+        {/* Pairing Format Selection */}
+        <div className="space-y-3">
+          <div>
+            <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-2">
+              For Connection Pairings
+            </p>
+            <p className="text-sm text-[#6b5f52] leading-relaxed mb-3">
+              {week.pairingPrompt}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide">
+              Your Preferred Format
+            </p>
+            <div className="grid grid-cols-1 gap-2">
+              {PAIRING_FORMATS.map((format) => (
+                <button
+                  key={format.id}
+                  onClick={() => handleSelectPairingFormat(format.id)}
+                  className={`px-4 py-3 rounded-lg text-left transition-colors ${
+                    selectedPairingFormat === format.id
+                      ? "bg-[#d4a574] text-[#ffffff] border-2 border-[#d4a574]"
+                      : "bg-[#f3ede5] text-[#2a2318] border-2 border-[#e8ddd2] hover:border-[#d4a574]"
+                  }`}
+                >
+                  <p className="text-sm font-medium">{format.label}</p>
+                  <p className="text-xs text-opacity-80">{format.description}</p>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Microcopy */}
