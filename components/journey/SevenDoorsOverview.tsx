@@ -154,14 +154,13 @@ export function SevenDoorsOverview() {
         </Card>
       )}
 
-      {/* Doors Grid */}
+      {/* Current Door Only */}
       <div className="space-y-4">
-        {firstWeekJourney.map((door) => (
+        {firstWeekJourney.find(d => d.doorNumber === progress.currentDoor) && (
           <DoorCard
-            key={door.doorNumber}
-            door={door}
-            isCompleted={progress.completedDoors.includes(door.doorNumber)}
-            isCurrentDoor={progress.currentDoor === door.doorNumber}
+            door={firstWeekJourney.find(d => d.doorNumber === progress.currentDoor)!}
+            isCompleted={progress.completedDoors.includes(progress.currentDoor)}
+            isCurrentDoor={true}
             onActionClick={(action) => {
               // Handle action navigation for links
               if (action.type === "link" || action.type === "profile" || action.type === "quiz" || action.type === "pairing") {
@@ -170,13 +169,13 @@ export function SevenDoorsOverview() {
                 }
               }
             }}
-            onComplete={() => handleCompleteDoor(door.doorNumber)}
+            onComplete={() => handleCompleteDoor(progress.currentDoor)}
             onReflectionSave={(reflection) =>
-              handleSaveReflection(door.doorNumber, reflection)
+              handleSaveReflection(progress.currentDoor, reflection)
             }
-            savedReflection={savedReflections[door.doorNumber]}
+            savedReflection={savedReflections[progress.currentDoor]}
           />
-        ))}
+        )}
       </div>
 
       {/* Intention Selection */}
