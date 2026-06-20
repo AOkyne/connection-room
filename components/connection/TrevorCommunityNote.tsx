@@ -25,6 +25,7 @@ export function TrevorCommunityNote({ variant = "dashboard" }: TrevorCommunityNo
             src="/trevor-photo.png"
             alt="Trevor James"
             className="w-20 h-20 rounded-full flex-shrink-0 object-cover"
+            style={{ objectPosition: "center 20%" }}
           />
           <h3 className="text-lg font-semibold text-[#2a2318]">A Note from Trevor</h3>
         </div>

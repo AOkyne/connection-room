@@ -39,6 +39,7 @@ export function MonthlyThemeCard({ month, onSelectRitualOption }: MonthlyThemeCa
               src="/trevor-photo.png"
               alt="Trevor James"
               className="w-16 h-16 rounded-full flex-shrink-0 object-cover"
+              style={{ objectPosition: "center 20%" }}
             />
             <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide">
               A Note from Trevor
