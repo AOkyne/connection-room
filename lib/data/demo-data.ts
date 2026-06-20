@@ -449,7 +449,7 @@ interface Offer {
 export const demoOffers: Offer[] = [
   {
     id: "offer-consult",
-    title: "Intimate Reset Consultation",
+    title: "Intimacy Reset Consultation",
     description: "A free session with Trevor James to explore your unique path",
     cta: "Book Free Consult",
     url: "https://trevorjamesla.as.me/free-consult",
