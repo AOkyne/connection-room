@@ -12,7 +12,6 @@ import { RhythmContentAlert } from "@/components/admin/RhythmContentAlert";
 import { RhythmContentEditor } from "@/components/admin/RhythmContentEditor";
 
 export default function AdminPage() {
-  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [badges, setBadges] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
