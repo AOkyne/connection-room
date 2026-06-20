@@ -4,15 +4,16 @@ interface CardProps {
   children: React.ReactNode;
   className?: string;
   onClick?: () => void;
+  id?: string;
 }
 
-export function Card({ children, className = "", onClick }: CardProps) {
+export function Card({ children, className = "", onClick, id }: CardProps) {
   const baseStyles =
     "bg-[#fffbf7] rounded-xl p-6 shadow-md border border-[#e8ddd2] transition-all duration-150";
   const interactiveStyles = onClick ? "hover:shadow-lg cursor-pointer" : "";
 
   return (
-    <div className={`${baseStyles} ${interactiveStyles} ${className}`} onClick={onClick}>
+    <div id={id} className={`${baseStyles} ${interactiveStyles} ${className}`} onClick={onClick}>
       {children}
     </div>
   );
