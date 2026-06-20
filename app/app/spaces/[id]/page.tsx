@@ -16,6 +16,12 @@ import { WeeklyCommonsThread } from "@/components/connection/WeeklyCommonsThread
 import { CommentingGuideHelper } from "@/components/connection/CommentingGuideHelper";
 import { PostTemplateSelector } from "@/components/connection/PostTemplateSelector";
 import { postTemplates } from "@/lib/content/post-templates";
+import {
+  checkAndAwardFirstShare,
+  checkAndAwardFirstWitness,
+  checkAndAwardThoughtfulWitness,
+  checkAndAwardCommunityBuilder,
+} from "@/lib/data/connection-practice";
 import { IconIntegration, IconReflection } from "@/components/Icons";
 import Link from "next/link";
 
@@ -66,6 +72,11 @@ export default function SpaceDetailPage() {
     const newPost = await createPost(spaceId, profile.displayName, newPostContent, false, undefined, profile.pronouns, profile.profilePhoto);
     setPosts([newPost, ...posts]);
     setNewPostContent("");
+
+    // Check and award milestones
+    const postCount = posts.length + 1;
+    await checkAndAwardFirstShare(profile.id, postCount);
+    await checkAndAwardCommunityBuilder(profile.id, postCount, 0); // We don't have comment count here
   };
 
   const handleAddComment = async (postId: string) => {
@@ -78,6 +89,11 @@ export default function SpaceDetailPage() {
     // Refresh posts to show updated comment count
     const updatedPosts = await getPosts(spaceId);
     setPosts(updatedPosts);
+
+    // Check and award milestones
+    const totalComments = updatedPosts.reduce((sum, p) => sum + (p.commentCount || 0), 0);
+    await checkAndAwardFirstWitness(profile.id, totalComments);
+    await checkAndAwardThoughtfulWitness(profile.id, totalComments);
   };
 
   const handleReaction = async (postId: string, reactionType: string) => {
