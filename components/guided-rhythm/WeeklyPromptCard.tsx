@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { WeeklyPrompt } from "@/lib/types/guided-rhythm";
 import { Card } from "@/components/Card";
 
@@ -12,6 +13,22 @@ export function WeeklyPromptCard({
   week,
   isCurrentWeek = false,
 }: WeeklyPromptCardProps) {
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareContent, setShareContent] = useState("");
+  const [isSharing, setIsSharing] = useState(false);
+
+  const handleShare = async () => {
+    if (!shareContent.trim()) return;
+    setIsSharing(true);
+    try {
+      // TODO: Implement actual sharing to The Commons
+      console.log("Sharing to The Commons:", shareContent);
+      setShareContent("");
+      setShowShareModal(false);
+    } finally {
+      setIsSharing(false);
+    }
+  };
   return (
     <Card
       className={`${
@@ -63,9 +80,15 @@ export function WeeklyPromptCard({
           <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-2">
             If You Want to Share
           </p>
-          <p className="text-sm text-[#6b5f52] leading-relaxed">
+          <p className="text-sm text-[#6b5f52] leading-relaxed mb-3">
             {week.communityInvitation}
           </p>
+          <button
+            onClick={() => setShowShareModal(true)}
+            className="px-4 py-2 bg-[#d4a574] text-[#ffffff] rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
+          >
+            Share to The Commons
+          </button>
         </div>
 
         {/* Pairing Prompt */}
@@ -86,6 +109,58 @@ export function WeeklyPromptCard({
           </p>
         </div>
       </div>
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <dialog
+          open
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/20"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowShareModal(false);
+            }
+          }}
+        >
+          <Card className="w-full max-w-2xl mx-4">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold text-[#2a2318]">
+                  Share to The Commons
+                </h3>
+                <p className="text-sm text-[#6b5f52] mt-1">
+                  {week.communityInvitation}
+                </p>
+              </div>
+
+              <textarea
+                value={shareContent}
+                onChange={(e) => setShareContent(e.target.value)}
+                placeholder="Share your thoughts..."
+                className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm text-[#2a2318] bg-white"
+                rows={6}
+              />
+
+              <p className="text-xs text-[#8fa878]">A sentence or two is enough. No need to write a memoir unless the memoir insists.</p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowShareModal(false)}
+                  className="flex-1 px-4 py-2 text-sm text-[#6b5f52] hover:bg-[#f3ede5] rounded border border-[#e8ddd2]"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleShare}
+                  disabled={!shareContent.trim() || isSharing}
+                  className="flex-1 px-4 py-2 text-sm bg-[#d4a574] text-[#ffffff] rounded hover:bg-[#c09560] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isSharing ? "Sharing..." : "Post to The Commons"}
+                </button>
+              </div>
+            </div>
+          </Card>
+        </dialog>
+      )}
     </Card>
   );
 }
