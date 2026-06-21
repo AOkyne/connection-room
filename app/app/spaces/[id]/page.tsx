@@ -115,28 +115,32 @@ export default function SpaceDetailPage() {
 
   const handleReaction = async (postId: string, reactionType: string) => {
     // Optimistic update: change UI immediately
-    const newSelection = userReactions[postId] === reactionType ? '' : reactionType;
-    setUserReactions({
-      ...userReactions,
-      [postId]: newSelection,
-    });
+    const currentReaction = userReactions[postId];
+    const newSelection = currentReaction === reactionType ? undefined : reactionType;
+    const newUserReactions = { ...userReactions };
+
+    if (newSelection === undefined) {
+      delete newUserReactions[postId];
+    } else {
+      newUserReactions[postId] = newSelection;
+    }
+    setUserReactions(newUserReactions);
 
     // Update the post's reaction counts optimistically
     const post = posts.find(p => p.id === postId);
     if (post) {
-      const oldReaction = userReactions[postId];
       const updatedReactions = { ...post.reactions };
-      
+
       // Decrement old reaction if exists
-      if (oldReaction && updatedReactions[oldReaction]) {
-        updatedReactions[oldReaction]--;
+      if (currentReaction && updatedReactions[currentReaction]) {
+        updatedReactions[currentReaction]--;
       }
-      
+
       // Increment new reaction if selected
       if (newSelection) {
         updatedReactions[newSelection] = (updatedReactions[newSelection] || 0) + 1;
       }
-      
+
       post.reactions = updatedReactions;
       setPosts([...posts]);
     }
