@@ -43,15 +43,25 @@ export async function getRecentReflections(limit: number = 5): Promise<RecentRef
       .slice(0, limit);
 
     // Convert to reflections (no reaction migration needed)
-    const reflections = commonsPosts.map((post: any) => ({
-      id: post.id,
-      spaceId: COMMONS_SPACE_ID,
-      spaceName: COMMONS_SPACE_NAME,
-      title: post.content.split("\n")[0].substring(0, 80),
-      excerpt: post.content.substring(0, 120),
-      authorName: post.authorName,
-      createdAt: post.createdAt instanceof Date ? post.createdAt : new Date(post.createdAt),
-    }));
+    const reflections = commonsPosts.map((post: any) => {
+      // Get first sentence as title
+      const sentences = post.content.match(/[^.!?]+[.!?]+/g) || [post.content];
+      const title = sentences[0].trim().substring(0, 80);
+
+      // Get excerpt from remaining content (after first sentence)
+      const remainingContent = post.content.substring(title.length).trim();
+      const excerpt = (remainingContent || post.content).substring(0, 120);
+
+      return {
+        id: post.id,
+        spaceId: COMMONS_SPACE_ID,
+        spaceName: COMMONS_SPACE_NAME,
+        title,
+        excerpt,
+        authorName: post.authorName,
+        createdAt: post.createdAt instanceof Date ? post.createdAt : new Date(post.createdAt),
+      };
+    });
 
     return reflections.sort((a: RecentReflection, b: RecentReflection) => b.createdAt.getTime() - a.createdAt.getTime());
   } catch (error) {
