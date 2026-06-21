@@ -106,9 +106,9 @@ export async function getUserBadges(
         return {
           ...template,
           earnedAt: m.earnedAt,
-        };
+        } as Badge;
       })
-      .filter((b): b is Badge => b !== null);
+      .filter((b) => b !== null) as Badge[];
 
     // Get activity-based badges (using passed data or fetching if needed)
     let activityBadges: Badge[] = [];
