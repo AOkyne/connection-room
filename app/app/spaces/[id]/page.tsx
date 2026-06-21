@@ -15,16 +15,6 @@ import { EmptySpaceInvitation } from "@/components/connection/EmptySpaceInvitati
 import { WeeklyCommonsThread } from "@/components/connection/WeeklyCommonsThread";
 import { CommentingGuideHelper } from "@/components/connection/CommentingGuideHelper";
 import { PostTemplateSelector } from "@/components/connection/PostTemplateSelector";
-
-// Load user reactions from localStorage
-const loadUserReactions = () => {
-  if (typeof window !== "undefined") {
-    const stored = localStorage.getItem("connection-room:user-reactions");
-    if (stored) {
-      setUserReactions(JSON.parse(stored));
-    }
-  }
-};
 import { postTemplates } from "@/lib/content/post-templates";
 import { ReactionBar } from "@/components/posts/ReactionBar";
 import {
@@ -52,6 +42,15 @@ export default function SpaceDetailPage() {
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [userReactions, setUserReactions] = useState<Record<string, string>>({});
+
+  const loadUserReactions = () => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("connection-room:user-reactions");
+      if (stored) {
+        setUserReactions(JSON.parse(stored));
+      }
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {
