@@ -39,7 +39,8 @@ export function WaysToConnectCard() {
           <div className="flex flex-wrap gap-2">
             <a
               href="/app/spaces/commons"
-              className="inline-block px-3 py-2 bg-[#d4a574] text-white rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
+              className="inline-block px-3 py-2 bg-[#d4a574] rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
+              style={{ color: "white" }}
             >
               The Commons
             </a>
