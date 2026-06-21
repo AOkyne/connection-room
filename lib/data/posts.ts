@@ -84,7 +84,6 @@ function setUserReactionForPost(postId: string, reactionKey: string | null): voi
     userReactions[postId] = reactionKey;
   }
   localStorage.setItem(USER_REACTIONS_KEY, JSON.stringify(userReactions));
-  console.log("Saved user reactions to localStorage:", userReactions);
 }
 
 // Get all posts from Supabase or demo data (or posts for a specific space)
@@ -192,13 +191,10 @@ export async function addPostReaction(postId: string, reactionType: string, user
   // Determine new selection (toggle on/off)
   const newSelection = currentReaction === reactionType ? null : reactionType;
 
-  console.log(`[addPostReaction] postId=${postId}, reactionType=${reactionType}, currentReaction=${currentReaction}, newSelection=${newSelection}, userId=${userId}`);
-
   // Save to localStorage immediately (works in both demo and production modes)
   setUserReactionForPost(postId, newSelection);
 
   if (userId && supabase) {
-    console.log(`[addPostReaction] Calling Supabase: postId=${postId}, userId=${userId}, reactionType=${reactionType}`);
     await addSupabasePostReaction(postId, userId, reactionType);
     return;
   }
