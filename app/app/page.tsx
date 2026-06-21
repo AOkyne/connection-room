@@ -40,26 +40,33 @@ export default function AppHome() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const p = await getProfile();
+        // Fetch profile and spaces in parallel (independent)
+        const [p, s] = await Promise.all([
+          getProfile(),
+          getSpaces(),
+        ]);
         setProfile(p);
-        const s = await getSpaces();
         setSpaces(s);
 
-        if (p) {
-          const b = await getUserBadges(p.id);
-          setBadges(b);
-          const o = getRelevantOffers(p);
-          setOffers(o);
-        }
-
+        // Fetch events (sync, no await needed)
         const e = getUpcomingEvents();
         setUpcomingEvents(e.slice(0, 2));
 
-        const suggested = await getSuggestedSpace();
-        setSuggestedSpace(suggested);
+        // Fetch profile-dependent data in parallel
+        if (p) {
+          const [b, suggested, reflections] = await Promise.all([
+            getUserBadges(p.id),
+            getSuggestedSpace(),
+            getRecentReflections(5),
+          ]);
+          setBadges(b);
+          setSuggestedSpace(suggested);
+          setRecentReflections(reflections);
 
-        const reflections = await getRecentReflections(5);
-        setRecentReflections(reflections);
+          // Fetch offers (sync)
+          const o = getRelevantOffers(p);
+          setOffers(o);
+        }
 
         setMounted(true);
       } catch (error) {
