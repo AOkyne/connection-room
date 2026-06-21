@@ -53,7 +53,7 @@ export async function getRecentReflections(limit: number = 5): Promise<RecentRef
       createdAt: post.createdAt instanceof Date ? post.createdAt : new Date(post.createdAt),
     }));
 
-    return reflections.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return reflections.sort((a: RecentReflection, b: RecentReflection) => b.createdAt.getTime() - a.createdAt.getTime());
   } catch (error) {
     console.error("Error fetching recent reflections:", error);
     return [];
