@@ -84,6 +84,7 @@ function setUserReactionForPost(postId: string, reactionKey: string | null): voi
     userReactions[postId] = reactionKey;
   }
   localStorage.setItem(USER_REACTIONS_KEY, JSON.stringify(userReactions));
+  console.log("Saved user reactions to localStorage:", userReactions);
 }
 
 // Get all posts from Supabase or demo data (or posts for a specific space)
@@ -186,25 +187,29 @@ export async function addPostReaction(postId: string, reactionType: string, user
   if (typeof window === "undefined") return;
 
   const userId = await getCurrentUserId();
+  const currentReaction = getUserReactionForPost(postId);
+
+  // Determine new selection (toggle on/off)
+  const newSelection = currentReaction === reactionType ? null : reactionType;
+
+  // Save to localStorage immediately (works in both demo and production modes)
+  setUserReactionForPost(postId, newSelection);
+
   if (userId && supabase) {
     await addSupabasePostReaction(postId, userId, reactionType);
     return;
   }
 
-  // Demo mode fallback
+  // Demo mode fallback - also update post reaction counts
   const posts = await getPosts();
   const post = posts.find((p: Post) => p.id === postId);
   if (!post) return;
-
-  // Get user's current reaction for this post
-  const currentReaction = getUserReactionForPost(postId);
 
   // If clicking the same reaction, remove it (toggle off)
   if (currentReaction === reactionType) {
     if (post.reactions[reactionType] > 0) {
       post.reactions[reactionType]--;
     }
-    setUserReactionForPost(postId, null);
   } else {
     // If user had a previous reaction, decrement it
     if (currentReaction && post.reactions[currentReaction] > 0) {
@@ -216,9 +221,6 @@ export async function addPostReaction(postId: string, reactionType: string, user
       post.reactions[reactionType] = 0;
     }
     post.reactions[reactionType]++;
-
-    // Store user's new reaction
-    setUserReactionForPost(postId, reactionType);
   }
 
   localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
