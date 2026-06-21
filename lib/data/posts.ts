@@ -7,6 +7,7 @@ import {
   createSupabaseComment,
   addSupabasePostReaction,
 } from "./supabase-posts";
+import { migrateOldReactionKey } from "@/lib/content/reactions";
 
 export interface Post {
   id: string;
@@ -37,6 +38,7 @@ export interface Comment {
 
 const POSTS_STORAGE_KEY = "connection-room:posts";
 const COMMENTS_STORAGE_KEY = "connection-room:comments";
+const USER_REACTIONS_KEY = "connection-room:user-reactions"; // Stores user's selected reaction per post
 
 // Get current authenticated user ID
 async function getCurrentUserId(): Promise<string | null> {
@@ -51,6 +53,39 @@ async function getCurrentUserId(): Promise<string | null> {
   }
 }
 
+// Helper: Migrate old reaction keys to new ones in the reactions object
+function migrateReactions(reactions: Record<string, number>): Record<string, number> {
+  const migratedReactions: Record<string, number> = {};
+
+  for (const [key, count] of Object.entries(reactions)) {
+    const newKey = migrateOldReactionKey(key);
+    migratedReactions[newKey] = (migratedReactions[newKey] || 0) + count;
+  }
+
+  return migratedReactions;
+}
+
+// Get user's selected reaction for a post (demo mode)
+export function getUserReactionForPost(postId: string): string | null {
+  if (typeof window === "undefined") return null;
+
+  const userReactions = JSON.parse(localStorage.getItem(USER_REACTIONS_KEY) || "{}");
+  return userReactions[postId] || null;
+}
+
+// Set user's selected reaction for a post (demo mode)
+function setUserReactionForPost(postId: string, reactionKey: string | null): void {
+  if (typeof window === "undefined") return;
+
+  const userReactions = JSON.parse(localStorage.getItem(USER_REACTIONS_KEY) || "{}");
+  if (reactionKey === null) {
+    delete userReactions[postId];
+  } else {
+    userReactions[postId] = reactionKey;
+  }
+  localStorage.setItem(USER_REACTIONS_KEY, JSON.stringify(userReactions));
+}
+
 // Get all posts from Supabase or demo data (or posts for a specific space)
 export async function getPosts(spaceId?: string): Promise<Post[]> {
   if (typeof window === "undefined") {
@@ -59,15 +94,26 @@ export async function getPosts(spaceId?: string): Promise<Post[]> {
 
   const userId = await getCurrentUserId();
   if (userId && supabase) {
-    return await getSupabasePosts(spaceId);
+    const posts = await getSupabasePosts(spaceId);
+    // Migrate old reactions in Supabase posts
+    return posts.map((p) => ({
+      ...p,
+      reactions: migrateReactions(p.reactions),
+    }));
   }
 
   // Demo mode fallback
   const stored = localStorage.getItem(POSTS_STORAGE_KEY);
-  const posts = stored ? JSON.parse(stored) : demoPosts;
+  let posts = stored ? JSON.parse(stored) : demoPosts;
+
+  // Migrate old reactions
+  posts = posts.map((p: Post) => ({
+    ...p,
+    reactions: migrateReactions(p.reactions),
+  }));
 
   if (spaceId) {
-    return posts.filter((p: Post) => p.spaceId === spaceId);
+    posts = posts.filter((p: Post) => p.spaceId === spaceId);
   }
 
   return posts;
@@ -150,10 +196,30 @@ export async function addPostReaction(postId: string, reactionType: string, user
   const post = posts.find((p: Post) => p.id === postId);
   if (!post) return;
 
-  if (!post.reactions[reactionType]) {
-    post.reactions[reactionType] = 0;
+  // Get user's current reaction for this post
+  const currentReaction = getUserReactionForPost(postId);
+
+  // If clicking the same reaction, remove it (toggle off)
+  if (currentReaction === reactionType) {
+    if (post.reactions[reactionType] > 0) {
+      post.reactions[reactionType]--;
+    }
+    setUserReactionForPost(postId, null);
+  } else {
+    // If user had a previous reaction, decrement it
+    if (currentReaction && post.reactions[currentReaction] > 0) {
+      post.reactions[currentReaction]--;
+    }
+
+    // Increment the new reaction
+    if (!post.reactions[reactionType]) {
+      post.reactions[reactionType] = 0;
+    }
+    post.reactions[reactionType]++;
+
+    // Store user's new reaction
+    setUserReactionForPost(postId, reactionType);
   }
-  post.reactions[reactionType]++;
 
   localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
 }

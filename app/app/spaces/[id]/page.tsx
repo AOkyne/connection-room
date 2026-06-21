@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getSpace } from "@/lib/data/spaces";
-import { getPosts, createPost, addPostReaction, getComments, createComment, type Post, type Comment } from "@/lib/data/posts";
+import { getPosts, createPost, addPostReaction, getComments, createComment, getUserReactionForPost, type Post, type Comment } from "@/lib/data/posts";
 import { getProfile } from "@/lib/data/profiles";
 import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
@@ -16,6 +16,7 @@ import { WeeklyCommonsThread } from "@/components/connection/WeeklyCommonsThread
 import { CommentingGuideHelper } from "@/components/connection/CommentingGuideHelper";
 import { PostTemplateSelector } from "@/components/connection/PostTemplateSelector";
 import { postTemplates } from "@/lib/content/post-templates";
+import { ReactionBar } from "@/components/posts/ReactionBar";
 import {
   checkAndAwardFirstShare,
   checkAndAwardFirstWitness,
@@ -323,24 +324,11 @@ export default function SpaceDetailPage() {
               <p className="text-[#6b5f52] mb-4">{post.content}</p>
 
               {/* Reactions */}
-              <div className="flex flex-wrap gap-2 mb-4">
-                {appConfig.reactions.map((reaction) => {
-                  const count = post.reactions[reaction.id] || 0;
-                  return (
-                    <button
-                      key={reaction.id}
-                      onClick={() => handleReaction(post.id, reaction.id)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        count > 0
-                          ? "bg-[#d4a574] text-white hover:bg-[#c29560]"
-                          : "border border-[#e8ddd2] text-[#6b5f52] hover:border-[#d4a574] hover:text-[#2a2318]"
-                      }`}
-                    >
-                      {reaction.label} {count > 0 && <span>({count})</span>}
-                    </button>
-                  );
-                })}
-              </div>
+              <ReactionBar
+                reactions={post.reactions}
+                userReaction={getUserReactionForPost(post.id)}
+                onReact={(reactionKey) => handleReaction(post.id, reactionKey)}
+              />
 
               {/* Comments Toggle */}
               <button

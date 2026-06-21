@@ -133,14 +133,16 @@ export const appConfig = {
     "Explore spirituality and sexuality together",
   ],
 
-  // Gentle Reactions
+  // Legacy reactions - kept for backwards compatibility during migration
+  // New reactions are now configured in lib/content/reactions.ts
+  // Old reaction keys are automatically migrated to new ones
   reactions: [
-    { id: "relate", label: "I relate", emoji: "🤝" },
-    { id: "thank-you", label: "Thank you for sharing", emoji: "🙏" },
-    { id: "feeling", label: "This gave me something to feel", emoji: "💭" },
-    { id: "thoughtful", label: "Thoughtful", emoji: "✨" },
-    { id: "witnessing", label: "Witnessing this", emoji: "👁️" },
-    { id: "holding", label: "Holding this with care", emoji: "❤️" },
-    { id: "useful", label: "Useful reflection", emoji: "💡" },
+    { id: "relate", label: "I relate", emoji: "🤝" }, // Migrates to: feel_this
+    { id: "thank-you", label: "Thank you for sharing", emoji: "🙏" }, // Migrates to: glad_you_shared
+    { id: "feeling", label: "This gave me something to feel", emoji: "💭" }, // Migrates to: shifted_something
+    { id: "thoughtful", label: "Thoughtful", emoji: "✨" }, // Migrates to: now_im_thinking
+    { id: "witnessing", label: "Witnessing this", emoji: "👁️" }, // Migrates to: feel_this
+    { id: "holding", label: "Holding this with care", emoji: "❤️" }, // Migrates to: sending_warmth
+    { id: "useful", label: "Useful reflection", emoji: "💡" }, // Migrates to: shifted_something
   ],
 };

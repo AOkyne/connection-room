@@ -275,7 +275,7 @@ export const demoPosts: Post[] = [
       "I'm new here and honestly a bit nervous. I've spent a lot of years in my head, and I'm trying to come back to my body and practice being more present. Thanks for creating this space.",
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 3600000),
-    reactions: { relate: 4, "thank-you": 2, witnessing: 3 },
+    reactions: { feel_this: 3, glad_you_shared: 2 },
     commentCount: 2,
   },
   {
@@ -289,7 +289,7 @@ export const demoPosts: Post[] = [
       "We've been trying small things like sitting closer during dinner, making eye contact. It feels awkward sometimes, but we're noticing something's shifting. Small steps.",
     isPromptResponse: true,
     createdAt: new Date(Date.now() - 7200000),
-    reactions: { relate: 8, "thank-you": 5, holding: 6 },
+    reactions: { feel_this: 8, glad_you_shared: 5, sending_warmth: 6 },
     commentCount: 3,
   },
   {
@@ -303,7 +303,7 @@ export const demoPosts: Post[] = [
       "I took the quiz and got 'Disconnected Overthinker' – which made me laugh because it's so accurate. I think I analyze connection instead of letting myself feel it. Looking forward to practicing something different here.",
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 10800000),
-    reactions: { relate: 6, thoughtful: 4, feeling: 2 },
+    reactions: { feel_this: 6, now_im_thinking: 4, shifted_something: 2 },
     commentCount: 4,
   },
   {
@@ -318,7 +318,7 @@ export const demoPosts: Post[] = [
       "Just finished a short breathing practice and I'm noticing how much tension I hold in my shoulders. It's wild how much you can ignore about your own body.",
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 14400000),
-    reactions: { relate: 7, useful: 3, feeling: 4 },
+    reactions: { feel_this: 7, shifted_something: 4 },
     commentCount: 1,
   },
 ];
