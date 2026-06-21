@@ -76,7 +76,8 @@ export function ReflectionsFromRoomCard({
             </p>
             <a
               href="/app/spaces/commons"
-              className="inline-block px-4 py-2 bg-[#d4a574] text-[#ffffff] rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
+              className="inline-block px-4 py-2 bg-[#d4a574] rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
+              style={{ color: "white" }}
             >
               Start a Reflection
             </a>
