@@ -41,16 +41,11 @@ export default function SpaceDetailPage() {
   const [mounted, setMounted] = useState(false);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [userReactions, setUserReactions] = useState<Record<string, string>>({});
-
-  const loadUserReactions = () => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("connection-room:user-reactions");
-      if (stored) {
-        setUserReactions(JSON.parse(stored));
-      }
-    }
-  };
+  const [userReactions, setUserReactions] = useState<Record<string, string>>(() => {
+    if (typeof window === "undefined") return {};
+    const stored = localStorage.getItem("connection-room:user-reactions");
+    return stored ? JSON.parse(stored) : {};
+  });
 
   useEffect(() => {
     const loadData = async () => {
@@ -68,10 +63,9 @@ export default function SpaceDetailPage() {
       setSpace(s);
       setProfile(p);
 
-      // Load posts and user reactions
+      // Load posts
       const spacePosts = await getPosts(spaceId);
       setPosts(spacePosts);
-      loadUserReactions();
 
       setMounted(true);
     };
