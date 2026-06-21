@@ -40,14 +40,16 @@ const MILESTONE_BADGES: Record<string, Badge> = {
 };
 
 // Check which activity-based badges have been earned
-async function checkActivityBasedBadges(userId: string): Promise<Badge[]> {
+// Accepts data as parameters to avoid redundant fetches
+function checkActivityBasedBadges(
+  userId: string,
+  profile?: any,
+  spaces?: any[],
+  posts?: any[]
+): Badge[] {
   const earned: Badge[] = [];
 
   try {
-    const profile = await getProfile();
-    const spaces = await getSpaces();
-    const posts = await getPosts();
-
     // Explorer: joined 3+ spaces
     if (spaces) {
       const joinedSpaces = spaces.filter((s) => s.isJoined).length;
@@ -85,7 +87,13 @@ async function checkActivityBasedBadges(userId: string): Promise<Badge[]> {
 }
 
 // Get all earned badges (both milestone and activity-based)
-export async function getUserBadges(userId: string): Promise<Badge[]> {
+// Optionally accepts profile, spaces, and posts to avoid redundant fetches
+export async function getUserBadges(
+  userId: string,
+  profile?: any,
+  spaces?: any[],
+  posts?: any[]
+): Promise<Badge[]> {
   if (typeof window === "undefined") return [];
 
   try {
@@ -102,8 +110,18 @@ export async function getUserBadges(userId: string): Promise<Badge[]> {
       })
       .filter((b): b is Badge => b !== null);
 
-    // Get activity-based badges
-    const activityBadges = await checkActivityBasedBadges(userId);
+    // Get activity-based badges (using passed data or fetching if needed)
+    let activityBadges: Badge[] = [];
+    if (profile || spaces || posts) {
+      // Use provided data
+      activityBadges = checkActivityBasedBadges(userId, profile, spaces, posts);
+    } else {
+      // Fallback: fetch if not provided
+      const p = await getProfile();
+      const s = await getSpaces();
+      const ps = await getPosts();
+      activityBadges = checkActivityBasedBadges(userId, p, s, ps);
+    }
 
     // Combine and deduplicate
     const allBadges = [...milestoneEarned, ...activityBadges];

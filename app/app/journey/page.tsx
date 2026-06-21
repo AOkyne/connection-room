@@ -25,13 +25,14 @@ export default function JourneyPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      const p = await getProfile();
+      // Fetch profile and spaces in parallel
+      const [p, s] = await Promise.all([getProfile(), getSpaces()]);
       setProfile(p);
-      const s = await getSpaces();
       setSpaces(s);
 
+      // Then fetch badges based on profile (pass already-fetched data to avoid redundant calls)
       if (p) {
-        const b = await getUserBadges(p.id);
+        const b = await getUserBadges(p.id, p, s);
         setBadges(b);
       }
 
