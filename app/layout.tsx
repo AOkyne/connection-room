@@ -43,7 +43,7 @@ export default function RootLayout({
     >
       <head>
         <meta name="theme-color" content="#c9a876" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.ico?v=2" />
       </head>
       <body className="min-h-full flex flex-col bg-[#fdfbf7] text-[#1a1714]">
         {children}
