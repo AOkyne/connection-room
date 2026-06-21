@@ -7,6 +7,7 @@ import { getRecommendedNextStep, getTodaysPrompt, getSuggestedSpace } from "@/li
 import { getUserBadges } from "@/lib/data/badges";
 import { getUpcomingEvents } from "@/lib/data/events";
 import { getRelevantOffers } from "@/lib/data/offers";
+import { getRecentReflections, type RecentReflection } from "@/lib/data/reflections";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { IconReflection, IconProgress, IconUpcoming, IconBadges, IconForYou, IconDemo } from "@/components/Icons";
@@ -30,6 +31,7 @@ export default function AppHome() {
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [offers, setOffers] = useState<any[]>([]);
   const [suggestedSpace, setSuggestedSpace] = useState<any>(null);
+  const [recentReflections, setRecentReflections] = useState<RecentReflection[]>([]);
   const [mounted, setMounted] = useState(false);
   const [promptResponse, setPromptResponse] = useState("");
   const [selectedSpaceId, setSelectedSpaceId] = useState("");
@@ -55,6 +57,9 @@ export default function AppHome() {
 
         const suggested = await getSuggestedSpace();
         setSuggestedSpace(suggested);
+
+        const reflections = await getRecentReflections(5);
+        setRecentReflections(reflections);
 
         setMounted(true);
       } catch (error) {
@@ -137,7 +142,7 @@ export default function AppHome() {
 
         {/* Connection Scaffolding Cards */}
         <WaysToConnectCard />
-        <ReflectionsFromRoomCard />
+        <ReflectionsFromRoomCard recentReflections={recentReflections} />
 
         {/* First Week Journey or Guided Rhythm */}
         <FirstWeekDashboardCard />
