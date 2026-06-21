@@ -117,6 +117,30 @@ export function GuidedRhythmOverview() {
         onSelectRitualOption={handleSetIntention}
       />
 
+      {/* Monthly Intention */}
+      <Card className="bg-gradient-to-br from-[#8fa878]/5 to-[#d4a574]/5">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold text-[#2a2318]">
+              Your Monthly Intention
+            </h3>
+            <p className="text-sm text-[#6b5f52] mt-2">
+              {selectedIntention
+                ? `Your intention: ${selectedIntention}`
+                : "Choose or write an intention for this month"}
+            </p>
+          </div>
+
+          <Button
+            onClick={() => setShowIntentionModal(true)}
+            variant="outline"
+            size="sm"
+          >
+            {selectedIntention ? "Change Intention" : "Set Intention"}
+          </Button>
+        </div>
+      </Card>
+
       {/* Weekly Prompt */}
       <WeeklyPromptCard week={currentWeek} isCurrentWeek />
 
@@ -144,30 +168,6 @@ export function GuidedRhythmOverview() {
         savedIntegration={monthlyIntegrationText}
         onSave={handleSaveMonthlyIntegration}
       />
-
-      {/* Monthly Intention */}
-      <Card className="bg-gradient-to-br from-[#8fa878]/5 to-[#d4a574]/5">
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold text-[#2a2318]">
-              Your Monthly Intention
-            </h3>
-            <p className="text-sm text-[#6b5f52] mt-2">
-              {selectedIntention
-                ? `Your intention: ${selectedIntention}`
-                : "Choose or write an intention for this month"}
-            </p>
-          </div>
-
-          <Button
-            onClick={() => setShowIntentionModal(true)}
-            variant="outline"
-            size="sm"
-          >
-            {selectedIntention ? "Change Intention" : "Set Intention"}
-          </Button>
-        </div>
-      </Card>
 
       {/* Intention Modal */}
       {showIntentionModal && (
