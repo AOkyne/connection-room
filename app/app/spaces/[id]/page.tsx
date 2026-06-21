@@ -370,7 +370,7 @@ export default function SpaceDetailPage() {
               {/* Reactions */}
               <ReactionBar
                 reactions={post.reactions}
-                userReaction={userReactions[post.id] || null}
+                userReaction={userReactions[post.id]}
                 onReact={(reactionKey) => handleReaction(post.id, reactionKey)}
               />
 
