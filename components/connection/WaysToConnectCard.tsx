@@ -50,7 +50,7 @@ export function WaysToConnectCard() {
                   reflectionSection.scrollIntoView({ behavior: "smooth", block: "start" });
                 }
               }}
-              className="inline-block px-3 py-2 border border-[#d4a574] text-[#d4a574] rounded-lg text-sm font-medium hover:bg-[#f3ede5] transition-colors"
+              className="inline-block px-3 py-2 border border-[#d4a574] text-[#ffffff] rounded-lg text-sm font-medium hover:bg-[#f3ede5] transition-colors"
             >
               Today's Reflection
             </button>
