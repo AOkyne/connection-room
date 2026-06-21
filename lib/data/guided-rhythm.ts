@@ -20,7 +20,8 @@ async function getCurrentUserId(): Promise<string | null> {
 // Calculate current month and week based on calendar
 export function getCurrentMonthAndWeek(): { month: number; week: number } {
   const now = new Date();
-  const month = ((now.getMonth() % 6) + 1) as number; // Cycles through months 1-6
+  // Beta: June maps to Month 1, then cycles through 1-6
+  const month = (((now.getMonth() - 5) % 6) + 1) as number;
   const weekOfMonth = Math.ceil((now.getDate() + 6) / 7) as number; // Week 1-4
   return {
     month: Math.min(month, 6),
