@@ -5,22 +5,25 @@ import { getProfile, type Profile } from "@/lib/data/profiles";
 import { getSpaces } from "@/lib/data/spaces";
 import { getUserBadges } from "@/lib/data/badges";
 import { getRecommendedNextStep, getTodaysPrompt } from "@/lib/data/recommendations";
+import { getUserEventInterestsList } from "@/lib/data/events";
 import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
-import { IconIntegration, IconSpaces, IconConnection, IconProfileNav, IconBadges, IconProfile } from "@/components/Icons";
+import { IconIntegration, IconSpaces, IconConnection, IconProfileNav, IconBadges, IconProfile, IconUpcoming } from "@/components/Icons";
 import { SpaceIconSVG } from "@/components/SpaceIconSVG";
 import { getBadgeIcon } from "@/lib/badge-icons";
 import { getIconComponent } from "@/lib/icon-lookup";
 import { SevenDoorsOverview } from "@/components/journey/SevenDoorsOverview";
 import { GuidedRhythmOverview } from "@/components/guided-rhythm/GuidedRhythmOverview";
 import { ConnectionPracticeSummary } from "@/components/connection/ConnectionPracticeSummary";
+import { EventReminderBanner } from "@/components/EventReminderBanner";
 import Link from "next/link";
 
 export default function JourneyPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [spaces, setSpaces] = useState<any[]>([]);
   const [badges, setBadges] = useState<any[]>([]);
+  const [interestedEvents, setInterestedEvents] = useState<any[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -30,10 +33,14 @@ export default function JourneyPage() {
       setProfile(p);
       setSpaces(s);
 
-      // Then fetch badges based on profile (pass already-fetched data to avoid redundant calls)
+      // Then fetch badges and interested events based on profile
       if (p) {
-        const b = await getUserBadges(p.id, p, s);
+        const [b, events] = await Promise.all([
+          getUserBadges(p.id, p, s),
+          Promise.resolve(getUserEventInterestsList(p.id))
+        ]);
         setBadges(b);
+        setInterestedEvents(events);
       }
 
       setMounted(true);
@@ -58,6 +65,9 @@ export default function JourneyPage() {
           Your guided path through the community
         </p>
       </div>
+
+      {/* Event Reminders */}
+      <EventReminderBanner />
 
       {/* Seven Doors of Connection */}
       <SevenDoorsOverview />
@@ -125,6 +135,44 @@ export default function JourneyPage() {
             </div>
           ) : (
             <p className="text-[#a0968a] text-sm">None selected yet</p>
+          )}
+        </Card>
+
+        {/* Upcoming Events */}
+        <Card>
+          <CardHeader title="Upcoming Events" icon={<IconUpcoming size={20} />} />
+          {interestedEvents.length > 0 ? (
+            <div className="space-y-3">
+              {interestedEvents.slice(0, 3).map((event) => (
+                <div key={event.id} className="p-3 bg-[#f3ede5] rounded-lg">
+                  <p className="font-medium text-[#2a2318] text-sm">{event.title}</p>
+                  <div className="flex flex-wrap gap-2 mt-2 text-xs text-[#6b5f52]">
+                    <span>{event.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+                    <span>•</span>
+                    <span>{event.time}</span>
+                    <span>•</span>
+                    <span>{event.format}</span>
+                  </div>
+                </div>
+              ))}
+              {interestedEvents.length > 3 && (
+                <p className="text-xs text-[#a0968a] pt-1">+{interestedEvents.length - 3} more</p>
+              )}
+              <Link href="/app/events" className="pt-2 block">
+                <Button variant="outline" size="sm" className="w-full">
+                  View All Events
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <div>
+              <p className="text-[#a0968a] text-sm mb-3">No events marked yet</p>
+              <Link href="/app/events">
+                <Button variant="secondary" size="sm" className="w-full">
+                  Browse Events
+                </Button>
+              </Link>
+            </div>
           )}
         </Card>
 

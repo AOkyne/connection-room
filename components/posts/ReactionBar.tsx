@@ -24,6 +24,9 @@ export function ReactionBar({
   const primaryReactions = getPrimaryReactions();
   const moreReactions = getMoreReactions();
 
+  // Check if user's selected reaction is from the "More" menu
+  const userReactionFromMore = userReaction && moreReactions.some(r => r.id === userReaction);
+
   // Close menu when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -72,6 +75,28 @@ export function ReactionBar({
           />
         );
       })}
+
+      {/* User's selected "More" reaction (if any) */}
+      {userReactionFromMore && (
+        <>
+          {moreReactions.map((reaction) => {
+            if (reaction.id === userReaction) {
+              const count = reactions[reaction.id] || 0;
+              return (
+                <ReactionButton
+                  key={reaction.id}
+                  label={reaction.label}
+                  count={count}
+                  isSelected={true}
+                  onClick={() => handleReactionClick(reaction.id)}
+                  disabled={disabled}
+                />
+              );
+            }
+            return null;
+          })}
+        </>
+      )}
 
       {/* More Button */}
       <div className="relative">

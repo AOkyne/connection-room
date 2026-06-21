@@ -55,20 +55,23 @@ export default function SpaceDetailPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      const s = await getSpace(spaceId);
+      // Fetch space and profile in parallel
+      const [s, p] = await Promise.all([
+        getSpace(spaceId),
+        getProfile(),
+      ]);
+
       if (!s) {
         router.push("/app/spaces");
         return;
       }
-      setSpace(s);
 
-      const p = await getProfile();
+      setSpace(s);
       setProfile(p);
 
+      // Load posts and user reactions
       const spacePosts = await getPosts(spaceId);
       setPosts(spacePosts);
-      
-      // Load user reactions
       loadUserReactions();
 
       setMounted(true);
@@ -112,14 +115,36 @@ export default function SpaceDetailPage() {
   };
 
   const handleReaction = async (postId: string, reactionType: string) => {
-    await addPostReaction(postId, reactionType, profile.displayName);
-    const updatedPosts = await getPosts(spaceId);
-    setPosts(updatedPosts);
-    
-    // Update tracked user reactions
+    // Optimistic update: change UI immediately
+    const newSelection = userReactions[postId] === reactionType ? '' : reactionType;
     setUserReactions({
       ...userReactions,
-      [postId]: userReactions[postId] === reactionType ? '' : reactionType,
+      [postId]: newSelection,
+    });
+
+    // Update the post's reaction counts optimistically
+    const post = posts.find(p => p.id === postId);
+    if (post) {
+      const oldReaction = userReactions[postId];
+      const updatedReactions = { ...post.reactions };
+      
+      // Decrement old reaction if exists
+      if (oldReaction && updatedReactions[oldReaction]) {
+        updatedReactions[oldReaction]--;
+      }
+      
+      // Increment new reaction if selected
+      if (newSelection) {
+        updatedReactions[newSelection] = (updatedReactions[newSelection] || 0) + 1;
+      }
+      
+      post.reactions = updatedReactions;
+      setPosts([...posts]);
+    }
+
+    // Persist to storage in the background (don't await)
+    addPostReaction(postId, reactionType, profile.displayName).catch(err => {
+      console.error("Failed to save reaction:", err);
     });
   };
 
