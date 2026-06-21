@@ -1,6 +1,6 @@
 // Reflections data layer - fetch recent reflections from The Commons
 
-import { getPosts } from "./posts";
+import { demoPosts } from "./demo-data";
 
 export interface RecentReflection {
   id: string;
@@ -15,26 +15,44 @@ export interface RecentReflection {
 const COMMONS_SPACE_ID = "commons";
 const COMMONS_SPACE_NAME = "The Commons";
 
-// Get recent reflections (posts) from The Commons space only
+// Get recent reflections (posts) from The Commons space only - lightweight version
 export async function getRecentReflections(limit: number = 5): Promise<RecentReflection[]> {
   if (typeof window === "undefined") return [];
 
   try {
-    // Fetch posts only from The Commons
-    const posts = await getPosts(COMMONS_SPACE_ID);
+    // Get posts from localStorage (demo mode) or use demo data
+    let posts = [];
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("connection-room:posts");
+      if (stored) {
+        try {
+          posts = JSON.parse(stored);
+        } catch (e) {
+          posts = demoPosts;
+        }
+      } else {
+        posts = demoPosts;
+      }
+    } else {
+      posts = demoPosts;
+    }
 
-    // Convert posts to reflections
-    const reflections = posts.slice(0, limit).map((post) => ({
+    // Filter for Commons space and get recent posts
+    const commonsPosts = posts
+      .filter((p: any) => p.spaceId === COMMONS_SPACE_ID)
+      .slice(0, limit);
+
+    // Convert to reflections (no reaction migration needed)
+    const reflections = commonsPosts.map((post: any) => ({
       id: post.id,
       spaceId: COMMONS_SPACE_ID,
       spaceName: COMMONS_SPACE_NAME,
-      title: post.content.split("\n")[0].substring(0, 80), // First line as title
-      excerpt: post.content.substring(0, 120), // First 120 chars as excerpt
+      title: post.content.split("\n")[0].substring(0, 80),
+      excerpt: post.content.substring(0, 120),
       authorName: post.authorName,
-      createdAt: post.createdAt,
+      createdAt: post.createdAt instanceof Date ? post.createdAt : new Date(post.createdAt),
     }));
 
-    // Sort by most recent first
     return reflections.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   } catch (error) {
     console.error("Error fetching recent reflections:", error);
