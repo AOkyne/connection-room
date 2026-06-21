@@ -48,7 +48,10 @@ export function getPendingReminders(userId: string, interestedEvents: Event[]): 
   timing: "within_week" | "within_day" | "within_hour";
 }> {
   const now = new Date();
-  const pending = [];
+  const pending: Array<{
+    event: Event;
+    timing: "within_week" | "within_day" | "within_hour";
+  }> = [];
 
   for (const event of interestedEvents) {
     const timeUntilEvent = event.date.getTime() - now.getTime();
