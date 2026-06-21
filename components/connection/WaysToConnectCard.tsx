@@ -39,7 +39,7 @@ export function WaysToConnectCard() {
           <div className="flex flex-wrap gap-2">
             <a
               href="/app/spaces/commons"
-              className="inline-block px-3 py-2 bg-[#d4a574] text-[#ffffff] rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
+              className="inline-block px-3 py-2 bg-[#d4a574] text-white rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
             >
               The Commons
             </a>
@@ -50,7 +50,7 @@ export function WaysToConnectCard() {
                   reflectionSection.scrollIntoView({ behavior: "smooth", block: "start" });
                 }
               }}
-              className="inline-block px-3 py-2 border border-[#d4a574] text-[#ffffff] rounded-lg text-sm font-medium hover:bg-[#f3ede5] transition-colors"
+              className="inline-block px-3 py-2 border border-[#d4a574] text-[#d4a574] rounded-lg text-sm font-medium hover:bg-[#f3ede5] transition-colors"
             >
               Today's Reflection
             </button>
