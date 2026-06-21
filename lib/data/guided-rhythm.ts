@@ -22,7 +22,7 @@ export function getCurrentMonthAndWeek(): { month: number; week: number } {
   const now = new Date();
   // Beta: June maps to Month 1, then cycles through 1-6
   const month = (((now.getMonth() - 5) % 6) + 1) as number;
-  const weekOfMonth = Math.ceil((now.getDate() + 6) / 7) as number; // Week 1-4
+  const weekOfMonth = Math.ceil(now.getDate() / 7) as number; // Week 1-4
   return {
     month: Math.min(month, 6),
     week: Math.min(weekOfMonth, 4),
