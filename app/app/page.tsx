@@ -44,7 +44,7 @@ export default function AppHome() {
         setSpaces(s);
 
         if (p) {
-          const b = getUserBadges(p.id);
+          const b = await getUserBadges(p.id);
           setBadges(b);
           const o = getRelevantOffers(p);
           setOffers(o);
