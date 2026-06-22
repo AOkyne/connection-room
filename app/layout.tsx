@@ -30,13 +30,7 @@ export const metadata: Metadata = {
   viewport: "width=device-width, initial-scale=1",
   authors: [{ name: "Trevor James" }],
   icons: {
-    icon: [
-      {
-        url: "/favicon.ico?v=5",
-        sizes: "500x500",
-        type: "image/png",
-      },
-    ],
+    icon: "/favicon.png?v=5",
   },
 };
 
@@ -52,7 +46,7 @@ export default function RootLayout({
     >
       <head>
         <meta name="theme-color" content="#c9a876" />
-        <link rel="icon" href="/favicon.ico?v=5" type="image/png" />
+        <link rel="icon" href="/favicon.png?v=5" type="image/png" />
       </head>
       <body className="min-h-full flex flex-col bg-[#fdfbf7] text-[#1a1714]">
         {children}
