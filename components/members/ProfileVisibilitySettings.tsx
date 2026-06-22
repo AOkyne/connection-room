@@ -108,7 +108,7 @@ export function ProfileVisibilitySettings({
                         onChange={(e) =>
                           setSettings({
                             ...settings,
-                            profile_visibility: e.target.value,
+                            profile_visibility: e.target.value as 'space_members' | 'all_authenticated_members' | 'limited',
                           })
                         }
                         className="w-5 h-5 mt-0.5"
