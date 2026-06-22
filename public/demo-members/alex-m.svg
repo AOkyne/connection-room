@@ -1,0 +1,51 @@
+<svg width="400" height="500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500">
+    <!-- Background -->
+    <rect width="400" height="500" fill="#f0e8e0"/>
+
+    <!-- Head -->
+    <ellipse cx="200" cy="200" rx="90" ry="110" fill="#d9a584"/>
+
+    <!-- Hair -->
+    <path d="M 110 150 Q 110 80 200 60 Q 290 80 290 150" fill="#2a1a1a"/>
+
+    <!-- Left ear -->
+    <ellipse cx="110" cy="190" rx="25" ry="35" fill="#d9a584"/>
+    <ellipse cx="115" cy="195" rx="12" ry="20" fill="#d9a584" opacity="0.7"/>
+
+    <!-- Right ear -->
+    <ellipse cx="290" cy="190" rx="25" ry="35" fill="#d9a584"/>
+    <ellipse cx="285" cy="195" rx="12" ry="20" fill="#d9a584" opacity="0.7"/>
+
+    <!-- Eyes -->
+    <ellipse cx="160" cy="180" rx="18" ry="22" fill="white"/>
+    <ellipse cx="240" cy="180" rx="18" ry="22" fill="white"/>
+    <circle cx="160" cy="185" r="12" fill="#4a4a4a"/>
+    <circle cx="240" cy="185" r="12" fill="#4a4a4a"/>
+    <circle cx="163" cy="182" r="5" fill="white" opacity="0.8"/>
+    <circle cx="243" cy="182" r="5" fill="white" opacity="0.8"/>
+
+    <!-- Eyebrows -->
+    <path d="M 140 150 Q 160 140 180 150" stroke="#2a1a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M 220 150 Q 240 140 260 150" stroke="#2a1a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
+
+    <!-- Nose -->
+    <line x1="200" y1="180" x2="200" y2="230" stroke="#d9a584" stroke-width="3" opacity="0.3"/>
+    <path d="M 195 230 L 200 235 L 205 230" fill="#d9a584" opacity="0.3"/>
+
+    <!-- Mouth -->
+    <path d="M 160 270 Q 200 310 240 270" stroke="#a0625a" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M 160 270 Q 200 305 240 270" fill="#d4856a" opacity="0.3"/>
+
+    <!-- Facial shadow (cheekbones) -->
+    <ellipse cx="130" cy="220" rx="20" ry="30" fill="#000" opacity="0.05"/>
+    <ellipse cx="270" cy="220" rx="20" ry="30" fill="#000" opacity="0.05"/>
+
+    <!-- Neck -->
+    <rect x="180" y="300" width="40" height="60" fill="#d9a584"/>
+
+    <!-- Shoulders (simple representation) -->
+    <ellipse cx="200" cy="380" rx="120" ry="80" fill="#d9a584"/>
+
+    <!-- Shirt/clothing -->
+    <path d="M 80 360 L 120 380 L 280 380 L 320 360 Z" fill="#4a5f6a"/>
+  </svg>

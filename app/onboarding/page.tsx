@@ -235,6 +235,16 @@ export default function OnboardingPage() {
                     className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#2a2318] mb-2">Profile tagline (optional)</label>
+                  <input
+                    type="text"
+                    value={profile.profile_tagline || ""}
+                    onChange={(e) => handleUpdate({ profile_tagline: e.target.value })}
+                    placeholder="A short phrase that captures who you are (e.g., 'Learning to be vulnerable')"
+                    className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+                  />
+                </div>
               </div>
               <div className="flex gap-3 mt-6">
                 <Button variant="ghost" size="md" onClick={handleBack} className="flex-1">
@@ -251,7 +261,7 @@ export default function OnboardingPage() {
             <Card>
               <CardHeader title="Add Your Photo" icon="📸" />
               <p className="text-[#6b5f52] mb-6">
-                A real photo of yourself helps members recognize you and builds authentic connection. This is essential to our community.
+                A real, current photo of yourself helps members recognize you and builds authentic connection. This is essential to our community.
               </p>
 
               {/* File Upload */}
@@ -289,6 +299,28 @@ export default function OnboardingPage() {
                 </div>
               )}
 
+              {/* Photo Confirmation Checkbox */}
+              {profile.profilePhoto && (
+                <div className="mt-6 p-4 bg-[#f3ede5] rounded-lg">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={profile.photo_confirmed || false}
+                      onChange={(e) =>
+                        handleUpdate({
+                          photo_confirmed: e.target.checked,
+                          photo_confirmed_at: e.target.checked ? new Date() : undefined,
+                        })
+                      }
+                      className="w-5 h-5 mt-0.5 flex-shrink-0"
+                    />
+                    <span className="text-sm text-[#6b5f52]">
+                      I confirm this is a current, recognizable photograph of me and that I have permission to use it.
+                    </span>
+                  </label>
+                </div>
+              )}
+
               <div className="flex gap-3 mt-6">
                 <Button variant="ghost" size="md" onClick={handleBack} className="flex-1">
                   Back
@@ -297,7 +329,7 @@ export default function OnboardingPage() {
                   variant="primary"
                   size="md"
                   onClick={handleNext}
-                  disabled={!profile.profilePhoto}
+                  disabled={!profile.profilePhoto || !profile.photo_confirmed}
                   className="flex-1"
                 >
                   Continue

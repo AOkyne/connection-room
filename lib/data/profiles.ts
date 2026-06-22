@@ -22,6 +22,14 @@ export interface Profile {
   completedOnboarding: boolean;
   spacesJoined?: string[];
   joinedAt: Date;
+  photo_confirmed?: boolean;
+  photo_confirmed_at?: Date;
+  profile_tagline?: string;
+  show_in_member_lists?: boolean;
+  profile_visibility?: 'space_members' | 'all_authenticated_members' | 'limited';
+  show_general_location?: boolean;
+  show_recent_posts?: boolean;
+  is_demo_profile?: boolean;
 }
 
 export interface CoupleProfile {
@@ -30,6 +38,7 @@ export interface CoupleProfile {
   coupleDisplayName?: string;
   partner2Name?: string;
   partner2Email?: string;
+  partner2PhotoUrl?: string;
   relationshipLength?: string;
   relationshipStructure?: string;
   coupleGoals: string[];
