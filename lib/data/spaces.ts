@@ -231,25 +231,17 @@ function getDynamicRequiredSpaces(): string[] {
   return required;
 }
 
-// Sort spaces by saved order, with required spaces first
+// Sort spaces by saved order, with The Commons always first
 export function sortSpacesByPreference(spaces: Space[]): Space[] {
   const saved = getSpaceOrder();
-  const requiredSpaces = getDynamicRequiredSpaces();
 
-  // Separate spaces into required and optional
-  const required = spaces.filter(s => requiredSpaces.includes(s.id));
-  const optional = spaces.filter(s => !requiredSpaces.includes(s.id));
+  // Always put The Commons first
+  const commons = spaces.find(s => s.id === "commons");
+  const others = spaces.filter(s => s.id !== "commons");
 
-  // Sort required spaces: Start Here first (if present), then The Commons
-  required.sort((a, b) => {
-    if (a.id === "start-here") return -1;
-    if (b.id === "start-here") return 1;
-    return 0;
-  });
-
-  // Sort optional spaces by saved order if available
+  // Sort other spaces by saved order if available
   if (saved.length > 0) {
-    optional.sort((a, b) => {
+    others.sort((a, b) => {
       const aIndex = saved.indexOf(a.id);
       const bIndex = saved.indexOf(b.id);
       const aPos = aIndex === -1 ? Infinity : aIndex;
@@ -258,5 +250,5 @@ export function sortSpacesByPreference(spaces: Space[]): Space[] {
     });
   }
 
-  return [...required, ...optional];
+  return commons ? [commons, ...others] : others;
 }
