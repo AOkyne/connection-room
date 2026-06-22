@@ -26,14 +26,14 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 const userId = "192267b8-8cfa-43ae-84eb-b3440fd7366d";
 
 const demoPosts = [
-  // The Commons
+  // The Commons - General introductions and welcoming space
   {
     user_id: userId,
     author_name: "Marcus Johnson",
     author_pronouns: "he/him",
     space_id: "commons",
     content:
-      "I'm new here and honestly a bit nervous. I've spent a lot of years in my head, and I'm trying to come back to my body and practice being more present. Thanks for creating this space.",
+      "Week 2 of the guided rhythm and I'm already noticing shifts. The embodiment practices are helping me actually feel my nervous system settle instead of just knowing about it intellectually. Starting to understand what 'coming back to the body' really means.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 86400000).toISOString(),
   },
@@ -43,7 +43,7 @@ const demoPosts = [
     author_pronouns: "he/him",
     space_id: "commons",
     content:
-      "There's something powerful about being in a space where vulnerability is not just allowed but celebrated. After years of hiding, this feels like coming home.",
+      "Coming to this space after years of solo work on myself. There's something different about doing this in community. The permission to be imperfect and still belong—that's new for me.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 64800000).toISOString(),
   },
@@ -53,7 +53,7 @@ const demoPosts = [
     author_pronouns: "he/him",
     space_id: "commons",
     content:
-      "I came here thinking I'd find answers, but what I'm finding is permission to ask better questions. Questions about what I actually want, not what I think I should want.",
+      "The EROS method (Embody, Regulate, Own, Share) is becoming my framework for everything—not just intimacy. Applied it to a difficult conversation with my boss yesterday. Different outcome entirely.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 54000000).toISOString(),
   },
@@ -63,7 +63,7 @@ const demoPosts = [
     author_pronouns: "he/him",
     space_id: "commons",
     content:
-      "Today I noticed I could actually feel my breath without analyzing it. That might sound small, but for someone who lives in their head, it's huge. Grateful for this practice.",
+      "Month 1 focus: Embodiment and Presence. I'm noticing I was living entirely in my head—planning, analyzing, never actually *here*. The breath work is teaching me what present actually feels like in my body.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 43200000).toISOString(),
   },
@@ -73,19 +73,19 @@ const demoPosts = [
     author_pronouns: "he/him",
     space_id: "commons",
     content:
-      "Hearing others share their struggles with embodiment and presence has been so validating. I'm not alone in this. We're all learning together.",
+      "The difference between this space and other personal development communities: there's no performance, no 'healing journey' narrative. Just practical work on being more present, more honest, more integrated.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 21600000).toISOString(),
   },
 
-  // Start Here
+  // Start Here - Orientation and foundational understanding
   {
     user_id: userId,
     author_name: "David Chen",
     author_pronouns: "he/him",
     space_id: "start-here",
     content:
-      "This is my first time in a space like this. The orientation helped me understand what to expect, and I feel welcomed. Looking forward to exploring.",
+      "The orientation made something clear: this isn't therapy, it's not a fix, and I'm not broken. It's more like learning a language I should have learned years ago—the language of my own body and authentic connection.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 75600000).toISOString(),
   },
@@ -95,7 +95,7 @@ const demoPosts = [
     author_pronouns: "he/him",
     space_id: "start-here",
     content:
-      "I appreciate how clear the expectations are here. No performance, no pressure. Just authentic exploration. That's rare and valuable.",
+      "First week assignment: notice where you're not present in your daily life. Wow. I'm not present at work, not present with my phone scrolling, not present with my partner sometimes. This is going to be a bigger journey than I expected.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 57600000).toISOString(),
   },
@@ -105,19 +105,19 @@ const demoPosts = [
     author_pronouns: "he/him",
     space_id: "start-here",
     content:
-      "Starting to understand the difference between connection and intimacy. This space is helping me see what I've been confusing.",
+      "The foundation work is teaching me the difference between connection (being present with someone) and intimacy (vulnerability and deep knowing). I've been confusing them. Makes sense now why my relationships felt empty even when busy.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 39600000).toISOString(),
   },
 
-  // Embodiment
+  // Embodiment - Presence and somatic practices
   {
     user_id: userId,
     author_name: "Kevin Anderson",
     author_pronouns: "he/him",
     space_id: "embodiment",
     content:
-      "I used to be completely disconnected from my body. Practicing presence here is showing me how much I've been missing. It's subtle but profound.",
+      "The somatic work this month is pointing at something I've avoided: my body has wisdom I've been ignoring. There's information in sensation that my thinking mind can't access. Learning to listen instead of always directing.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 86000000).toISOString(),
   },
@@ -127,7 +127,7 @@ const demoPosts = [
     author_pronouns: "he/him",
     space_id: "embodiment",
     content:
-      "Noticing sensations without judgment is harder than it sounds. But when I get it, even for a moment, it's like coming alive.",
+      "Today during the grounding practice I felt something shift. A tightness in my chest that I've carried for years suddenly loosened. Not gone, but I can feel it's not permanent. That's different from before.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 64000000).toISOString(),
   },
@@ -137,19 +137,19 @@ const demoPosts = [
     author_pronouns: "he/him",
     space_id: "embodiment",
     content:
-      "My breathing has become my anchor. Some days I can feel the whole practice of being present just through paying attention to my breath.",
+      "The practice of feeling my feet on the ground before responding to anything has changed how I show up. Less reactive, more grounded. My partner noticed. She said I seem more 'here' lately.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 48000000).toISOString(),
   },
 
-  // Couples
+  // Couples - Partnership and relational work
   {
     user_id: userId,
     author_name: "William Taylor",
     author_pronouns: "he/him",
     space_id: "couples",
     content:
-      "My partner and I have been practicing some of the touch exercises here. It's bringing us closer in ways we didn't expect.",
+      "The touch protocol my partner and I practiced this week was awkward at first. But then something opened. We weren't performing closeness, we were actually *present* with each other. That's what was missing.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 82000000).toISOString(),
   },
@@ -159,7 +159,7 @@ const demoPosts = [
     author_pronouns: "he/him",
     space_id: "couples",
     content:
-      "Vulnerability with my partner used to feel risky. This space is teaching us that honesty is actually what creates safety.",
+      "We've been trying the repair framework when we conflict instead of just pushing through. Takes longer but we actually *resolve* things now instead of sweeping them under the rug. Our intimacy is deeper because of it.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 60000000).toISOString(),
   },
@@ -169,19 +169,19 @@ const demoPosts = [
     author_pronouns: "he/him",
     space_id: "couples",
     content:
-      "We're learning that intimacy isn't about performance. It's about presence and permission. That's changed everything for us.",
+      "Month 3 theme: Spirituality and Integration. We're exploring how our sexuality can be an expression of something deeper—not just physical, but actually spiritual. Changing how we approach intimacy entirely.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 42000000).toISOString(),
   },
 
-  // Intimacy Patterns
+  // Intimacy Patterns - Understanding relational patterns
   {
     user_id: userId,
     author_name: "Nathan Harris",
     author_pronouns: "he/him",
     space_id: "intimacy-patterns",
     content:
-      "I'm noticing patterns in how I approach intimacy that I've never been aware of before. This space is helping me see myself more clearly.",
+      "The pattern I'm seeing: I approach quickly and intensely, then withdraw when things get real. It's kept me from sustained intimacy my whole life. Seeing it clearly now. First step to changing it.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 79000000).toISOString(),
   },
@@ -191,19 +191,19 @@ const demoPosts = [
     author_pronouns: "he/him",
     space_id: "intimacy-patterns",
     content:
-      "Understanding my patterns has given me more choice. I don't have to repeat what I've always done.",
+      "I'm learning my 'armor'—the ways I protect myself that also keep people from getting close. It made sense when I developed it. Now it's just in the way. What does vulnerability actually look like for me?",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 61000000).toISOString(),
   },
 
-  // Touch & Affection
+  // Touch & Affection - Physical presence and non-sexual touch
   {
     user_id: userId,
     author_name: "Gregory Lee",
     author_pronouns: "he/him",
     space_id: "touch-affection",
     content:
-      "I grew up in a family where touch wasn't common. Learning that it's safe and nourishing has been transformative.",
+      "Growing up, touch meant either punishment or obligation. Learning that affectionate touch—just present, no agenda—exists. My nervous system is slowly allowing it. This is foundational work.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 77000000).toISOString(),
   },
@@ -213,19 +213,19 @@ const demoPosts = [
     author_pronouns: "he/him",
     space_id: "touch-affection",
     content:
-      "The difference between touch that's demanding and touch that's nurturing has become clear to me. I want more of the latter.",
+      "The distinction between touch that demands something and touch that just meets you—that's everything. Learning to offer the latter instead of always reaching for contact that has an agenda underneath.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 55000000).toISOString(),
   },
 
-  // Spirituality, Sexuality & Integration
+  // Spirituality, Sexuality & Integration - Seeing sexuality as sacred
   {
     user_id: userId,
     author_name: "Andrew Mitchell",
     author_pronouns: "he/him",
     space_id: "spirituality-sexuality",
     content:
-      "For a long time I thought sexuality and spirituality were separate. This space is showing me they can be integrated.",
+      "Month 5 topic: Spirituality and Integration. It's opening something in me—the possibility that sexuality and spirituality aren't in opposition. They're expressions of the same aliveness, the same presence.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 75000000).toISOString(),
   },
@@ -235,19 +235,19 @@ const demoPosts = [
     author_pronouns: "he/him",
     space_id: "spirituality-sexuality",
     content:
-      "Exploring sexuality as a spiritual practice has deepened my understanding of both. They inform each other.",
+      "Exploring sacred sexuality with my partner has given us a completely different framework. It's not about performance or technique anymore. It's about showing up as whole, awake, present human beings with each other.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 52000000).toISOString(),
   },
 
-  // Dating, Desire & Vulnerability
+  // Dating, Desire & Vulnerability - Desire and authentic relating
   {
     user_id: userId,
     author_name: "Ryan Hall",
     author_pronouns: "he/him",
     space_id: "dating-desire",
     content:
-      "Acknowledging what I actually desire instead of what I think I should want has changed my dating life completely.",
+      "The permission to actually want things—and say it—is revolutionary for me. I've spent years presenting as easy-going and adaptable. But I have desires. They're valid. That changes everything in dating.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 73000000).toISOString(),
   },
@@ -257,19 +257,19 @@ const demoPosts = [
     author_pronouns: "he/him",
     space_id: "dating-desire",
     content:
-      "Being vulnerable about what I'm looking for has attracted people who actually match what I need. It works.",
+      "Being honest about what I'm looking for (even when it feels vulnerable or 'too much') has actually attracted people who are looking for the same thing. Honesty is a filter, not a barrier.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 50000000).toISOString(),
   },
 
-  // Workshops & Retreats
+  // Workshops & Retreats - Intensive practice and community
   {
     user_id: userId,
     author_name: "Derek Adams",
     author_pronouns: "he/him",
     space_id: "workshops",
     content:
-      "The retreat I just attended deepened my understanding of embodiment in ways I couldn't have imagined. Grateful for this community.",
+      "The embodiment retreat accelerated my progress by months. Being with other men doing this work, being held in a container where vulnerability is the norm—that changes what's possible. Already considering the next one.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 71000000).toISOString(),
   },
@@ -279,19 +279,19 @@ const demoPosts = [
     author_pronouns: "he/him",
     space_id: "workshops",
     content:
-      "The workshop on masculine presence was eye-opening. I'm bringing what I learned back to my daily life.",
+      "The workshop on masculine presence shifted something foundational. I don't have to be bigger, louder, or more aggressive to be a man. I can be grounded, present, and calm—and that's powerful.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 45000000).toISOString(),
   },
 
-  // Masculinity, Sex, and Sexuality
+  // Masculinity, Sex, and Sexuality - Redefining masculine sexuality
   {
     user_id: userId,
     author_name: "Justin Cole",
     author_pronouns: "he/him",
     space_id: "masculinity-sex-sexuality",
     content:
-      "Redefining what masculinity means to me outside of performance and control has been liberating. There's so much more freedom here.",
+      "Month 6 Integration: Redefining what healthy masculine sexuality looks like. Not performance. Not conquest. Not control. But presence, authenticity, and genuine desire to know and be known.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 69000000).toISOString(),
   },
@@ -301,7 +301,7 @@ const demoPosts = [
     author_pronouns: "he/him",
     space_id: "masculinity-sex-sexuality",
     content:
-      "Learning that vulnerability is a strength, not a weakness, has changed how I show up in intimate moments.",
+      "Learning that my vulnerability with a partner is actually what creates trust and depth. The old framework (strong, invulnerable, always knowing) was lonely. This is better. This is actually intimate.",
     is_prompt_response: false,
     created_at: new Date(Date.now() - 46000000).toISOString(),
   },
