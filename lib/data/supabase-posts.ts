@@ -203,9 +203,14 @@ export async function createSupabaseComment(
   authorPronouns?: string,
   authorPhoto?: string
 ): Promise<Comment | null> {
-  if (!supabase) return null;
+  console.log("createSupabaseComment called with postId:", postId);
+  if (!supabase) {
+    console.log("No supabase client");
+    return null;
+  }
 
   try {
+    console.log("Inserting comment into Supabase");
     const { data, error } = await supabase
       .from("comments")
       .insert({
