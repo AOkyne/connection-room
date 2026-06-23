@@ -249,6 +249,7 @@ export async function createComment(
   authorPronouns?: string,
   authorPhoto?: string
 ): Promise<Comment> {
+  console.log("createComment called, checking auth");
   if (typeof window === "undefined") {
     return {
       id: `comment-${Date.now()}`,
@@ -264,12 +265,15 @@ export async function createComment(
   }
 
   const userId = await getCurrentUserId();
+  console.log("userId:", userId, "supabase:", !!supabase);
   if (userId && supabase) {
+    console.log("Using Supabase path");
     const comment = await createSupabaseComment(postId, userId, authorName, content, authorPronouns, authorPhoto);
     if (comment) return comment;
   }
 
   // Demo mode fallback
+  console.log("Using demo mode path");
   const comment: Comment = {
     id: `comment-${Date.now()}`,
     postId,
