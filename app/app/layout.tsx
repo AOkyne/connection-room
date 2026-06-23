@@ -35,7 +35,25 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   // Don't render until mounted and session checked
   if (!mounted) {
-    return null;
+    // Return placeholder during initial server render (prerendering)
+    return (
+      <div className="min-h-screen bg-[#fdfbf7] flex flex-col">
+        <header className="sticky top-0 z-40 bg-white border-b border-[#e8e3db]">
+          <div className="px-4 py-2 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center">
+              <img
+                src="/connection-room-logo.png?v=3"
+                alt="The Connection Room"
+                className="h-32 w-auto"
+              />
+            </div>
+          </div>
+        </header>
+        <main className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8"></div>
+        </main>
+      </div>
+    );
   }
 
   // Redirect if not authenticated (handled in effect)
