@@ -93,23 +93,19 @@ export default function SpaceDetailPage() {
   };
 
   const handleAddComment = async (postId: string) => {
-    console.log("handleAddComment called for postId:", postId);
     const content = newCommentContent[postId];
     if (!content || !content.trim()) return;
 
-    console.log("Calling createComment with content:", content.substring(0, 50));
     await createComment(postId, profile.displayName, content, profile.pronouns, profile.profilePhoto);
     setNewCommentContent({ ...newCommentContent, [postId]: "" });
 
     // Refresh posts to show updated comment count and comments
     const updatedPosts = await getPosts(spaceId);
     const post = updatedPosts.find(p => p.id === postId);
-    console.log("After refresh - post:", post?.id, "commentCount:", post?.commentCount);
 
     // Increment comment count optimistically since database update may fail due to RLS
     if (post) {
       post.commentCount = (post.commentCount || 0) + 1;
-      console.log("Incremented count to:", post.commentCount);
     }
 
     setPosts(updatedPosts);

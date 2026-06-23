@@ -203,14 +203,9 @@ export async function createSupabaseComment(
   authorPronouns?: string,
   authorPhoto?: string
 ): Promise<Comment | null> {
-  console.log("createSupabaseComment called with postId:", postId);
-  if (!supabase) {
-    console.log("No supabase client");
-    return null;
-  }
+  if (!supabase) return null;
 
   try {
-    console.log("Inserting comment into Supabase");
     const { data, error } = await supabase
       .from("comments")
       .insert({
@@ -224,37 +219,26 @@ export async function createSupabaseComment(
 
     if (error) {
       console.error("Error creating comment:", error);
-      console.error("Error details - code:", error.code, "message:", error.message);
       return null;
     }
 
-    // Increment post comment count
-    console.log("Fetching post for comment count - postId:", postId);
-    const { data: post, error: fetchError } = await supabase
-      .from("posts")
-      .select("id, comment_count")
-      .eq("id", postId)
-      .single();
-
-    console.log("Post fetched:", post?.id, "current count:", post?.comment_count, "error:", fetchError?.message);
-
-    if (post) {
-      const newCount = (post.comment_count || 0) + 1;
-      console.log("Updating comment count from", post.comment_count, "to", newCount);
-      const { data: updateData, error: updateError } = await supabase
+    // Note: Comment count update in Supabase may fail due to RLS policies,
+    // so the UI increments it optimistically instead
+    try {
+      const { data: post } = await supabase
         .from("posts")
-        .update({ comment_count: newCount })
+        .select("id, comment_count")
         .eq("id", postId)
-        .select("id, comment_count");
+        .single();
 
-      console.log("Update returned - data:", updateData, "error:", updateError?.message);
-      if (updateError) {
-        console.error("Error updating comment count:", updateError);
-      } else {
-        console.log("Comment count updated successfully, returned count:", updateData?.[0]?.comment_count);
+      if (post) {
+        await supabase
+          .from("posts")
+          .update({ comment_count: (post.comment_count || 0) + 1 })
+          .eq("id", postId);
       }
-    } else if (fetchError) {
-      console.error("Error fetching post for comment count update:", fetchError);
+    } catch (err) {
+      // Silently ignore - count is incremented optimistically in UI
     }
 
     const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles;
