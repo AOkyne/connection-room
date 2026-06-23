@@ -35,34 +35,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
     checkSession();
   }, [router]);
 
-  // Redirect if not authenticated (handled in effect)
-  if (!mounted && !session) {
-    // During initial render before useEffect runs, show loading state
-    // This prevents 404 during dynamic rendering
-    return (
-      <div className="min-h-screen bg-[#fdfbf7] flex flex-col">
-        <header className="sticky top-0 z-40 bg-white border-b border-[#e8e3db]">
-          <div className="px-4 py-2 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center">
-              <img
-                src="/connection-room-logo.png?v=3"
-                alt="The Connection Room"
-                className="h-32 w-auto"
-              />
-            </div>
-          </div>
-        </header>
-        <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8"></div>
-        </main>
-      </div>
-    );
-  }
-
-  // Only redirect if mounted and still no session
-  if (mounted && !session) {
-    return null;
-  }
 
   const handleLogout = async () => {
     await clearSession();
@@ -91,12 +63,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 className="h-32 w-auto"
               />
             </Link>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-[#6b6460]">{session.name}</span>
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
-                Sign Out
-              </Button>
-            </div>
+            {session && (
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-[#6b6460]">{session.name}</span>
+                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                  Sign Out
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -118,7 +92,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           </nav>
 
           {/* Admin Link if Admin */}
-          {session.type === "admin" && (
+          {session?.type === "admin" && (
             <div className="border-t border-[#e8e3db] px-4 py-4">
               <Link
                 href="/app/admin"
@@ -147,7 +121,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 <span>{item.label}</span>
               </Link>
             ))}
-            {session.type === "admin" && (
+            {session?.type === "admin" && (
               <Link
                 href="/app/admin"
                 className="flex flex-col items-center gap-1 px-3 py-2 text-[#8b6f47] text-xs whitespace-nowrap"
