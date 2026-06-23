@@ -209,14 +209,14 @@ export default function MemberProfilePage() {
           </section>
         )}
 
-        {/* Quiz Result */}
+        {/* Connection Profile */}
         {member.quizResult && (
           <section className="bg-[#f3ede5] rounded-lg p-6 sm:p-8 space-y-4">
             <h2 className="text-lg font-semibold text-[#2a2318]">
-              Pairing Profile
+              Connection Profile
             </h2>
             <p className="text-[#6b5f52]">
-              Their pairing profile is{" "}
+              Their connection profile is{" "}
               <strong className="text-[#2a2318]">{member.quizResult}</strong>
             </p>
           </section>
