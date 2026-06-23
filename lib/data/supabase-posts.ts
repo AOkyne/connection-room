@@ -227,14 +227,28 @@ export async function createSupabaseComment(
       return null;
     }
 
+    // Increment post comment count
+    const { data: post } = await supabase
+      .from("posts")
+      .select("comment_count")
+      .eq("id", postId)
+      .single();
+
+    if (post) {
+      await supabase
+        .from("posts")
+        .update({ comment_count: (post.comment_count || 0) + 1 })
+        .eq("id", postId);
+    }
+
     const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles;
     return {
       id: data.id,
       postId: data.post_id,
       userId: data.user_id,
       authorName: data.author_name || data.user_id,
-      authorPronouns: profile?.pronouns,
-      authorPhoto: profile?.profile_photo,
+      authorPronouns: data.author_pronouns || profile?.pronouns,
+      authorPhoto: data.author_photo || profile?.profile_photo,
       content: data.content,
       createdAt: new Date(data.created_at),
       reactions: {},
