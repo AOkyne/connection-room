@@ -24,7 +24,6 @@ import {
   checkAndAwardCommunityBuilder,
 } from "@/lib/data/connection-practice";
 import { IconIntegration, IconReflection } from "@/components/Icons";
-import { PeopleInSpace } from "@/components/members/PeopleInSpace";
 import { demoMembers } from "@/lib/seed/demo-members";
 import { demoSpaceMemberships } from "@/lib/seed/demo-space-memberships";
 import Link from "next/link";
@@ -180,6 +179,38 @@ export default function SpaceDetailPage() {
         </Link>
       </div>
 
+      {/* People in This Space - Small Thumbnails at Top */}
+      {(() => {
+        const memberIds = Object.keys(demoSpaceMemberships).filter(id =>
+          demoSpaceMemberships[id].includes(spaceId)
+        );
+        const spaceMembers = demoMembers.filter(m => memberIds.includes(m.id));
+        return spaceMembers.length > 0 ? (
+          <div className="flex flex-wrap gap-2 items-center bg-[#f3ede5] p-3 rounded-lg">
+            <span className="text-xs font-medium text-[#6b5f52] mr-2">People:</span>
+            {spaceMembers.slice(0, 12).map((member) => (
+              <Link key={member.id} href={`/members/${member.id}`}>
+                <div className="flex-shrink-0 group cursor-pointer" title={member.displayName}>
+                  <img
+                    src={member.profilePhoto}
+                    alt={member.displayName}
+                    className="w-6 h-6 rounded-full hover:ring-2 hover:ring-[#d4a574] transition-all"
+                  />
+                </div>
+              </Link>
+            ))}
+            {spaceMembers.length > 12 && (
+              <Link href={`/app/spaces/${spaceId}/members`}>
+                <span className="text-xs text-[#d4a574] hover:underline font-medium">+{spaceMembers.length - 12}</span>
+              </Link>
+            )}
+            <Link href={`/app/spaces/${spaceId}/members`} className="ml-auto">
+              <span className="text-xs text-[#d4a574] hover:underline font-medium">See all</span>
+            </Link>
+          </div>
+        ) : null;
+      })()}
+
       {/* Space Introduction */}
 
       {space.id === "commons" && (
@@ -286,19 +317,6 @@ export default function SpaceDetailPage() {
 
       {/* First Week Journey Card */}
       {spaceId === "start-here" && <FirstWeekStartHereCard />}
-
-      {/* People in This Space */}
-      {(() => {
-        const memberIds = Object.keys(demoSpaceMemberships).filter(id =>
-          demoSpaceMemberships[id].includes(spaceId)
-        );
-        const spaceMembers = demoMembers.filter(m => memberIds.includes(m.id));
-        return spaceMembers.length > 0 ? (
-          <div className="mt-8 pt-8 border-t border-[#e8ddd2]">
-            <PeopleInSpace members={spaceMembers} spaceId={spaceId} displayCount={6} />
-          </div>
-        ) : null;
-      })()}
 
       {/* Create Post */}
       <Card id="create-post-section">
