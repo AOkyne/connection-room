@@ -232,7 +232,7 @@ export async function createSupabaseComment(
     console.log("Fetching post for comment count - postId:", postId);
     const { data: post, error: fetchError } = await supabase
       .from("posts")
-      .select("comment_count")
+      .select("id, comment_count")
       .eq("id", postId)
       .single();
 
