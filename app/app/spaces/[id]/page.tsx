@@ -170,7 +170,13 @@ export default function SpaceDetailPage() {
             <h1 className="text-4xl text-[#2a2318]">{space.name}</h1>
           </div>
           <p className="text-lg text-[#6b5f52]">{space.description}</p>
-          <p className="text-sm text-[#a0968a] mt-2">{space.memberCount} members</p>
+          <p className="text-sm text-[#a0968a] mt-2">{(() => {
+            const memberIds = Object.keys(demoSpaceMemberships).filter(id =>
+              demoSpaceMemberships[id].includes(spaceId)
+            );
+            const memberCount = demoMembers.filter(m => memberIds.includes(m.id)).length;
+            return `${memberCount} members`;
+          })()}</p>
         </div>
         <Link href="/app/spaces">
           <Button variant="outline" size="md">
