@@ -1,12 +1,37 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { IconEmbodiment, IconConnection, IconIntegration, IconDemo } from "@/components/Icons";
 import Link from "next/link";
+import { createMemberSession, createAdminSession } from "@/lib/session";
+import { createDemoProfile } from "@/lib/data/profiles";
 
 export default function Home() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const handleDemoMember = async () => {
+    setLoading(true);
+    createMemberSession("Demo Member");
+    createDemoProfile("Demo Member", "individual");
+    setTimeout(() => {
+      router.push("/onboarding");
+    }, 100);
+  };
+
+  const handleDemoAdmin = async () => {
+    setLoading(true);
+    createAdminSession("Demo Admin");
+    createDemoProfile("Demo Admin", "individual");
+    setTimeout(() => {
+      router.push("/app/admin");
+    }, 100);
+  };
+
   return (
     <div className="min-h-screen bg-[#fdfbf7] flex flex-col">
       {/* Header */}
@@ -53,16 +78,22 @@ export default function Home() {
           </div>
 
           <div className="pt-8 flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth?mode=member">
-              <Button variant="primary" size="lg">
-                Join as Demo Member
-              </Button>
-            </Link>
-            <Link href="/auth?mode=admin">
-              <Button variant="secondary" size="lg">
-                Explore as Demo Admin
-              </Button>
-            </Link>
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={handleDemoMember}
+              disabled={loading}
+            >
+              {loading ? "Entering..." : "Join as Demo Member"}
+            </Button>
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={handleDemoAdmin}
+              disabled={loading}
+            >
+              {loading ? "Entering..." : "Explore as Demo Admin"}
+            </Button>
           </div>
 
           <p className="text-sm text-[#9d9490] pt-6 flex items-center justify-center gap-2">
