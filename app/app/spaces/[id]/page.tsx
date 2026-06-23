@@ -24,6 +24,9 @@ import {
   checkAndAwardCommunityBuilder,
 } from "@/lib/data/connection-practice";
 import { IconIntegration, IconReflection } from "@/components/Icons";
+import { PeopleInSpace } from "@/components/members/PeopleInSpace";
+import { demoMembers } from "@/lib/seed/demo-members";
+import { demoSpaceMemberships } from "@/lib/seed/demo-space-memberships";
 import Link from "next/link";
 
 export default function SpaceDetailPage() {
@@ -283,6 +286,19 @@ export default function SpaceDetailPage() {
 
       {/* First Week Journey Card */}
       {spaceId === "start-here" && <FirstWeekStartHereCard />}
+
+      {/* People in This Space */}
+      {(() => {
+        const memberIds = Object.keys(demoSpaceMemberships).filter(id =>
+          demoSpaceMemberships[id].includes(spaceId)
+        );
+        const spaceMembers = demoMembers.filter(m => memberIds.includes(m.id));
+        return spaceMembers.length > 0 ? (
+          <div className="mt-8 pt-8 border-t border-[#e8ddd2]">
+            <PeopleInSpace members={spaceMembers} spaceId={spaceId} displayCount={6} />
+          </div>
+        ) : null;
+      })()}
 
       {/* Create Post */}
       <Card id="create-post-section">
