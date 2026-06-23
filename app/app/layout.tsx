@@ -8,6 +8,8 @@ import { Button } from "@/components/Button";
 import { IconHome, IconJourney, IconConnectionsNav, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming } from "@/components/Icons";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 interface AppLayoutProps {
   children: ReactNode;
 }
