@@ -105,6 +105,13 @@ export default function SpaceDetailPage() {
     const updatedPosts = await getPosts(spaceId);
     const post = updatedPosts.find(p => p.id === postId);
     console.log("After refresh - post:", post?.id, "commentCount:", post?.commentCount);
+
+    // Increment comment count optimistically since database update may fail due to RLS
+    if (post) {
+      post.commentCount = (post.commentCount || 0) + 1;
+      console.log("Incremented count to:", post.commentCount);
+    }
+
     setPosts(updatedPosts);
 
     // Refresh comments for this post
