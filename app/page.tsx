@@ -14,7 +14,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex justify-between items-center">
           <Link href="/" className="flex items-center">
             <img
-              src="/connection-room-logo.png?v=3"
+              src="/connection-room-logo.png?v=4"
               alt="The Connection Room"
               className="h-32 w-auto"
             />
