@@ -22,6 +22,23 @@ export default function AppLayout({ children }: AppLayoutProps) {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     const checkSession = async () => {
+      // Check localStorage first for demo sessions (faster, avoids async delays)
+      if (typeof window !== "undefined") {
+        const stored = localStorage.getItem("connection-room:session");
+        if (stored) {
+          try {
+            const s = JSON.parse(stored);
+            setSession(s);
+            recordAppVisit();
+            setMounted(true);
+            return;
+          } catch (e) {
+            // Continue to async check if parse fails
+          }
+        }
+      }
+
+      // Fall back to full async session check (for Supabase)
       const s = await getSession();
       if (!s) {
         router.push("/auth");
