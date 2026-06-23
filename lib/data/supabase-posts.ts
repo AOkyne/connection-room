@@ -228,17 +228,23 @@ export async function createSupabaseComment(
     }
 
     // Increment post comment count
-    const { data: post } = await supabase
+    const { data: post, error: fetchError } = await supabase
       .from("posts")
       .select("comment_count")
       .eq("id", postId)
       .single();
 
     if (post) {
-      await supabase
+      const { error: updateError } = await supabase
         .from("posts")
         .update({ comment_count: (post.comment_count || 0) + 1 })
         .eq("id", postId);
+
+      if (updateError) {
+        console.error("Error updating comment count:", updateError);
+      }
+    } else if (fetchError) {
+      console.error("Error fetching post for comment count update:", fetchError);
     }
 
     const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles;
