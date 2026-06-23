@@ -311,29 +311,33 @@ export async function addCommentReaction(commentId: string, reactionType: string
   // In a real implementation, comments would track their postId
 }
 
-// Get user's engagement stats (posts shared, comments received, etc)
-export async function getUserEngagementStats(userId: string): Promise<{ postsShared: number; responsesReceived: number }> {
+// Get user's engagement stats (posts shared, comments received, comments offered, etc)
+export async function getUserEngagementStats(userId: string): Promise<{ postsShared: number; responsesReceived: number; commentsOffered: number }> {
   if (typeof window === "undefined") {
-    return { postsShared: 0, responsesReceived: 0 };
+    return { postsShared: 0, responsesReceived: 0, commentsOffered: 0 };
   }
 
-  const authUserId = await getCurrentUserId();
-
-  // Get all posts by this user
+  // Get all posts and comments
   const posts = await getPosts();
   const userPosts = posts.filter((p: Post) => p.userId === userId);
 
   // Count total responses (comments on their posts)
   let totalResponses = 0;
-  const comments = await getComments(""); // Get all comments - note: this filters by postId, so we need a different approach
-
-  // Sum up comment counts from user's posts
   userPosts.forEach((post: Post) => {
     totalResponses += post.commentCount || 0;
   });
 
+  // Count comments user has made on other posts
+  let commentsOffered = 0;
+  if (typeof window !== "undefined") {
+    const stored = localStorage.getItem(COMMENTS_STORAGE_KEY);
+    const allComments = stored ? JSON.parse(stored) : [];
+    commentsOffered = allComments.filter((c: Comment) => c.userId === userId).length;
+  }
+
   return {
     postsShared: userPosts.length,
     responsesReceived: totalResponses,
+    commentsOffered: commentsOffered,
   };
 }

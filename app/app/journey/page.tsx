@@ -25,7 +25,7 @@ export default function JourneyPage() {
   const [spaces, setSpaces] = useState<any[]>([]);
   const [badges, setBadges] = useState<any[]>([]);
   const [interestedEvents, setInterestedEvents] = useState<any[]>([]);
-  const [engagementStats, setEngagementStats] = useState<{ postsShared: number; responsesReceived: number }>({ postsShared: 0, responsesReceived: 0 });
+  const [engagementStats, setEngagementStats] = useState<{ postsShared: number; responsesReceived: number; commentsOffered: number }>({ postsShared: 0, responsesReceived: 0, commentsOffered: 0 });
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -83,6 +83,7 @@ export default function JourneyPage() {
       <ConnectionPracticeSummary
         postCount={engagementStats.postsShared}
         commentCount={engagementStats.responsesReceived}
+        commentsOffered={engagementStats.commentsOffered}
         spacesJoinedCount={joinedSpaces.length}
       />
 

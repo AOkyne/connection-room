@@ -12,6 +12,7 @@ import { connectionPracticeCopy } from "@/lib/content/connection-practices";
 interface ConnectionPracticeSummaryProps {
   postCount?: number;
   commentCount?: number;
+  commentsOffered?: number;
   spacesJoinedCount?: number;
   monthlyIntention?: string;
 }
@@ -19,6 +20,7 @@ interface ConnectionPracticeSummaryProps {
 export function ConnectionPracticeSummary({
   postCount = 0,
   commentCount = 0,
+  commentsOffered = 0,
   spacesJoinedCount = 0,
   monthlyIntention,
 }: ConnectionPracticeSummaryProps) {
@@ -45,9 +47,9 @@ export function ConnectionPracticeSummary({
 
   const stats = [
     { label: "Reflections shared", value: postCount },
-    { label: "Comments offered", value: commentCount },
+    { label: "Responses received", value: commentCount },
+    { label: "Comments offered", value: commentsOffered },
     { label: "Spaces joined", value: spacesJoinedCount },
-    { label: "Pairing interests saved", value: 0 }, // This would be queried in real implementation
   ];
 
   return (
