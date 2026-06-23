@@ -290,7 +290,7 @@ export async function createComment(
   const posts = await getPosts();
   const post = posts.find((p: Post) => p.id === postId);
   if (post) {
-    post.commentCount++;
+    post.commentCount = (post.commentCount || 0) + 1;
     localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
   }
 
