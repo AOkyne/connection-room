@@ -324,16 +324,6 @@ function DemoAuthContent() {
               </div>
             </div>
 
-            <Button
-              variant="ghost"
-              size="lg"
-              className="w-full"
-              onClick={() => handleQuickEntry("member")}
-              disabled={loading}
-            >
-              Quick Demo Tour (No Name)
-            </Button>
-
             <div className="bg-[#f8f6f2] rounded-lg p-4 text-sm text-[#6b6460] space-y-2">
               <p className="font-medium text-[#1a1714] flex items-center gap-2"><IconDemo size={16} /> Demo Mode</p>
               <ul className="space-y-1 list-disc list-inside">
