@@ -99,9 +99,13 @@ export default function SpaceDetailPage() {
     await createComment(postId, profile.displayName, content, profile.pronouns, profile.profilePhoto);
     setNewCommentContent({ ...newCommentContent, [postId]: "" });
 
-    // Refresh posts to show updated comment count
+    // Refresh posts to show updated comment count and comments
     const updatedPosts = await getPosts(spaceId);
     setPosts(updatedPosts);
+
+    // Refresh comments for this post
+    const postComments = await getComments(postId);
+    setComments({ ...comments, [postId]: postComments });
 
     // Check and award milestones
     const totalComments = updatedPosts.reduce((sum, p) => sum + (p.commentCount || 0), 0);
