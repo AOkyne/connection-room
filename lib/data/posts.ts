@@ -154,7 +154,7 @@ export async function createPost(
 
   const userId = await getCurrentUserId();
   if (userId && supabase) {
-    const post = await createSupabasePost(spaceId, userId, authorName, content, isPromptResponse, promptId);
+    const post = await createSupabasePost(spaceId, userId, authorName, content, isPromptResponse, promptId, authorPronouns, authorPhoto);
     if (post) return post;
   }
 
@@ -265,7 +265,7 @@ export async function createComment(
 
   const userId = await getCurrentUserId();
   if (userId && supabase) {
-    const comment = await createSupabaseComment(postId, userId, authorName, content);
+    const comment = await createSupabaseComment(postId, userId, authorName, content, authorPronouns, authorPhoto);
     if (comment) return comment;
   }
 
