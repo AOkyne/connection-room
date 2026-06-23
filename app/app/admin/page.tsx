@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getAllBadges } from "@/lib/data/badges";
 import { getUpcomingEvents } from "@/lib/data/events";
 import { getAllOffers } from "@/lib/data/offers";
+import { getRecentSignups } from "@/lib/session";
 import { Card, CardHeader } from "@/components/Card";
 import { IconConnection, IconDemo, IconSpaces, IconBadges, IconProgress, IconUpcoming, IconAlert, IconForYou, IconChat, IconProfileNav } from "@/components/Icons";
 import { getBadgeIcon } from "@/lib/badge-icons";
@@ -17,6 +18,7 @@ export default function AdminPage() {
   const [events, setEvents] = useState<any[]>([]);
   const [offers, setOffers] = useState<any[]>([]);
   const [concerns, setConcerns] = useState<any[]>([]);
+  const [recentSignups, setRecentSignups] = useState<any[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -26,6 +28,7 @@ export default function AdminPage() {
       setBadges(getAllBadges());
       setEvents(getUpcomingEvents());
       setOffers(getAllOffers());
+      setRecentSignups(getRecentSignups());
 
       // Load reported concerns from localStorage
       if (typeof window !== "undefined") {
@@ -82,6 +85,28 @@ export default function AdminPage() {
           <p className="text-sm text-[#a0968a] mt-2">High satisfaction</p>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader title="Recent Signups" icon={<IconProfileNav size={20} />} />
+        <div className="space-y-3">
+          {recentSignups.length > 0 ? (
+            recentSignups.slice(0, 10).map((signup: any, idx: number) => (
+              <div key={idx} className="flex justify-between items-start p-3 bg-[#f3ede5] rounded text-sm">
+                <div className="flex-1">
+                  <p className="font-medium text-[#2a2318]">{signup.name}</p>
+                  <p className="text-xs text-[#a0968a]">{signup.email}</p>
+                </div>
+                <div className="text-right text-xs">
+                  <p className="text-[#6b5f52]">{new Date(signup.timestamp).toLocaleDateString()}</p>
+                  <p className="text-[#d4a574] font-medium capitalize">{signup.type}</p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-[#a0968a] text-sm">No recent signups yet</p>
+          )}
+        </div>
+      </Card>
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card>

@@ -11,6 +11,7 @@ export interface AppSession {
 }
 
 const SESSION_STORAGE_KEY = "connection-room:session";
+const RECENT_SIGNUPS_KEY = "connection-room:recent-signups";
 
 // Get current session (either Supabase or demo)
 export async function getSession(): Promise<AppSession | null> {
@@ -59,6 +60,22 @@ export async function getSession(): Promise<AppSession | null> {
   return stored ? JSON.parse(stored) : null;
 }
 
+// Track recent signup for admin dashboard
+function trackSignup(session: AppSession): void {
+  if (typeof window === "undefined") return;
+  const recent = localStorage.getItem(RECENT_SIGNUPS_KEY);
+  const signups = recent ? JSON.parse(recent) : [];
+  signups.unshift({
+    id: session.id,
+    name: session.name,
+    email: session.email || "No email",
+    type: session.type,
+    timestamp: new Date().toISOString(),
+  });
+  // Keep only last 20 signups
+  localStorage.setItem(RECENT_SIGNUPS_KEY, JSON.stringify(signups.slice(0, 20)));
+}
+
 // Create demo member session
 export function createMemberSession(name: string = "Demo Member"): AppSession {
   const session: AppSession = {
@@ -70,6 +87,7 @@ export function createMemberSession(name: string = "Demo Member"): AppSession {
   };
   if (typeof window !== "undefined") {
     localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+    trackSignup(session);
   }
   return session;
 }
@@ -85,6 +103,7 @@ export function createAdminSession(name: string = "Demo Admin"): AppSession {
   };
   if (typeof window !== "undefined") {
     localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+    trackSignup(session);
   }
   return session;
 }
@@ -113,4 +132,11 @@ export async function isAuthenticated(): Promise<boolean> {
 export async function isAdmin(): Promise<boolean> {
   const session = await getSession();
   return session?.type === "admin";
+}
+
+// Get recent signups for admin dashboard
+export function getRecentSignups() {
+  if (typeof window === "undefined") return [];
+  const recent = localStorage.getItem(RECENT_SIGNUPS_KEY);
+  return recent ? JSON.parse(recent) : [];
 }
