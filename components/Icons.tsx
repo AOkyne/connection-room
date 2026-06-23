@@ -222,8 +222,8 @@ export function IconJourney({ className = "", size = 24 }: IconProps) {
   );
 }
 
-// Pairings - two connected circles
-export function IconPairingsNav({ className = "", size = 24 }: IconProps) {
+// Connections - two connected circles
+export function IconConnectionsNav({ className = "", size = 24 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
       <circle cx="8" cy="10" r="4" stroke="currentColor" strokeWidth="2" fill="none"/>

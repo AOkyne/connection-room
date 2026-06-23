@@ -77,7 +77,7 @@ export default function AdminPage() {
         </Card>
 
         <Card>
-          <CardHeader title="Pairings Completed" icon={<IconConnection size={20} />} />
+          <CardHeader title="Connections Completed" icon={<IconConnection size={20} />} />
           <p className="text-3xl font-bold text-[#d4a574]">89</p>
           <p className="text-sm text-[#a0968a] mt-2">High satisfaction</p>
         </Card>

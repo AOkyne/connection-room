@@ -257,13 +257,13 @@ export default function JourneyPage() {
           )}
         </Card>
 
-        {/* Pairings */}
+        {/* Connections */}
         <Card className="md:col-span-2 lg:col-span-1">
           <CardHeader title="Connections" icon={<IconConnection size={20} />} />
           {profile.pairingComfortLevel && profile.pairingComfortLevel !== "pause" ? (
             <div>
               <p className="text-sm text-[#6b5f52] mb-3">You're open to pairings</p>
-              <Link href="/app/pairings">
+              <Link href="/app/connections">
                 <Button variant="secondary" size="sm" className="w-full">
                   View Pairing
                 </Button>
@@ -271,8 +271,8 @@ export default function JourneyPage() {
             </div>
           ) : (
             <div>
-              <p className="text-sm text-[#a0968a] mb-3">Pairings paused</p>
-              <Link href="/app/pairings">
+              <p className="text-sm text-[#a0968a] mb-3">Connections paused</p>
+              <Link href="/app/connections">
                 <Button variant="outline" size="sm" className="w-full">
                   Manage Preferences
                 </Button>

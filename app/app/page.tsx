@@ -289,9 +289,9 @@ export default function AppHome() {
                 Spaces
               </Button>
             </Link>
-            <Link href="/app/pairings">
+            <Link href="/app/connections">
               <Button variant="outline" size="sm" className="w-full text-left">
-                Pairings
+                Connections
               </Button>
             </Link>
             <Link href="/app/journey">

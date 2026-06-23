@@ -125,7 +125,7 @@ export default function ProfilePage() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-[#1a1714] mb-2">
-              Comfort Level with Pairings
+              Comfort Level with Connections
             </label>
             <select
               value={profile.pairingComfortLevel || "text-based"}

@@ -390,16 +390,16 @@ export default function OnboardingPage() {
 
           {currentStep === "pairings" && (
             <Card>
-              <CardHeader title="Connection Pairings" icon={<IconConnection size={20} />} />
+              <CardHeader title="Connections" icon={<IconConnection size={20} />} />
               <div className="space-y-4">
                 <p className="text-[#6b5f52]">
                   We offer optional pairings with other members for 20-minute conversations. Would you like to participate?
                 </p>
                 <div className="space-y-3">
                   {[
-                    { id: "weekly", label: "Pair me this week" },
-                    { id: "monthly", label: "Pair me monthly" },
-                    { id: "pause", label: "Pause pairings" },
+                    { id: "weekly", label: "connect me this week" },
+                    { id: "monthly", label: "connect me monthly" },
+                    { id: "pause", label: "Pause connections" },
                   ].map((option) => (
                     <button
                       key={option.id}

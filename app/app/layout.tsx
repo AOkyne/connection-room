@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getSession, clearSession, type AppSession } from "@/lib/session";
 import { recordAppVisit } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
-import { IconHome, IconJourney, IconPairingsNav, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming } from "@/components/Icons";
+import { IconHome, IconJourney, IconConnectionsNav, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming } from "@/components/Icons";
 import Link from "next/link";
 
 interface AppLayoutProps {
@@ -52,7 +52,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     { href: "/app", label: "Home", icon: IconHome },
     { href: "/app/spaces", label: "Spaces", icon: null },
     { href: "/app/journey", label: "My Journey", icon: IconJourney },
-    { href: "/app/pairings", label: "Pairings", icon: IconPairingsNav },
+    { href: "/app/connections", label: "Connections", icon: IconConnectionsNav },
     { href: "/app/events", label: "Events", icon: IconUpcoming },
     { href: "/app/profile", label: "Profile", icon: IconProfileNav },
   ];

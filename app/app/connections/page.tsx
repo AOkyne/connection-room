@@ -16,7 +16,7 @@ import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { IconConnection, IconForYou } from "@/components/Icons";
 
-export default function PairingsPage() {
+export default function ConnectionsPage() {
   const [profile, setProfile] = useState<any>(null);
   const [preferences, setPreferences] = useState<any>(null);
   const [currentPairing, setCurrentPairingState] = useState<any>(null);
@@ -91,7 +91,7 @@ export default function PairingsPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-4xl text-[#2a2318]">Connection Pairings</h1>
+        <h1 className="text-4xl text-[#2a2318]">Connections</h1>
         <p className="text-lg text-[#6b5f52] mt-2">
           Opt-in structured conversations with other members
         </p>
@@ -103,13 +103,13 @@ export default function PairingsPage() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-[#2a2318] mb-3">
-              How often would you like to be paired?
+              How often would you like to connect?
             </label>
             <div className="space-y-2">
               {[
-                { id: "weekly", label: "Pair me this week" },
-                { id: "monthly", label: "Pair me monthly" },
-                { id: "pause", label: "Pause pairings" },
+                { id: "weekly", label: "connect me this week" },
+                { id: "monthly", label: "connect me monthly" },
+                { id: "pause", label: "Pause connections" },
               ].map((option) => (
                 <label key={option.id} className="flex items-center gap-3 p-3 hover:bg-[#f3ede5] rounded cursor-pointer">
                   <input
@@ -152,7 +152,7 @@ export default function PairingsPage() {
       {/* Current Pairing */}
       {currentPairing ? (
         <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-2 border-[#d4a574]">
-          <CardHeader title="Your Pairing This Week" icon={<IconConnection size={20} />} />
+          <CardHeader title="Your Connection This Week" icon={<IconConnection size={20} />} />
           <div className="space-y-4">
             {/* Partner Info */}
             <div className="bg-white rounded-lg p-4">
@@ -290,7 +290,7 @@ export default function PairingsPage() {
               Generate Demo Pairing
             </Button>
           ) : (
-            <p className="text-sm text-[#a0968a]">Pairings are paused. Update your preferences to be paired.</p>
+            <p className="text-sm text-[#a0968a]">Connections are paused. Update your preferences to be paired.</p>
           )}
         </Card>
       )}

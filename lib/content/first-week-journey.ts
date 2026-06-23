@@ -226,9 +226,9 @@ export const firstWeekJourney: Door[] = [
     actions: [
       {
         id: "door6-pairing",
-        label: "Explore Pairings",
+        label: "Explore Connections",
         type: "pairing",
-        href: "/app/pairings",
+        href: "/app/connections",
         description: "Connect one-on-one with another member",
       },
       {
@@ -323,7 +323,7 @@ export const journeyCompletionMessage = {
     {
       title: "Connection Pairing",
       description: "Join a pairing conversation with another member",
-      href: "/app/pairings",
+      href: "/app/connections",
     },
     {
       title: "Upcoming Events",

@@ -129,7 +129,7 @@ export function WeeklyPromptCard({
         <div className="space-y-3">
           <div>
             <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-2">
-              For Connection Pairings
+              For Connections
             </p>
             <p className="text-sm text-[#6b5f52] leading-relaxed mb-3">
               {week.pairingPrompt}

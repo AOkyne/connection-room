@@ -1,4 +1,4 @@
-// Pairings data access layer - demo mode with localStorage
+// Connections data access layer - demo mode with localStorage
 
 import type { Profile } from "./profiles";
 
