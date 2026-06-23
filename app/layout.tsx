@@ -29,6 +29,9 @@ export const metadata: Metadata = {
   ],
   viewport: "width=device-width, initial-scale=1",
   authors: [{ name: "Trevor James" }],
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
