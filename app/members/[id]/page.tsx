@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { getProfile, Profile } from "@/lib/data/profiles";
 import { demoMembers } from "@/lib/seed/demo-members";
 import { getSpaces, Space } from "@/lib/data/spaces";
@@ -10,6 +10,7 @@ import { Button } from "@/components/Button";
 
 export default function MemberProfilePage() {
   const params = useParams();
+  const router = useRouter();
   const memberId = params.id as string;
 
   const [member, setMember] = useState<Profile | null>(null);
@@ -63,12 +64,12 @@ export default function MemberProfilePage() {
       {/* Header */}
       <header className="bg-white border-b border-[#e8ddd2] sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 py-4 sm:px-6">
-          <Link
-            href={-1 as any}
-            className="inline-flex text-[#d4a574] hover:text-[#c9956d] mb-4"
+          <button
+            onClick={() => router.back()}
+            className="inline-flex text-[#d4a574] hover:text-[#c9956d] mb-4 bg-none border-none cursor-pointer font-inherit"
           >
             Back
-          </Link>
+          </button>
         </div>
       </header>
 
