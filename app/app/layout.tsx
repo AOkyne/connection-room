@@ -35,9 +35,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
     checkSession();
   }, [router]);
 
-  // Don't render until mounted and session checked
-  if (!mounted) {
-    // Return placeholder during initial server render (prerendering)
+  // Redirect if not authenticated (handled in effect)
+  if (!mounted && !session) {
+    // During initial render before useEffect runs, show loading state
+    // This prevents 404 during dynamic rendering
     return (
       <div className="min-h-screen bg-[#fdfbf7] flex flex-col">
         <header className="sticky top-0 z-40 bg-white border-b border-[#e8e3db]">
@@ -58,8 +59,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
     );
   }
 
-  // Redirect if not authenticated (handled in effect)
-  if (!session) {
+  // Only redirect if mounted and still no session
+  if (mounted && !session) {
     return null;
   }
 
