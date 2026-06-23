@@ -140,7 +140,7 @@ export default function SpacesPage() {
                     )}
                     <CardHeader title={space.name} icon={<SpaceIconSVG spaceId={space.id} size={32} />} />
                     <p className="text-sm text-[#6b5f52] mb-4">{space.description}</p>
-                    <div className="text-xs text-[#a0968a] mb-4">{demoMembers.filter(m => m.spacesJoined.includes(space.id)).length} members</div>
+                    <div className="text-xs text-[#a0968a] mb-4">{demoMembers.filter(m => m.spacesJoined?.includes(space.id)).length} members</div>
                     <div className="flex gap-2">
                       <Link href={`/app/spaces/${space.id}`} className="flex-1">
                         <Button variant="secondary" size="sm" className="w-full">
@@ -174,7 +174,7 @@ export default function SpacesPage() {
               <Card key={space.id}>
                 <CardHeader title={space.name} icon={<SpaceIconSVG spaceId={space.id} size={32} />} />
                 <p className="text-sm text-[#6b5f52] mb-4">{space.description}</p>
-                <div className="text-xs text-[#a0968a] mb-4">{demoMembers.filter(m => m.spacesJoined.includes(space.id)).length} members</div>
+                <div className="text-xs text-[#a0968a] mb-4">{demoMembers.filter(m => m.spacesJoined?.includes(space.id)).length} members</div>
                 <Button
                   variant="primary"
                   size="sm"
