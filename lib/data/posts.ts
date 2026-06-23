@@ -288,10 +288,16 @@ export async function createComment(
 
   // Increment post comment count
   const posts = await getPosts();
+  console.log("Creating comment - all posts:", posts.length);
   const post = posts.find((p: Post) => p.id === postId);
+  console.log("Found post:", post?.id, "current count:", post?.commentCount);
   if (post) {
     post.commentCount = (post.commentCount || 0) + 1;
+    console.log("Updated count to:", post.commentCount);
     localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
+    console.log("Saved to localStorage");
+  } else {
+    console.log("Post not found with id:", postId);
   }
 
   return comment;
