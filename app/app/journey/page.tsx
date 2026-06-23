@@ -6,6 +6,7 @@ import { getSpaces } from "@/lib/data/spaces";
 import { getUserBadges } from "@/lib/data/badges";
 import { getRecommendedNextStep, getTodaysPrompt } from "@/lib/data/recommendations";
 import { getUserEventInterestsList } from "@/lib/data/events";
+import { getUserEngagementStats } from "@/lib/data/posts";
 import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -24,6 +25,7 @@ export default function JourneyPage() {
   const [spaces, setSpaces] = useState<any[]>([]);
   const [badges, setBadges] = useState<any[]>([]);
   const [interestedEvents, setInterestedEvents] = useState<any[]>([]);
+  const [engagementStats, setEngagementStats] = useState<{ postsShared: number; responsesReceived: number }>({ postsShared: 0, responsesReceived: 0 });
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -33,14 +35,16 @@ export default function JourneyPage() {
       setProfile(p);
       setSpaces(s);
 
-      // Then fetch badges and interested events based on profile
+      // Then fetch badges, interested events, and engagement stats based on profile
       if (p) {
-        const [b, events] = await Promise.all([
+        const [b, events, engagement] = await Promise.all([
           getUserBadges(p.id, p, s),
-          Promise.resolve(getUserEventInterestsList(p.id))
+          Promise.resolve(getUserEventInterestsList(p.id)),
+          getUserEngagementStats(p.id)
         ]);
         setBadges(b);
         setInterestedEvents(events);
+        setEngagementStats(engagement);
       }
 
       setMounted(true);
@@ -77,8 +81,8 @@ export default function JourneyPage() {
 
       {/* Your Connection Practice */}
       <ConnectionPracticeSummary
-        postCount={0}
-        commentCount={0}
+        postCount={engagementStats.postsShared}
+        commentCount={engagementStats.responsesReceived}
         spacesJoinedCount={joinedSpaces.length}
       />
 

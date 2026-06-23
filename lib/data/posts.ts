@@ -310,3 +310,30 @@ export async function addCommentReaction(commentId: string, reactionType: string
   // Demo mode fallback - note: this is incomplete without postId
   // In a real implementation, comments would track their postId
 }
+
+// Get user's engagement stats (posts shared, comments received, etc)
+export async function getUserEngagementStats(userId: string): Promise<{ postsShared: number; responsesReceived: number }> {
+  if (typeof window === "undefined") {
+    return { postsShared: 0, responsesReceived: 0 };
+  }
+
+  const authUserId = await getCurrentUserId();
+
+  // Get all posts by this user
+  const posts = await getPosts();
+  const userPosts = posts.filter((p: Post) => p.userId === userId);
+
+  // Count total responses (comments on their posts)
+  let totalResponses = 0;
+  const comments = await getComments(""); // Get all comments - note: this filters by postId, so we need a different approach
+
+  // Sum up comment counts from user's posts
+  userPosts.forEach((post: Post) => {
+    totalResponses += post.commentCount || 0;
+  });
+
+  return {
+    postsShared: userPosts.length,
+    responsesReceived: totalResponses,
+  };
+}
