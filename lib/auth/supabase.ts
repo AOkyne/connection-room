@@ -78,10 +78,14 @@ export async function signUpWithPassword(
     });
 
     if (signUpError) {
+      const errorMessage =
+        signUpError.message ||
+        (typeof signUpError === 'object' && JSON.stringify(signUpError)) ||
+        "Failed to sign up";
       console.error("Signup error:", signUpError);
       return {
         success: false,
-        error: signUpError.message,
+        error: errorMessage,
       };
     }
 
@@ -94,10 +98,14 @@ export async function signUpWithPassword(
     });
 
     if (signInError) {
+      const errorMessage =
+        signInError.message ||
+        (typeof signInError === 'object' && JSON.stringify(signInError)) ||
+        "Failed to sign in";
       console.error("Sign-in error after signup:", signInError);
       return {
         success: false,
-        error: signInError.message,
+        error: errorMessage,
       };
     }
 
@@ -159,9 +167,16 @@ export async function signInWithPassword(
     });
 
     if (error) {
+      // Extract message from error object safely
+      const errorMessage =
+        error.message ||
+        (typeof error === 'object' && JSON.stringify(error)) ||
+        "Failed to sign in";
+
+      console.error("Sign in error:", error);
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
 
@@ -169,9 +184,11 @@ export async function signInWithPassword(
       success: true,
     };
   } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : JSON.stringify(err) || "Unknown error";
+    console.error("Sign in exception:", err);
     return {
       success: false,
-      error: err instanceof Error ? err.message : "Unknown error",
+      error: errorMessage,
     };
   }
 }
