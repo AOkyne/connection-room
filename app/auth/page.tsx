@@ -215,10 +215,13 @@ function BetaAuthContent() {
               <p className="font-medium text-[#1a1714]">Welcome to Beta Testing</p>
               {authMode === "password-signup" && (
                 <ul className="space-y-1">
-                  <li>• Create an account with your email and password</li>
+                  <li>• Create an account with any email and password (min 8 chars)</li>
                   <li>• You'll be logged in immediately</li>
                   <li>• Complete your profile setup</li>
                   <li>• Explore the community</li>
+                  <li className="pt-2 border-t border-[#ddd7d0]">
+                    <strong>Note:</strong> If backend is down, accounts are stored locally for testing
+                  </li>
                 </ul>
               )}
               {authMode === "password-signin" && (
@@ -228,7 +231,9 @@ function BetaAuthContent() {
                   <li>• Return to your dashboard</li>
                   <li>• Continue exploring</li>
                   <li className="pt-2 border-t border-[#ddd7d0]">
-                    <strong>Demo Account:</strong> demo@connection.room / Demo123!
+                    <strong>Demo Accounts:</strong>
+                    <br />demo@connection.room / Demo123!
+                    <br />test@connection.room / Test123!
                   </li>
                 </ul>
               )}
