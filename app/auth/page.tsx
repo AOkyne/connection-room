@@ -9,6 +9,10 @@ import { createDemoProfile } from "@/lib/data/profiles";
 import { IconDemo } from "@/components/Icons";
 import { isBetaMode } from "@/lib/app-mode";
 import { signInWithEmail, signUpWithPassword, signInWithPassword } from "@/lib/auth/supabase";
+import {
+  fallbackSignInWithPassword,
+  fallbackSignUpWithPassword,
+} from "@/lib/auth/fallback";
 import Link from "next/link";
 
 function BetaAuthContent() {
@@ -19,32 +23,67 @@ function BetaAuthContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [usingFallback, setUsingFallback] = useState(false);
 
   const handleBetaSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    if (authMode === "password-signup") {
-      // Email/password signup
-      const result = await signUpWithPassword(email, password);
-      if (result.success) {
-        setTimeout(() => {
-          router.push("/onboarding");
-        }, 500);
+    try {
+      if (authMode === "password-signup") {
+        // Email/password signup
+        const result = await signUpWithPassword(email, password);
+        if (result.success) {
+          setTimeout(() => {
+            router.push("/onboarding");
+          }, 500);
+        } else {
+          // If Supabase fails, try fallback
+          if (result.error?.includes("Connection error") || result.error?.includes("503")) {
+            const fallbackResult = await fallbackSignUpWithPassword(email, password);
+            if (fallbackResult.success) {
+              setUsingFallback(true);
+              setError("Using fallback mode - Supabase is temporarily unavailable");
+              setTimeout(() => {
+                router.push("/onboarding");
+              }, 1500);
+            } else {
+              setError(fallbackResult.error || "Failed to sign up");
+            }
+          } else {
+            setError(result.error || "Failed to sign up");
+          }
+        }
       } else {
-        setError(result.error || "Failed to sign up");
+        // Email/password signin
+        const result = await signInWithPassword(email, password);
+        if (result.success) {
+          setTimeout(() => {
+            router.push("/app");
+          }, 500);
+        } else {
+          // If Supabase fails with connection error, try fallback
+          if (result.error?.includes("Connection error") || result.error?.includes("503")) {
+            console.log("Supabase unavailable, trying fallback auth...");
+            const fallbackResult = await fallbackSignInWithPassword(email, password);
+            if (fallbackResult.success) {
+              setUsingFallback(true);
+              setError("Using fallback mode - Supabase is temporarily unavailable");
+              setTimeout(() => {
+                router.push("/app");
+              }, 1500);
+            } else {
+              setError(fallbackResult.error || "Invalid email or password");
+            }
+          } else {
+            setError(result.error || "Invalid email or password");
+          }
+        }
       }
-    } else {
-      // Email/password signin
-      const result = await signInWithPassword(email, password);
-      if (result.success) {
-        setTimeout(() => {
-          router.push("/app");
-        }, 500);
-      } else {
-        setError(result.error || "Invalid email or password");
-      }
+    } catch (err) {
+      console.error("Auth error:", err);
+      setError("An unexpected error occurred. Please try again.");
     }
     setLoading(false);
   };
@@ -113,8 +152,23 @@ function BetaAuthContent() {
             )}
 
             {error && (
-              <div className="bg-[#ffebee] border border-[#b86a52] rounded-lg p-4">
-                <p className="text-sm text-[#6b2c1f]">{error}</p>
+              <div className={`rounded-lg p-4 ${
+                usingFallback
+                  ? "bg-[#fff3e0] border border-[#d4a574]"
+                  : "bg-[#ffebee] border border-[#b86a52]"
+              }`}>
+                <p className={`text-sm ${
+                  usingFallback
+                    ? "text-[#6b5f52]"
+                    : "text-[#6b2c1f]"
+                }`}>
+                  {usingFallback ? "⚠️ " : ""}{error}
+                </p>
+                {usingFallback && (
+                  <p className="text-xs text-[#8fa878] mt-2">
+                    You're in demo mode. Most features work normally.
+                  </p>
+                )}
               </div>
             )}
 
@@ -179,6 +233,9 @@ function BetaAuthContent() {
                   <li>• You'll be logged in immediately</li>
                   <li>• Return to your dashboard</li>
                   <li>• Continue exploring</li>
+                  <li className="pt-2 border-t border-[#ddd7d0]">
+                    <strong>Demo Account:</strong> demo@connection.room / Demo123!
+                  </li>
                 </ul>
               )}
             </div>
