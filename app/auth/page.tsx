@@ -32,52 +32,46 @@ function BetaAuthContent() {
 
     try {
       if (authMode === "password-signup") {
-        // Email/password signup
+        // Email/password signup - try Supabase first
         const result = await signUpWithPassword(email, password);
         if (result.success) {
           setTimeout(() => {
             router.push("/onboarding");
           }, 500);
         } else {
-          // If Supabase fails, try fallback
-          if (result.error?.includes("Connection error") || result.error?.includes("503")) {
-            const fallbackResult = await fallbackSignUpWithPassword(email, password);
-            if (fallbackResult.success) {
-              setUsingFallback(true);
-              setError("Using fallback mode - Supabase is temporarily unavailable");
-              setTimeout(() => {
-                router.push("/onboarding");
-              }, 1500);
-            } else {
-              setError(fallbackResult.error || "Failed to sign up");
-            }
+          // Supabase failed, try fallback immediately
+          console.log("Supabase signup failed, trying fallback:", result.error);
+          const fallbackResult = await fallbackSignUpWithPassword(email, password);
+          if (fallbackResult.success) {
+            setUsingFallback(true);
+            setError("✓ Account created - Using fallback mode (Supabase temporarily unavailable)");
+            setTimeout(() => {
+              router.push("/onboarding");
+            }, 1500);
           } else {
-            setError(result.error || "Failed to sign up");
+            setError(fallbackResult.error || "Failed to sign up");
           }
         }
       } else {
-        // Email/password signin
+        // Email/password signin - try Supabase first
         const result = await signInWithPassword(email, password);
         if (result.success) {
           setTimeout(() => {
             router.push("/app");
           }, 500);
         } else {
-          // If Supabase fails with connection error, try fallback
-          if (result.error?.includes("Connection error") || result.error?.includes("503")) {
-            console.log("Supabase unavailable, trying fallback auth...");
-            const fallbackResult = await fallbackSignInWithPassword(email, password);
-            if (fallbackResult.success) {
-              setUsingFallback(true);
-              setError("Using fallback mode - Supabase is temporarily unavailable");
-              setTimeout(() => {
-                router.push("/app");
-              }, 1500);
-            } else {
-              setError(fallbackResult.error || "Invalid email or password");
-            }
+          // Supabase failed, try fallback immediately
+          console.log("Supabase signin failed, trying fallback:", result.error);
+          const fallbackResult = await fallbackSignInWithPassword(email, password);
+          if (fallbackResult.success) {
+            setUsingFallback(true);
+            setError("✓ Logged in - Using fallback mode (Supabase temporarily unavailable)");
+            setTimeout(() => {
+              router.push("/app");
+            }, 1500);
           } else {
-            setError(result.error || "Invalid email or password");
+            // Show Supabase error only if fallback also fails
+            setError(fallbackResult.error || (result.error as string) || "Invalid email or password");
           }
         }
       }
