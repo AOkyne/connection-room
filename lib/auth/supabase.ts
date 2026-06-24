@@ -168,12 +168,25 @@ export async function signInWithPassword(
 
     if (error) {
       // Extract message from error object safely
-      const errorMessage =
-        error.message ||
-        (typeof error === 'object' && JSON.stringify(error)) ||
-        "Failed to sign in";
+      let errorMessage = "Failed to sign in";
 
-      console.error("Sign in error:", error);
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.name === "AuthRetryableError") {
+        errorMessage = "Connection error. Please check your internet connection and try again.";
+      } else if (typeof error === 'object') {
+        try {
+          const serialized = JSON.stringify(error);
+          if (serialized && serialized !== '{}') {
+            errorMessage = serialized;
+          }
+        } catch (e) {
+          // Fallback if JSON.stringify fails
+          errorMessage = error.toString() || "Failed to sign in";
+        }
+      }
+
+      console.error("Sign in error:", error, "Message:", errorMessage);
       return {
         success: false,
         error: errorMessage,
@@ -184,8 +197,15 @@ export async function signInWithPassword(
       success: true,
     };
   } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : JSON.stringify(err) || "Unknown error";
-    console.error("Sign in exception:", err);
+    let errorMessage = "Unknown error";
+
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    } else if (err && typeof err === 'object') {
+      errorMessage = err.toString();
+    }
+
+    console.error("Sign in exception:", err, "Message:", errorMessage);
     return {
       success: false,
       error: errorMessage,
