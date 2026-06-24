@@ -5,8 +5,8 @@ import { waysToConnect, waysToConnectHeader } from "@/lib/content/connection-pra
 
 export function WaysToConnectCard() {
   return (
-    <Card className="bg-gradient-to-br from-[#f8f6f2] to-white">
-      <div className="space-y-4">
+    <Card className="bg-gradient-to-br from-[#f8f6f2] to-white pb-0">
+      <div className="space-y-4 pb-4">
         {/* Header */}
         <div>
           <h3 className="text-lg font-semibold text-[#2a2318]">
@@ -29,33 +29,6 @@ export function WaysToConnectCard() {
               <p className="text-xs text-[#6b5f52] mt-1">{way.description}</p>
             </a>
           ))}
-        </div>
-
-        {/* Optional: Quick action buttons at bottom */}
-        <div className="pt-2 border-t border-[#e8ddd2]">
-          <p className="text-xs text-[#8fa878] font-medium uppercase tracking-wide mb-3">
-            Quick Start
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <a
-              href="/app/spaces/commons"
-              className="inline-block px-3 py-2 bg-[#d4a574] rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
-              style={{ color: "white" }}
-            >
-              The Commons
-            </a>
-            <button
-              onClick={() => {
-                const reflectionSection = document.getElementById("todays-reflection");
-                if (reflectionSection) {
-                  reflectionSection.scrollIntoView({ behavior: "smooth", block: "start" });
-                }
-              }}
-              className="inline-block px-3 py-2 border border-[#d4a574] text-[#d4a574] rounded-lg text-sm font-medium hover:bg-[#f3ede5] transition-colors"
-            >
-              Today's Reflection
-            </button>
-          </div>
         </div>
       </div>
     </Card>

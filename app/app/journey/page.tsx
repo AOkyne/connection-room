@@ -18,6 +18,8 @@ import { SevenDoorsOverview } from "@/components/journey/SevenDoorsOverview";
 import { GuidedRhythmOverview } from "@/components/guided-rhythm/GuidedRhythmOverview";
 import { ConnectionPracticeSummary } from "@/components/connection/ConnectionPracticeSummary";
 import { EventReminderBanner } from "@/components/EventReminderBanner";
+import { LoadingScreen } from "@/components/LoadingScreen";
+import { SkeletonCard, SkeletonGrid } from "@/components/Skeleton";
 import Link from "next/link";
 
 export default function JourneyPage() {
@@ -53,7 +55,9 @@ export default function JourneyPage() {
     loadData();
   }, []);
 
-  if (!mounted || !profile) return <div>Loading...</div>;
+  if (!mounted || !profile) {
+    return <LoadingScreen message="Getting ready for your journey" subtitle="We're gathering your personalized experience. Just a moment..." />;
+  }
 
   const nextStep = getRecommendedNextStep(profile);
   const joinedSpaces = spaces.filter((s) => s.isJoined);

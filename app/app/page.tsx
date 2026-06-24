@@ -79,7 +79,28 @@ export default function AppHome() {
   }, []);
 
   if (!mounted || !profile) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-[#fdfbf7] flex flex-col items-center justify-center px-4">
+        <div className="text-center space-y-6">
+          <div className="space-y-2">
+            <div className="flex justify-center mb-4">
+              <div className="animate-spin h-16 w-16 border-4 border-[#d4a574] border-t-transparent rounded-full" />
+            </div>
+            <h2 className="text-3xl text-[#2a2318] font-semibold">Getting ready for the big reveal</h2>
+            <p className="text-lg text-[#6b5f52] max-w-md mx-auto">
+              We're gathering your personalized experience. Just a moment...
+            </p>
+          </div>
+          <div className="pt-8">
+            <div className="flex justify-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#d4a574] animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-[#d4a574] animate-pulse delay-100" />
+              <div className="w-2 h-2 rounded-full bg-[#d4a574] animate-pulse delay-200" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const nextStep = getRecommendedNextStep(profile);
@@ -99,31 +120,54 @@ export default function AppHome() {
 
       {/* Main Cards Grid */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Recommended Next Step - Featured */}
-        {nextStep && (
-          <Card className="md:col-span-2 bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-[#d4a574]">
-            <div className="space-y-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="text-2xl text-[#2a2318]">{nextStep.title}</h2>
-                  <p className="text-[#6b5f52] mt-1">{nextStep.description}</p>
-                </div>
-                {nextStep.icon && (() => {
-                  const Icon = getIconComponent(nextStep.icon);
-                  return <Icon size={32} className="text-[#d4a574]" />;
-                })()}
-              </div>
-              <Link href={nextStep.href}>
-                <Button
-                  variant={nextStep.type === "external" ? "secondary" : "primary"}
-                  size="lg"
-                  className="w-full sm:w-auto"
-                >
-                  {nextStep.action} →
-                </Button>
-              </Link>
+        {/* Your Spaces or Choose First Space */}
+        {joinedSpacesCount > 0 ? (
+          <Card className="md:col-span-2 bg-gradient-to-br from-[#f3ede5] to-[#fffbf7]">
+            <CardHeader title="Your Spaces" icon="🏛️" />
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {spaces
+                .filter((s) => profile?.spacesJoined?.includes(s.id))
+                .map((space) => (
+                  <Link key={space.id} href={`/app/spaces/${space.id}`}>
+                    <Button variant="outline" size="md" className="w-full h-full justify-center">
+                      <div className="text-center">
+                        <div className="text-2xl mb-1">{space.id === "commons" ? "🏘️" : space.id === "start-here" ? "✨" : "💬"}</div>
+                        <div className="text-xs">{space.name}</div>
+                      </div>
+                    </Button>
+                  </Link>
+                ))}
             </div>
           </Card>
+        ) : (
+          <>
+            {/* Recommended Next Step - Featured */}
+            {nextStep && (
+              <Card className="md:col-span-2 bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-[#d4a574]">
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h2 className="text-2xl text-[#2a2318]">{nextStep.title}</h2>
+                      <p className="text-[#6b5f52] mt-1">{nextStep.description}</p>
+                    </div>
+                    {nextStep.icon && (() => {
+                      const Icon = getIconComponent(nextStep.icon);
+                      return <Icon size={32} className="text-[#d4a574]" />;
+                    })()}
+                  </div>
+                  <Link href={nextStep.href}>
+                    <Button
+                      variant={nextStep.type === "external" ? "secondary" : "primary"}
+                      size="lg"
+                      className="w-full sm:w-auto"
+                    >
+                      {nextStep.action} →
+                    </Button>
+                  </Link>
+                </div>
+              </Card>
+            )}
+          </>
         )}
 
         {/* Today's Prompt */}
@@ -155,48 +199,6 @@ export default function AppHome() {
         <FirstWeekDashboardCard />
         <MonthlyDashboardCard />
 
-        {/* Suggested Space */}
-        <Card>
-          <CardHeader title="Suggested Space" icon={<>{(() => { const Icon = getIconComponent(suggestedSpace.icon); return <Icon size={20} />; })()}</>} />
-          <div className="space-y-3">
-            <div>
-              <h3 className="font-medium text-[#2a2318]">{suggestedSpace.name}</h3>
-              <p className="text-sm text-[#6b5f52] mt-1">{suggestedSpace.description}</p>
-            </div>
-            <Link href="/app/spaces">
-              <Button variant="outline" size="sm" className="w-full">
-                Explore Spaces
-              </Button>
-            </Link>
-          </div>
-        </Card>
-
-        {/* Quick Overview */}
-        <Card>
-          <CardHeader title="Your Progress" icon={<IconProgress size={20} />} />
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between items-center">
-              <span className="text-[#6b5f52]">Profile</span>
-              <span className="text-[#8fa878]">✓ Complete</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-[#6b5f52]">Spaces Joined</span>
-              <span className={joinedSpacesCount > 0 ? "text-[#8fa878]" : "text-[#d4a574]"}>
-                {joinedSpacesCount} {joinedSpacesCount === 1 ? "space" : "spaces"}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-[#6b5f52]">Quiz</span>
-              <span className={hasQuizResult ? "text-[#8fa878]" : "text-[#d4a574]"}>
-                {hasQuizResult ? "✓ Done" : "Pending"}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-[#6b5f52]">Member Since</span>
-              <span className="text-[#a0968a]">{new Date(profile.joinedAt).toLocaleDateString()}</span>
-            </div>
-          </div>
-        </Card>
 
         {/* Upcoming Event */}
         {upcomingEvents.length > 0 && (
@@ -280,27 +282,6 @@ export default function AppHome() {
           );
         })()}
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader title="Navigate" icon={<IconForYou size={20} />} />
-          <div className="space-y-2">
-            <Link href="/app/spaces">
-              <Button variant="outline" size="sm" className="w-full text-left">
-                Spaces
-              </Button>
-            </Link>
-            <Link href="/app/connections">
-              <Button variant="outline" size="sm" className="w-full text-left">
-                Connections
-              </Button>
-            </Link>
-            <Link href="/app/journey">
-              <Button variant="outline" size="sm" className="w-full text-left">
-                My Journey
-              </Button>
-            </Link>
-          </div>
-        </Card>
       </div>
 
       {/* Info Banner */}

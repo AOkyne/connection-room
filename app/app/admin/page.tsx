@@ -11,6 +11,7 @@ import { getBadgeIcon } from "@/lib/badge-icons";
 import { getOfferIcon } from "@/lib/offer-icons";
 import { RhythmContentAlert } from "@/components/admin/RhythmContentAlert";
 import { RhythmContentEditor } from "@/components/admin/RhythmContentEditor";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export default function AdminPage() {
   const [mounted, setMounted] = useState(false);
@@ -45,7 +46,7 @@ export default function AdminPage() {
   }, []);
 
   if (!mounted) {
-    return <div>Loading...</div>;
+    return <LoadingScreen message="Loading admin dashboard" subtitle="We're gathering the data. Just a moment..." />;
   }
 
   return (

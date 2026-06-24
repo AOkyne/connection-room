@@ -8,6 +8,7 @@ import { getProfile } from "@/lib/data/profiles";
 import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { SpaceIconSVG } from "@/components/SpaceIconSVG";
 import { StartHereChecklist } from "@/components/StartHereChecklist";
 import { FirstWeekStartHereCard } from "@/components/journey/FirstWeekStartHereCard";
@@ -15,6 +16,7 @@ import { EmptySpaceInvitation } from "@/components/connection/EmptySpaceInvitati
 import { WeeklyCommonsThread } from "@/components/connection/WeeklyCommonsThread";
 import { CommentingGuideHelper } from "@/components/connection/CommentingGuideHelper";
 import { PostTemplateSelector } from "@/components/connection/PostTemplateSelector";
+import { SkeletonPost, SkeletonCard } from "@/components/Skeleton";
 import { postTemplates } from "@/lib/content/post-templates";
 import { ReactionBar } from "@/components/posts/ReactionBar";
 import {
@@ -24,14 +26,22 @@ import {
   checkAndAwardCommunityBuilder,
 } from "@/lib/data/connection-practice";
 import { IconIntegration, IconReflection } from "@/components/Icons";
+import { ToastContainer } from "@/components/Toast";
+import { useToast } from "@/lib/hooks/useToast";
 import { demoMembers } from "@/lib/seed/demo-members";
 import { demoSpaceMemberships } from "@/lib/seed/demo-space-memberships";
 import Link from "next/link";
+
+const MAX_POST_LENGTH = 2000;
+const MIN_POST_LENGTH = 10;
+const MAX_COMMENT_LENGTH = 500;
+const MIN_COMMENT_LENGTH = 1;
 
 export default function SpaceDetailPage() {
   const router = useRouter();
   const params = useParams();
   const spaceId = params.id as string;
+  const { toasts, showToast, removeToast } = useToast();
 
   const [space, setSpace] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -43,6 +53,7 @@ export default function SpaceDetailPage() {
   const [mounted, setMounted] = useState(false);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [userReactions, setUserReactions] = useState<Record<string, string>>(() => {
     if (typeof window === "undefined") return {};
     const stored = localStorage.getItem("connection-room:user-reactions");
@@ -75,49 +86,98 @@ export default function SpaceDetailPage() {
     loadData();
   }, [spaceId, router]);
 
-  if (!mounted || !space || !profile) {
-    return <div>Loading...</div>;
+  if (!mounted) {
+    return <LoadingScreen message="Getting ready for this space" subtitle="We're personalizing your experience. Just a moment..." />;
+  }
+
+  if (!space || !profile) {
+    return null;
   }
 
   const handleCreatePost = async () => {
-    if (!newPostContent.trim()) return;
+    const trimmedContent = newPostContent.trim();
 
-    const newPost = await createPost(spaceId, profile.displayName, newPostContent, false, undefined, profile.pronouns, profile.profilePhoto);
-    setPosts([newPost, ...posts]);
-    setNewPostContent("");
+    // Validation
+    if (!trimmedContent) {
+      showToast("Please write something before posting", "warning");
+      return;
+    }
 
-    // Check and award milestones
-    const postCount = posts.length + 1;
-    await checkAndAwardFirstShare(profile.id, postCount);
-    await checkAndAwardCommunityBuilder(profile.id, postCount, 0); // We don't have comment count here
+    if (trimmedContent.length < MIN_POST_LENGTH) {
+      showToast(`Please write at least ${MIN_POST_LENGTH} characters`, "info");
+      return;
+    }
+
+    if (trimmedContent.length > MAX_POST_LENGTH) {
+      showToast(`Your post is too long (max ${MAX_POST_LENGTH} characters)`, "error");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const newPost = await createPost(spaceId, profile.displayName, trimmedContent, false, undefined, profile.pronouns, profile.profilePhoto);
+      setPosts([newPost, ...posts]);
+      setNewPostContent("");
+      showToast("Your reflection has been shared", "success");
+
+      // Check and award milestones
+      const postCount = posts.length + 1;
+      await checkAndAwardFirstShare(profile.id, postCount);
+      await checkAndAwardCommunityBuilder(profile.id, postCount, 0);
+    } catch (error) {
+      console.error("Error creating post:", error);
+      showToast("Failed to share your reflection. Please try again.", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleAddComment = async (postId: string) => {
     const content = newCommentContent[postId];
-    if (!content || !content.trim()) return;
+    const trimmedContent = content?.trim();
 
-    await createComment(postId, profile.displayName, content, profile.pronouns, profile.profilePhoto);
-    setNewCommentContent({ ...newCommentContent, [postId]: "" });
-
-    // Refresh posts to show updated comment count and comments
-    const updatedPosts = await getPosts(spaceId);
-    const post = updatedPosts.find(p => p.id === postId);
-
-    // Increment comment count optimistically since database update may fail due to RLS
-    if (post) {
-      post.commentCount = (post.commentCount || 0) + 1;
+    // Validation
+    if (!trimmedContent) {
+      showToast("Please write something before commenting", "warning");
+      return;
     }
 
-    setPosts(updatedPosts);
+    if (trimmedContent.length > MAX_COMMENT_LENGTH) {
+      showToast(`Your comment is too long (max ${MAX_COMMENT_LENGTH} characters)`, "error");
+      return;
+    }
 
-    // Refresh comments for this post
-    const postComments = await getComments(postId);
-    setComments({ ...comments, [postId]: postComments });
+    try {
+      setIsSubmitting(true);
+      await createComment(postId, profile.displayName, trimmedContent, profile.pronouns, profile.profilePhoto);
+      setNewCommentContent({ ...newCommentContent, [postId]: "" });
+      showToast("Your response has been added", "success");
 
-    // Check and award milestones
-    const totalComments = updatedPosts.reduce((sum, p) => sum + (p.commentCount || 0), 0);
-    await checkAndAwardFirstWitness(profile.id, totalComments);
-    await checkAndAwardThoughtfulWitness(profile.id, totalComments);
+      // Refresh posts to show updated comment count and comments
+      const updatedPosts = await getPosts(spaceId);
+      const post = updatedPosts.find(p => p.id === postId);
+
+      // Increment comment count optimistically since database update may fail due to RLS
+      if (post) {
+        post.commentCount = (post.commentCount || 0) + 1;
+      }
+
+      setPosts(updatedPosts);
+
+      // Refresh comments for this post
+      const postComments = await getComments(postId);
+      setComments({ ...comments, [postId]: postComments });
+
+      // Check and award milestones
+      const totalComments = updatedPosts.reduce((sum, p) => sum + (p.commentCount || 0), 0);
+      await checkAndAwardFirstWitness(profile.id, totalComments);
+      await checkAndAwardThoughtfulWitness(profile.id, totalComments);
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      showToast("Failed to add your response. Please try again.", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReaction = async (postId: string, reactionType: string) => {
@@ -314,7 +374,13 @@ export default function SpaceDetailPage() {
         <Card className="bg-gradient-to-r from-[#f3ede5] to-[#fffbf7]">
           <CardHeader title="Today's Prompt" icon={<IconReflection size={20} />} />
           <p className="text-[#6b5f52] italic text-lg mb-4">"{space.featuredPrompt}"</p>
-          <Button variant="secondary" size="md">
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={() => {
+              document.getElementById("create-post-section")?.scrollIntoView({ behavior: "smooth" });
+            }}
+          >
             Respond to Prompt
           </Button>
         </Card>
@@ -338,22 +404,33 @@ export default function SpaceDetailPage() {
           <p className="mb-2">Not sure where to start? <button onClick={() => setShowTemplateSelector(true)} className="text-[#d4a574] hover:underline font-medium">Choose a post template</button> to help you.</p>
         </div>
 
-        <textarea
-          value={newPostContent}
-          onChange={(e) => setNewPostContent(e.target.value)}
-          placeholder="What's on your mind? Share authentically..."
-          rows={3}
-          className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574] text-[#2a2318]"
-        />
-        <div className="flex gap-3 mt-3">
+        <div className="space-y-2">
+          <textarea
+            value={newPostContent}
+            onChange={(e) => setNewPostContent(e.target.value)}
+            placeholder="What's on your mind? Share authentically..."
+            rows={3}
+            maxLength={MAX_POST_LENGTH}
+            className="w-full px-4 py-2.5 border border-[#ede6e0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#d4a574] focus:ring-offset-2 focus:border-transparent transition-all duration-150 text-[#2a2318] placeholder-[#a0968a] resize-none"
+          />
+          <div className="flex justify-between items-center">
+            <p className="text-xs text-[#a0968a]">
+              {newPostContent.length} / {MAX_POST_LENGTH} characters
+            </p>
+            {newPostContent.length > MAX_POST_LENGTH * 0.9 && (
+              <p className="text-xs text-[#d4a574]">Getting close to limit</p>
+            )}
+          </div>
+        </div>
+        <div className="flex gap-3 mt-4">
           <Button
             variant="primary"
             size="md"
             onClick={handleCreatePost}
-            disabled={!newPostContent.trim()}
+            disabled={!newPostContent.trim() || isSubmitting}
             className="flex-1"
           >
-            Post
+            {isSubmitting ? "Posting..." : "Post"}
           </Button>
         </div>
       </Card>
@@ -376,7 +453,13 @@ export default function SpaceDetailPage() {
 
       {/* Posts Feed */}
       <div id="posts-feed" className="space-y-6">
-        {posts.length === 0 ? (
+        {!mounted ? (
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <SkeletonPost key={i} />
+            ))}
+          </div>
+        ) : posts.length === 0 ? (
           <EmptySpaceInvitation
             spaceId={spaceId}
             onStartPost={() => {
@@ -422,7 +505,7 @@ export default function SpaceDetailPage() {
                 onClick={() => toggleExpandPost(post.id)}
                 className="text-sm text-[#d4a574] hover:text-[#9d7f5c] font-medium"
               >
-                {post.commentCount} {post.commentCount === 1 ? "comment" : "comments"}
+                Comment | {post.commentCount} {post.commentCount === 1 ? "comment" : "comments"}
               </button>
 
               {/* Comments Section */}
@@ -463,13 +546,19 @@ export default function SpaceDetailPage() {
                       onChange={(e) => setNewCommentContent({ ...newCommentContent, [post.id]: e.target.value })}
                       placeholder="Add your response..."
                       rows={2}
-                      className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574] text-sm"
+                      maxLength={MAX_COMMENT_LENGTH}
+                      className="w-full px-4 py-2.5 border border-[#ede6e0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#d4a574] focus:ring-offset-2 focus:border-transparent transition-all duration-150 text-sm text-[#2a2318] placeholder-[#a0968a] resize-none"
                     />
+                    <div className="flex justify-between items-center">
+                      <p className="text-xs text-[#a0968a]">
+                        {(newCommentContent[post.id] || "").length} / {MAX_COMMENT_LENGTH}
+                      </p>
+                    </div>
                     <Button
                       variant="secondary"
                       size="sm"
                       onClick={() => handleAddComment(post.id)}
-                      disabled={!newCommentContent[post.id]?.trim()}
+                      disabled={!newCommentContent[post.id]?.trim() || isSubmitting}
                       className="w-full"
                     >
                       Reply
@@ -481,6 +570,9 @@ export default function SpaceDetailPage() {
           ))
         )}
       </div>
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

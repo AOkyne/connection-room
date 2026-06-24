@@ -31,14 +31,18 @@ export function SevenDoorsOverview() {
       const p = await getJourneyProgress();
       setProgress(p);
 
-      // Load saved reflections for all doors
+      // Load saved reflections for all doors in parallel
+      const reflectionPromises = Array.from({ length: 7 }, (_, i) =>
+        getPrivateReflection(i + 1)
+      );
+      const reflectionsArray = await Promise.all(reflectionPromises);
+
       const reflections: Record<number, string> = {};
-      for (let i = 1; i <= 7; i++) {
-        const reflection = await getPrivateReflection(i);
+      reflectionsArray.forEach((reflection, index) => {
         if (reflection) {
-          reflections[i] = reflection;
+          reflections[index + 1] = reflection;
         }
-      }
+      });
       setSavedReflections(reflections);
     } catch (error) {
       console.error("Error loading journey progress:", error);

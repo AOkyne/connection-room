@@ -16,6 +16,10 @@ export default function OnboardingPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [currentStep, setCurrentStep] = useState<Step>("welcome");
   const [coupleMode, setCoupleMode] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [completionSuccess, setCompletionSuccess] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -28,10 +32,22 @@ export default function OnboardingPage() {
           router.push("/app");
         }
       }
+      setIsLoading(false);
     };
 
     loadProfile();
   }, [router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#faf7f2] flex flex-col items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin h-12 w-12 border-4 border-[#d4a574] border-t-transparent rounded-full mx-auto" />
+          <p className="text-[#6b5f52]">Setting up your profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!profile) return null;
 
@@ -63,10 +79,40 @@ export default function OnboardingPage() {
   };
 
   const handleComplete = async () => {
-    const updated = { ...profile, completedOnboarding: true };
-    setProfile(updated);
-    await updateProfile(updated);
-    router.push("/app");
+    if (!profile) return;
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const updated = { ...profile, completedOnboarding: true };
+      const result = await updateProfile(updated);
+
+      if (!result) {
+        throw new Error("Failed to save completion. Please try again.");
+      }
+
+      setProfile(updated);
+
+      // Show success state briefly
+      setIsSubmitting(false);
+      setCompletionSuccess(true);
+
+      // Wait before showing next screen so user sees "You're in" state
+      await new Promise(resolve => setTimeout(resolve, 1500));
+    } catch (error) {
+      console.error("Onboarding completion error:", error);
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again."
+      );
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleNavigateAfterSuccess = (destination: string) => {
+    router.push(destination);
   };
 
   return (
@@ -258,11 +304,24 @@ export default function OnboardingPage() {
           )}
 
           {currentStep === "photo" && (
-            <Card>
-              <CardHeader title="Add Your Photo" icon="📸" />
-              <p className="text-[#6b5f52] mb-6">
-                A real, current photo of yourself helps members recognize you and builds authentic connection. This is essential to our community.
-              </p>
+            <>
+              <div className="animate-in fade-in slide-in-from-top-6 duration-600" style={{ animationDelay: "0ms" }}>
+                <Card className="bg-orange-100 border-2 border-orange-400 mb-6">
+                  <div className="text-center space-y-3 py-1">
+                    <div className="text-4xl animate-bounce">✓</div>
+                    <div>
+                      <p className="text-lg font-bold text-[#6b5f52]">You're halfway there.</p>
+                      <p className="text-sm text-[#8b7f77] mt-1">Thanks for arriving thoughtfully.</p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: "700ms" }}>
+                <Card>
+                <CardHeader title="Add Your Photo" icon="📸" />
+                <p className="text-[#6b5f52] mb-6">
+                  A real, current photo of yourself helps members recognize you and builds authentic connection. This is essential to our community.
+                </p>
 
               {/* File Upload */}
               <div className="space-y-4">
@@ -289,59 +348,74 @@ export default function OnboardingPage() {
               </div>
 
               {/* Current Photo Preview */}
-              {profile.profilePhoto && (
-                <div className="mt-6 flex justify-center">
-                  <img
-                    src={profile.profilePhoto}
-                    alt="Your photo preview"
-                    className="w-24 h-24 rounded-lg object-cover"
-                  />
-                </div>
-              )}
-
-              {/* Photo Confirmation Checkbox */}
-              {profile.profilePhoto && (
-                <div className="mt-6 p-4 bg-[#f3ede5] rounded-lg">
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={profile.photo_confirmed || false}
-                      onChange={(e) =>
-                        handleUpdate({
-                          photo_confirmed: e.target.checked,
-                          photo_confirmed_at: e.target.checked ? new Date() : undefined,
-                        })
-                      }
-                      className="w-5 h-5 mt-0.5 flex-shrink-0"
+                {profile.profilePhoto && (
+                  <div className="mt-6 flex justify-center">
+                    <img
+                      src={profile.profilePhoto}
+                      alt="Your photo preview"
+                      className="w-24 h-24 rounded-lg object-cover"
                     />
-                    <span className="text-sm text-[#6b5f52]">
-                      I confirm this is a current, recognizable photograph of me and that I have permission to use it.
-                    </span>
-                  </label>
-                </div>
-              )}
+                  </div>
+                )}
 
-              <div className="flex gap-3 mt-6">
-                <Button variant="ghost" size="md" onClick={handleBack} className="flex-1">
-                  Back
-                </Button>
-                <Button
-                  variant="primary"
-                  size="md"
-                  onClick={handleNext}
-                  disabled={!profile.profilePhoto || !profile.photo_confirmed}
-                  className="flex-1"
-                >
-                  Continue
-                </Button>
+                {/* Photo Confirmation Checkbox */}
+                {profile.profilePhoto && (
+                  <div className="mt-6 p-4 bg-[#f3ede5] rounded-lg">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={profile.photo_confirmed || false}
+                        onChange={(e) =>
+                          handleUpdate({
+                            photo_confirmed: e.target.checked,
+                            photo_confirmed_at: e.target.checked ? new Date() : undefined,
+                          })
+                        }
+                        className="w-5 h-5 mt-0.5 flex-shrink-0"
+                      />
+                      <span className="text-sm text-[#6b5f52]">
+                        I confirm this is a current, recognizable photograph of me and that I have permission to use it.
+                      </span>
+                    </label>
+                  </div>
+                )}
+
+                <div className="flex gap-3 mt-6">
+                  <Button variant="ghost" size="md" onClick={handleBack} className="flex-1">
+                    Back
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onClick={handleNext}
+                    disabled={!profile.profilePhoto || !profile.photo_confirmed}
+                    className="flex-1"
+                  >
+                    Continue
+                  </Button>
+                </div>
+              </Card>
               </div>
-            </Card>
+            </>
           )}
 
           {currentStep === "interests" && (
-            <Card>
-              <CardHeader title="Your Interests" icon={<IconIntegration size={20} />} />
-              <p className="text-[#6b5f52] mb-4">What draws you here? (Select all that apply)</p>
+            <>
+              <div className="animate-in fade-in slide-in-from-top-6 duration-600" style={{ animationDelay: "0ms" }}>
+                <Card className="bg-orange-100 border-2 border-orange-400 mb-6">
+                  <div className="text-center space-y-3 py-1">
+                    <div className="text-4xl animate-bounce">✓</div>
+                    <div>
+                      <p className="text-lg font-bold text-[#6b5f52]">Your photo is in place.</p>
+                      <p className="text-sm text-[#8b7f77] mt-1">A real face helps the room feel more human.</p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: "700ms" }}>
+                <Card>
+                <CardHeader title="Your Interests" icon={<IconIntegration size={20} />} />
+                <p className="text-[#6b5f52] mb-4">What draws you here? (Select all that apply)</p>
               <div className="space-y-2">
                 {appConfig.interests.map((interest) => (
                   <label key={interest} className="flex items-center gap-3 p-3 hover:bg-[#f3ede5] rounded-lg cursor-pointer">
@@ -373,19 +447,21 @@ export default function OnboardingPage() {
                       const updated = e.target.value ? [...baseInterests, e.target.value] : baseInterests;
                       handleUpdate({ interests: updated });
                     }}
-                    className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574] text-sm"
-                  />
+                      className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574] text-sm"
+                    />
+                  </div>
                 </div>
+                <div className="flex gap-3 mt-6">
+                  <Button variant="ghost" size="md" onClick={handleBack} className="flex-1">
+                    Back
+                  </Button>
+                  <Button variant="primary" size="md" onClick={handleNext} className="flex-1">
+                    Continue
+                  </Button>
+                </div>
+              </Card>
               </div>
-              <div className="flex gap-3 mt-6">
-                <Button variant="ghost" size="md" onClick={handleBack} className="flex-1">
-                  Back
-                </Button>
-                <Button variant="primary" size="md" onClick={handleNext} className="flex-1">
-                  Continue
-                </Button>
-              </div>
-            </Card>
+            </>
           )}
 
           {currentStep === "pairings" && (
@@ -393,13 +469,13 @@ export default function OnboardingPage() {
               <CardHeader title="Connections" icon={<IconConnection size={20} />} />
               <div className="space-y-4">
                 <p className="text-[#6b5f52]">
-                  We offer optional pairings with other members for 20-minute conversations. Would you like to participate?
+                  We offer optional connections with other members for structured 20-minute conversations. Would you like to participate?
                 </p>
                 <div className="space-y-3">
                   {[
-                    { id: "weekly", label: "connect me this week" },
-                    { id: "monthly", label: "connect me monthly" },
-                    { id: "pause", label: "Pause connections" },
+                    { id: "weekly", label: "Connect me this week" },
+                    { id: "monthly", label: "Connect me monthly" },
+                    { id: "pause", label: "Not at this time" },
                   ].map((option) => (
                     <button
                       key={option.id}
@@ -414,6 +490,9 @@ export default function OnboardingPage() {
                     </button>
                   ))}
                 </div>
+                <p className="text-xs text-[#a0968a] pt-2">
+                  You can update your connection preferences anytime in your profile.
+                </p>
               </div>
               <div className="flex gap-3 mt-6">
                 <Button variant="ghost" size="md" onClick={handleBack} className="flex-1">
@@ -467,9 +546,22 @@ export default function OnboardingPage() {
           )}
 
           {currentStep === "prompt" && (
-            <Card>
-              <CardHeader title="First Reflection" icon={<IconReflection size={20} />} />
-              <div className="space-y-4">
+            <>
+              <div className="animate-in fade-in slide-in-from-top-6 duration-600" style={{ animationDelay: "0ms" }}>
+                <Card className="bg-orange-100 border-2 border-orange-400 mb-6">
+                  <div className="text-center space-y-3 py-1">
+                    <div className="text-4xl animate-pulse">✨</div>
+                    <div>
+                      <p className="text-lg font-bold text-[#6b5f52]">One final reflection,</p>
+                      <p className="text-sm text-[#8b7f77] mt-1">then the room is yours to explore.</p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: "700ms" }}>
+                <Card>
+                <CardHeader title="First Reflection" icon={<IconReflection size={20} />} />
+                <div className="space-y-4">
                 <div className="bg-[#f3ede5] p-4 rounded-lg italic text-[#6b5f52]">
                   "What kind of connection are you craving this week, and what part of you feels hesitant to ask for it?"
                 </div>
@@ -507,32 +599,118 @@ export default function OnboardingPage() {
                     </button>
                   </div>
                 </div>
+                </div>
+                <div className="flex gap-3 mt-6">
+                  <Button variant="ghost" size="md" onClick={handleBack} className="flex-1">
+                    Back
+                  </Button>
+                  <Button variant="primary" size="md" onClick={handleNext} className="flex-1">
+                    Continue
+                  </Button>
+                </div>
+              </Card>
               </div>
-              <div className="flex gap-3 mt-6">
-                <Button variant="ghost" size="md" onClick={handleBack} className="flex-1">
-                  Back
-                </Button>
-                <Button variant="primary" size="md" onClick={handleNext} className="flex-1">
-                  Continue
-                </Button>
+            </>
+          )}
+
+          {currentStep === "complete" && !completionSuccess && (
+            <Card>
+              <div className="text-center space-y-6">
+                <div className="text-6xl">🎉</div>
+                <h2 className="text-3xl text-[#2a2318]">Welcome to The Connection Room</h2>
+                <p className="text-lg text-[#6b5f52]">
+                  Your profile is ready, and you're part of the community.
+                </p>
+
+                {submitError && (
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-700">{submitError}</p>
+                    <button
+                      onClick={() => setSubmitError(null)}
+                      className="text-sm text-red-600 underline mt-2 hover:text-red-700"
+                    >
+                      Try again
+                    </button>
+                  </div>
+                )}
+
+                <div className="space-y-3 pt-4">
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    onClick={handleComplete}
+                    disabled={isSubmitting || submitError === null && isSubmitting}
+                    className="w-full"
+                  >
+                    {isSubmitting ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                        <span>Entering the Community…</span>
+                      </div>
+                    ) : (
+                      "Enter the Community"
+                    )}
+                  </Button>
+                </div>
+
+                <p className="text-xs text-[#a0968a] pt-2">
+                  {isSubmitting
+                    ? "Saving your profile..."
+                    : "Your profile will be saved and you'll enter the app."}
+                </p>
               </div>
             </Card>
           )}
 
-          {currentStep === "complete" && (
+          {currentStep === "complete" && completionSuccess && (
             <Card>
-              <div className="text-center space-y-6">
-                <div className="text-6xl">🎉</div>
-                <h2 className="text-3xl text-[#2a2318]">Welcome Home</h2>
-                <p className="text-lg text-[#6b5f52]">
-                  You're all set. Your profile is complete and you're part of the community.
-                </p>
-                <p className="text-[#6b5f52]">
-                  Start by exploring spaces, reading prompts, or connecting with others.
-                </p>
-                <Button variant="primary" size="lg" onClick={handleComplete} className="w-full">
-                  Enter the Community
-                </Button>
+              <div className="text-center space-y-8">
+                <div>
+                  <div className="text-6xl mb-4">✓</div>
+                  <h2 className="text-4xl text-[#2a2318] mb-3">You're in</h2>
+                  <p className="text-lg text-[#6b5f52]">
+                    Your profile is ready, and you're part of the community.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <p className="text-[#6b5f52] font-medium">Choose a place to begin:</p>
+
+                  <button
+                    onClick={() => handleNavigateAfterSuccess("/app/journey")}
+                    className="w-full p-4 text-left rounded-lg border-2 border-[#d4a574] bg-[#f3ede5] hover:bg-[#e8ddd2] transition-all"
+                  >
+                    <p className="font-medium text-[#2a2318]">Start the Seven Doors</p>
+                    <p className="text-sm text-[#6b5f52] mt-1">Your first guided chapter inside The Connection Room</p>
+                  </button>
+
+                  <button
+                    onClick={() => handleNavigateAfterSuccess("/app/spaces?space=commons")}
+                    className="w-full p-4 text-left rounded-lg border-2 border-[#e8ddd2] hover:border-[#d4a574] hover:bg-[#f3ede5] transition-all"
+                  >
+                    <p className="font-medium text-[#2a2318]">Visit The Commons</p>
+                    <p className="text-sm text-[#6b5f52] mt-1">Introduce yourself and see who else is here</p>
+                  </button>
+
+                  <button
+                    onClick={() => handleNavigateAfterSuccess("/app/spaces")}
+                    className="w-full p-4 text-left rounded-lg border-2 border-[#e8ddd2] hover:border-[#d4a574] hover:bg-[#f3ede5] transition-all"
+                  >
+                    <p className="font-medium text-[#2a2318]">Explore Your Spaces</p>
+                    <p className="text-sm text-[#6b5f52] mt-1">Browse all the communities available to you</p>
+                  </button>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    onClick={() => handleNavigateAfterSuccess("/app")}
+                    className="flex-1"
+                  >
+                    Skip for Now
+                  </Button>
+                </div>
               </div>
             </Card>
           )}

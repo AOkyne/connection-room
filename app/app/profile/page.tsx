@@ -5,6 +5,7 @@ import { getProfile, updateProfile, type Profile } from "@/lib/data/profiles";
 import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { IconIntegration, IconConnection, IconProfileNav, IconProfile } from "@/components/Icons";
 
 export default function ProfilePage() {
@@ -37,7 +38,7 @@ export default function ProfilePage() {
     setProfile({ ...profile, interests: updated });
   };
 
-  if (!profile) return <div>Loading...</div>;
+  if (!profile) return <LoadingScreen message="Loading your profile" subtitle="We're gathering your information. Just a moment..." />;
 
   return (
     <div className="space-y-8 max-w-2xl">

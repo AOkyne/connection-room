@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Card } from "@/components/Card";
+import Link from "next/link";
 
 interface RecentReflection {
   id: string;
@@ -18,11 +19,15 @@ interface ReflectionsFromRoomCardProps {
   isLoading?: boolean;
 }
 
+const MAX_VISIBLE = 3;
+
 export function ReflectionsFromRoomCard({
   recentReflections = [],
   isLoading = false,
 }: ReflectionsFromRoomCardProps) {
   const hasReflections = recentReflections.length > 0;
+  const visibleReflections = recentReflections.slice(0, MAX_VISIBLE);
+  const hasMore = recentReflections.length > MAX_VISIBLE;
 
   return (
     <Card className="bg-gradient-to-br from-[#f3ede5] to-white">
@@ -41,7 +46,7 @@ export function ReflectionsFromRoomCard({
           </div>
         ) : hasReflections ? (
           <div className="space-y-3">
-            {recentReflections.map((reflection) => (
+            {visibleReflections.map((reflection) => (
               <div
                 key={reflection.id}
                 className="px-4 py-3 rounded-lg bg-white border border-[#e8ddd2] hover:border-[#d4a574] transition-colors"
@@ -64,6 +69,13 @@ export function ReflectionsFromRoomCard({
                 </div>
               </div>
             ))}
+            {hasMore && (
+              <Link href="/app/spaces/commons" className="block pt-2">
+                <p className="text-xs text-[#d4a574] font-medium hover:underline">
+                  +{recentReflections.length - MAX_VISIBLE} more reflections →
+                </p>
+              </Link>
+            )}
           </div>
         ) : (
           <div className="py-6 text-center space-y-3">

@@ -23,8 +23,8 @@ export function ReactionButton({
       aria-label={`${label}${count > 0 ? `, ${count} reactions` : ""}${isSelected ? ", selected" : ""}`}
       className={`px-3 py-2 text-sm font-medium rounded-full transition-all ${
         isSelected
-          ? "bg-[#c9956f] text-white border-2 border-[#b0804d] shadow-md"
-          : "border border-[#e8ddd2] text-[#6b5f52] hover:border-[#d4a574] hover:bg-[#f8f6f2]"
+          ? "bg-[#c9956f] text-white border-2 border-[#b0804d] shadow-md hover:shadow-lg"
+          : "border border-[#ede6e0] text-[#6b5f52] hover:border-[#d4a574] hover:bg-[#f9f7f4] hover:shadow-sm"
       } disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap`}
     >
       {label}

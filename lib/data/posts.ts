@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
-import { demoPosts, demoBadges } from "./demo-data";
+import { demoPosts, demoBadges, demoComments } from "./demo-data";
 import {
   getSupabasePosts,
   createSupabasePost,
@@ -234,11 +234,12 @@ export async function getComments(postId: string): Promise<Comment[]> {
     return await getSupabaseComments(postId);
   }
 
-  // Demo mode fallback
+  // Demo mode fallback - combine stored comments with demo comments
   const stored = localStorage.getItem(COMMENTS_STORAGE_KEY);
-  const comments = stored ? JSON.parse(stored) : [];
+  const storedComments = stored ? JSON.parse(stored) : [];
+  const allComments = [...demoComments, ...storedComments];
 
-  return comments.filter((c: Comment) => c.postId === postId);
+  return allComments.filter((c: Comment) => c.postId === postId);
 }
 
 // Create comment
@@ -317,27 +318,30 @@ export async function getUserEngagementStats(userId: string): Promise<{ postsSha
     return { postsShared: 0, responsesReceived: 0, commentsOffered: 0 };
   }
 
-  // Get all posts and comments
-  const posts = await getPosts();
-  const userPosts = posts.filter((p: Post) => p.userId === userId);
+  // Get raw post data without reaction migration for faster counting
+  const stored = localStorage.getItem(POSTS_STORAGE_KEY);
+  const posts = stored ? JSON.parse(stored) : demoPosts;
 
-  // Count total responses (comments on their posts)
+  // Count user's posts and their responses (comments)
+  let postsShared = 0;
   let totalResponses = 0;
-  userPosts.forEach((post: Post) => {
-    totalResponses += post.commentCount || 0;
+
+  posts.forEach((post: any) => {
+    if (post.userId === userId) {
+      postsShared++;
+      totalResponses += post.commentCount || 0;
+    }
   });
 
-  // Count comments user has made on other posts
+  // Count comments user has made
   let commentsOffered = 0;
-  if (typeof window !== "undefined") {
-    const stored = localStorage.getItem(COMMENTS_STORAGE_KEY);
-    const allComments = stored ? JSON.parse(stored) : [];
-    commentsOffered = allComments.filter((c: Comment) => c.userId === userId).length;
-  }
+  const commentsStored = localStorage.getItem(COMMENTS_STORAGE_KEY);
+  const allComments = commentsStored ? JSON.parse(commentsStored) : demoComments;
+  commentsOffered = allComments.filter((c: any) => c.userId === userId).length;
 
   return {
-    postsShared: userPosts.length,
+    postsShared,
     responsesReceived: totalResponses,
-    commentsOffered: commentsOffered,
+    commentsOffered,
   };
 }

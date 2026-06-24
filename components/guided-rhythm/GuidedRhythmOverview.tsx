@@ -51,13 +51,15 @@ export function GuidedRhythmOverview() {
 
       const currentMon = content.find((m) => m.monthNumber === month);
       if (currentMon) {
-        const reflection = await getPrivateReflection(month, week);
+        // Load reflection, integration, and intention in parallel
+        const [reflection, integration, intention] = await Promise.all([
+          getPrivateReflection(month, week),
+          getMonthlyIntegration(month),
+          getMonthlyIntention(month),
+        ]);
+
         setWeeklyReflection(reflection || "");
-
-        const integration = await getMonthlyIntegration(month);
         setMonthlyIntegrationText(integration || "");
-
-        const intention = await getMonthlyIntention(month);
         setSelectedIntention(intention || "");
       }
     } catch (error) {

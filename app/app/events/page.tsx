@@ -5,6 +5,7 @@ import { getProfile } from "@/lib/data/profiles";
 import { getUpcomingEvents, toggleEventInterest, getUserEventInterests } from "@/lib/data/events";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { IconUpcoming } from "@/components/Icons";
 
 export default function EventsPage() {
@@ -33,7 +34,7 @@ export default function EventsPage() {
   }, []);
 
   if (!mounted || !profile) {
-    return <div>Loading...</div>;
+    return <LoadingScreen message="Getting ready for events" subtitle="We're personalizing your experience. Just a moment..." />;
   }
 
   const handleToggleInterest = (eventId: string) => {

@@ -17,6 +17,7 @@ import {
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { IconConnection, IconForYou } from "@/components/Icons";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export default function ConnectionsPage() {
   const [profile, setProfile] = useState<any>(null);
@@ -46,7 +47,7 @@ export default function ConnectionsPage() {
   }, []);
 
   if (!mounted || !profile || !preferences) {
-    return <div>Loading...</div>;
+    return <LoadingScreen message="Getting ready for connections" subtitle="We're personalizing your experience. Just a moment..." />;
   }
 
   const handleFrequencyChange = (frequency: string) => {
@@ -99,6 +100,19 @@ export default function ConnectionsPage() {
         </p>
       </div>
 
+      {/* Demo Notice */}
+      <Card className="bg-[#fff3e0] border-2 border-[#d4a574]">
+        <div className="flex items-start gap-3">
+          <span className="text-xl">📋</span>
+          <div>
+            <p className="font-medium text-[#2a2318]">This is a demo experience</p>
+            <p className="text-sm text-[#6b5f52] mt-1">
+              You can explore the preferences and see how connections work. Actual matching and messaging functionality will begin in Phase 2.
+            </p>
+          </div>
+        </div>
+      </Card>
+
       {/* Preferences */}
       <Card>
         <CardHeader title="Your Preferences" icon={<IconForYou size={20} />} />
@@ -111,7 +125,7 @@ export default function ConnectionsPage() {
               {[
                 { id: "weekly", label: "connect me this week" },
                 { id: "monthly", label: "connect me monthly" },
-                { id: "pause", label: "Pause connections" },
+                { id: "pause", label: "Not at this time" },
               ].map((option) => (
                 <label key={option.id} className="flex items-center gap-3 p-3 hover:bg-[#f3ede5] rounded cursor-pointer">
                   <input
@@ -216,7 +230,7 @@ export default function ConnectionsPage() {
               <p className="flex items-start gap-2">
                 <span>✓</span>
                 <span>
-                  <strong>Consent:</strong> Either party can pause or end the pairing anytime
+                  <strong>Consent:</strong> Either party can pause or end the connection anytime
                 </span>
               </p>
               <p className="flex items-start gap-2">
@@ -233,7 +247,7 @@ export default function ConnectionsPage() {
                 Mark Complete
               </Button>
               <Button variant="outline" size="md" onClick={handleSkipPairing} className="flex-1">
-                Skip This Pairing
+                Skip This Connection
               </Button>
             </div>
 
@@ -286,10 +300,10 @@ export default function ConnectionsPage() {
         </Card>
       ) : (
         <Card className="text-center py-8">
-          <p className="text-[#6b5f52] mb-4">No active pairing right now.</p>
+          <p className="text-[#6b5f52] mb-4">No active connection right now.</p>
           {preferences.frequency !== "pause" ? (
             <Button variant="primary" size="md" onClick={handleGeneratePairing}>
-              Generate Demo Pairing
+              Generate Demo Connection
             </Button>
           ) : (
             <p className="text-sm text-[#a0968a]">Connections are paused. Update your preferences to be paired.</p>
@@ -303,7 +317,7 @@ export default function ConnectionsPage() {
         <ul className="space-y-3 text-[#6b5f52] text-sm">
           <li className="flex items-start gap-3">
             <span className="text-[#d4a574]">✓</span>
-            <span>Opt-in only—pairings happen because you want them</span>
+            <span>Opt-in only—connections happen because you want them</span>
           </li>
           <li className="flex items-start gap-3">
             <span className="text-[#d4a574]">✓</span>
@@ -331,9 +345,9 @@ export default function ConnectionsPage() {
         <CardHeader title="Coming in Phase 2" icon="🚀" />
         <ul className="space-y-2 text-sm text-[#6b5f52]">
           <li>✓ Mutual contact exchange (email, phone, Zoom link)</li>
-          <li>✓ Couples pairings (couples-to-couples, individual-to-couple options)</li>
-          <li>✓ Pairing history and notes</li>
-          <li>✓ In-app messaging (limited to active pairings only)</li>
+          <li>✓ Couples connections (couples-to-couples, individual-to-couple options)</li>
+          <li>✓ Connection history and notes</li>
+          <li>✓ In-app messaging (limited to active connections only)</li>
         </ul>
       </Card>
     </div>
