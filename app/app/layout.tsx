@@ -94,8 +94,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
       <div className="flex flex-1">
         {/* Desktop Sidebar */}
-        <aside className="hidden md:flex flex-col w-64 border-r border-[#e8e3db] bg-white">
-          <nav className="flex-1 px-4 py-6 space-y-2">
+        <aside className="hidden md:flex flex-col w-64 border-r border-[#e8e3db] bg-white overflow-y-auto">
+          <nav className="sticky top-0 px-4 py-6 space-y-2 bg-white z-10">
             {navItems.map((item) => (
               <Link
                 key={item.href}
