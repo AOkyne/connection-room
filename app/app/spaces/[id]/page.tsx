@@ -33,6 +33,7 @@ import { ErrorFeedback } from "@/components/ErrorFeedback";
 import { LoadingStateFeedback } from "@/components/LoadingStateFeedback";
 import { SearchBox } from "@/components/SearchBox";
 import { FilterBar } from "@/components/FilterBar";
+import { PostAnalytics } from "@/components/posts/PostAnalytics";
 import { demoMembers } from "@/lib/seed/demo-members";
 import { demoSpaceMemberships } from "@/lib/seed/demo-space-memberships";
 import Link from "next/link";
@@ -618,12 +619,20 @@ export default function SpaceDetailPage() {
                 onReact={(reactionKey) => handleReaction(post.id, reactionKey)}
               />
 
+              {/* Post Analytics */}
+              <PostAnalytics
+                commentCount={post.commentCount}
+                reactions={post.reactions}
+                createdAt={post.createdAt}
+                compact={true}
+              />
+
               {/* Comments Toggle */}
               <button
                 onClick={() => toggleExpandPost(post.id)}
-                className="text-sm text-[#d4a574] hover:text-[#9d7f5c] font-medium"
+                className="text-sm text-[#d4a574] hover:text-[#9d7f5c] font-medium mt-2"
               >
-                Comment | {post.commentCount} {post.commentCount === 1 ? "comment" : "comments"}
+                💬 View {post.commentCount} {post.commentCount === 1 ? "comment" : "comments"}
               </button>
 
               {/* Comments Section */}
