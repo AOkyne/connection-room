@@ -31,6 +31,8 @@ import { useToast } from "@/lib/hooks/useToast";
 import { Avatar } from "@/components/Avatar";
 import { ErrorFeedback } from "@/components/ErrorFeedback";
 import { LoadingStateFeedback } from "@/components/LoadingStateFeedback";
+import { SearchBox } from "@/components/SearchBox";
+import { FilterBar } from "@/components/FilterBar";
 import { demoMembers } from "@/lib/seed/demo-members";
 import { demoSpaceMemberships } from "@/lib/seed/demo-space-memberships";
 import Link from "next/link";
@@ -67,6 +69,36 @@ export default function SpaceDetailPage() {
     if (typeof window === "undefined") return {};
     const stored = localStorage.getItem("connection-room:user-reactions");
     return stored ? JSON.parse(stored) : {};
+  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<"all" | "recent" | "popular">(() => {
+    if (typeof window === "undefined") return "all";
+    return (localStorage.getItem("connection-room:post-filter") as "all" | "recent" | "popular") || "all";
+  });
+
+  // Filter and search posts
+  const filteredPosts = posts.filter((post) => {
+    // Search filter
+    const matchesSearch = !searchQuery ||
+      post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.authorName.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    // Type filter
+    if (filterType === "recent") {
+      return true; // Will be sorted by date
+    } else if (filterType === "popular") {
+      return (post.commentCount || 0) + (Object.values(post.reactions || {}).reduce((a, b) => a + b, 0) || 0) > 0;
+    }
+    return true;
+  }).sort((a, b) => {
+    if (filterType === "popular") {
+      const aEngagement = (a.commentCount || 0) + (Object.values(a.reactions || {}).reduce((sum, count) => sum + count, 0) || 0);
+      const bEngagement = (b.commentCount || 0) + (Object.values(b.reactions || {}).reduce((sum, count) => sum + count, 0) || 0);
+      return bEngagement - aEngagement;
+    }
+    return 0; // Default order (recent)
   });
 
   useEffect(() => {
@@ -506,12 +538,44 @@ export default function SpaceDetailPage() {
 
       {/* Posts Feed */}
       <div id="posts-feed" className="space-y-6">
+        {/* Search and Filter */}
+        {mounted && posts.length > 0 && (
+          <div className="space-y-3">
+            <SearchBox
+              placeholder="Search posts or authors..."
+              onSearch={setSearchQuery}
+              onClear={() => setSearchQuery("")}
+            />
+            <FilterBar
+              filters={[
+                { id: "recent", label: "Recent" },
+                { id: "popular", label: "Popular" },
+              ]}
+              selectedFilter={filterType}
+              onFilterChange={(filter) => {
+                setFilterType(filter as "all" | "recent" | "popular");
+                localStorage.setItem("connection-room:post-filter", filter);
+              }}
+            />
+          </div>
+        )}
+
         {!mounted ? (
           <div className="space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (
               <SkeletonPost key={i} />
             ))}
           </div>
+        ) : filteredPosts.length === 0 && searchQuery ? (
+          <Card className="text-center py-8">
+            <p className="text-[#6b5f52]">No posts match your search.</p>
+            <button
+              onClick={() => setSearchQuery("")}
+              className="text-sm text-[#d4a574] hover:underline mt-2"
+            >
+              Clear search
+            </button>
+          </Card>
         ) : posts.length === 0 ? (
           <EmptySpaceInvitation
             spaceId={spaceId}
@@ -521,7 +585,7 @@ export default function SpaceDetailPage() {
             }}
           />
         ) : (
-          posts.map((post) => (
+          filteredPosts.map((post) => (
             <Card key={post.id}>
               <div className="flex items-start justify-between mb-3">
                 <Link href={`/app/users/${post.userId}`} className="flex items-start gap-3 flex-1 hover:opacity-80 transition-opacity">
