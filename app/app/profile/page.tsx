@@ -7,10 +7,11 @@ import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { IconIntegration, IconConnection, IconProfileNav, IconProfile } from "@/components/Icons";
+import { ProfileSavedFeedback } from "@/components/feedback";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [profileSavedFeedback, setProfileSavedFeedback] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -23,9 +24,12 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     if (profile) {
-      await updateProfile(profile);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
+      try {
+        await updateProfile(profile);
+        setProfileSavedFeedback(true);
+      } catch (error) {
+        console.warn("Error saving profile:", error);
+      }
     }
   };
 
@@ -42,6 +46,11 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-8 max-w-2xl">
+      {/* Profile Saved Feedback */}
+      {profileSavedFeedback && (
+        <ProfileSavedFeedback onClose={() => setProfileSavedFeedback(false)} />
+      )}
+
       <div>
         <h1 className="text-4xl font-bold text-[#1a1714]">Your Profile</h1>
         <p className="text-lg text-[#6b6460] mt-2">

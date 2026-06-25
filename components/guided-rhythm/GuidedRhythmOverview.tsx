@@ -22,6 +22,7 @@ import { WeeklyPromptCard } from "./WeeklyPromptCard";
 import { PrivateReflectionBox } from "./PrivateReflectionBox";
 import { MonthlyIntegrationCard } from "./MonthlyIntegrationCard";
 import { CommunityInvitationCard } from "./CommunityInvitationCard";
+import { PrivateReflectionFeedback } from "@/components/feedback";
 
 export function GuidedRhythmOverview() {
   const [progress, setProgress] = useState<any>(null);
@@ -32,6 +33,7 @@ export function GuidedRhythmOverview() {
   const [selectedIntention, setSelectedIntention] = useState("");
   const [showIntentionModal, setShowIntentionModal] = useState(false);
   const [customIntention, setCustomIntention] = useState("");
+  const [reflectionSavedFeedback, setReflectionSavedFeedback] = useState(false);
 
   const { month, week } = getCurrentMonthAndWeek();
   const currentMonth = rhythmContent.find((m) => m.monthNumber === month);
@@ -74,13 +76,23 @@ export function GuidedRhythmOverview() {
   }
 
   async function handleSaveWeeklyReflection(text: string) {
-    await savePrivateReflection(month, week, text);
-    setWeeklyReflection(text);
+    try {
+      await savePrivateReflection(month, week, text);
+      setWeeklyReflection(text);
+      setReflectionSavedFeedback(true);
+    } catch (error) {
+      console.warn("Error saving weekly reflection:", error);
+    }
   }
 
   async function handleSaveMonthlyIntegration(text: string) {
-    await saveMonthlyIntegration(month, text);
-    setMonthlyIntegrationText(text);
+    try {
+      await saveMonthlyIntegration(month, text);
+      setMonthlyIntegrationText(text);
+      setReflectionSavedFeedback(true);
+    } catch (error) {
+      console.warn("Error saving monthly integration:", error);
+    }
   }
 
   async function handleSetIntention(intention: string) {
@@ -107,6 +119,14 @@ export function GuidedRhythmOverview() {
 
   return (
     <div className="space-y-8">
+      {/* Reflection Saved Feedback */}
+      {reflectionSavedFeedback && (
+        <PrivateReflectionFeedback
+          onViewJourney={() => setReflectionSavedFeedback(false)}
+          onContinue={() => setReflectionSavedFeedback(false)}
+        />
+      )}
+
       {/* Header */}
       <div className="space-y-2">
         <h2 className="text-3xl font-semibold text-[#2a2318]">

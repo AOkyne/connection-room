@@ -14,7 +14,7 @@ import { withTimeout } from "@/lib/utils/with-timeout";
 import { DoorCard } from "./DoorCard";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
-import { DoorCompletionFeedback } from "@/components/feedback";
+import { DoorCompletionFeedback, PrivateReflectionFeedback } from "@/components/feedback";
 
 export function SevenDoorsOverview() {
   const [progress, setProgress] = useState<any>(null);
@@ -23,6 +23,7 @@ export function SevenDoorsOverview() {
   const [showIntentionModal, setShowIntentionModal] = useState(false);
   const [customIntention, setCustomIntention] = useState("");
   const [completedDoorFeedback, setCompletedDoorFeedback] = useState<number | null>(null);
+  const [savedReflectionFeedback, setSavedReflectionFeedback] = useState<number | null>(null);
 
   useEffect(() => {
     loadProgress();
@@ -74,8 +75,9 @@ export function SevenDoorsOverview() {
         ...prev,
         [doorNumber]: reflection,
       }));
+      setSavedReflectionFeedback(doorNumber);
     } catch (error) {
-      console.error("Error saving reflection:", error);
+      console.warn("Error saving reflection:", error);
     }
   }
 
@@ -116,6 +118,14 @@ export function SevenDoorsOverview() {
 
   return (
     <div className="space-y-8">
+      {/* Reflection Saved Feedback */}
+      {savedReflectionFeedback && (
+        <PrivateReflectionFeedback
+          onViewJourney={() => setSavedReflectionFeedback(null)}
+          onContinue={() => setSavedReflectionFeedback(null)}
+        />
+      )}
+
       {/* Door Completion Feedback */}
       {completedDoorFeedback && completedDoor && (
         <DoorCompletionFeedback

@@ -9,6 +9,7 @@ import { createPost } from "@/lib/data/posts";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import Link from "next/link";
+import { PublicReflectionFeedback } from "@/components/feedback";
 
 export default function ReflectPage() {
   const router = useRouter();
@@ -19,6 +20,7 @@ export default function ReflectPage() {
   const [selectedSpaceId, setSelectedSpaceId] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [reflectionShared, setReflectionShared] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -68,12 +70,24 @@ export default function ReflectPage() {
         profile.pronouns,
         profile.profilePhoto
       );
-      router.push("/app");
+      setReflectionShared(true);
     } catch (error) {
-      console.error("Error creating post:", error);
+      console.warn("Error creating post:", error);
       setSubmitting(false);
     }
   };
+
+  if (reflectionShared) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <PublicReflectionFeedback
+          onViewPost={() => router.push("/app/spaces/" + selectedSpaceId)}
+          onReadOthers={() => router.push("/app")}
+          onReturnHome={() => router.push("/app")}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
