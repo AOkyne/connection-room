@@ -68,12 +68,12 @@ export function MonthlyThemeCard({ month, onSelectRitualOption }: MonthlyThemeCa
             </p>
             <p className="text-xs text-[#6b5f52] mb-3">{month.ritual.description}</p>
             {month.ritual.options && month.ritual.options.length > 0 && (
-              <div className="space-y-2">
+              <div className="flex flex-wrap gap-3">
                 {month.ritual.options.map((option, idx) => (
                   <button
                     key={idx}
                     onClick={() => onSelectRitualOption?.(option)}
-                    className="text-left px-3 py-2 text-xs text-[#6b5f52] rounded-lg border border-[#d4a574] hover:bg-[#f3ede5] transition-colors"
+                    className="px-3 py-2 text-xs text-[#6b5f52] rounded-lg border border-[#d4a574] hover:bg-[#f3ede5] transition-colors"
                   >
                     {option}
                   </button>
