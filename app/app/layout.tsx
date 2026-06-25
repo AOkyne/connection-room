@@ -93,24 +93,22 @@ export default function AppLayout({ children }: AppLayoutProps) {
       </header>
 
       <div className="flex flex-1">
-        {/* Desktop Sidebar */}
-        <aside className="hidden md:flex flex-col w-64 border-r border-[#e8e3db] bg-white overflow-y-auto">
-          <nav className="sticky top-0 px-4 py-6 space-y-2 bg-white z-10">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#6b6460] hover:bg-[#f8f6f2] transition-colors"
-              >
-                {item.icon ? <item.icon size={20} /> : <IconSpaces size={20} />}
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </nav>
+        {/* Desktop Sidebar - Fixed Navigation */}
+        <nav className="hidden md:flex fixed left-0 top-40 w-64 flex-col px-4 py-6 space-y-2 bg-white z-30 border-r border-[#e8e3db] h-[calc(100vh-160px)] overflow-y-auto">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#6b6460] hover:bg-[#f8f6f2] transition-colors"
+            >
+              {item.icon ? <item.icon size={20} /> : <IconSpaces size={20} />}
+              <span>{item.label}</span>
+            </Link>
+          ))}
 
           {/* Admin Link if Admin */}
           {session?.type === "admin" && (
-            <div className="border-t border-[#e8e3db] px-4 py-4">
+            <div className="border-t border-[#e8e3db] mt-4 pt-4">
               <Link
                 href="/app/admin"
                 className="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#f8f6f2] text-[#8b6f47] font-medium hover:bg-[#e8e3db] transition-colors"
@@ -120,10 +118,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
               </Link>
             </div>
           )}
-        </aside>
+        </nav>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden md:ml-64">
           <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">{children}</div>
 
           {/* Mobile Bottom Navigation */}
