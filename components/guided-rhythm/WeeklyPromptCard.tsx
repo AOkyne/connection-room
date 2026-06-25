@@ -140,19 +140,19 @@ export function WeeklyPromptCard({
             <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide">
               Your Preferred Format
             </p>
-            <div className="grid grid-cols-1 gap-2">
+            <div className="flex flex-wrap gap-3">
               {PAIRING_FORMATS.map((format) => (
                 <button
                   key={format.id}
                   onClick={() => handleSelectPairingFormat(format.id)}
-                  className={`px-4 py-3 rounded-lg text-left transition-colors ${
+                  className={`px-3 py-2 rounded-lg transition-colors text-xs ${
                     selectedPairingFormat === format.id
-                      ? "bg-[#d4a574] text-[#ffffff] border-2 border-[#d4a574]"
-                      : "bg-[#f3ede5] text-[#2a2318] border-2 border-[#e8ddd2] hover:border-[#d4a574]"
+                      ? "bg-[#d4a574] text-[#ffffff] border border-[#d4a574]"
+                      : "bg-[#f3ede5] text-[#2a2318] border border-[#e8ddd2] hover:border-[#d4a574]"
                   }`}
+                  title={format.description}
                 >
-                  <p className="text-sm font-medium">{format.label}</p>
-                  <p className="text-xs text-opacity-80">{format.description}</p>
+                  {format.label}
                 </button>
               ))}
             </div>
