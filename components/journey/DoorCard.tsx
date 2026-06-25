@@ -96,7 +96,7 @@ export function DoorCard({
       {/* Actions - Grouped by Type */}
       <div className="space-y-4 mb-4">
         {/* Non-reflection actions */}
-        <div className="space-y-2">
+        <div className="flex flex-wrap gap-3">
           {door.actions.filter(a => a.type !== "reflection").map((action) => (
             <button
               key={action.id}
