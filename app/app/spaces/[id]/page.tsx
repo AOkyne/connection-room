@@ -619,21 +619,21 @@ export default function SpaceDetailPage() {
                 onReact={(reactionKey) => handleReaction(post.id, reactionKey)}
               />
 
-              {/* Post Analytics */}
-              <PostAnalytics
-                commentCount={post.commentCount}
-                reactions={post.reactions}
-                createdAt={post.createdAt}
-                compact={true}
-              />
-
-              {/* Comments Toggle */}
-              <button
-                onClick={() => toggleExpandPost(post.id)}
-                className="text-sm text-[#d4a574] hover:text-[#9d7f5c] font-medium mt-2"
-              >
-                💬 View {post.commentCount} {post.commentCount === 1 ? "comment" : "comments"}
-              </button>
+              {/* Post Analytics and Comments Toggle */}
+              <div className="flex items-center justify-between mt-3">
+                <button
+                  onClick={() => toggleExpandPost(post.id)}
+                  className="text-sm font-medium text-[#d4a574] hover:text-[#9d7f5c] hover:underline transition-colors"
+                >
+                  💬 Comment | {post.commentCount} {post.commentCount === 1 ? "comment" : "comments"}
+                </button>
+                <PostAnalytics
+                  commentCount={post.commentCount}
+                  reactions={post.reactions}
+                  createdAt={post.createdAt}
+                  compact={true}
+                />
+              </div>
 
               {/* Comments Section */}
               {expandedPost === post.id && (
