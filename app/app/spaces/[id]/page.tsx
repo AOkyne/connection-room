@@ -306,7 +306,7 @@ export default function SpaceDetailPage() {
   return (
     <div className="space-y-8">
       {/* Space Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <SpaceIconSVG spaceId={space.id} size={40} />
@@ -315,11 +315,25 @@ export default function SpaceDetailPage() {
           <p className="text-lg text-[#6b5f52]">{space.description}</p>
           <p className="text-sm text-[#a0968a] mt-2">{demoMembers.filter(m => m.spacesJoined?.includes(spaceId)).length} members</p>
         </div>
-        <Link href="/app/spaces">
-          <Button variant="outline" size="md">
-            ← Back
-          </Button>
-        </Link>
+        <div className="flex flex-col gap-2 items-end">
+          {/* Compact Search Bar */}
+          {mounted && posts.length > 0 && (
+            <div className="w-48">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search posts..."
+                className="w-full px-3 py-1.5 text-sm border border-[#d4a574] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4a574] text-[#2a2318] placeholder-[#a0968a]"
+              />
+            </div>
+          )}
+          <Link href="/app/spaces">
+            <Button variant="outline" size="md">
+              ← Back
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* People in This Space - Small Thumbnails at Top */}
@@ -538,26 +552,19 @@ export default function SpaceDetailPage() {
 
       {/* Posts Feed */}
       <div id="posts-feed" className="space-y-6">
-        {/* Search and Filter */}
+        {/* Filter Bar */}
         {mounted && posts.length > 0 && (
-          <div className="space-y-3">
-            <SearchBox
-              placeholder="Search posts or authors..."
-              onSearch={setSearchQuery}
-              onClear={() => setSearchQuery("")}
-            />
-            <FilterBar
-              filters={[
-                { id: "recent", label: "Recent" },
-                { id: "popular", label: "Popular" },
-              ]}
-              selectedFilter={filterType}
-              onFilterChange={(filter) => {
-                setFilterType(filter as "all" | "recent" | "popular");
-                localStorage.setItem("connection-room:post-filter", filter);
-              }}
-            />
-          </div>
+          <FilterBar
+            filters={[
+              { id: "recent", label: "Recent" },
+              { id: "popular", label: "Popular" },
+            ]}
+            selectedFilter={filterType}
+            onFilterChange={(filter) => {
+              setFilterType(filter as "all" | "recent" | "popular");
+              localStorage.setItem("connection-room:post-filter", filter);
+            }}
+          />
         )}
 
         {!mounted ? (
