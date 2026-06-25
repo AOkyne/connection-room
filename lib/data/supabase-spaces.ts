@@ -19,7 +19,7 @@ export async function getSupabaseSpaces(): Promise<Space[]> {
       .order("name", { ascending: true });
 
     if (error) {
-      console.error("Error fetching spaces:", error);
+      console.warn("Could not fetch spaces from Supabase, using fallback:", error?.message);
       return [];
     }
 
@@ -33,7 +33,7 @@ export async function getSupabaseSpaces(): Promise<Space[]> {
       })) || []
     );
   } catch (err) {
-    console.error("Error in getSupabaseSpaces:", err);
+    console.warn("Exception in getSupabaseSpaces, using fallback");
     return [];
   }
 }
@@ -52,7 +52,7 @@ export async function getUserJoinedSpaces(userId: string): Promise<Space[]> {
       .eq("user_id", userId);
 
     if (membershipError) {
-      console.error("Error fetching user space memberships:", membershipError);
+      console.warn("Could not fetch space memberships, using fallback:", membershipError?.message);
       return [];
     }
 
@@ -71,7 +71,7 @@ export async function getUserJoinedSpaces(userId: string): Promise<Space[]> {
       .in("id", spaceIds);
 
     if (spacesError) {
-      console.error("Error fetching space details:", spacesError);
+      console.warn("Could not fetch space details, using fallback:", spacesError?.message);
       return [];
     }
 
@@ -85,7 +85,7 @@ export async function getUserJoinedSpaces(userId: string): Promise<Space[]> {
       })) || []
     );
   } catch (err) {
-    console.error("Error in getUserJoinedSpaces:", err);
+    console.warn("Exception in getUserJoinedSpaces, using fallback");
     return [];
   }
 }
@@ -101,13 +101,13 @@ export async function joinSpace(userId: string, spaceId: string): Promise<boolea
     });
 
     if (error) {
-      console.error("Error joining space:", error);
+      console.warn("Error joining space:", error);
       return false;
     }
 
     return true;
   } catch (err) {
-    console.error("Error in joinSpace:", err);
+    console.warn("Error in joinSpace:", err);
     return false;
   }
 }
@@ -124,13 +124,13 @@ export async function leaveSpace(userId: string, spaceId: string): Promise<boole
       .eq("space_id", spaceId);
 
     if (error) {
-      console.error("Error leaving space:", error);
+      console.warn("Error leaving space:", error);
       return false;
     }
 
     return true;
   } catch (err) {
-    console.error("Error in leaveSpace:", err);
+    console.warn("Error in leaveSpace:", err);
     return false;
   }
 }

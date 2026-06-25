@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { withTimeout } from "@/lib/utils/with-timeout";
 import { getJourneyProgress, ensureJourneyExists } from "@/lib/data/first-week-journey";
 import { Card } from "@/components/Card";
 
@@ -16,10 +17,10 @@ export function FirstWeekDashboardCard() {
   async function loadProgress() {
     try {
       await ensureJourneyExists();
-      const p = await getJourneyProgress();
+      const p = await withTimeout(getJourneyProgress(), 5000, null);
       setProgress(p);
     } catch (error) {
-      console.error("Error loading journey progress:", error);
+      console.warn("Error loading journey progress:", error);
     } finally {
       setLoading(false);
     }

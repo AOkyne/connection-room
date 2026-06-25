@@ -48,14 +48,20 @@ export async function getSpaces(): Promise<Space[]> {
   if (userId && supabase) {
     try {
       console.log("Getting Supabase spaces for user:", userId);
-      const supabaseSpaces = await getSupabaseSpaces();
+      const supabaseSpaces = await getSupabaseSpaces().catch(err => {
+        console.warn("Could not get Supabase spaces, using demo fallback");
+        return demoSpaces;
+      });
       console.log("Supabase spaces:", supabaseSpaces.length);
 
-      const joinedSpaces = await getUserJoinedSpaces(userId);
+      const joinedSpaces = await getUserJoinedSpaces(userId).catch(err => {
+        console.warn("Could not get user joined spaces, defaulting to empty");
+        return [];
+      });
       console.log("User joined spaces:", joinedSpaces.length);
-      const joinedIds = new Set(joinedSpaces.map((s) => s.id));
+      const joinedIds = new Set(joinedSpaces.map((s: any) => s.id));
 
-      const result = supabaseSpaces.map((space) => ({
+      const result = supabaseSpaces.map((space: any) => ({
         id: space.id,
         name: space.name,
         description: space.description || "",
@@ -68,7 +74,8 @@ export async function getSpaces(): Promise<Space[]> {
       console.log("Returning spaces:", result.length);
       return result;
     } catch (err) {
-      console.error("Error getting Supabase spaces:", err);
+      console.warn("Error getting Supabase spaces, using demo fallback:", err);
+      return demoSpaces;
     }
   }
 
@@ -231,17 +238,21 @@ function getDynamicRequiredSpaces(): string[] {
   return required;
 }
 
-// Sort spaces by saved order, with The Commons always first
+// Sort spaces by saved order, with required spaces first (Start Here then The Commons)
 export function sortSpacesByPreference(spaces: Space[]): Space[] {
   const saved = getSpaceOrder();
+  const required = getDynamicRequiredSpaces();
 
-  // Always put The Commons first
-  const commons = spaces.find(s => s.id === "commons");
-  const others = spaces.filter(s => s.id !== "commons");
+  // Separate required and optional spaces
+  const requiredSpaces = required
+    .map(id => spaces.find(s => s.id === id))
+    .filter((s): s is Space => s !== undefined);
 
-  // Sort other spaces by saved order if available
+  const optionalSpaces = spaces.filter(s => !required.includes(s.id));
+
+  // Sort optional spaces by saved order if available
   if (saved.length > 0) {
-    others.sort((a, b) => {
+    optionalSpaces.sort((a, b) => {
       const aIndex = saved.indexOf(a.id);
       const bIndex = saved.indexOf(b.id);
       const aPos = aIndex === -1 ? Infinity : aIndex;
@@ -250,5 +261,5 @@ export function sortSpacesByPreference(spaces: Space[]): Space[] {
     });
   }
 
-  return commons ? [commons, ...others] : others;
+  return [...requiredSpaces, ...optionalSpaces];
 }

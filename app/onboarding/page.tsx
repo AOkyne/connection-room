@@ -239,15 +239,44 @@ export default function OnboardingPage() {
             <Card>
               <CardHeader title="Your Profile" icon={<IconIntegration size={20} />} />
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-[#2a2318] mb-2">Display Name *</label>
-                  <input
-                    type="text"
-                    value={profile.displayName}
-                    onChange={(e) => handleUpdate({ displayName: e.target.value })}
-                    className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
-                    placeholder="How should we call you?"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[#2a2318] mb-2">First Name *</label>
+                    <input
+                      type="text"
+                      value={profile.firstName}
+                      onChange={(e) => {
+                        const firstName = e.target.value;
+                        const displayName = firstName && profile.lastName
+                          ? `${firstName} ${profile.lastName[0]}.`
+                          : firstName;
+                        handleUpdate({ firstName, displayName });
+                      }}
+                      className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+                      placeholder="First name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#2a2318] mb-2">Last Name *</label>
+                    <input
+                      type="text"
+                      value={profile.lastName}
+                      onChange={(e) => {
+                        const lastName = e.target.value;
+                        const displayName = profile.firstName && lastName
+                          ? `${profile.firstName} ${lastName[0]}.`
+                          : profile.firstName;
+                        handleUpdate({ lastName, displayName });
+                      }}
+                      className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+                      placeholder="Last name"
+                    />
+                  </div>
+                </div>
+                <div className="p-3 bg-[#f3ede5] rounded-lg">
+                  <p className="text-sm text-[#6b5f52]">
+                    <span className="font-medium">Display name:</span> {profile.displayName || "(Will appear as First L.)"}
+                  </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>

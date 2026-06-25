@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { withTimeout } from "@/lib/utils/with-timeout";
 import { guidedRhythm } from "@/lib/content/guided-rhythm";
 import {
   getCurrentMonthAndWeek,
@@ -22,9 +23,9 @@ export function MonthlyDashboardCard() {
 
   async function loadProgress() {
     try {
-      await ensureGuidedRhythmExists();
+      await withTimeout(ensureGuidedRhythmExists(), 3000, undefined);
     } catch (error) {
-      console.error("Error loading guided rhythm:", error);
+      console.warn("Error loading guided rhythm:", error);
     } finally {
       setLoading(false);
     }

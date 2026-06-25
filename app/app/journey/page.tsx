@@ -19,7 +19,9 @@ import { GuidedRhythmOverview } from "@/components/guided-rhythm/GuidedRhythmOve
 import { ConnectionPracticeSummary } from "@/components/connection/ConnectionPracticeSummary";
 import { EventReminderBanner } from "@/components/EventReminderBanner";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { LoadingError } from "@/components/LoadingError";
 import { SkeletonCard, SkeletonGrid } from "@/components/Skeleton";
+import { withTimeout } from "@/lib/utils/with-timeout";
 import Link from "next/link";
 
 export default function JourneyPage() {
@@ -28,32 +30,116 @@ export default function JourneyPage() {
   const [badges, setBadges] = useState<any[]>([]);
   const [interestedEvents, setInterestedEvents] = useState<any[]>([]);
   const [engagementStats, setEngagementStats] = useState<{ postsShared: number; responsesReceived: number; commentsOffered: number }>({ postsShared: 0, responsesReceived: 0, commentsOffered: 0 });
+  const [statsLoading, setStatsLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadTimeout, setLoadTimeout] = useState(false);
 
   useEffect(() => {
-    const loadData = async () => {
-      // Fetch profile and spaces in parallel
-      const [p, s] = await Promise.all([getProfile(), getSpaces()]);
-      setProfile(p);
-      setSpaces(s);
-
-      // Then fetch badges, interested events, and engagement stats based on profile
-      if (p) {
-        const [b, events, engagement] = await Promise.all([
-          getUserBadges(p.id, p, s),
-          Promise.resolve(getUserEventInterestsList(p.id)),
-          getUserEngagementStats(p.id)
-        ]);
-        setBadges(b);
-        setInterestedEvents(events);
-        setEngagementStats(engagement);
+    const timeoutId = setTimeout(() => {
+      if (!mounted) {
+        setLoadTimeout(true);
+        setLoadError("Journey page is taking too long to load");
       }
+    }, 25000); // 25 second timeout
 
-      setMounted(true);
+    const loadData = async () => {
+      try {
+        // CRITICAL: Load profile and spaces FIRST with timeout protection
+        const [p, s] = await Promise.all([
+          withTimeout(getProfile(), 8000, null),
+          withTimeout(getSpaces(), 8000, [])
+        ]);
+
+        // If profile didn't load, create a minimal fallback so page can render
+        const profile = p || {
+          id: "demo-" + Date.now(),
+          firstName: "Guest",
+          lastName: "",
+          displayName: "Guest",
+          memberType: "individual",
+          profilePhoto: "",
+          interests: [],
+          completedOnboarding: false,
+          joinedAt: new Date(),
+          spacesJoined: [],
+        };
+
+        setProfile(profile);
+        setSpaces(s || []);
+        setMounted(true); // Show page NOW - don't wait for badges, events, engagement
+
+        clearTimeout(timeoutId);
+        setLoadError(null);
+        setLoadTimeout(false);
+
+        // SECONDARY: Load non-critical data in background (don't block page render)
+        // These will update the page as they arrive
+        if (p) {
+          Promise.all([
+            getUserBadges(p.id, p, s).catch(err => {
+              console.warn("Warning: Could not load badges (using fallback)");
+              return [];
+            }),
+            Promise.resolve(getUserEventInterestsList(p.id)).catch(err => {
+              console.warn("Warning: Could not load events (using fallback)");
+              return [];
+            }),
+            getUserEngagementStats(p.id).catch(err => {
+              console.warn("Warning: Could not load engagement stats (using fallback)");
+              return { postsShared: 0, responsesReceived: 0, commentsOffered: 0 };
+            })
+          ]).then(([b, events, engagement]) => {
+            setBadges(b || []);
+            setInterestedEvents(events || []);
+            setEngagementStats(engagement || { postsShared: 0, responsesReceived: 0, commentsOffered: 0 });
+            setStatsLoading(false); // Stats loaded - show real data instead of skeleton
+          }).catch(err => {
+            console.warn("Warning: Error loading profile-dependent data (using fallbacks)");
+            setBadges([]);
+            setInterestedEvents([]);
+            setEngagementStats({ postsShared: 0, responsesReceived: 0, commentsOffered: 0 });
+            setStatsLoading(false); // Even on error, stop showing skeleton
+          });
+        }
+      } catch (err) {
+        console.error("Error loading journey page:", err);
+        setLoadError("Unable to load your journey. Please try again.");
+        clearTimeout(timeoutId);
+      }
     };
 
     loadData();
+
+    return () => clearTimeout(timeoutId);
   }, []);
+
+  if (loadTimeout && !mounted) {
+    return (
+      <LoadingError
+        message="Journey page is taking too long to load"
+        onRetry={() => {
+          setLoadError(null);
+          setLoadTimeout(false);
+          setMounted(false);
+          window.location.reload();
+        }}
+      />
+    );
+  }
+
+  if (loadError && !mounted) {
+    return (
+      <LoadingError
+        message={loadError}
+        onRetry={() => {
+          setLoadError(null);
+          setMounted(false);
+          window.location.reload();
+        }}
+      />
+    );
+  }
 
   if (!mounted || !profile) {
     return <LoadingScreen message="Getting ready for your journey" subtitle="We're gathering your personalized experience. Just a moment..." />;
@@ -89,6 +175,7 @@ export default function JourneyPage() {
         commentCount={engagementStats.responsesReceived}
         commentsOffered={engagementStats.commentsOffered}
         spacesJoinedCount={joinedSpaces.length}
+        statsLoading={statsLoading}
       />
 
       {/* Main Grid */}
@@ -111,7 +198,7 @@ export default function JourneyPage() {
               <div>
                 <p className="text-xs text-[#a0968a] uppercase tracking-wide">Location</p>
                 <p className="font-medium text-[#2a2318]">{profile.location}</p>
-              </div>
+                </div>
             )}
             <div>
               <p className="text-xs text-[#a0968a] uppercase tracking-wide">Member Type</p>

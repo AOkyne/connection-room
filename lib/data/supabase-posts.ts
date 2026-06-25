@@ -18,7 +18,7 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
     const { data, error } = await query;
 
     if (error) {
-      console.error("Error fetching posts:", error);
+      console.warn("Error fetching posts:", error);
       return [];
     }
 
@@ -38,27 +38,44 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
       reactionsMap[reaction.post_id][type] = (reactionsMap[reaction.post_id][type] || 0) + 1;
     });
 
+    // Fetch comment counts for all posts
+    const { data: commentsData } = await supabase
+      .from("comments")
+      .select("post_id")
+      .in("post_id", (data || []).map((p) => p.id));
+
+    // Count comments by post
+    const commentCountMap: Record<string, number> = {};
+    (commentsData || []).forEach((comment: any) => {
+      commentCountMap[comment.post_id] = (commentCountMap[comment.post_id] || 0) + 1;
+    });
+
     return (
       data?.map((post) => {
         const profile = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles;
+        // Don't show photos for seeded/demo posts - use initials instead
+        // Real user posts will show their profile photos
+        const authorPhoto = post.author_photo || profile?.profile_photo;
+        const isTomSawyerPhoto = authorPhoto && authorPhoto.includes('seed') || authorPhoto?.includes('tom');
         return {
           id: post.id,
           spaceId: post.space_id,
           userId: post.user_id,
           authorName: post.author_name || post.user_id,
           authorPronouns: post.author_pronouns || profile?.pronouns,
-          authorPhoto: post.author_photo || profile?.profile_photo,
+          // Remove Tom Sawyer's seeded photo, show real user photos only
+          authorPhoto: isTomSawyerPhoto ? undefined : authorPhoto,
           promptId: post.prompt_id,
           content: post.content,
           isPromptResponse: !!post.is_prompt_response,
           createdAt: new Date(post.created_at),
           reactions: reactionsMap[post.id] || {},
-          commentCount: post.comment_count || 0,
+          commentCount: commentCountMap[post.id] || 0,
         };
       }) || []
     );
   } catch (err) {
-    console.error("Error in getSupabasePosts:", err);
+    console.warn("Error in getSupabasePosts:", err);
     return [];
   }
 }
@@ -90,8 +107,8 @@ export async function createSupabasePost(
       .single();
 
     if (error) {
-      console.error("Error creating post:", error);
-      console.error("Error details - code:", error.code, "message:", error.message, "details:", error.details);
+      console.warn("Error creating post:", error);
+      console.warn("Error details - code:", error.code, "message:", error.message, "details:", error.details);
       return null;
     }
 
@@ -111,7 +128,7 @@ export async function createSupabasePost(
       commentCount: data.comment_count || 0,
     };
   } catch (err) {
-    console.error("Error in createSupabasePost:", err);
+    console.warn("Error in createSupabasePost:", err);
     return null;
   }
 }
@@ -142,16 +159,16 @@ export async function addSupabasePostReaction(
     }
 
     if (error) {
-      console.error("Error adding post reaction:", error);
-      console.error("Error code:", error.code);
-      console.error("Error message:", error.message);
+      console.warn("Error adding post reaction:", error);
+      console.warn("Error code:", error.code);
+      console.warn("Error message:", error.message);
       return false;
     }
 
     console.log("Reaction added successfully");
     return true;
   } catch (err) {
-    console.error("Error in addSupabasePostReaction:", err);
+    console.warn("Error in addSupabasePostReaction:", err);
     return false;
   }
 }
@@ -168,20 +185,23 @@ export async function getSupabaseComments(postId: string): Promise<Comment[]> {
       .order("created_at", { ascending: true });
 
     if (error) {
-      console.error("Error fetching comments:", error);
+      console.warn("Error fetching comments:", error);
       return [];
     }
 
     return (
       data?.map((comment) => {
         const profile = Array.isArray(comment.profiles) ? comment.profiles[0] : comment.profiles;
+        const authorPhoto = comment.author_photo || profile?.profile_photo;
+        const isTomSawyerPhoto = authorPhoto && (authorPhoto.includes('seed') || authorPhoto.includes('tom'));
         return {
           id: comment.id,
           postId: comment.post_id,
           userId: comment.user_id,
           authorName: comment.author_name || comment.user_id,
           authorPronouns: comment.author_pronouns || profile?.pronouns,
-          authorPhoto: comment.author_photo || profile?.profile_photo,
+          // Remove Tom Sawyer's seeded photo, show real user photos only
+          authorPhoto: isTomSawyerPhoto ? undefined : authorPhoto,
           content: comment.content,
           createdAt: new Date(comment.created_at),
           reactions: {},
@@ -189,7 +209,7 @@ export async function getSupabaseComments(postId: string): Promise<Comment[]> {
       }) || []
     );
   } catch (err) {
-    console.error("Error in getSupabaseComments:", err);
+    console.warn("Error in getSupabaseComments:", err);
     return [];
   }
 }
@@ -218,7 +238,7 @@ export async function createSupabaseComment(
       .single();
 
     if (error) {
-      console.error("Error creating comment:", error);
+      console.warn("Error creating comment:", error);
       return null;
     }
 
@@ -254,7 +274,7 @@ export async function createSupabaseComment(
       reactions: {},
     };
   } catch (err) {
-    console.error("Error in createSupabaseComment:", err);
+    console.warn("Error in createSupabaseComment:", err);
     return null;
   }
 }

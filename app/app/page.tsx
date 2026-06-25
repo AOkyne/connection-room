@@ -11,6 +11,7 @@ import { getRecentReflections, type RecentReflection } from "@/lib/data/reflecti
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { IconReflection, IconProgress, IconUpcoming, IconBadges, IconForYou, IconDemo } from "@/components/Icons";
+import { SpaceIconSVG } from "@/components/SpaceIconSVG";
 import { getBadgeIcon } from "@/lib/badge-icons";
 import { getOfferIcon } from "@/lib/offer-icons";
 import { getIconComponent } from "@/lib/icon-lookup";
@@ -18,6 +19,9 @@ import { FirstWeekDashboardCard } from "@/components/journey/FirstWeekDashboardC
 import { MonthlyDashboardCard } from "@/components/guided-rhythm/MonthlyDashboardCard";
 import { WaysToConnectCard } from "@/components/connection/WaysToConnectCard";
 import { ReflectionsFromRoomCard } from "@/components/connection/ReflectionsFromRoomCard";
+import { sortSpacesByPreference } from "@/lib/data/spaces";
+import { LoadingError } from "@/components/LoadingError";
+import { withTimeout } from "@/lib/utils/with-timeout";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { createPost } from "@/lib/data/posts";
@@ -36,47 +40,127 @@ export default function AppHome() {
   const [promptResponse, setPromptResponse] = useState("");
   const [selectedSpaceId, setSelectedSpaceId] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadTimeout, setLoadTimeout] = useState(false);
 
   useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (!mounted) {
+        setLoadTimeout(true);
+        setLoadError("Home page is taking too long to load");
+      }
+    }, 25000); // 25 second timeout
+
     const loadData = async () => {
       try {
-        // Fetch profile and spaces in parallel (independent)
+        // CRITICAL: Load profile and spaces FIRST with timeout protection
         const [p, s] = await Promise.all([
-          getProfile(),
-          getSpaces(),
+          withTimeout(getProfile(), 8000, null),
+          withTimeout(getSpaces(), 8000, [])
         ]);
-        setProfile(p);
-        setSpaces(s);
+
+        // If profile didn't load, create a minimal fallback so page can render
+        const profile = p || {
+          id: "demo-" + Date.now(),
+          firstName: "Guest",
+          lastName: "",
+          displayName: "Guest",
+          memberType: "individual",
+          profilePhoto: "",
+          interests: [],
+          completedOnboarding: false,
+          joinedAt: new Date(),
+          spacesJoined: [],
+        };
+
+        setProfile(profile);
+        setSpaces(sortSpacesByPreference(s || []));
 
         // Fetch events (sync, no await needed)
         const e = getUpcomingEvents();
         setUpcomingEvents(e.slice(0, 2));
 
-        // Fetch profile-dependent data in parallel
+        clearTimeout(timeoutId);
+        setMounted(true); // Show page NOW - don't wait for badges, reflections, offers
+        setLoadError(null);
+        setLoadTimeout(false);
+
+        // SECONDARY: Load non-critical data in background (don't block page render)
+        // These will update the page as they arrive
         if (p) {
-          const [b, suggested, reflections] = await Promise.all([
-            getUserBadges(p.id),
-            getSuggestedSpace(),
-            getRecentReflections(5),
-          ]);
-          setBadges(b);
-          setSuggestedSpace(suggested);
-          setRecentReflections(reflections);
+          Promise.all([
+            getUserBadges(p.id).catch(err => {
+              console.warn("Warning: Could not load badges (using fallback)");
+              return [];
+            }),
+            getRecentReflections(5).catch(err => {
+              console.warn("Warning: Could not load reflections (using fallback)");
+              return [];
+            }),
+          ]).then(([b, reflections]) => {
+            setBadges(b || []);
+            setRecentReflections(reflections || []);
+          }).catch(err => {
+            console.warn("Warning: Error loading badges/reflections");
+            setBadges([]);
+            setRecentReflections([]);
+          });
+
+          // Fetch synchronous data
+          try {
+            const suggested = getSuggestedSpace();
+            setSuggestedSpace(suggested || null);
+          } catch (err) {
+            console.warn("Warning: Could not get suggested space (using fallback)");
+          }
 
           // Fetch offers (sync)
-          const o = getRelevantOffers(p);
-          setOffers(o);
+          try {
+            const o = getRelevantOffers(p);
+            setOffers(o || []);
+          } catch (err) {
+            console.warn("Warning: Could not load offers (using fallback)");
+            setOffers([]);
+          }
         }
-
-        setMounted(true);
       } catch (error) {
-        console.error("Error loading data:", error);
-        setMounted(true);
+        console.error("Error loading home page:", error);
+        setLoadError("Unable to load your home page. Please try again.");
+        clearTimeout(timeoutId);
       }
     };
 
     loadData();
+
+    return () => clearTimeout(timeoutId);
   }, []);
+
+  if (loadTimeout && !mounted) {
+    return (
+      <LoadingError
+        message="Home page is taking too long to load"
+        onRetry={() => {
+          setLoadError(null);
+          setLoadTimeout(false);
+          setMounted(false);
+          window.location.reload();
+        }}
+      />
+    );
+  }
+
+  if (loadError && !mounted) {
+    return (
+      <LoadingError
+        message={loadError}
+        onRetry={() => {
+          setLoadError(null);
+          setMounted(false);
+          window.location.reload();
+        }}
+      />
+    );
+  }
 
   if (!mounted || !profile) {
     return (
@@ -124,16 +208,14 @@ export default function AppHome() {
         {joinedSpacesCount > 0 ? (
           <Card className="md:col-span-2 bg-gradient-to-br from-[#f3ede5] to-[#fffbf7]">
             <CardHeader title="Your Spaces" icon="🏛️" />
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
               {spaces
                 .filter((s) => profile?.spacesJoined?.includes(s.id))
                 .map((space) => (
                   <Link key={space.id} href={`/app/spaces/${space.id}`}>
-                    <Button variant="outline" size="md" className="w-full h-full justify-center">
-                      <div className="text-center">
-                        <div className="text-2xl mb-1">{space.id === "commons" ? "🏘️" : space.id === "start-here" ? "✨" : "💬"}</div>
-                        <div className="text-xs">{space.name}</div>
-                      </div>
+                    <Button variant="outline" size="sm" className="w-full h-auto flex flex-col items-center gap-1 py-2 hover:bg-[#f3ede5] hover:border-[#c99563] transition-all">
+                      <SpaceIconSVG spaceId={space.id} size={20} />
+                      <h3 className="text-center text-xs">{space.name}</h3>
                     </Button>
                   </Link>
                 ))}

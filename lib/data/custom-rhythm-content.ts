@@ -34,13 +34,13 @@ export async function saveCustomRhythmContent(
       });
 
       if (error) {
-        console.error("Error saving to Supabase:", error);
+        console.warn("Error saving to Supabase:", error);
         saveToLocalStorage(months);
         return true;
       }
       return true;
     } catch (err) {
-      console.error("Supabase save failed, falling back to localStorage");
+      console.warn("Supabase save failed, falling back to localStorage");
       saveToLocalStorage(months);
       return true;
     }
@@ -71,14 +71,14 @@ export async function loadCustomRhythmContent(): Promise<Month[] | null> {
         .single();
 
       if (error && error.code !== "PGRST116") {
-        console.error("Error loading from Supabase:", error);
+        console.warn("Error loading from Supabase:", error);
       }
 
       if (data && data.content) {
         return data.content;
       }
     } catch (err) {
-      console.error("Supabase load failed, falling back to localStorage");
+      console.warn("Supabase load failed, falling back to localStorage");
     }
   }
 
@@ -88,7 +88,7 @@ export async function loadCustomRhythmContent(): Promise<Month[] | null> {
     try {
       return JSON.parse(stored);
     } catch (e) {
-      console.error("Error parsing custom content from localStorage");
+      console.warn("Error parsing custom content from localStorage");
     }
   }
 

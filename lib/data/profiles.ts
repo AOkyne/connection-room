@@ -3,6 +3,8 @@ import { saveProfileToSupabase, getProfileFromSupabase } from "@/lib/data/supaba
 
 export interface Profile {
   id: string;
+  firstName: string;
+  lastName: string;
   displayName: string;
   pronouns?: string;
   location?: string;
@@ -102,8 +104,14 @@ export function createDemoProfile(displayName: string, memberType: string): Prof
     .toUpperCase()
     .slice(0, 2);
 
+  const nameParts = displayName.trim().split(/\s+/);
+  const firstName = nameParts[0] || "Member";
+  const lastName = nameParts.slice(1).join(" ") || "";
+
   const profile: Profile = {
     id: `user-${Date.now()}`,
+    firstName,
+    lastName,
     displayName,
     memberType,
     interests: [],
@@ -128,8 +136,14 @@ export async function initializeSupabaseProfile(email: string): Promise<Profile 
     .toUpperCase()
     .slice(0, 2);
 
+  const nameParts = displayName.replace(/\./g, " ").trim().split(/\s+/);
+  const firstName = nameParts[0] || "Member";
+  const lastName = nameParts.slice(1).join(" ") || "";
+
   const profile: Profile = {
     id: userId,
+    firstName,
+    lastName,
     displayName,
     memberType: "individual",
     interests: [],

@@ -10,9 +10,11 @@ import {
   setFirstMonthIntention,
   ensureJourneyExists,
 } from "@/lib/data/first-week-journey";
+import { withTimeout } from "@/lib/utils/with-timeout";
 import { DoorCard } from "./DoorCard";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { DoorCompletionFeedback } from "@/components/feedback";
 
 export function SevenDoorsOverview() {
   const [progress, setProgress] = useState<any>(null);
@@ -20,6 +22,7 @@ export function SevenDoorsOverview() {
   const [savedReflections, setSavedReflections] = useState<Record<number, string>>({});
   const [showIntentionModal, setShowIntentionModal] = useState(false);
   const [customIntention, setCustomIntention] = useState("");
+  const [completedDoorFeedback, setCompletedDoorFeedback] = useState<number | null>(null);
 
   useEffect(() => {
     loadProgress();
@@ -28,12 +31,14 @@ export function SevenDoorsOverview() {
   async function loadProgress() {
     try {
       await ensureJourneyExists();
-      const p = await getJourneyProgress();
+      // FAST: Load only progress (needed for current door) - critical path
+      const p = await withTimeout(getJourneyProgress(), 5000, null);
       setProgress(p);
+      setLoading(false); // Show page immediately with current door
 
-      // Load saved reflections for all doors in parallel
+      // BACKGROUND: Load reflections later (not blocking render)
       const reflectionPromises = Array.from({ length: 7 }, (_, i) =>
-        getPrivateReflection(i + 1)
+        withTimeout(getPrivateReflection(i + 1), 3000, null)
       );
       const reflectionsArray = await Promise.all(reflectionPromises);
 
@@ -45,8 +50,7 @@ export function SevenDoorsOverview() {
       });
       setSavedReflections(reflections);
     } catch (error) {
-      console.error("Error loading journey progress:", error);
-    } finally {
+      console.warn("Error loading journey progress:", error);
       setLoading(false);
     }
   }
@@ -56,6 +60,7 @@ export function SevenDoorsOverview() {
       const updated = await completeDoor(doorNumber);
       if (updated) {
         setProgress(updated);
+        setCompletedDoorFeedback(doorNumber);
       }
     } catch (error) {
       console.error("Error completing door:", error);
@@ -105,8 +110,24 @@ export function SevenDoorsOverview() {
 
   const isComplete = progress.completedDoors.length === 7;
 
+  // Get current and next door info for feedback
+  const completedDoor = completedDoorFeedback ? firstWeekJourney.find(d => d.doorNumber === completedDoorFeedback) : null;
+  const nextDoor = completedDoor ? firstWeekJourney.find(d => d.doorNumber === completedDoor.doorNumber + 1) : null;
+
   return (
     <div className="space-y-8">
+      {/* Door Completion Feedback */}
+      {completedDoorFeedback && completedDoor && (
+        <DoorCompletionFeedback
+          doorNumber={completedDoor.doorNumber}
+          doorTitle={completedDoor.title}
+          nextDoorNumber={nextDoor?.doorNumber}
+          nextDoorTitle={nextDoor?.title}
+          onViewNext={nextDoor ? () => setCompletedDoorFeedback(null) : undefined}
+          onClose={() => setCompletedDoorFeedback(null)}
+        />
+      )}
+
       {/* Progress Header */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">

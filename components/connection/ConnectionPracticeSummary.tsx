@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { Card } from "@/components/Card";
+import { SkeletonCard } from "@/components/Skeleton";
 import {
   getConnectionPracticeSummary,
   getConnectionMilestones,
 } from "@/lib/data/connection-practice";
 import { getProfile } from "@/lib/data/profiles";
 import { connectionPracticeCopy } from "@/lib/content/connection-practices";
+import { withTimeout } from "@/lib/utils/with-timeout";
 
 interface ConnectionPracticeSummaryProps {
   postCount?: number;
@@ -15,6 +17,7 @@ interface ConnectionPracticeSummaryProps {
   commentsOffered?: number;
   spacesJoinedCount?: number;
   monthlyIntention?: string;
+  statsLoading?: boolean;
 }
 
 export function ConnectionPracticeSummary({
@@ -23,27 +26,33 @@ export function ConnectionPracticeSummary({
   commentsOffered = 0,
   spacesJoinedCount = 0,
   monthlyIntention,
+  statsLoading = false,
 }: ConnectionPracticeSummaryProps) {
   const [milestones, setMilestones] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [milestonesLoading, setMilestonesLoading] = useState(true);
 
   useEffect(() => {
     const loadMilestones = async () => {
       try {
         const profile = await getProfile();
         if (profile) {
-          const m = await getConnectionMilestones(profile.id);
+          const m = await withTimeout(getConnectionMilestones(profile.id), 4000, []);
           setMilestones(m);
         }
       } catch (error) {
-        console.error("Error loading milestones:", error);
+        console.warn("Error loading milestones:", error);
       } finally {
-        setLoading(false);
+        setMilestonesLoading(false);
       }
     };
 
     loadMilestones();
   }, []);
+
+  // Show skeleton while stats are loading
+  if (statsLoading) {
+    return <SkeletonCard lines={4} />;
+  }
 
   const stats = [
     { label: "Reflections shared", value: postCount },
@@ -87,7 +96,7 @@ export function ConnectionPracticeSummary({
         )}
 
         {/* Milestones */}
-        {!loading && milestones.length > 0 && (
+        {!milestonesLoading && milestones.length > 0 && (
           <div className="space-y-2">
             <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide">
               Connection Milestones

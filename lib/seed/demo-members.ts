@@ -1,8 +1,19 @@
 import { Profile } from "@/lib/data/profiles";
 
+// Helper to extract first and last name from display name
+function getNameParts(displayName: string) {
+  const parts = displayName.trim().split(/\s+/);
+  return {
+    firstName: parts[0] || "Member",
+    lastName: parts.slice(1).join(" ") || "",
+  };
+}
+
 export const demoMembers: Profile[] = [
   {
     id: "demo-marcus-h",
+    firstName: "Marcus",
+    lastName: "",
     displayName: "Marcus",
     pronouns: "he/him",
     location: "Los Angeles, CA",
@@ -31,6 +42,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-daniel-r",
+    firstName: "Daniel",
+    lastName: "",
     displayName: "Daniel",
     pronouns: "he/him",
     location: "San Francisco, CA",
@@ -59,6 +72,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-james-t",
+    firstName: "James",
+    lastName: "",
     displayName: "James",
     pronouns: "he/him",
     location: "Portland, OR",
@@ -87,6 +102,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-alex-m",
+    firstName: "Alex",
+    lastName: "",
     displayName: "Alex",
     pronouns: "he/him",
     location: "Austin, TX",
@@ -115,6 +132,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-chris-w",
+    firstName: "Chris",
+    lastName: "",
     displayName: "Chris",
     pronouns: "he/him",
     location: "Seattle, WA",
@@ -143,6 +162,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-jordan-k",
+    firstName: "Jordan",
+    lastName: "",
     displayName: "Jordan",
     pronouns: "he/him",
     location: "Denver, CO",
@@ -171,6 +192,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-david-l",
+    firstName: "David",
+    lastName: "",
     displayName: "David",
     pronouns: "he/him",
     location: "Boston, MA",
@@ -199,6 +222,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-ryan-p",
+    firstName: "Ryan",
+    lastName: "",
     displayName: "Ryan",
     pronouns: "he/him",
     location: "Chicago, IL",
@@ -227,6 +252,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-sammy-c",
+    firstName: "Sammy",
+    lastName: "",
     displayName: "Sammy",
     pronouns: "he/him",
     location: "New York, NY",
@@ -255,6 +282,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-noah-g",
+    firstName: "Noah",
+    lastName: "",
     displayName: "Noah",
     pronouns: "he/him",
     location: "Miami, FL",
@@ -283,6 +312,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-ethan-b",
+    firstName: "Ethan",
+    lastName: "",
     displayName: "Ethan",
     pronouns: "he/him",
     location: "San Diego, CA",
@@ -311,6 +342,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-liam-s",
+    firstName: "Liam",
+    lastName: "",
     displayName: "Liam",
     pronouns: "he/him",
     location: "Phoenix, AZ",
@@ -339,6 +372,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-mason-h",
+    firstName: "Mason",
+    lastName: "",
     displayName: "Mason",
     pronouns: "he/him",
     location: "Washington, DC",
@@ -367,6 +402,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-lucas-j",
+    firstName: "Lucas",
+    lastName: "",
     displayName: "Lucas",
     pronouns: "he/him",
     location: "Nashville, TN",
@@ -395,6 +432,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-oliver-f",
+    firstName: "Oliver",
+    lastName: "",
     displayName: "Oliver",
     pronouns: "he/him",
     location: "Portland, ME",
@@ -423,6 +462,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-aiden-n",
+    firstName: "Aiden",
+    lastName: "",
     displayName: "Aiden",
     pronouns: "he/him",
     location: "Salt Lake City, UT",
@@ -451,6 +492,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-isaac-b",
+    firstName: "Isaac",
+    lastName: "",
     displayName: "Isaac",
     pronouns: "he/him",
     location: "Philadelphia, PA",
@@ -479,6 +522,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-michael-p",
+    firstName: "Michael",
+    lastName: "",
     displayName: "Michael",
     pronouns: "he/him",
     location: "Atlanta, GA",
@@ -507,6 +552,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-william-r",
+    firstName: "William",
+    lastName: "",
     displayName: "William",
     pronouns: "he/him",
     location: "Houston, TX",
@@ -535,6 +582,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-benjamin-m",
+    firstName: "Benjamin",
+    lastName: "",
     displayName: "Benjamin",
     pronouns: "he/him",
     location: "Dallas, TX",
@@ -563,6 +612,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-jacob-d",
+    firstName: "Jacob",
+    lastName: "",
     displayName: "Jacob",
     pronouns: "he/him",
     location: "San Antonio, TX",
@@ -591,6 +642,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-henry-c",
+    firstName: "Henry",
+    lastName: "",
     displayName: "Henry",
     pronouns: "he/him",
     location: "Austin, TX",
@@ -619,6 +672,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-tyler-w",
+    firstName: "Tyler",
+    lastName: "",
     displayName: "Tyler",
     pronouns: "he/him",
     location: "Fort Worth, TX",
@@ -647,6 +702,8 @@ export const demoMembers: Profile[] = [
   },
   {
     id: "demo-gabriel-h",
+    firstName: "Gabriel",
+    lastName: "",
     displayName: "Gabriel",
     pronouns: "he/him",
     location: "Las Vegas, NV",

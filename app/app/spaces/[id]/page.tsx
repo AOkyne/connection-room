@@ -28,6 +28,7 @@ import {
 import { IconIntegration, IconReflection } from "@/components/Icons";
 import { ToastContainer } from "@/components/Toast";
 import { useToast } from "@/lib/hooks/useToast";
+import { Avatar } from "@/components/Avatar";
 import { demoMembers } from "@/lib/seed/demo-members";
 import { demoSpaceMemberships } from "@/lib/seed/demo-space-memberships";
 import Link from "next/link";
@@ -472,13 +473,7 @@ export default function SpaceDetailPage() {
             <Card key={post.id}>
               <div className="flex items-start justify-between mb-3">
                 <Link href={`/app/users/${post.userId}`} className="flex items-start gap-3 flex-1 hover:opacity-80 transition-opacity">
-                  {post.authorPhoto && (
-                    <img
-                      src={post.authorPhoto}
-                      alt={post.authorName}
-                      className="w-10 h-10 rounded-full flex-shrink-0 cursor-pointer"
-                    />
-                  )}
+                  <Avatar name={post.authorName} photo={post.authorPhoto} size={40} className="cursor-pointer" />
                   <div className="cursor-pointer">
                     <p className="font-medium text-[#2a2318]">
                       {post.authorName} {post.authorPronouns && `(${post.authorPronouns})`}
@@ -516,13 +511,7 @@ export default function SpaceDetailPage() {
                     <div key={comment.id} className="bg-[#f3ede5] p-3 rounded-lg">
                       <div className="flex items-start gap-2">
                         <Link href={`/app/users/${comment.userId}`} className="flex items-start gap-2 flex-1 hover:opacity-80 transition-opacity">
-                          {comment.authorPhoto && (
-                            <img
-                              src={comment.authorPhoto}
-                              alt={comment.authorName}
-                              className="w-7 h-7 rounded-full flex-shrink-0 cursor-pointer"
-                            />
-                          )}
+                          <Avatar name={comment.authorName} photo={comment.authorPhoto} size={28} className="cursor-pointer" />
                           <div className="flex-1 cursor-pointer">
                             <p className="text-sm font-medium text-[#2a2318]">
                               {comment.authorName} {comment.authorPronouns && `(${comment.authorPronouns})`}

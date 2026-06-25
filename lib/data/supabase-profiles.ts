@@ -12,6 +12,8 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
     .upsert(
       {
         id: profile.id,
+        first_name: profile.firstName || "",
+        last_name: profile.lastName || "",
         display_name: profile.displayName,
         pronouns: profile.pronouns,
         location: profile.location,
@@ -45,6 +47,8 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
   return data
     ? {
         id: data.id,
+        firstName: data.first_name || profile.firstName,
+        lastName: data.last_name || profile.lastName,
         displayName: data.display_name,
         pronouns: data.pronouns,
         location: data.location,
@@ -95,8 +99,20 @@ export async function getProfileFromSupabase(
     spacesJoined = memberships.map((m: any) => m.space_id);
   }
 
+  // Extract firstName and lastName from database or displayName fallback
+  let firstName = data.first_name || "";
+  let lastName = data.last_name || "";
+
+  if (!firstName && !lastName && data.display_name) {
+    const nameParts = data.display_name.trim().split(/\s+/);
+    firstName = nameParts[0] || "";
+    lastName = nameParts.slice(1).join(" ") || "";
+  }
+
   return {
     id: data.id,
+    firstName,
+    lastName,
     displayName: data.display_name,
     pronouns: data.pronouns,
     location: data.location,

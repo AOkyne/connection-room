@@ -30,12 +30,12 @@ export function CardHeader({ title, subtitle, icon }: CardHeaderProps) {
     <div className="mb-5 pb-3 border-b border-[#ede6e0]">
       <div className="flex items-start gap-3">
         {icon && (
-          <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center text-[#d4a574] bg-[#f3ede5] rounded-lg" style={{ color: "#d4a574" }}>
-            {typeof icon === "string" ? <span className="text-2xl">{icon}</span> : icon}
+          <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center flex-shrink-0">
+            {typeof icon === "string" ? <span className="text-3xl">{icon}</span> : icon}
           </div>
         )}
         <div>
-          <h3 className="text-xl font-bold text-[#2a2318]">{title}</h3>
+          <h3 className="text-2xl text-[#2a2318]">{title}</h3>
           {subtitle && <p className="text-sm text-[#a0968a] mt-1">{subtitle}</p>}
         </div>
       </div>

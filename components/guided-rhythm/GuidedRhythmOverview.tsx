@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { withTimeout } from "@/lib/utils/with-timeout";
 import {
   getGuidedRhythmProgress,
   ensureGuidedRhythmExists,
@@ -43,19 +44,23 @@ export function GuidedRhythmOverview() {
   async function loadProgress() {
     try {
       await ensureGuidedRhythmExists();
-      const p = await getGuidedRhythmProgress();
+      // FAST: Load only progress and content structure (needed for month/week display)
+      const [p, content] = await Promise.all([
+        withTimeout(getGuidedRhythmProgress(), 5000, null),
+        withTimeout(getRhythmContent(), 5000, [])
+      ]);
+
       setProgress(p);
-
-      const content = await getRhythmContent();
       setRhythmContent(content);
+      setLoading(false); // Show page immediately with current month/week
 
+      // BACKGROUND: Load reflections, integration, intention (non-blocking)
       const currentMon = content.find((m) => m.monthNumber === month);
       if (currentMon) {
-        // Load reflection, integration, and intention in parallel
         const [reflection, integration, intention] = await Promise.all([
-          getPrivateReflection(month, week),
-          getMonthlyIntegration(month),
-          getMonthlyIntention(month),
+          withTimeout(getPrivateReflection(month, week), 3000, null),
+          withTimeout(getMonthlyIntegration(month), 3000, null),
+          withTimeout(getMonthlyIntention(month), 3000, null),
         ]);
 
         setWeeklyReflection(reflection || "");
@@ -63,8 +68,7 @@ export function GuidedRhythmOverview() {
         setSelectedIntention(intention || "");
       }
     } catch (error) {
-      console.error("Error loading guided rhythm:", error);
-    } finally {
+      console.warn("Error loading guided rhythm:", error);
       setLoading(false);
     }
   }

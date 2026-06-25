@@ -61,7 +61,7 @@ export async function getGuidedRhythmProgress(): Promise<GuidedRhythmProgress | 
         .single();
 
       if (error && error.code !== "PGRST116") {
-        console.error("Error fetching guided rhythm from Supabase:", error);
+        console.warn("Error fetching guided rhythm from Supabase:", error);
       }
 
       if (data) {
@@ -77,7 +77,7 @@ export async function getGuidedRhythmProgress(): Promise<GuidedRhythmProgress | 
         };
       }
     } catch (err) {
-      console.error("Supabase guided rhythm fetch failed, falling back to localStorage");
+      console.warn("Supabase guided rhythm fetch failed, falling back to localStorage");
     }
   }
 
@@ -94,7 +94,7 @@ export async function getGuidedRhythmProgress(): Promise<GuidedRhythmProgress | 
         updatedAt: new Date(parsed.updatedAt),
       };
     } catch (e) {
-      console.error("Error parsing guided rhythm from localStorage");
+      console.warn("Error parsing guided rhythm from localStorage");
     }
   }
 
@@ -132,12 +132,12 @@ export async function saveGuidedRhythmProgress(
         });
 
       if (error) {
-        console.error("Error saving guided rhythm to Supabase:", error);
+        console.warn("Error saving guided rhythm to Supabase:", error);
         saveToLocalStorage(progress);
       }
       return;
     } catch (err) {
-      console.error("Supabase save failed, falling back to localStorage");
+      console.warn("Supabase save failed, falling back to localStorage");
       saveToLocalStorage(progress);
       return;
     }
@@ -259,7 +259,7 @@ export async function getRhythmContent(): Promise<Month[]> {
         },
       }));
     } catch (e) {
-      console.error("Error parsing custom content, using default");
+      console.warn("Error parsing custom content, using default");
     }
   }
 

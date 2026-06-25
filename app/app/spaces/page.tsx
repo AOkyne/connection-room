@@ -5,12 +5,14 @@ import Link from "next/link";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { SpaceIconSVG } from "@/components/SpaceIconSVG";
+import { SpaceJoinedFeedback } from "@/components/feedback";
 import { getSpaces, joinSpace, leaveSpace, ensureRequiredSpaces, sortSpacesByPreference, saveSpaceOrder, isStartHereRequired, getAppVisits, type Space } from "@/lib/data/spaces";
 import { demoMembers } from "@/lib/seed/demo-members";
 
 export default function SpacesPage() {
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [draggedSpace, setDraggedSpace] = useState<string | null>(null);
+  const [joinedSpaceFeedback, setJoinedSpaceFeedback] = useState<{ spaceName: string; spaceId: string } | null>(null);
 
   useEffect(() => {
     const loadSpaces = async () => {
@@ -28,6 +30,10 @@ export default function SpacesPage() {
   const handleJoinSpace = async (spaceId: string) => {
     await joinSpace(spaceId);
     const s = await getSpaces();
+    const space = s.find(sp => sp.id === spaceId);
+    if (space) {
+      setJoinedSpaceFeedback({ spaceName: space.name, spaceId: space.id });
+    }
     setSpaces(s);
   };
 
@@ -94,6 +100,15 @@ export default function SpacesPage() {
 
   return (
     <div className="space-y-8">
+      {/* Feedback for joining a space */}
+      {joinedSpaceFeedback && (
+        <SpaceJoinedFeedback
+          spaceName={joinedSpaceFeedback.spaceName}
+          spaceId={joinedSpaceFeedback.spaceId}
+          onClose={() => setJoinedSpaceFeedback(null)}
+        />
+      )}
+
       <div>
         <h1 className="text-4xl font-bold text-[#2a2318]">Community Spaces</h1>
         <p className="text-lg text-[#6b5f52] mt-2">

@@ -269,7 +269,8 @@ export const demoPosts: Post[] = [
     userId: "user-marcus-johnson",
     authorName: "Marcus Johnson",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("MJ"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("MJ"),
     spaceId: "commons",
     promptId: undefined,
     content:
@@ -284,7 +285,8 @@ export const demoPosts: Post[] = [
     userId: "user-alex-rivera",
     authorName: "Alex Rivera",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("AR"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("AR"),
     spaceId: "commons",
     promptId: undefined,
     content:
@@ -299,7 +301,8 @@ export const demoPosts: Post[] = [
     userId: "user-jordan-lee",
     authorName: "Jordan Lee",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("JL"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("JL"),
     spaceId: "commons",
     promptId: undefined,
     content:
@@ -314,7 +317,8 @@ export const demoPosts: Post[] = [
     userId: "user-daniel-kim",
     authorName: "Daniel Kim",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("DK"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("DK"),
     spaceId: "commons",
     promptId: undefined,
     content:
@@ -329,7 +333,8 @@ export const demoPosts: Post[] = [
     userId: "user-chris-martinez",
     authorName: "Chris Martinez",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("CM"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("CM"),
     spaceId: "commons",
     promptId: undefined,
     content:
@@ -346,7 +351,8 @@ export const demoPosts: Post[] = [
     userId: "user-david-chen",
     authorName: "David Chen",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("DC"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("DC"),
     spaceId: "start-here",
     promptId: undefined,
     content:
@@ -361,7 +367,8 @@ export const demoPosts: Post[] = [
     userId: "user-michael-brown",
     authorName: "Michael Brown",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("MB"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("MB"),
     spaceId: "start-here",
     promptId: undefined,
     content:
@@ -376,7 +383,8 @@ export const demoPosts: Post[] = [
     userId: "user-kevin-patel",
     authorName: "Kevin Patel",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("KP"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("KP"),
     spaceId: "start-here",
     promptId: undefined,
     content:
@@ -393,7 +401,8 @@ export const demoPosts: Post[] = [
     userId: "user-thomas-wilson",
     authorName: "Thomas Wilson",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("TW"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("TW"),
     spaceId: "embodiment",
     promptId: undefined,
     content:
@@ -408,7 +417,8 @@ export const demoPosts: Post[] = [
     userId: "user-ryan-anderson",
     authorName: "Ryan Anderson",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("RA"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("RA"),
     spaceId: "embodiment",
     promptId: undefined,
     content:
@@ -423,7 +433,8 @@ export const demoPosts: Post[] = [
     userId: "user-james-taylor",
     authorName: "James Taylor",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("JT"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("JT"),
     spaceId: "embodiment",
     promptId: undefined,
     content:
@@ -439,7 +450,8 @@ export const demoPosts: Post[] = [
     id: "couples-001",
     userId: "user-james-marcus",
     authorName: "James & Marcus",
-    authorPhoto: generateAvatarUrl("JM"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("JM"),
     spaceId: "couples",
     promptId: "space-002",
     content:
@@ -453,7 +465,8 @@ export const demoPosts: Post[] = [
     id: "couples-002",
     userId: "user-robert-thomas",
     authorName: "Robert & Thomas",
-    authorPhoto: generateAvatarUrl("RT"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("RT"),
     spaceId: "couples",
     promptId: undefined,
     content:
@@ -467,7 +480,8 @@ export const demoPosts: Post[] = [
     id: "couples-003",
     userId: "user-mark-david",
     authorName: "Mark & David",
-    authorPhoto: generateAvatarUrl("MD"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("MD"),
     spaceId: "couples",
     promptId: undefined,
     content:
@@ -484,7 +498,8 @@ export const demoPosts: Post[] = [
     userId: "user-ethan-martin",
     authorName: "Ethan Martin",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("EM"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("EM"),
     spaceId: "touch-affection",
     promptId: undefined,
     content:
@@ -499,7 +514,8 @@ export const demoPosts: Post[] = [
     userId: "user-liam-parker",
     authorName: "Liam Parker",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("LP"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("LP"),
     spaceId: "touch-affection",
     promptId: undefined,
     content:
@@ -514,7 +530,8 @@ export const demoPosts: Post[] = [
     userId: "user-noah-brooks",
     authorName: "Noah Brooks",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("NB"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("NB"),
     spaceId: "touch-affection",
     promptId: undefined,
     content:
@@ -531,7 +548,8 @@ export const demoPosts: Post[] = [
     userId: "user-andrew-hayes",
     authorName: "Andrew Hayes",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("AH"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("AH"),
     spaceId: "spirituality-sexuality",
     promptId: undefined,
     content:
@@ -546,7 +564,8 @@ export const demoPosts: Post[] = [
     userId: "user-samuel-wright",
     authorName: "Samuel Wright",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("SW"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("SW"),
     spaceId: "spirituality-sexuality",
     promptId: undefined,
     content:
@@ -561,7 +580,8 @@ export const demoPosts: Post[] = [
     userId: "user-benjamin-king",
     authorName: "Benjamin King",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("BK"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("BK"),
     spaceId: "spirituality-sexuality",
     promptId: undefined,
     content:
@@ -578,7 +598,8 @@ export const demoPosts: Post[] = [
     userId: "user-luke-morris",
     authorName: "Luke Morris",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("LM"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("LM"),
     spaceId: "intimacy-patterns",
     promptId: undefined,
     content:
@@ -593,7 +614,8 @@ export const demoPosts: Post[] = [
     userId: "user-oliver-schmidt",
     authorName: "Oliver Schmidt",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("OS"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("OS"),
     spaceId: "intimacy-patterns",
     promptId: undefined,
     content:
@@ -608,7 +630,8 @@ export const demoPosts: Post[] = [
     userId: "user-peter-graham",
     authorName: "Peter Graham",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("PG"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("PG"),
     spaceId: "intimacy-patterns",
     promptId: undefined,
     content:
@@ -625,7 +648,8 @@ export const demoPosts: Post[] = [
     userId: "user-quinn-lopez",
     authorName: "Quinn Lopez",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("QL"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("QL"),
     spaceId: "workshops",
     promptId: undefined,
     content:
@@ -640,7 +664,8 @@ export const demoPosts: Post[] = [
     userId: "user-richard-newman",
     authorName: "Richard Newman",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("RN"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("RN"),
     spaceId: "workshops",
     promptId: undefined,
     content:
@@ -655,7 +680,8 @@ export const demoPosts: Post[] = [
     userId: "user-simon-owen",
     authorName: "Simon Owen",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("SO"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("SO"),
     spaceId: "workshops",
     promptId: undefined,
     content:
@@ -672,7 +698,8 @@ export const demoPosts: Post[] = [
     userId: "user-tyler-ross",
     authorName: "Tyler Ross",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("TR"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("TR"),
     spaceId: "dating-desire",
     promptId: undefined,
     content:
@@ -687,7 +714,8 @@ export const demoPosts: Post[] = [
     userId: "user-victor-austin",
     authorName: "Victor Austin",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("VA"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("VA"),
     spaceId: "dating-desire",
     promptId: undefined,
     content:
@@ -702,7 +730,8 @@ export const demoPosts: Post[] = [
     userId: "user-william-foster",
     authorName: "William Foster",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("WF"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("WF"),
     spaceId: "dating-desire",
     promptId: undefined,
     content:
@@ -719,7 +748,8 @@ export const demoPosts: Post[] = [
     userId: "user-xavier-murray",
     authorName: "Xavier Murray",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("XM"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("XM"),
     spaceId: "masculinity-sex-sexuality",
     promptId: undefined,
     content:
@@ -734,7 +764,8 @@ export const demoPosts: Post[] = [
     userId: "user-yannick-gray",
     authorName: "Yannick Gray",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("YG"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("YG"),
     spaceId: "masculinity-sex-sexuality",
     promptId: undefined,
     content:
@@ -749,7 +780,8 @@ export const demoPosts: Post[] = [
     userId: "user-zachary-kelley",
     authorName: "Zachary Kelley",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("ZK"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("ZK"),
     spaceId: "masculinity-sex-sexuality",
     promptId: undefined,
     content:
@@ -766,7 +798,8 @@ export const demoPosts: Post[] = [
     userId: "user-amaro-santos",
     authorName: "Amaro Santos",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("AS"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("AS"),
     spaceId: "sacred-sexuality",
     promptId: undefined,
     content:
@@ -781,7 +814,8 @@ export const demoPosts: Post[] = [
     userId: "user-blake-rivera",
     authorName: "Blake Rivera",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("BR"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("BR"),
     spaceId: "sacred-sexuality",
     promptId: undefined,
     content:
@@ -796,7 +830,8 @@ export const demoPosts: Post[] = [
     userId: "user-connor-ellis",
     authorName: "Connor Ellis",
     authorPronouns: "he/him",
-    authorPhoto: generateAvatarUrl("CE"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("CE"),
     spaceId: "sacred-sexuality",
     promptId: undefined,
     content:
@@ -815,7 +850,8 @@ export const demoComments: Comment[] = [
     postId: "commons-001",
     userId: "user-james-taylor",
     authorName: "James Taylor",
-    authorPhoto: generateAvatarUrl("JT"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("JT"),
     content:
       "I'm in a similar place. What you're describing – that civility without connection – it's a special kind of lonely because nobody knows how much you're struggling. Glad you're here.",
     createdAt: new Date(Date.now() - 82000000),
@@ -826,7 +862,8 @@ export const demoComments: Comment[] = [
     postId: "commons-001",
     userId: "user-ryan-anderson",
     authorName: "Ryan Anderson",
-    authorPhoto: generateAvatarUrl("RA"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("RA"),
     content:
       "Thank you for naming this. So many of us are just... existing in our relationships. I thought I was the only one. The fact that you're here and willing to work on it – that's already something.",
     createdAt: new Date(Date.now() - 75000000),
@@ -839,7 +876,8 @@ export const demoComments: Comment[] = [
     postId: "commons-002",
     userId: "user-david-chen",
     authorName: "David Chen",
-    authorPhoto: generateAvatarUrl("DC"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("DC"),
     content:
       "The loneliness of being in your own head... I feel that deeply. But noticing it like this is the first step. You're already being brave by admitting it.",
     createdAt: new Date(Date.now() - 60000000),
@@ -850,7 +888,8 @@ export const demoComments: Comment[] = [
     postId: "commons-002",
     userId: "user-ethan-martin",
     authorName: "Ethan Martin",
-    authorPhoto: generateAvatarUrl("EM"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("EM"),
     content:
       "Independence is good but not at the cost of connection. I'm learning that 'needing' someone doesn't make you weak. It makes you human.",
     createdAt: new Date(Date.now() - 53000000),
@@ -863,7 +902,8 @@ export const demoComments: Comment[] = [
     postId: "commons-004",
     userId: "user-noah-brooks",
     authorName: "Noah Brooks",
-    authorPhoto: generateAvatarUrl("NB"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("NB"),
     content:
       "This is huge. Your kids probably feel that shift too. They'll remember that you showed up different. That matters more than you know.",
     createdAt: new Date(Date.now() - 40000000),
@@ -874,7 +914,8 @@ export const demoComments: Comment[] = [
     postId: "commons-004",
     userId: "user-michael-brown",
     authorName: "Michael Brown",
-    authorPhoto: generateAvatarUrl("MB"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("MB"),
     content:
       "These small shifts are everything. One moment of real presence with someone you love – that's the whole thing right there.",
     createdAt: new Date(Date.now() - 35000000),
@@ -885,7 +926,8 @@ export const demoComments: Comment[] = [
     postId: "commons-004",
     userId: "user-chris-martinez",
     authorName: "Chris Martinez",
-    authorPhoto: generateAvatarUrl("CM"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("CM"),
     content:
       "I'm learning the same thing. My body isn't my enemy – it's telling me when I'm actually there and when I'm just going through the motions. Your breath is doing that for you.",
     createdAt: new Date(Date.now() - 30000000),
@@ -898,7 +940,8 @@ export const demoComments: Comment[] = [
     postId: "commons-005",
     userId: "user-liam-parker",
     authorName: "Liam Parker",
-    authorPhoto: generateAvatarUrl("LP"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("LP"),
     content:
       "That isolation – I know it. And you're right, we're all in this together. Hearing that helps me feel less broken.",
     createdAt: new Date(Date.now() - 15000000),
@@ -911,7 +954,8 @@ export const demoComments: Comment[] = [
     postId: "start-001",
     userId: "user-jordan-lee",
     authorName: "Jordan Lee",
-    authorPhoto: generateAvatarUrl("JL"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("JL"),
     content:
       "The analyzing thing – YES. I analyze my way out of every vulnerable moment. Like if I understand it intellectually I don't have to actually feel it. This resonates so much.",
     createdAt: new Date(Date.now() - 68000000),
@@ -922,7 +966,8 @@ export const demoComments: Comment[] = [
     postId: "start-001",
     userId: "user-ryan-anderson",
     authorName: "Ryan Anderson",
-    authorPhoto: generateAvatarUrl("RA"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("RA"),
     content:
       "Nothing's spontaneous anymore – that line hit me. I do the same thing. Everything has to be thought through and controlled or I panic. Learning that there's another way.",
     createdAt: new Date(Date.now() - 64000000),
@@ -933,7 +978,8 @@ export const demoComments: Comment[] = [
     postId: "start-001",
     userId: "user-kevin-patel",
     authorName: "Kevin Patel",
-    authorPhoto: generateAvatarUrl("KP"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("KP"),
     content:
       "I'm the same way. Laughing because it's accurate feels like the only safe way to admit it. You're not alone in this pattern.",
     createdAt: new Date(Date.now() - 60000000),
@@ -944,7 +990,8 @@ export const demoComments: Comment[] = [
     postId: "start-001",
     userId: "user-alex-rivera",
     authorName: "Alex Rivera",
-    authorPhoto: generateAvatarUrl("AR"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("AR"),
     content:
       "Practicing something different – I love that framing. It's not about being broken, just about learning new patterns. You're already doing the work.",
     createdAt: new Date(Date.now() - 57000000),
@@ -957,7 +1004,8 @@ export const demoComments: Comment[] = [
     postId: "start-002",
     userId: "user-tyler-ross",
     authorName: "Tyler Ross",
-    authorPhoto: generateAvatarUrl("TR"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("TR"),
     content:
       "That's brave. Three years is a long time to carry that alone. The fact that you're here now is what matters.",
     createdAt: new Date(Date.now() - 50000000),
@@ -970,7 +1018,8 @@ export const demoComments: Comment[] = [
     postId: "embodiment-001",
     userId: "user-marcus-johnson",
     authorName: "Marcus Johnson",
-    authorPhoto: generateAvatarUrl("MJ"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("MJ"),
     content:
       "I do this too. When I finally noticed where I hold tension, it was shocking. Our bodies remember everything we're not expressing.",
     createdAt: new Date(Date.now() - 80000000),
@@ -983,7 +1032,8 @@ export const demoComments: Comment[] = [
     postId: "embodiment-002",
     userId: "user-daniel-kim",
     authorName: "Daniel Kim",
-    authorPhoto: generateAvatarUrl("DK"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("DK"),
     content:
       "That moment when you realize thinking is a way to avoid feeling – that's everything. I'm learning that too. The anxiety is less when I actually let myself feel instead of analyze.",
     createdAt: new Date(Date.now() - 52000000),
@@ -994,7 +1044,8 @@ export const demoComments: Comment[] = [
     postId: "embodiment-002",
     userId: "user-thomas-wilson",
     authorName: "Thomas Wilson",
-    authorPhoto: generateAvatarUrl("TW"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("TW"),
     content:
       "Two minutes and you can feel the difference. Imagine what happens when you keep going. You're onto something real here.",
     createdAt: new Date(Date.now() - 48000000),
@@ -1007,7 +1058,8 @@ export const demoComments: Comment[] = [
     postId: "embodiment-003",
     userId: "user-benjamin-king",
     authorName: "Benjamin King",
-    authorPhoto: generateAvatarUrl("BK"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("BK"),
     content:
       "Your body holding your unexpressed voice – that's so powerful. And the fact that you're hearing it now means you can start to use it differently. That's healing.",
     createdAt: new Date(Date.now() - 40000000),
@@ -1018,7 +1070,8 @@ export const demoComments: Comment[] = [
     postId: "embodiment-003",
     userId: "user-liam-parker",
     authorName: "Liam Parker",
-    authorPhoto: generateAvatarUrl("LP"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("LP"),
     content:
       "The body never lies. Mine talks to me through anxiety and tension too. Learning to listen instead of suppress – this is the real work.",
     createdAt: new Date(Date.now() - 37000000),
@@ -1029,7 +1082,8 @@ export const demoComments: Comment[] = [
     postId: "embodiment-003",
     userId: "user-oliver-schmidt",
     authorName: "Oliver Schmidt",
-    authorPhoto: generateAvatarUrl("OS"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("OS"),
     content:
       "When you start hearing your body, you can't unknow it. It's uncomfortable but also liberating. You're on the right path.",
     createdAt: new Date(Date.now() - 33000000),
@@ -1042,7 +1096,8 @@ export const demoComments: Comment[] = [
     postId: "couples-001",
     userId: "user-mark-david",
     authorName: "Mark & David",
-    authorPhoto: generateAvatarUrl("MD"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("MD"),
     content:
       "Ten minutes of presence with someone you love – that's everything. We're learning the same thing. Small moments are where connection happens.",
     createdAt: new Date(Date.now() - 60000000),
@@ -1053,7 +1108,8 @@ export const demoComments: Comment[] = [
     postId: "couples-001",
     userId: "user-robert-thomas",
     authorName: "Robert & Thomas",
-    authorPhoto: generateAvatarUrl("RT"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("RT"),
     content:
       "This gives me so much hope. We've been trying but keep falling into old patterns. Seeing that you're making progress helps me believe we can too.",
     createdAt: new Date(Date.now() - 55000000),
@@ -1064,7 +1120,8 @@ export const demoComments: Comment[] = [
     postId: "couples-001",
     userId: "user-xavier-murray",
     authorName: "Xavier Murray",
-    authorPhoto: generateAvatarUrl("XM"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("XM"),
     content:
       "The fact that you can sit together without it turning into obligation or pressure – you've already shifted something. That's the foundation everything else is built on.",
     createdAt: new Date(Date.now() - 50000000),
@@ -1077,7 +1134,8 @@ export const demoComments: Comment[] = [
     postId: "couples-002",
     userId: "user-james-sarah",
     authorName: "James & Sarah",
-    authorPhoto: generateAvatarUrl("JS"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("JS"),
     content:
       "That fear of 'have we lost it forever' – that's where we were. But we're finding it again. It's different, slower, more intentional. There's hope here.",
     createdAt: new Date(Date.now() - 42000000),
@@ -1088,7 +1146,8 @@ export const demoComments: Comment[] = [
     postId: "couples-002",
     userId: "user-mark-david",
     authorName: "Mark & David",
-    authorPhoto: generateAvatarUrl("MD"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("MD"),
     content:
       "You haven't lost it. It's just dormant. And the beautiful thing about that is – you get to choose to wake it up. You're doing that by being here.",
     createdAt: new Date(Date.now() - 36000000),
@@ -1101,7 +1160,8 @@ export const demoComments: Comment[] = [
     postId: "touch-002",
     userId: "user-ethan-martin",
     authorName: "Ethan Martin",
-    authorPhoto: generateAvatarUrl("EM"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("EM"),
     content:
       "Two years without being held – that breaks my heart. And also, I relate. The fact that you're here saying it out loud is huge. You matter.",
     createdAt: new Date(Date.now() - 50000000),
@@ -1114,7 +1174,8 @@ export const demoComments: Comment[] = [
     postId: "touch-003",
     userId: "user-liam-parker",
     authorName: "Liam Parker",
-    authorPhoto: generateAvatarUrl("LP"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("LP"),
     content:
       "If I let myself be comforted, I'd have to feel all the loneliness I've been hiding from. I'm in that place too. We don't have to stay there.",
     createdAt: new Date(Date.now() - 38000000),
@@ -1127,7 +1188,8 @@ export const demoComments: Comment[] = [
     postId: "spirituality-001",
     userId: "user-samuel-wright",
     authorName: "Samuel Wright",
-    authorPhoto: generateAvatarUrl("SW"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("SW"),
     content:
       "That question your wife asked you – it's the question that broke me open too. Realizing that separation was never true. Just something we were taught.",
     createdAt: new Date(Date.now() - 62000000),
@@ -1140,7 +1202,8 @@ export const demoComments: Comment[] = [
     postId: "spirituality-002",
     userId: "user-andrew-hayes",
     authorName: "Andrew Hayes",
-    authorPhoto: generateAvatarUrl("AH"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("AH"),
     content:
       "That dissonance between what your body feels and what you were taught – I'm sitting with that pain too. It's real but it can shift.",
     createdAt: new Date(Date.now() - 48000000),
@@ -1153,7 +1216,8 @@ export const demoComments: Comment[] = [
     postId: "dating-001",
     userId: "user-william-foster",
     authorName: "William Foster",
-    authorPhoto: generateAvatarUrl("WF"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("WF"),
     content:
       "This is exactly what I needed to hear. Authenticity being attractive instead of a turn-off? That changes the game. Thank you.",
     createdAt: new Date(Date.now() - 75000000),
@@ -1166,7 +1230,8 @@ export const demoComments: Comment[] = [
     postId: "dating-002",
     userId: "user-tyler-ross",
     authorName: "Tyler Ross",
-    authorPhoto: generateAvatarUrl("TR"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("TR"),
     content:
       "Staying open instead of closing off – that's the harder path but it's the only one that leads to real connection. You're doing the brave thing.",
     createdAt: new Date(Date.now() - 58000000),
@@ -1179,7 +1244,8 @@ export const demoComments: Comment[] = [
     postId: "dating-003",
     userId: "user-victor-austin",
     authorName: "Victor Austin",
-    authorPhoto: generateAvatarUrl("VA"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("VA"),
     content:
       "That moment when you realize rejecting yourself first is the safest way to avoid being rejected – that's profound. I'm unlearning that too.",
     createdAt: new Date(Date.now() - 45000000),
@@ -1192,7 +1258,8 @@ export const demoComments: Comment[] = [
     postId: "masculinity-001",
     userId: "user-yannick-gray",
     authorName: "Yannick Gray",
-    authorPhoto: generateAvatarUrl("YG"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("YG"),
     content:
       "That cost it on your marriage – I feel that. And now seeing the alternative, that vulnerability is actual strength. It changes everything.",
     createdAt: new Date(Date.now() - 78000000),
@@ -1205,7 +1272,8 @@ export const demoComments: Comment[] = [
     postId: "masculinity-002",
     userId: "user-zachary-kelley",
     authorName: "Zachary Kelley",
-    authorPhoto: generateAvatarUrl("ZK"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("ZK"),
     content:
       "Most connected experience with someone you loved – that's the blueprint for everything else. Presence matters more than performance. Always.",
     createdAt: new Date(Date.now() - 65000000),
@@ -1218,7 +1286,8 @@ export const demoComments: Comment[] = [
     postId: "sacred-001",
     userId: "user-connor-ellis",
     authorName: "Connor Ellis",
-    authorPhoto: generateAvatarUrl("CE"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("CE"),
     content:
       "Being instead of doing – that's the whole shift. It sounds simple but it transforms everything. Presence is the sacred thing.",
     createdAt: new Date(Date.now() - 72000000),
@@ -1231,7 +1300,8 @@ export const demoComments: Comment[] = [
     postId: "sacred-002",
     userId: "user-amaro-santos",
     authorName: "Amaro Santos",
-    authorPhoto: generateAvatarUrl("AS"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("AS"),
     content:
       "Sex as meditation – I'm experiencing that too. It's transcendent. And it's the most intimate thing I've ever done because it's real.",
     createdAt: new Date(Date.now() - 58000000),
@@ -1244,7 +1314,8 @@ export const demoComments: Comment[] = [
     postId: "sacred-003",
     userId: "user-blake-rivera",
     authorName: "Blake Rivera",
-    authorPhoto: generateAvatarUrl("BR"),
+    // authorPhoto removed - Avatar component will generate initials instead
+    // authorPhoto: generateAvatarUrl("BR"),
     content:
       "Really meeting someone – that's what I'm learning it means. Not just bodies touching but beings connecting. That's sacred for sure.",
     createdAt: new Date(Date.now() - 45000000),

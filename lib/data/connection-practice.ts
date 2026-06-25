@@ -32,7 +32,7 @@ export async function savePairingInterest(interest: PairingInterest): Promise<vo
         source_type: interest.sourceType,
       });
     } catch (error) {
-      console.error("Error saving pairing interest to Supabase:", error);
+      console.warn("Error saving pairing interest to Supabase:", error);
       // Fall back to localStorage
       const interests = JSON.parse(localStorage.getItem(PAIRING_INTERESTS_KEY) || "[]");
       interests.push({ ...interest, userId });
@@ -67,7 +67,7 @@ export async function getPairingInterests(userId: string): Promise<PairingIntere
         createdAt: new Date(item.created_at),
       }));
     } catch (error) {
-      console.error("Error fetching pairing interests from Supabase:", error);
+      console.warn("Error fetching pairing interests from Supabase:", error);
     }
   }
 
@@ -89,7 +89,7 @@ export async function addConnectionMilestone(milestone: ConnectionMilestone): Pr
         earned_at: new Date().toISOString(),
       });
     } catch (error) {
-      console.error("Error saving milestone to Supabase:", error);
+      console.warn("Error saving milestone to Supabase:", error);
       // Fall back to localStorage
       const milestones = JSON.parse(localStorage.getItem(CONNECTION_MILESTONES_KEY) || "[]");
       milestones.push({ ...milestone, userId });
@@ -121,7 +121,7 @@ export async function getConnectionMilestones(userId: string): Promise<Connectio
         earnedAt: new Date(item.earned_at),
       }));
     } catch (error) {
-      console.error("Error fetching milestones from Supabase:", error);
+      console.warn("Error fetching milestones from Supabase:", error);
     }
   }
 

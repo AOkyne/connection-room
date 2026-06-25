@@ -93,6 +93,26 @@ export function SpaceIconSVG({ spaceId, size = 32 }: SpaceIconSVGProps) {
         </svg>
       );
 
+    case "masculinity-sex-sexuality":
+      // Male symbol
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+          <circle cx="16" cy="8" r="5" stroke={COLOR} strokeWidth="2.5" fill="none"/>
+          <line x1="16" y1="13" x2="16" y2="22" stroke={COLOR} strokeWidth="2.5" strokeLinecap="round"/>
+          <line x1="12" y1="17" x2="20" y2="17" stroke={COLOR} strokeWidth="2.5" strokeLinecap="round"/>
+        </svg>
+      );
+
+    case "sacred-sexuality":
+      // Lotus/flower
+      return (
+        <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="12" r="3" fill={COLOR}/>
+          <path d="M12 6C9.5 4 7 5 7 8C7 6 5 4.5 3 6C2 7.5 3 10 6 10C4 11 3 13 5 14C6.5 12.5 8 13 8 15" stroke={COLOR} strokeWidth="2" fill="none" strokeLinecap="round"/>
+          <path d="M12 6C14.5 4 17 5 17 8C17 6 19 4.5 21 6C22 7.5 21 10 18 10C20 11 21 13 19 14C17.5 12.5 16 13 16 15" stroke={COLOR} strokeWidth="2" fill="none" strokeLinecap="round"/>
+        </svg>
+      );
+
     default:
       return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none">

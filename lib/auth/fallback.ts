@@ -32,7 +32,7 @@ const FALLBACK_TEST_ACCOUNTS = [
   },
 ];
 
-// Try fallback login with test accounts
+// Try fallback login with test accounts and previously created accounts
 export async function fallbackSignInWithPassword(
   email: string,
   password: string
@@ -40,9 +40,19 @@ export async function fallbackSignInWithPassword(
   // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 500));
 
-  const account = FALLBACK_TEST_ACCOUNTS.find(
+  // Check hardcoded test accounts first
+  let account = FALLBACK_TEST_ACCOUNTS.find(
     (acc) => acc.email.toLowerCase() === email.toLowerCase() && acc.password === password
   );
+
+  // If not found, check previously created accounts in localStorage
+  if (!account) {
+    const storedAccounts = JSON.parse(localStorage.getItem(FALLBACK_AUTH_KEY) || "[]");
+    const storedAccount = storedAccounts.find(
+      (acc: any) => acc.email.toLowerCase() === email.toLowerCase() && acc.password === password
+    );
+    account = storedAccount;
+  }
 
   if (!account) {
     return {

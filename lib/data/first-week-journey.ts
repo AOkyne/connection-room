@@ -57,7 +57,7 @@ export async function getJourneyProgress(): Promise<JourneyProgress | null> {
         .single();
 
       if (error && error.code !== "PGRST116") {
-        console.error("Error fetching journey progress from Supabase:", error);
+        console.warn("Error fetching journey progress from Supabase:", error);
       }
 
       if (data) {
@@ -73,7 +73,7 @@ export async function getJourneyProgress(): Promise<JourneyProgress | null> {
         };
       }
     } catch (err) {
-      console.error("Supabase journey fetch failed, falling back to localStorage");
+      console.warn("Supabase journey fetch failed, falling back to localStorage");
     }
   }
 
@@ -89,7 +89,7 @@ export async function getJourneyProgress(): Promise<JourneyProgress | null> {
         updatedAt: new Date(parsed.updatedAt),
       };
     } catch (e) {
-      console.error("Error parsing journey progress from localStorage");
+      console.warn("Error parsing journey progress from localStorage");
     }
   }
 
@@ -120,13 +120,13 @@ export async function saveJourneyProgress(progress: JourneyProgress): Promise<vo
         });
 
       if (error) {
-        console.error("Error saving journey to Supabase:", error);
+        console.warn("Error saving journey to Supabase:", error);
         // Fall back to localStorage
         saveToLocalStorage(progress);
       }
       return;
     } catch (err) {
-      console.error("Supabase save failed, falling back to localStorage");
+      console.warn("Supabase save failed, falling back to localStorage");
       saveToLocalStorage(progress);
       return;
     }
