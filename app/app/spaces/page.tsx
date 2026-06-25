@@ -158,7 +158,7 @@ export default function SpacesPage() {
                     <div className="text-xs text-[#a0968a] mb-4">{demoMembers.filter(m => m.spacesJoined?.includes(space.id)).length} members</div>
                     <div className="flex gap-2">
                       <Link href={`/app/spaces/${space.id}`} className="flex-1">
-                        <Button variant="secondary" size="sm" className="w-full">
+                        <Button variant="secondary" size="sm" className="">
                           Enter Space
                         </Button>
                       </Link>
@@ -193,7 +193,7 @@ export default function SpacesPage() {
                 <Button
                   variant="primary"
                   size="sm"
-                  className="w-full"
+                  className=""
                   onClick={() => handleJoinSpace(space.id)}
                 >
                   Join Space

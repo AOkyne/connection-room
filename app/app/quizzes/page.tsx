@@ -44,7 +44,7 @@ export default function QuizzesPage() {
                     <h2 className="text-2xl font-bold text-[#2a2318]">{quiz.title}</h2>
                     <p className="text-[#6b5f52] mt-2">{quiz.description}</p>
                   </div>
-                  <Button variant="primary" size="sm" className="w-full">
+                  <Button variant="primary" size="sm" className="">
                     Take Quiz →
                   </Button>
                 </div>

@@ -205,7 +205,7 @@ export default function JourneyPage() {
               <p className="font-medium text-[#2a2318]">{memberTypeLabel}</p>
             </div>
             <Link href="/app/profile" className="pt-2">
-              <Button variant="outline" size="sm" className="w-full">
+              <Button variant="outline" size="sm" className="">
                 Edit Profile
               </Button>
             </Link>
@@ -255,7 +255,7 @@ export default function JourneyPage() {
                 <p className="text-xs text-[#a0968a] pt-1">+{interestedEvents.length - 3} more</p>
               )}
               <Link href="/app/events" className="pt-2 block">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm" className="">
                   View All Events
                 </Button>
               </Link>
@@ -264,7 +264,7 @@ export default function JourneyPage() {
             <div>
               <p className="text-[#a0968a] text-sm mb-3">No events marked yet</p>
               <Link href="/app/events">
-                <Button variant="secondary" size="sm" className="w-full">
+                <Button variant="secondary" size="sm" className="">
                   Browse Events
                 </Button>
               </Link>
@@ -280,7 +280,7 @@ export default function JourneyPage() {
               <p className="text-lg font-medium text-[#2a2318]">{profile.quizResult}</p>
               <p className="text-sm text-[#6b5f52] mt-2">From the Connection Assessment</p>
               <Link href={appConfig.urls.quiz} className="pt-3 block">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm" className="">
                   Retake Quiz
                 </Button>
               </Link>
@@ -289,7 +289,7 @@ export default function JourneyPage() {
             <div>
               <p className="text-[#a0968a] text-sm mb-3">Discover your connection profile</p>
               <Link href={appConfig.urls.quiz}>
-                <Button variant="secondary" size="sm" className="w-full">
+                <Button variant="secondary" size="sm" className="">
                   Take Quiz
                 </Button>
               </Link>
@@ -312,7 +312,7 @@ export default function JourneyPage() {
                 <p className="text-xs text-[#a0968a] pt-1">+{joinedSpaces.length - 4} more</p>
               )}
               <Link href="/app/spaces" className="pt-2 block">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm" className="">
                   Browse All
                 </Button>
               </Link>
@@ -321,7 +321,7 @@ export default function JourneyPage() {
             <div>
               <p className="text-[#a0968a] text-sm mb-3">Haven't joined any spaces yet</p>
               <Link href="/app/spaces">
-                <Button variant="secondary" size="sm" className="w-full">
+                <Button variant="secondary" size="sm" className="">
                   Join a Space
                 </Button>
               </Link>
@@ -360,7 +360,7 @@ export default function JourneyPage() {
             <div>
               <p className="text-sm text-[#6b5f52] mb-3">You're open to pairings</p>
               <Link href="/app/connections">
-                <Button variant="secondary" size="sm" className="w-full">
+                <Button variant="secondary" size="sm" className="">
                   View Pairing
                 </Button>
               </Link>
@@ -369,7 +369,7 @@ export default function JourneyPage() {
             <div>
               <p className="text-sm text-[#a0968a] mb-3">Connections paused</p>
               <Link href="/app/connections">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm" className="">
                   Manage Preferences
                 </Button>
               </Link>
@@ -389,7 +389,7 @@ export default function JourneyPage() {
                 <Button
                   variant={nextStep.type === "external" ? "secondary" : "primary"}
                   size="lg"
-                  className="w-full"
+                  className=""
                 >
                   {nextStep.action} →
                 </Button>
@@ -411,17 +411,17 @@ export default function JourneyPage() {
           </p>
           <div className="space-y-2">
             <Link href={appConfig.urls.freeConsult}>
-              <Button variant="secondary" size="sm" className="w-full">
+              <Button variant="secondary" size="sm" className="">
                 Free Consultation
               </Button>
             </Link>
             <Link href={appConfig.urls.couplesDiscoveryCall}>
-              <Button variant="outline" size="sm" className="w-full">
+              <Button variant="outline" size="sm" className="">
                 Couples Discovery Call
               </Button>
             </Link>
             <Link href={appConfig.urls.mainWebsite}>
-              <Button variant="outline" size="sm" className="w-full">
+              <Button variant="outline" size="sm" className="">
                 Learn More
               </Button>
             </Link>

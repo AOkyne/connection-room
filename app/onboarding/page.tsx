@@ -158,7 +158,7 @@ export default function OnboardingPage() {
                 <p className="text-[#6b5f52]">
                   This takes about 5 minutes. You can edit your profile anytime after.
                 </p>
-                <Button variant="primary" size="lg" onClick={handleNext} className="w-full">
+                <Button variant="primary" size="lg" onClick={handleNext} className="">
                   Let's Begin
                 </Button>
               </div>
@@ -669,7 +669,7 @@ export default function OnboardingPage() {
                     size="lg"
                     onClick={handleComplete}
                     disabled={isSubmitting || submitError === null && isSubmitting}
-                    className="w-full"
+                    className=""
                   >
                     {isSubmitting ? (
                       <div className="flex items-center justify-center gap-2">

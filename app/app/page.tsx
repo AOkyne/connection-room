@@ -294,7 +294,7 @@ export default function AppHome() {
                 </p>
               </div>
               <Link href="/app/events">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm" className="">
                   View All Events
                 </Button>
               </Link>

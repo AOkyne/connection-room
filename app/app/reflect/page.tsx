@@ -143,7 +143,7 @@ export default function ReflectPage() {
 
             <div className="flex gap-3 pt-4">
               <Link href="/app" className="flex-1">
-                <Button variant="outline" size="md" className="w-full">
+                <Button variant="outline" size="md" className="">
                   Cancel
                 </Button>
               </Link>
