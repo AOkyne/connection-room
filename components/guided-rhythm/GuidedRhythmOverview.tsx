@@ -122,8 +122,7 @@ export function GuidedRhythmOverview() {
       {/* Reflection Saved Feedback */}
       {reflectionSavedFeedback && (
         <PrivateReflectionFeedback
-          onViewJourney={() => setReflectionSavedFeedback(false)}
-          onContinue={() => setReflectionSavedFeedback(false)}
+          onClose={() => setReflectionSavedFeedback(false)}
         />
       )}
 

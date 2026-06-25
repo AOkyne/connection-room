@@ -81,9 +81,8 @@ export default function ReflectPage() {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
         <PublicReflectionFeedback
-          onViewPost={() => router.push("/app/spaces/" + selectedSpaceId)}
-          onReadOthers={() => router.push("/app")}
-          onReturnHome={() => router.push("/app")}
+          spaceId={selectedSpaceId}
+          onClose={() => router.push("/app")}
         />
       </div>
     );

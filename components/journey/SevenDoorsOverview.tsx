@@ -121,8 +121,7 @@ export function SevenDoorsOverview() {
       {/* Reflection Saved Feedback */}
       {savedReflectionFeedback && (
         <PrivateReflectionFeedback
-          onViewJourney={() => setSavedReflectionFeedback(null)}
-          onContinue={() => setSavedReflectionFeedback(null)}
+          onClose={() => setSavedReflectionFeedback(null)}
         />
       )}
 

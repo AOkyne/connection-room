@@ -163,12 +163,6 @@ export default function ProfilePage() {
         </div>
       </Card>
 
-      {saved && (
-        <div className="bg-[#7a9b6d]/10 border border-[#7a9b6d] text-[#7a9b6d] px-4 py-3 rounded-lg">
-          ✓ Profile saved successfully
-        </div>
-      )}
-
       <Button variant="primary" size="lg" className="w-full" onClick={handleSave}>
         Save Profile
       </Button>
