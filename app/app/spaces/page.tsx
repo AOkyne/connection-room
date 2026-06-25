@@ -6,6 +6,7 @@ import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { SpaceIconSVG } from "@/components/SpaceIconSVG";
 import { SpaceJoinedFeedback } from "@/components/feedback";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { getSpaces, joinSpace, leaveSpace, ensureRequiredSpaces, sortSpacesByPreference, saveSpaceOrder, isStartHereRequired, getAppVisits, type Space } from "@/lib/data/spaces";
 import { demoMembers } from "@/lib/seed/demo-members";
 
@@ -100,6 +101,14 @@ export default function SpacesPage() {
 
   return (
     <div className="space-y-8">
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb
+        items={[
+          { label: "Home", href: "/app" },
+          { label: "Community Spaces", isActive: true },
+        ]}
+      />
+
       {/* Feedback for joining a space */}
       {joinedSpaceFeedback && (
         <SpaceJoinedFeedback

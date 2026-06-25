@@ -8,6 +8,7 @@ import { getTodaysPrompt } from "@/lib/data/recommendations";
 import { createPost } from "@/lib/data/posts";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import Link from "next/link";
 import { PublicReflectionFeedback } from "@/components/feedback";
 
@@ -90,11 +91,13 @@ export default function ReflectPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <Link href="/app">
-        <Button variant="ghost" size="sm">
-          ← Back to Home
-        </Button>
-      </Link>
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb
+        items={[
+          { label: "Home", href: "/app" },
+          { label: "Respond to Prompt", isActive: true },
+        ]}
+      />
 
       <Card>
         <div className="space-y-6">

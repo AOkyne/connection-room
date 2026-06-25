@@ -21,6 +21,7 @@ import { EventReminderBanner } from "@/components/EventReminderBanner";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { LoadingError } from "@/components/LoadingError";
 import { SkeletonCard, SkeletonGrid } from "@/components/Skeleton";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { withTimeout } from "@/lib/utils/with-timeout";
 import Link from "next/link";
 
@@ -152,6 +153,14 @@ export default function JourneyPage() {
 
   return (
     <div className="space-y-8">
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb
+        items={[
+          { label: "Home", href: "/app" },
+          { label: "My Journey", isActive: true },
+        ]}
+      />
+
       {/* Header */}
       <div>
         <h1 className="text-4xl text-[#2a2318]">My Journey</h1>

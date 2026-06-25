@@ -6,6 +6,7 @@ import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { IconIntegration, IconConnection, IconProfileNav, IconProfile } from "@/components/Icons";
 import { ProfileSavedFeedback } from "@/components/feedback";
 
@@ -46,6 +47,14 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-8 max-w-2xl">
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb
+        items={[
+          { label: "Home", href: "/app" },
+          { label: "Your Profile", isActive: true },
+        ]}
+      />
+
       {/* Profile Saved Feedback */}
       {profileSavedFeedback && (
         <ProfileSavedFeedback onClose={() => setProfileSavedFeedback(false)} />
