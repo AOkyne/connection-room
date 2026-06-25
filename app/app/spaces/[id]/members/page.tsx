@@ -155,7 +155,6 @@ export default function SpaceMembersPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="w-full"
                     >
                       View Profile
                     </Button>

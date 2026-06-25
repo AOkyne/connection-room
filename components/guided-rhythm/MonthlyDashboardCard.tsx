@@ -69,7 +69,7 @@ export function MonthlyDashboardCard() {
             <Button
               variant="secondary"
               size="sm"
-              className="w-full text-left"
+              className="text-left"
               onClick={(e) => {
                 e.preventDefault();
                 window.location.href = "/app/journey";

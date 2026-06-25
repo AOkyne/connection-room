@@ -43,7 +43,7 @@ export function PostTemplateSelector({
               <button
                 key={template.id}
                 onClick={() => setSelectedTemplate(template.id)}
-                className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${
+                className={`text-left px-4 py-3 rounded-lg border-2 transition-all ${
                   selectedTemplate === template.id
                     ? "border-[#d4a574] bg-[#f3ede5]"
                     : "border-[#e8ddd2] bg-white hover:border-[#d4a574]"

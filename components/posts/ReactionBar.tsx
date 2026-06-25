@@ -130,7 +130,7 @@ export function ReactionBar({
                     onClick={() => handleReactionClick(reaction.id)}
                     onKeyDown={handleKeyDown}
                     role="menuitem"
-                    className={`block w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
+                    className={`block text-left px-3 py-2 text-sm rounded-lg transition-colors ${
                       isSelected
                         ? "bg-[#d4a574] text-white"
                         : "text-[#6b5f52] hover:bg-[#f3ede5]"

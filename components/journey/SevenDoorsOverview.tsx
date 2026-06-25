@@ -257,7 +257,7 @@ export function SevenDoorsOverview() {
                   <button
                     key={intention}
                     onClick={() => handleSetIntention(intention)}
-                    className="w-full text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
+                    className="text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
                   >
                     {intention}
                   </button>
@@ -281,7 +281,6 @@ export function SevenDoorsOverview() {
                   }
                   disabled={!customIntention}
                   size="sm"
-                  className="w-full"
                 >
                   Save Custom Intention
                 </Button>
@@ -289,7 +288,7 @@ export function SevenDoorsOverview() {
 
               <button
                 onClick={() => setShowIntentionModal(false)}
-                className="w-full px-3 py-2 text-sm text-[#6b5f52] hover:bg-[#f3ede5] rounded"
+                className="px-3 py-2 text-sm text-[#6b5f52] hover:bg-[#f3ede5] rounded"
               >
                 Close
               </button>

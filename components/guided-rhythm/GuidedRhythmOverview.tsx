@@ -218,31 +218,31 @@ export function GuidedRhythmOverview() {
                       "Continue practicing small honesty"
                     )
                   }
-                  className="w-full text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
+                  className="text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
                 >
                   Continue practicing small honesty
                 </button>
                 <button
                   onClick={() => handleSetIntention("Notice my body more")}
-                  className="w-full text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
+                  className="text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
                 >
                   Notice my body more
                 </button>
                 <button
                   onClick={() => handleSetIntention("Practice asking for what I need")}
-                  className="w-full text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
+                  className="text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
                 >
                   Practice asking for what I need
                 </button>
                 <button
                   onClick={() => handleSetIntention("Show up for my community")}
-                  className="w-full text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
+                  className="text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
                 >
                   Show up for my community
                 </button>
                 <button
                   onClick={() => handleSetIntention("Be gentler with myself")}
-                  className="w-full text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
+                  className="text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
                 >
                   Be gentler with myself
                 </button>
@@ -265,7 +265,6 @@ export function GuidedRhythmOverview() {
                   }
                   disabled={!customIntention}
                   size="sm"
-                  className="w-full"
                 >
                   Save Custom Intention
                 </Button>
@@ -273,7 +272,7 @@ export function GuidedRhythmOverview() {
 
               <button
                 onClick={() => setShowIntentionModal(false)}
-                className="w-full px-3 py-2 text-sm text-[#6b5f52] hover:bg-[#f3ede5] rounded"
+                className="px-3 py-2 text-sm text-[#6b5f52] hover:bg-[#f3ede5] rounded"
               >
                 Close
               </button>

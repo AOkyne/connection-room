@@ -43,7 +43,7 @@ export function EmptySpaceInvitation({
               <button
                 key={prompt.id}
                 onClick={onStartPost}
-                className="w-full px-4 py-3 rounded-lg bg-white border border-[#e8ddd2] hover:border-[#d4a574] hover:bg-[#f3ede5] transition-colors text-left"
+                className="px-4 py-3 rounded-lg bg-white border border-[#e8ddd2] hover:border-[#d4a574] hover:bg-[#f3ede5] transition-colors text-left"
               >
                 <p className="text-sm text-[#6b5f52] italic">"{prompt.text}"</p>
               </button>

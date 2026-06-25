@@ -241,7 +241,6 @@ export default function AppHome() {
                     <Button
                       variant={nextStep.type === "external" ? "secondary" : "primary"}
                       size="lg"
-                      className="w-full sm:w-auto"
                     >
                       {nextStep.action} →
                     </Button>
@@ -307,7 +306,7 @@ export default function AppHome() {
           <CardHeader title="Take A Quiz" icon={<>{(() => { const Icon = getIconComponent("🧭"); return <Icon size={20} />; })()}</>} />
           <div className="space-y-3">
             <Link href="/app/quizzes">
-              <Button variant="primary" size="sm" className="w-full text-left">
+              <Button variant="primary" size="sm" className="text-left">
                 Take A Quiz →
               </Button>
             </Link>

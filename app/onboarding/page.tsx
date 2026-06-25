@@ -207,7 +207,7 @@ export default function OnboardingPage() {
                       handleUpdate({ memberType: option.id });
                       if (option.id === "couple") setCoupleMode(true);
                     }}
-                    className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
+                    className={`p-4 text-left rounded-lg border-2 transition-all ${
                       profile.memberType === option.id
                         ? "border-[#d4a574] bg-[#f3ede5]"
                         : "border-[#e8ddd2] hover:border-[#d4a574]"
@@ -509,7 +509,7 @@ export default function OnboardingPage() {
                     <button
                       key={option.id}
                       onClick={() => handleUpdate({ pairingComfortLevel: option.id })}
-                      className={`w-full p-3 text-left rounded-lg border-2 transition-all ${
+                      className={`p-3 text-left rounded-lg border-2 transition-all ${
                         profile.pairingComfortLevel === option.id
                           ? "border-[#d4a574] bg-[#f3ede5]"
                           : "border-[#e8ddd2] hover:border-[#d4a574]"
@@ -606,7 +606,7 @@ export default function OnboardingPage() {
                   <div className="space-y-2">
                     <button
                       onClick={() => handleUpdate({ firstPromptIsPublic: true })}
-                      className={`w-full p-3 text-left rounded-lg border-2 transition-all ${
+                      className={`p-3 text-left rounded-lg border-2 transition-all ${
                         profile.firstPromptIsPublic === true
                           ? "border-[#d4a574] bg-[#f3ede5]"
                           : "border-[#e8ddd2] hover:border-[#d4a574]"
@@ -617,7 +617,7 @@ export default function OnboardingPage() {
                     </button>
                     <button
                       onClick={() => handleUpdate({ firstPromptIsPublic: false })}
-                      className={`w-full p-3 text-left rounded-lg border-2 transition-all ${
+                      className={`p-3 text-left rounded-lg border-2 transition-all ${
                         profile.firstPromptIsPublic === false
                           ? "border-[#d4a574] bg-[#f3ede5]"
                           : "border-[#e8ddd2] hover:border-[#d4a574]"
@@ -707,7 +707,7 @@ export default function OnboardingPage() {
 
                   <button
                     onClick={() => handleNavigateAfterSuccess("/app/journey")}
-                    className="w-full p-4 text-left rounded-lg border-2 border-[#d4a574] bg-[#f3ede5] hover:bg-[#e8ddd2] transition-all"
+                    className="p-4 text-left rounded-lg border-2 border-[#d4a574] bg-[#f3ede5] hover:bg-[#e8ddd2] transition-all"
                   >
                     <p className="font-medium text-[#2a2318]">Start the Seven Doors</p>
                     <p className="text-sm text-[#6b5f52] mt-1">Your first guided chapter inside The Connection Room</p>
@@ -715,7 +715,7 @@ export default function OnboardingPage() {
 
                   <button
                     onClick={() => handleNavigateAfterSuccess("/app/spaces?space=commons")}
-                    className="w-full p-4 text-left rounded-lg border-2 border-[#e8ddd2] hover:border-[#d4a574] hover:bg-[#f3ede5] transition-all"
+                    className="p-4 text-left rounded-lg border-2 border-[#e8ddd2] hover:border-[#d4a574] hover:bg-[#f3ede5] transition-all"
                   >
                     <p className="font-medium text-[#2a2318]">Visit The Commons</p>
                     <p className="text-sm text-[#6b5f52] mt-1">Introduce yourself and see who else is here</p>
@@ -723,7 +723,7 @@ export default function OnboardingPage() {
 
                   <button
                     onClick={() => handleNavigateAfterSuccess("/app/spaces")}
-                    className="w-full p-4 text-left rounded-lg border-2 border-[#e8ddd2] hover:border-[#d4a574] hover:bg-[#f3ede5] transition-all"
+                    className="p-4 text-left rounded-lg border-2 border-[#e8ddd2] hover:border-[#d4a574] hover:bg-[#f3ede5] transition-all"
                   >
                     <p className="font-medium text-[#2a2318]">Explore Your Spaces</p>
                     <p className="text-sm text-[#6b5f52] mt-1">Browse all the communities available to you</p>

@@ -107,7 +107,7 @@ export function DoorCard({
                   onActionClick(action);
                 }
               }}
-              className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+              className={`text-left px-4 py-3 rounded-lg text-sm font-medium transition-all ${
                 action.type === "post"
                   ? "bg-[#d4a574] text-white hover:bg-[#c09560]"
                   : "border-2 border-[#d4a574] text-[#d4a574] hover:bg-[#f3ede5]"
@@ -131,7 +131,7 @@ export function DoorCard({
           </div>
           <button
             onClick={() => setShowReflection(true)}
-            className="w-full bg-[#d4a574] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#c09560] transition-all"
+            className="bg-[#d4a574] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#c09560] transition-all"
           >
             Write Private Reflection
           </button>
@@ -226,7 +226,7 @@ export function DoorCard({
           variant="outline"
           size="sm"
           onClick={onComplete}
-          className="w-full mt-4"
+          className="mt-4"
         >
           Mark This Door Complete
         </Button>
