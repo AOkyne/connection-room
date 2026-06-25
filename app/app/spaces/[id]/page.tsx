@@ -29,6 +29,8 @@ import { IconIntegration, IconReflection } from "@/components/Icons";
 import { ToastContainer } from "@/components/Toast";
 import { useToast } from "@/lib/hooks/useToast";
 import { Avatar } from "@/components/Avatar";
+import { ErrorFeedback } from "@/components/ErrorFeedback";
+import { LoadingStateFeedback } from "@/components/LoadingStateFeedback";
 import { demoMembers } from "@/lib/seed/demo-members";
 import { demoSpaceMemberships } from "@/lib/seed/demo-space-memberships";
 import Link from "next/link";
@@ -55,6 +57,12 @@ export default function SpaceDetailPage() {
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [postError, setPostError] = useState<string | null>(null);
+  const [commentError, setCommentError] = useState<{ [postId: string]: string | null }>({});
+  const [retryingPost, setRetryingPost] = useState(false);
+  const [retryingComment, setRetryingComment] = useState<Set<string>>(new Set());
+  const [pendingPostContent, setPendingPostContent] = useState<string | null>(null);
+  const [pendingCommentContent, setPendingCommentContent] = useState<{ [postId: string]: string }>({});
   const [userReactions, setUserReactions] = useState<Record<string, string>>(() => {
     if (typeof window === "undefined") return {};
     const stored = localStorage.getItem("connection-room:user-reactions");
@@ -116,9 +124,11 @@ export default function SpaceDetailPage() {
 
     try {
       setIsSubmitting(true);
+      setPostError(null);
       const newPost = await createPost(spaceId, profile.displayName, trimmedContent, false, undefined, profile.pronouns, profile.profilePhoto);
       setPosts([newPost, ...posts]);
       setNewPostContent("");
+      setPendingPostContent(null);
       const previewText = trimmedContent.length > 50 ? trimmedContent.substring(0, 47) + "..." : trimmedContent;
       showToast(`Shared: "${previewText}"`, "success", 4000);
 
@@ -127,11 +137,20 @@ export default function SpaceDetailPage() {
       await checkAndAwardFirstShare(profile.id, postCount);
       await checkAndAwardCommunityBuilder(profile.id, postCount, 0);
     } catch (error) {
-      console.error("Error creating post:", error);
-      showToast("Failed to share your reflection. Please try again.", "error");
+      console.warn("Error creating post:", error);
+      setPendingPostContent(trimmedContent);
+      setPostError("Failed to share your reflection. Please check your connection and try again.");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleRetryPost = async () => {
+    if (!pendingPostContent) return;
+    setRetryingPost(true);
+    // Call handleCreatePost with the pending content
+    await handleCreatePost();
+    setRetryingPost(false);
   };
 
   const handleAddComment = async (postId: string) => {
@@ -151,8 +170,10 @@ export default function SpaceDetailPage() {
 
     try {
       setIsSubmitting(true);
+      setCommentError({ ...commentError, [postId]: null });
       await createComment(postId, profile.displayName, trimmedContent, profile.pronouns, profile.profilePhoto);
       setNewCommentContent({ ...newCommentContent, [postId]: "" });
+      setPendingCommentContent({ ...pendingCommentContent, [postId]: "" });
       const previewText = trimmedContent.length > 50 ? trimmedContent.substring(0, 47) + "..." : trimmedContent;
       showToast(`Response added: "${previewText}"`, "success", 4000);
 
@@ -176,11 +197,27 @@ export default function SpaceDetailPage() {
       await checkAndAwardFirstWitness(profile.id, totalComments);
       await checkAndAwardThoughtfulWitness(profile.id, totalComments);
     } catch (error) {
-      console.error("Error adding comment:", error);
-      showToast("Failed to add your response. Please try again.", "error");
+      console.warn("Error adding comment:", error);
+      setPendingCommentContent({ ...pendingCommentContent, [postId]: trimmedContent });
+      setCommentError({ ...commentError, [postId]: "Failed to add your response. Please check your connection and try again." });
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleRetryComment = async (postId: string) => {
+    const retrying = new Set(retryingComment);
+    retrying.add(postId);
+    setRetryingComment(retrying);
+
+    const content = pendingCommentContent[postId];
+    if (content) {
+      setNewCommentContent({ ...newCommentContent, [postId]: content });
+      await handleAddComment(postId);
+    }
+
+    retrying.delete(postId);
+    setRetryingComment(retrying);
   };
 
   const handleReaction = async (postId: string, reactionType: string) => {
@@ -398,6 +435,19 @@ export default function SpaceDetailPage() {
       {/* First Week Journey Card */}
       {spaceId === "start-here" && <FirstWeekStartHereCard />}
 
+      {/* Post Error Feedback */}
+      {postError && (
+        <div className="mb-4">
+          <ErrorFeedback
+            title="Post Failed"
+            message={postError}
+            onRetry={handleRetryPost}
+            onDismiss={() => setPostError(null)}
+            retryLoading={retryingPost}
+          />
+        </div>
+      )}
+
       {/* Create Post */}
       <Card id="create-post-section">
         <CardHeader title="Share Your Thoughts" icon={<IconIntegration size={20} />} />
@@ -529,6 +579,19 @@ export default function SpaceDetailPage() {
                   <div className="mb-3">
                     <CommentingGuideHelper compact={true} />
                   </div>
+
+                  {/* Comment Error Feedback */}
+                  {commentError[post.id] && (
+                    <div className="mb-3">
+                      <ErrorFeedback
+                        title="Response Failed"
+                        message={commentError[post.id]!}
+                        onRetry={() => handleRetryComment(post.id)}
+                        onDismiss={() => setCommentError({ ...commentError, [post.id]: null })}
+                        retryLoading={retryingComment.has(post.id)}
+                      />
+                    </div>
+                  )}
 
                   {/* Add Comment */}
                   <div className="space-y-2">
