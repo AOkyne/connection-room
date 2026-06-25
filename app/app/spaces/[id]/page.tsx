@@ -119,7 +119,8 @@ export default function SpaceDetailPage() {
       const newPost = await createPost(spaceId, profile.displayName, trimmedContent, false, undefined, profile.pronouns, profile.profilePhoto);
       setPosts([newPost, ...posts]);
       setNewPostContent("");
-      showToast("Your reflection has been shared", "success");
+      const previewText = trimmedContent.length > 50 ? trimmedContent.substring(0, 47) + "..." : trimmedContent;
+      showToast(`Shared: "${previewText}"`, "success", 4000);
 
       // Check and award milestones
       const postCount = posts.length + 1;
@@ -152,7 +153,8 @@ export default function SpaceDetailPage() {
       setIsSubmitting(true);
       await createComment(postId, profile.displayName, trimmedContent, profile.pronouns, profile.profilePhoto);
       setNewCommentContent({ ...newCommentContent, [postId]: "" });
-      showToast("Your response has been added", "success");
+      const previewText = trimmedContent.length > 50 ? trimmedContent.substring(0, 47) + "..." : trimmedContent;
+      showToast(`Response added: "${previewText}"`, "success", 4000);
 
       // Refresh posts to show updated comment count and comments
       const updatedPosts = await getPosts(spaceId);

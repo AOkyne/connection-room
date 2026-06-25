@@ -5,15 +5,24 @@ interface ToastMessage {
   type: "success" | "error" | "info" | "warning";
   duration?: number;
   id: string;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 export function useToast() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   const showToast = useCallback(
-    (message: string, type: "success" | "error" | "info" | "warning" = "info", duration = 3000) => {
+    (
+      message: string,
+      type: "success" | "error" | "info" | "warning" = "info",
+      duration = 3000,
+      action?: { label: string; onClick: () => void }
+    ) => {
       const id = Date.now().toString();
-      const toast: ToastMessage = { message, type, duration, id };
+      const toast: ToastMessage = { message, type, duration, id, action };
       setToasts((prev) => [...prev, toast]);
 
       if (duration > 0) {
