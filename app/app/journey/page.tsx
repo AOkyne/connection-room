@@ -409,19 +409,19 @@ export default function JourneyPage() {
           <p className="text-[#6b5f52]">
             Deepen your practice with personalized coaching, workshops, and more.
           </p>
-          <div className="space-y-2">
+          <div className="flex flex-wrap gap-3">
             <Link href={appConfig.urls.freeConsult}>
-              <Button variant="secondary" size="sm" className="">
+              <Button variant="secondary" size="sm">
                 Free Consultation
               </Button>
             </Link>
             <Link href={appConfig.urls.couplesDiscoveryCall}>
-              <Button variant="outline" size="sm" className="">
+              <Button variant="outline" size="sm">
                 Couples Discovery Call
               </Button>
             </Link>
             <Link href={appConfig.urls.mainWebsite}>
-              <Button variant="outline" size="sm" className="">
+              <Button variant="outline" size="sm">
                 Learn More
               </Button>
             </Link>

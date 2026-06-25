@@ -18,7 +18,7 @@ export function WaysToConnectCard() {
         </div>
 
         {/* Ways - vertical stack for mobile, grid for larger screens */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           {waysToConnect.map((way) => (
             <a
               key={way.id}
