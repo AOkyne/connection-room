@@ -28,7 +28,7 @@ export function LoadingError({
 
         <div className="flex flex-col gap-3 pt-4">
           {showRetry && onRetry && (
-            <Button onClick={onRetry} variant="primary" size="md" className="w-full">
+            <Button onClick={onRetry} variant="primary" size="md">
               Try Again
             </Button>
           )}
@@ -36,7 +36,6 @@ export function LoadingError({
             onClick={() => (window.location.href = "/app")}
             variant="outline"
             size="md"
-            className="w-full"
           >
             Return Home
           </Button>

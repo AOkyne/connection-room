@@ -163,7 +163,7 @@ export default function ProfilePage() {
         </div>
       </Card>
 
-      <Button variant="primary" size="lg" className="w-full" onClick={handleSave}>
+      <Button variant="primary" size="lg" onClick={handleSave}>
         Save Profile
       </Button>
     </div>

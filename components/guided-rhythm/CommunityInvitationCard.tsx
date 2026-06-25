@@ -37,8 +37,7 @@ export function CommunityInvitationCard({
           <Button
             onClick={onShare}
             variant="secondary"
-            size="sm"
-            className="w-full"
+            size="md"
           >
             Create a Post in The Commons
           </Button>
