@@ -158,7 +158,6 @@ export default function SpacesPage() {
                         alt={space.name}
                         fill
                         className="object-cover"
-                        loading="lazy"
                       />
                     </div>
 

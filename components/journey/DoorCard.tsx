@@ -61,7 +61,6 @@ export function DoorCard({
           alt={door.title}
           fill
           className="object-cover"
-          loading="lazy"
         />
       </div>
 

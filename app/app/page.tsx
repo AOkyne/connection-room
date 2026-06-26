@@ -240,7 +240,6 @@ export default function AppHome() {
           alt="Community"
           fill
           className="object-cover"
-          loading="lazy"
         />
         <div className="absolute inset-0 bg-black/15"></div>
       </div>
