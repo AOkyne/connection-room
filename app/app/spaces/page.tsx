@@ -134,7 +134,7 @@ export default function SpacesPage() {
             <h2 className="text-2xl font-bold text-[#2a2318]">Your Spaces</h2>
             <p className="text-sm text-[#a0968a] mt-1">Drag to reorder your spaces</p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {joinedSpaces.map((space) => {
               const isCommons = space.id === "commons";
               const isStartHereStillRequired = space.id === "start-here" && isStartHereRequired();
@@ -205,7 +205,7 @@ export default function SpacesPage() {
       {availableSpaces.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-2xl font-bold text-[#2a2318]">Explore More Spaces</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {availableSpaces.map((space) => (
               <Card key={space.id} className="overflow-hidden flex flex-col h-full">
                 {/* Hero Image */}

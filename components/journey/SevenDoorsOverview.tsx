@@ -163,7 +163,7 @@ export function SevenDoorsOverview() {
         </p>
 
         {/* Door Overview Grid - Show all 7 doors at a glance */}
-        <div className="grid grid-cols-7 gap-2 p-4 bg-[#f3ede5] rounded-lg">
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2 p-4 bg-[#f3ede5] rounded-lg">
           {firstWeekJourney.map((door) => {
             const isCompleted = progress.completedDoors.includes(door.doorNumber);
             const isCurrent = progress.currentDoor === door.doorNumber;
@@ -171,7 +171,7 @@ export function SevenDoorsOverview() {
             return (
               <div
                 key={door.doorNumber}
-                className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all ${
+                className={`flex flex-col items-center justify-center gap-1 p-2 rounded-lg transition-all ${
                   isCompleted
                     ? "bg-[#8fa878] text-white"
                     : isCurrent
@@ -180,8 +180,8 @@ export function SevenDoorsOverview() {
                 }`}
                 title={door.title}
               >
-                <div className="text-lg font-bold">{door.doorNumber}</div>
-                <div className="text-xs text-center leading-tight max-h-8 overflow-hidden">
+                <div className="text-base sm:text-lg font-bold">{door.doorNumber}</div>
+                <div className="text-xs text-center leading-tight line-clamp-2 min-h-8">
                   {door.title.split(" ").slice(0, 2).join(" ")}
                 </div>
               </div>

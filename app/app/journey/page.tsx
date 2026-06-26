@@ -200,7 +200,7 @@ export default function JourneyPage() {
       />
 
       {/* Main Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Profile Summary */}
         <Card>
           <CardHeader title="Who You Are" icon={<IconProfile size={20} />} />

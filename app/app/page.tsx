@@ -352,7 +352,7 @@ export default function AppHome() {
         </div>
 
         {/* Connection and Reflection Scaffolding */}
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <h3 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Connections</h3>
             <WaysToConnectCard />
@@ -364,7 +364,7 @@ export default function AppHome() {
         </div>
 
         {/* Journey Cards */}
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <h3 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Your Journey</h3>
             <FirstWeekDashboardCard />
