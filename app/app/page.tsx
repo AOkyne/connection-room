@@ -314,7 +314,7 @@ export default function AppHome() {
         {joinedSpacesCount > 0 && (
           <div>
             <h3 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Your Spaces</h3>
-            <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
               {spaces
                 .filter((s) => profile?.spacesJoined?.includes(s.id))
                 .map((space) => (
