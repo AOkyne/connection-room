@@ -161,6 +161,16 @@ export default function JourneyPage() {
         ]}
       />
 
+      {/* Hero Image */}
+      <div className="relative w-full h-80 -mx-6 -mt-6 overflow-hidden rounded-b-2xl">
+        <img
+          src="/imagery/image8.png"
+          alt="Your Journey"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/15"></div>
+      </div>
+
       {/* Header */}
       <div>
         <h1 className="text-4xl text-[#2a2318]">My Journey</h1>
@@ -281,25 +291,37 @@ export default function JourneyPage() {
           )}
         </Card>
 
-        {/* Quiz Result */}
+        {/* Know Yourself Better - Quiz Card */}
         <Card>
-          <CardHeader title="Your Profile" icon={<IconProfile size={20} />} />
+          <CardHeader title="Know Yourself Better" icon={<IconProfile size={20} />} />
           {hasQuizResult ? (
-            <div>
-              <p className="text-lg font-medium text-[#2a2318]">{profile.quizResult}</p>
-              <p className="text-sm text-[#6b5f52] mt-2">From the Connection Assessment</p>
-              <Link href={appConfig.urls.quiz} className="pt-3 block">
-                <Button variant="outline" size="sm" className="">
-                  Retake Quiz
-                </Button>
-              </Link>
+            <div className="space-y-3">
+              <div className="bg-[#f3ede5] rounded-lg p-3 border-l-4 border-[#8fa878]">
+                <p className="text-xs text-[#8fa878] font-medium uppercase tracking-wide mb-1">Your Pattern</p>
+                <p className="text-lg font-semibold text-[#2a2318]">{profile.quizResult}</p>
+              </div>
+              <p className="text-sm text-[#6b5f52] leading-relaxed">
+                This insight shows how you tend to relate and connect. Understanding your pattern helps you navigate relationships with more awareness and authenticity.
+              </p>
+              <div className="flex gap-2 pt-1">
+                <Link href="/app/quizzes" className="flex-1">
+                  <Button variant="outline" size="sm" className="w-full">
+                    Retake Quiz
+                  </Button>
+                </Link>
+                <Link href="/app/quizzes" className="flex-1">
+                  <Button variant="ghost" size="sm" className="w-full">
+                    Other Quizzes
+                  </Button>
+                </Link>
+              </div>
             </div>
           ) : (
-            <div>
-              <p className="text-[#a0968a] text-sm mb-3">Discover your connection profile</p>
-              <Link href={appConfig.urls.quiz}>
-                <Button variant="secondary" size="sm" className="">
-                  Take Quiz
+            <div className="space-y-3">
+              <p className="text-[#6b5f52] text-sm">Choose from our curated quizzes to discover your unique connection patterns and get personalized insights.</p>
+              <Link href="/app/quizzes">
+                <Button variant="primary" size="sm" className="w-full">
+                  Explore Quizzes →
                 </Button>
               </Link>
             </div>
@@ -365,12 +387,12 @@ export default function JourneyPage() {
         {/* Connections */}
         <Card className="md:col-span-2 lg:col-span-1">
           <CardHeader title="Connections" icon={<IconConnection size={20} />} />
-          {profile.pairingComfortLevel && profile.pairingComfortLevel !== "pause" ? (
+          {profile.connectionComfortLevel && profile.connectionComfortLevel !== "pause" ? (
             <div>
-              <p className="text-sm text-[#6b5f52] mb-3">You're open to pairings</p>
+              <p className="text-sm text-[#6b5f52] mb-3">You're open to connections</p>
               <Link href="/app/connections">
                 <Button variant="secondary" size="sm" className="">
-                  View Pairing
+                  View Connection
                 </Button>
               </Link>
             </div>

@@ -96,6 +96,16 @@ function BetaAuthContent() {
         </div>
       </header>
 
+      {/* Hero Image */}
+      <div className="relative w-full h-80 overflow-hidden">
+        <img
+          src="/imagery/image10.png"
+          alt="Welcome"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/20"></div>
+      </div>
+
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-xl p-8 shadow-md border border-[#e8e3db] space-y-6">

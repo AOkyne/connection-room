@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Door, DoorAction } from "@/lib/content/first-week-journey";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
+import { doorImageMap } from "@/lib/constants/doorImages";
 
 interface DoorCardProps {
   door: Door;
@@ -52,41 +53,64 @@ export function DoorCard({
         isCompleted ? "opacity-75 bg-[#f3ede5]" : "bg-white"
       } ${isCurrentDoor ? "ring-2 ring-[#d4a574]" : ""}`}
     >
+      {/* Hero Image */}
+      <div className="relative w-full h-64 -m-4 mb-4 overflow-hidden rounded-t-lg">
+        <img
+          src={`/imagery/${doorImageMap[door.doorNumber]}`}
+          alt={door.title}
+          className="w-full h-full object-cover"
+        />
+      </div>
+
       {/* Visual door indicator */}
       <div className="absolute top-0 right-0 w-1 h-full bg-gradient-to-b from-[#d4a574] to-[#8fa878] opacity-30" />
 
-      {/* Door Header */}
+      {/* Door Header with Status */}
       <div className="mb-4 flex items-start justify-between">
-        <div className="flex items-baseline gap-3">
+        <div className="flex items-baseline gap-3 flex-1">
           <div
-            className={`flex items-center justify-center w-8 h-8 rounded-full font-bold ${
+            className={`flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg flex-shrink-0 ${
               isCompleted
-                ? "bg-[#d4a574] text-white"
+                ? "bg-[#8fa878] text-white"
+                : isCurrentDoor
+                ? "bg-[#d4a574] text-white ring-2 ring-[#6b5f52] ring-offset-2"
                 : "bg-[#f3ede5] text-[#d4a574]"
             }`}
           >
-            {door.doorNumber}
+            {isCompleted ? "✓" : door.doorNumber}
           </div>
-          <h3 className="text-lg font-semibold text-[#2a2318]">
-            {door.title}
-          </h3>
+          <div>
+            <h3 className="text-xl font-semibold text-[#2a2318]">
+              {door.title}
+            </h3>
+            <p className="text-sm font-semibold text-[#d4a574] italic mt-1">
+              {door.theme}
+            </p>
+          </div>
         </div>
-        {isCompleted && (
-          <span className="text-xs font-medium text-[#8fa878] px-2 py-1 bg-[#d4a574]/10 rounded">
-            Completed
-          </span>
-        )}
+        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+          {isCompleted && (
+            <span className="text-xs font-medium text-[#8fa878] px-2 py-1 bg-[#8fa878]/10 rounded">
+              ✓ Completed
+            </span>
+          )}
+          {isCurrentDoor && (
+            <span className="text-xs font-medium text-[#d4a574] px-2 py-1 bg-[#d4a574]/10 rounded">
+              Current
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Theme Tagline - Prominent */}
-      <p className="text-base font-semibold text-[#6b5f52] mb-3 italic">
-        {door.theme}
-      </p>
-
-      {/* Description */}
-      <p className="text-sm text-[#6b5f52] mb-4 leading-relaxed">
-        {door.description}
-      </p>
+      {/* Description with Purpose Context */}
+      <div className="mb-4 space-y-2">
+        <p className="text-sm text-[#6b5f52] leading-relaxed">
+          {door.description}
+        </p>
+        <p className="text-xs text-[#8fa878] italic">
+          Why this matters: {door.theme}
+        </p>
+      </div>
 
       {/* Invitation / Instruction */}
       <p className="text-sm text-[#2a2318] mb-4 leading-relaxed">

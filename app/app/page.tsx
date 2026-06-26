@@ -22,6 +22,8 @@ import { ReflectionsFromRoomCard } from "@/components/connection/ReflectionsFrom
 import { sortSpacesByPreference } from "@/lib/data/spaces";
 import { LoadingError } from "@/components/LoadingError";
 import { withTimeout } from "@/lib/utils/with-timeout";
+import { ToastContainer } from "@/components/Toast";
+import { useToast } from "@/lib/hooks/useToast";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { createPost } from "@/lib/data/posts";
@@ -29,6 +31,7 @@ import { createPost } from "@/lib/data/posts";
 export default function AppHome() {
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const { toasts, showToast, removeToast } = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [spaces, setSpaces] = useState<any[]>([]);
   const [badges, setBadges] = useState<any[]>([]);
@@ -192,177 +195,291 @@ export default function AppHome() {
   const joinedSpacesCount = (profile.spacesJoined?.length ?? 0);
   const hasQuizResult = profile.quizResult && profile.quizResult !== "I have not taken the quiz yet";
 
+  // Determine primary action based on user state
+  const getPrimaryAction = () => {
+    if (joinedSpacesCount === 0) {
+      return {
+        title: "Your Next Step",
+        description: "Join a space to connect with others in The Connection Room",
+        action: "Explore Spaces",
+        href: "/app/spaces",
+        icon: "🏛️",
+      };
+    }
+    if (nextStep) {
+      return {
+        title: nextStep.title,
+        description: nextStep.description,
+        action: nextStep.action,
+        href: nextStep.href,
+        icon: nextStep.icon,
+      };
+    }
+    return {
+      title: "Share a Reflection",
+      description: "Start with today's prompt to connect more deeply",
+      action: "Respond",
+      href: "#",
+      onClick: true,
+      icon: "💭",
+    };
+  };
+
+  const primaryAction = getPrimaryAction();
+
   return (
     <div className="space-y-8">
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
+
+      {/* Hero Image */}
+      <div className="relative w-full h-80 -mx-6 -mt-6 overflow-hidden rounded-b-2xl">
+        <img
+          src="/imagery/image9.png"
+          alt="Community"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/15"></div>
+      </div>
+
       {/* Welcome Section */}
       <div className="space-y-2">
         <h1 className="text-4xl text-[#2a2318]">Welcome, {profile.displayName}</h1>
-        <p className="text-lg text-[#6b5f52]">
+        <p className="text-base text-[#6b5f52]">
           You're part of a community dedicated to honest connection and embodied intimacy.
         </p>
       </div>
 
-      {/* Main Cards Grid */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* Your Spaces or Choose First Space */}
-        {joinedSpacesCount > 0 ? (
-          <Card className="md:col-span-2 bg-gradient-to-br from-[#f3ede5] to-[#fffbf7]">
-            <CardHeader title="Your Spaces" icon="🏛️" />
+      {/* PRIMARY: Your Next Step - Prominent Section */}
+      <div className="mb-8">
+        {primaryAction.onClick ? (
+          <button
+            onClick={() => {
+              setPromptResponse("");
+              const commonsSpace = spaces.find(s => s.id === "commons");
+              setSelectedSpaceId(commonsSpace?.id || spaces[0]?.id || "");
+              dialogRef.current?.showModal();
+            }}
+            className="w-full text-left"
+          >
+            <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-[#d4a574] hover:border-[#c99563] transition-colors hover:shadow-md cursor-pointer h-full">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <h2 className="text-2xl font-semibold text-[#2a2318]">{primaryAction.title}</h2>
+                  <p className="text-[#6b5f52] mt-2">{primaryAction.description}</p>
+                  <div className="mt-4">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#9d7f5c] text-white rounded-lg font-medium hover:bg-[#7d6245] transition-colors">
+                      {primaryAction.action} →
+                    </div>
+                  </div>
+                </div>
+                {primaryAction.icon && (() => {
+                  const Icon = getIconComponent(primaryAction.icon);
+                  return <Icon size={40} className="text-[#d4a574] flex-shrink-0" />;
+                })()}
+              </div>
+            </Card>
+          </button>
+        ) : (
+          <Link href={primaryAction.href} className="w-full">
+            <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-[#d4a574] hover:border-[#c99563] transition-colors hover:shadow-md cursor-pointer h-full">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <h2 className="text-2xl font-semibold text-[#2a2318]">{primaryAction.title}</h2>
+                  <p className="text-[#6b5f52] mt-2">{primaryAction.description}</p>
+                  <div className="mt-4">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#9d7f5c] text-white rounded-lg font-medium hover:bg-[#7d6245] transition-colors">
+                      {primaryAction.action} →
+                    </div>
+                  </div>
+                </div>
+                {primaryAction.icon && (() => {
+                  const Icon = getIconComponent(primaryAction.icon);
+                  return <Icon size={40} className="text-[#d4a574] flex-shrink-0" />;
+                })()}
+              </div>
+            </Card>
+          </Link>
+        )}
+      </div>
+
+      {/* Visual divider */}
+      <div className="border-t border-[#e8ddd2]" />
+
+      {/* SECONDARY: Supporting Cards - Lower Visual Weight */}
+      <div className="space-y-6">
+        {/* Your Spaces - if user has joined any */}
+        {joinedSpacesCount > 0 && (
+          <div>
+            <h3 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Your Spaces</h3>
             <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
               {spaces
                 .filter((s) => profile?.spacesJoined?.includes(s.id))
                 .map((space) => (
                   <Link key={space.id} href={`/app/spaces/${space.id}`}>
-                    <Button variant="outline" size="sm" className="w-full h-auto flex flex-col items-center gap-1 py-2 hover:bg-[#f3ede5] hover:border-[#c99563] transition-all">
+                    <Button variant="outline" size="sm" className="w-full h-auto flex flex-col items-center gap-1 py-2 hover:bg-[#f3ede5] hover:border-[#c99563] transition-all shadow-sm hover:shadow-md">
                       <SpaceIconSVG spaceId={space.id} size={20} />
-                      <h3 className="text-center text-xs">{space.name}</h3>
+                      <h3 className="text-center text-xs font-medium">{space.name}</h3>
                     </Button>
                   </Link>
                 ))}
             </div>
+          </div>
+        )}
+
+        {/* Today's Reflection */}
+        <div id="todays-reflection">
+          <h3 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Today's Reflection</h3>
+          <Card className="bg-[#fffbf7] border-[#e8ddd2]">
+            <div className="space-y-3">
+              <p className="text-[#6b5f52] italic text-base">"{todaysPrompt}"</p>
+              <p className="text-xs text-[#a0968a]">A sentence or two is enough.</p>
+              <button
+                onClick={() => {
+                  setPromptResponse("");
+                  const commonsSpace = spaces.find(s => s.id === "commons");
+                  setSelectedSpaceId(commonsSpace?.id || spaces[0]?.id || "");
+                  dialogRef.current?.showModal();
+                }}
+                className="text-sm font-medium text-[#9d7f5c] hover:text-[#7d6245] transition-colors inline-flex items-center gap-1"
+              >
+                Respond →
+              </button>
+            </div>
           </Card>
-        ) : (
-          <>
-            {/* Recommended Next Step - Featured */}
-            {nextStep && (
-              <Card className="md:col-span-2 bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-[#d4a574]">
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h2 className="text-2xl text-[#2a2318]">{nextStep.title}</h2>
-                      <p className="text-[#6b5f52] mt-1">{nextStep.description}</p>
-                    </div>
-                    {nextStep.icon && (() => {
-                      const Icon = getIconComponent(nextStep.icon);
-                      return <Icon size={32} className="text-[#d4a574]" />;
-                    })()}
+        </div>
+
+        {/* Connection and Reflection Scaffolding */}
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <h3 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Connections</h3>
+            <WaysToConnectCard />
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">From the Room</h3>
+            <ReflectionsFromRoomCard recentReflections={recentReflections} />
+          </div>
+        </div>
+
+        {/* Journey Cards */}
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <h3 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Your Journey</h3>
+            <FirstWeekDashboardCard />
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Guided Path</h3>
+            <MonthlyDashboardCard />
+          </div>
+        </div>
+
+        {/* Event + Quiz + Badges + Offers - Minimal Cards - 2 column grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Upcoming Event */}
+          {upcomingEvents.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Upcoming</h3>
+              <Card className="bg-[#fffbf7] border-[#e8ddd2]">
+                <div className="space-y-2">
+                  <p className="font-medium text-[#2a2318] text-sm">{upcomingEvents[0].title}</p>
+                  <p className="text-xs text-[#a0968a]">
+                    {upcomingEvents[0].date.toLocaleDateString()} at {upcomingEvents[0].time}
+                  </p>
+                  <Link href="/app/events">
+                    <button className="text-sm font-medium text-[#9d7f5c] hover:text-[#7d6245] transition-colors">
+                      All Events →
+                    </button>
+                  </Link>
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {/* Take A Quiz or Show Result */}
+          <div>
+            <h3 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Discover</h3>
+            {profile?.quizResult && profile.quizResult !== "I have not taken the quiz yet" ? (
+              <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-[#8fa878]">
+                <div className="space-y-2">
+                  <p className="text-xs text-[#8fa878] font-medium uppercase tracking-wide">Your Connection Profile</p>
+                  <p className="text-sm font-semibold text-[#2a2318]">{profile.quizResult}</p>
+                  <p className="text-xs text-[#6b5f52]">This reveals how you tend to connect with others.</p>
+                  <div className="flex gap-2 pt-1">
+                    <Link href="/app/journey">
+                      <button className="text-sm font-medium text-[#9d7f5c] hover:text-[#7d6245] transition-colors">
+                        View Details →
+                      </button>
+                    </Link>
+                    <Link href="/app/quizzes">
+                      <button className="text-sm font-medium text-[#a0968a] hover:text-[#6b5f52] transition-colors">
+                        Retake
+                      </button>
+                    </Link>
                   </div>
-                  <Link href={nextStep.href}>
-                    <Button
-                      variant={nextStep.type === "external" ? "secondary" : "primary"}
-                      size="lg"
-                    >
-                      {nextStep.action} →
-                    </Button>
+                </div>
+              </Card>
+            ) : (
+              <Card className="bg-[#fffbf7] border-[#e8ddd2]">
+                <div className="space-y-2">
+                  <p className="text-xs text-[#6b5f52]">Learn about your intimacy patterns with our curated quizzes.</p>
+                  <Link href="/app/quizzes">
+                    <button className="text-sm font-medium text-[#9d7f5c] hover:text-[#7d6245] transition-colors">
+                      Take a Quiz →
+                    </button>
                   </Link>
                 </div>
               </Card>
             )}
-          </>
-        )}
-
-        {/* Today's Prompt */}
-        <Card id="todays-reflection" className="md:col-span-2">
-          <CardHeader title="Today's Reflection" icon={<IconReflection size={20} />} />
-          <div className="bg-[#f3ede5] rounded-lg p-4 space-y-3">
-            <p className="text-[#6b5f52] italic text-lg">"{todaysPrompt}"</p>
-            <p className="text-sm text-[#8fa878]">A sentence or two is enough. No need to write a memoir unless the memoir insists.</p>
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={() => {
-                setPromptResponse("");
-                const commonsSpace = spaces.find(s => s.id === "commons");
-                setSelectedSpaceId(commonsSpace?.id || spaces[0]?.id || "");
-                dialogRef.current?.showModal();
-              }}
-            >
-              Respond to Prompt
-            </Button>
           </div>
-        </Card>
 
-        {/* Connection Scaffolding Cards */}
-        <WaysToConnectCard />
-        <ReflectionsFromRoomCard recentReflections={recentReflections} />
-
-        {/* First Week Journey or Guided Rhythm */}
-        <FirstWeekDashboardCard />
-        <MonthlyDashboardCard />
-
-
-        {/* Upcoming Event */}
-        {upcomingEvents.length > 0 && (
-          <Card>
-            <CardHeader title="Upcoming" icon={<IconUpcoming size={20} />} />
-            <div className="space-y-3">
-              <div>
-                <p className="font-medium text-[#2a2318]">{upcomingEvents[0].title}</p>
-                <p className="text-sm text-[#6b5f52]">
-                  {upcomingEvents[0].date.toLocaleDateString()} at {upcomingEvents[0].time}
-                </p>
-              </div>
-              <Link href="/app/events">
-                <Button variant="outline" size="sm" className="">
-                  View All Events
-                </Button>
-              </Link>
+          {/* Badges */}
+          {badges.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Achievements</h3>
+              <Card className="bg-[#fffbf7] border-[#e8ddd2]">
+                <div className="space-y-2">
+                  {badges.slice(0, 1).map((badge) => {
+                    const BadgeIcon = getBadgeIcon(badge.id);
+                    return (
+                      <div key={badge.id} className="flex items-start gap-2">
+                        <BadgeIcon size={16} className="text-[#d4a574] flex-shrink-0 mt-1" />
+                        <div className="text-xs">
+                          <p className="font-medium text-[#2a2318]">{badge.name}</p>
+                          <p className="text-[#a0968a]">{badge.description}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {badges.length > 1 && (
+                    <p className="text-xs text-[#a0968a] pt-1">{badges.length - 1} more →</p>
+                  )}
+                </div>
+              </Card>
             </div>
-          </Card>
-        )}
+          )}
 
-        {/* Take A Quiz */}
-        <Card>
-          <CardHeader title="Take A Quiz" icon={<>{(() => { const Icon = getIconComponent("🧭"); return <Icon size={20} />; })()}</>} />
-          <div className="space-y-3">
-            <Link href="/app/quizzes">
-              <Button variant="primary" size="sm" className="text-left">
-                Take A Quiz →
-              </Button>
-            </Link>
-            <p className="text-sm text-[#6b5f52]">
-              Discover your intimacy patterns and relationship dynamics with our curated quizzes.
-            </p>
-          </div>
-        </Card>
-
-        {/* Badges */}
-        {badges.length > 0 && (
-          <Card>
-            <CardHeader title="Badges Earned" icon={<IconBadges size={20} />} />
-            <div className="space-y-2">
-              {badges.slice(0, 2).map((badge) => {
-                const BadgeIcon = getBadgeIcon(badge.id);
-                return (
-                  <div key={badge.id} className="flex items-center gap-2 p-2 bg-[#f3ede5] rounded">
-                    <BadgeIcon size={20} className="text-[#d4a574] flex-shrink-0" />
-                    <div className="text-sm">
-                      <p className="font-medium text-[#2a2318]">{badge.name}</p>
-                      <p className="text-xs text-[#a0968a]">{badge.description}</p>
+          {/* Personalized Offers */}
+          {offers.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">For You</h3>
+              <Card className="bg-[#fffbf7] border-[#e8ddd2]">
+                <div className="space-y-2">
+                  {offers.slice(0, 1).map((offer) => (
+                    <div key={offer.id} className="space-y-2">
+                      <p className="font-medium text-[#2a2318] text-sm">{offer.title}</p>
+                      <p className="text-xs text-[#a0968a]">{offer.description}</p>
+                      <a href={offer.url} target="_blank" rel="noopener noreferrer">
+                        <button className="text-sm font-medium text-[#9d7f5c] hover:text-[#7d6245] transition-colors">
+                          {offer.cta} →
+                        </button>
+                      </a>
                     </div>
-                  </div>
-                );
-              })}
-              {badges.length > 2 && (
-                <p className="text-xs text-[#a0968a] pt-2">{badges.length - 2} more badges →</p>
-              )}
+                  ))}
+                </div>
+              </Card>
             </div>
-          </Card>
-        )}
-
-        {/* Personalized Offers */}
-        {offers.length > 0 && (() => {
-          const OfferIcon = getOfferIcon(offers[0].id);
-          return (
-            <Card className="md:col-span-2 bg-gradient-to-r from-[#f3ede5] to-[#fffbf7]">
-              <CardHeader title="For You" icon={<OfferIcon size={20} />} />
-              <div className="space-y-3">
-                {offers.slice(0, 1).map((offer) => (
-                  <div key={offer.id}>
-                    <p className="font-medium text-[#2a2318]">{offer.title}</p>
-                    <p className="text-sm text-[#6b5f52] mt-1">{offer.description}</p>
-                    <a href={offer.url} target="_blank" rel="noopener noreferrer">
-                      <Button variant="primary" size="sm" className="mt-3">
-                        {offer.cta} →
-                      </Button>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          );
-        })()}
-
+          )}
+        </div>
       </div>
 
       {/* Info Banner */}
@@ -405,6 +522,7 @@ export default function AppHome() {
               className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-[#2a2318] bg-white"
               rows={4}
             />
+            <p className="text-xs text-[#8fa878]">A sentence or two is enough.</p>
           </div>
 
           <div className="space-y-2">
@@ -422,6 +540,7 @@ export default function AppHome() {
                 </option>
               ))}
             </select>
+            <p className="text-xs text-[#8fa878]">Everyone in this space will see your response and can reply.</p>
           </div>
 
           <div className="flex gap-3 pt-4">
@@ -438,19 +557,36 @@ export default function AppHome() {
                 if (!promptResponse.trim() || !selectedSpaceId) return;
                 setSubmitting(true);
                 try {
+                  const responseText = promptResponse.trim();
+                  const selectedSpace = spaces.find(s => s.id === selectedSpaceId);
+
                   await createPost(
                     selectedSpaceId,
                     profile.displayName,
-                    promptResponse,
+                    responseText,
                     true,
                     undefined,
                     profile.pronouns,
                     profile.profilePhoto
                   );
+
                   setPromptResponse("");
                   dialogRef.current?.close();
+
+                  // Success feedback with context
+                  const preview = responseText.length > 50 ? responseText.substring(0, 47) + "..." : responseText;
+                  showToast(
+                    `Reflection shared in ${selectedSpace?.name || "space"}! Others can now see and respond.`,
+                    "success",
+                    4000
+                  );
                 } catch (error) {
                   console.error("Error creating post:", error);
+                  showToast(
+                    "Failed to share your reflection. Please try again.",
+                    "error",
+                    4000
+                  );
                 } finally {
                   setSubmitting(false);
                 }
