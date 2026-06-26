@@ -92,7 +92,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </div>
       </header>
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
         {/* Desktop Sidebar - Fixed Navigation */}
         <nav className="hidden md:flex fixed left-0 top-40 w-64 flex-col px-4 py-6 space-y-2 bg-white z-30 border-r border-[#e8e3db] h-[calc(100vh-160px)] overflow-y-auto">
           {navItems.map((item) => (
@@ -121,32 +121,32 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </nav>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col overflow-hidden md:ml-64">
-          <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">{children}</div>
-
-          {/* Mobile Bottom Navigation */}
-          <nav className="md:hidden border-t border-[#e8e3db] bg-white px-4 py-2 flex gap-2 overflow-x-auto">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex flex-col items-center gap-1 px-3 py-2 text-[#6b6460] hover:text-[#8b6f47] text-xs whitespace-nowrap"
-              >
-                {item.icon ? <item.icon size={18} /> : <IconSpaces size={18} />}
-                <span>{item.label}</span>
-              </Link>
-            ))}
-            {session?.type === "admin" && (
-              <Link
-                href="/app/admin"
-                className="flex flex-col items-center gap-1 px-3 py-2 text-[#8b6f47] text-xs whitespace-nowrap"
-              >
-                <IconAdmin size={18} />
-                <span>Admin</span>
-              </Link>
-            )}
-          </nav>
+        <main className="flex-1 flex flex-col overflow-hidden md:ml-64 pb-24 md:pb-0">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">{children}</div>
         </main>
+
+        {/* Mobile Bottom Navigation - Fixed to Bottom */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-[#e8e3db] bg-white z-40 px-0 py-2 flex gap-0 justify-around overflow-visible">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex flex-col items-center justify-center gap-1 px-3 py-2 flex-1 text-[#6b6460] hover:text-[#8b6f47] text-xs"
+            >
+              {item.icon ? <item.icon size={20} /> : <IconSpaces size={20} />}
+              <span className="text-center leading-tight">{item.label}</span>
+            </Link>
+          ))}
+          {session?.type === "admin" && (
+            <Link
+              href="/app/admin"
+              className="flex flex-col items-center justify-center gap-1 px-3 py-2 flex-1 text-[#8b6f47] text-xs"
+            >
+              <IconAdmin size={20} />
+              <span className="text-center leading-tight">Admin</span>
+            </Link>
+          )}
+        </nav>
       </div>
     </div>
   );
