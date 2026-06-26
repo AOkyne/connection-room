@@ -83,8 +83,19 @@ function BetaAuthContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fdfbf7] flex flex-col">
-      <header className="border-b border-[#e8e3db] bg-white/80 backdrop-blur-sm">
+    <div className="min-h-screen relative">
+      {/* Full Screen Background Image */}
+      <div className="absolute inset-0 overflow-hidden">
+        <img
+          src="/imagery/image10.png"
+          alt="Welcome"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/30"></div>
+      </div>
+
+      {/* Header */}
+      <header className="relative z-20 border-b border-[#e8e3db] bg-white/90 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center">
             <img
@@ -96,17 +107,8 @@ function BetaAuthContent() {
         </div>
       </header>
 
-      {/* Hero Image */}
-      <div className="relative w-full h-80 overflow-hidden">
-        <img
-          src="/imagery/image10.png"
-          alt="Welcome"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black/20"></div>
-      </div>
-
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
+      {/* Centered Login Form */}
+      <div className="relative z-10 min-h-[calc(100vh-auto)] flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="bg-white rounded-xl p-8 shadow-md border border-[#e8e3db] space-y-6">
             <div className="text-center space-y-4">
