@@ -16,8 +16,8 @@ export interface Profile {
   whatBroughtYouHere?: string;
   connectionHoping?: string;
   interests: string[];
-  pairingComfortLevel?: string;
-  pairingBoundaries?: string;
+  connectionComfortLevel?: string;
+  connectionBoundaries?: string;
   quizResult?: string;
   firstPromptResponse?: string;
   firstPromptIsPublic?: boolean;
@@ -185,6 +185,124 @@ export async function updateProfile(updates: Partial<Profile>): Promise<Profile 
   const updated = { ...profile, ...updates };
   await saveProfile(updated);
   return updated;
+}
+
+// Get all profiles for matching (demo profiles for now)
+export function getDemoProfiles(): Profile[] {
+  const demoProfiles: Profile[] = [
+    {
+      id: "demo-alex",
+      firstName: "Alex",
+      lastName: "Chen",
+      displayName: "Alex",
+      pronouns: "he/him",
+      location: "San Francisco, CA",
+      ageRange: "35-42",
+      relationshipStatus: "Divorced",
+      orientation: "Heterosexual",
+      profilePhoto: "/demo-members/seed-man-04.png",
+      memberType: "individual",
+      interests: ["Embodiment", "Authentic connection", "Touch and affection"],
+      whatBroughtYouHere: "Looking to deepen my emotional capacity and explore authentic vulnerability with others on a similar path",
+      connectionHoping: "Meaningful conversations that challenge me to grow and connect on a deeper level",
+      connectionComfortLevel: "Mutual vulnerability and exploration. I value presence over performance.",
+      connectionBoundaries: "Respect consent always. Clear communication about intentions and boundaries.",
+      profile_tagline: "Exploring depth through authentic presence",
+      completedOnboarding: true,
+      joinedAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // 60 days ago
+      is_demo_profile: true,
+    },
+    {
+      id: "demo-jordan",
+      firstName: "Jordan",
+      lastName: "Williams",
+      displayName: "Jordan",
+      pronouns: "they/them",
+      location: "Oakland, CA",
+      ageRange: "28-35",
+      relationshipStatus: "Single",
+      orientation: "Queer",
+      profilePhoto: "/demo-members/seed-man-08.png",
+      memberType: "individual",
+      interests: ["Spirituality", "Sexuality", "Relationships", "Community"],
+      whatBroughtYouHere: "Seeking a space where I can explore sexuality and spirituality without judgment",
+      connectionHoping: "Deep, non-linear conversations with people exploring similar questions about identity and connection",
+      connectionComfortLevel: "Open and honest communication. I appreciate curiosity and non-judgment.",
+      connectionBoundaries: "No judgment, full safety. We set boundaries together.",
+      profile_tagline: "Curious about everything, judgmental about nothing",
+      completedOnboarding: true,
+      joinedAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000), // 45 days ago
+      is_demo_profile: true,
+    },
+    {
+      id: "demo-marcus",
+      firstName: "Marcus",
+      lastName: "Johnson",
+      displayName: "Marcus",
+      pronouns: "he/him",
+      location: "Berkeley, CA",
+      ageRange: "42-50",
+      relationshipStatus: "Married",
+      orientation: "Heterosexual",
+      profilePhoto: "/demo-members/seed-man-12.png",
+      memberType: "individual",
+      interests: ["Communication and repair", "Couples intimacy", "Shame and self-acceptance", "Embodiment"],
+      whatBroughtYouHere: "My wife and I want to expand our capacity for authentic connection and explore vulnerability together",
+      connectionHoping: "Both individual and couple conversations that strengthen our foundation and help us grow together",
+      connectionComfortLevel: "Deep emotional connection with grounded presence. I value integrity.",
+      connectionBoundaries: "Boundaries are essential. Clear agreements about what's okay.",
+      profile_tagline: "Building bridges between mind, body, and heart",
+      completedOnboarding: true,
+      joinedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+      is_demo_profile: true,
+    },
+    {
+      id: "demo-sam",
+      firstName: "Sam",
+      lastName: "Martinez",
+      displayName: "Sam",
+      pronouns: "he/him",
+      location: "Los Angeles, CA",
+      ageRange: "32-38",
+      relationshipStatus: "Single",
+      orientation: "Heterosexual",
+      profilePhoto: "/demo-members/seed-man-16.png",
+      memberType: "individual",
+      interests: ["Authentic connection", "Dating and desire", "Embodiment", "Adventure"],
+      whatBroughtYouHere: "Tired of surface-level dating. Looking for real connections with people who want to be fully present",
+      connectionHoping: "Conversations that go beyond small talk. I want to know what makes people tick.",
+      connectionComfortLevel: "Playful and authentic. I bring energy and curiosity.",
+      connectionBoundaries: "Clear and open communication. I respect different comfort levels.",
+      profile_tagline: "Real conversations, real connections, no games",
+      completedOnboarding: true,
+      joinedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000), // 20 days ago
+      is_demo_profile: true,
+    },
+    {
+      id: "demo-david",
+      firstName: "David",
+      lastName: "Lee",
+      displayName: "David",
+      pronouns: "he/him",
+      location: "Palo Alto, CA",
+      ageRange: "38-45",
+      relationshipStatus: "Divorced",
+      orientation: "Heterosexual",
+      profilePhoto: "/demo-members/seed-man-20.png",
+      memberType: "individual",
+      interests: ["Spirituality", "Touch and affection", "Authentic connection", "Personal growth"],
+      whatBroughtYouHere: "After divorce, I'm rediscovering my capacity for healthy, boundaried intimacy",
+      connectionHoping: "Meaningful conversations that help me heal and grow. Both intellectual and embodied connection.",
+      connectionComfortLevel: "Compassionate and grounded. I value presence and intention.",
+      connectionBoundaries: "Mutual respect always. We move at a pace that feels safe for both.",
+      profile_tagline: "Healing is connecting",
+      completedOnboarding: true,
+      joinedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
+      is_demo_profile: true,
+    },
+  ];
+
+  return demoProfiles;
 }
 
 // Get or create couple profile

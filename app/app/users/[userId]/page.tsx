@@ -15,7 +15,7 @@ interface UserProfile {
   profilePhoto?: string;
   interests?: string[];
   whatBroughtYouHere?: string;
-  pairingComfortLevel?: string;
+  connectionComfortLevel?: string;
   memberType?: string;
   joinedAt?: Date;
 }
@@ -55,7 +55,7 @@ export default function UserProfilePage() {
             profilePhoto: data.profile_photo,
             interests: data.interests || [],
             whatBroughtYouHere: data.what_brought_you_here,
-            pairingComfortLevel: data.pairing_comfort_level,
+            connectionComfortLevel: data.pairing_comfort_level,
             memberType: data.member_type,
             joinedAt: data.joined_at ? new Date(data.joined_at) : undefined,
           });
@@ -147,10 +147,10 @@ export default function UserProfilePage() {
       )}
 
       {/* Pairing Preferences */}
-      {profile.pairingComfortLevel && (
+      {profile.connectionComfortLevel && (
         <Card>
-          <CardHeader title="Pairing Comfort Level" />
-          <p className="text-[#6b5f52] capitalize">{profile.pairingComfortLevel.replace(/-/g, " ")}</p>
+          <CardHeader title="Connection Comfort Level" />
+          <p className="text-[#6b5f52] capitalize">{profile.connectionComfortLevel.replace(/-/g, " ")}</p>
         </Card>
       )}
     </div>

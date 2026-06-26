@@ -62,7 +62,7 @@ export function RhythmContentAlert() {
             <li>• Review current Month 5 content in <code className="bg-[#f3ede5] px-1 rounded">lib/content/guided-rhythm.ts</code></li>
             <li>• Prepare new themes for all 6 months</li>
             <li>• Update content file before Month 5 begins</li>
-            <li>• Optional: Add new pairing prompts to the bank</li>
+            <li>• Optional: Add new connection prompts to the bank</li>
           </ul>
         </div>
 

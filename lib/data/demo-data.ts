@@ -37,7 +37,7 @@ export interface Space {
 
 export interface Prompt {
   id: string;
-  type: "daily" | "weekly" | "space" | "couples" | "pairing" | "quiz-based";
+  type: "daily" | "weekly" | "space" | "couples" | "connection" | "quiz-based";
   text: string;
   context?: string;
   spaceId?: string;
@@ -1358,7 +1358,7 @@ export const demoBadges: Badge[] = [
   {
     id: "connection-seeker",
     name: "Connection Seeker",
-    description: "Participated in a pairing",
+    description: "Participated in a connection",
     icon: "🔗",
     color: "text-pink-600",
   },

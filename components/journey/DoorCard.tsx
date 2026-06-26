@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Door, DoorAction } from "@/lib/content/first-week-journey";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -55,10 +56,12 @@ export function DoorCard({
     >
       {/* Hero Image */}
       <div className="relative w-full h-64 -m-4 mb-4 overflow-hidden rounded-t-lg">
-        <img
+        <Image
           src={`/imagery/${doorImageMap[door.doorNumber]}`}
           alt={door.title}
-          className="w-full h-full object-cover"
+          fill
+          className="object-cover"
+          loading="lazy"
         />
       </div>
 

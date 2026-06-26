@@ -1,4 +1,4 @@
-import { Month, PairingPromptBank } from "@/lib/types/guided-rhythm";
+import { Month, ConnectionPromptBank } from "@/lib/types/guided-rhythm";
 
 export const guidedRhythm: Month[] = [
   {
@@ -16,7 +16,7 @@ export const guidedRhythm: Month[] = [
       options: [
         "Quiet observer",
         "Weekly prompt responder",
-        "Pairing participant",
+        "Connection participant",
         "Community commenter",
         "Workshop/event explorer",
       ],
@@ -30,7 +30,7 @@ export const guidedRhythm: Month[] = [
           "Where do you tend to edit yourself before anyone else has even responded?",
         communityInvitation:
           "Share one small honest thing you are practicing naming more clearly.",
-        pairingPrompt:
+        connectionPrompt:
           "What is one place where you are trying to be more honest with yourself or others?",
       },
       {
@@ -41,7 +41,7 @@ export const guidedRhythm: Month[] = [
           "What helps you feel like you do not have to perform to belong?",
         communityInvitation:
           "Share a moment when you felt accepted without having to prove anything.",
-        pairingPrompt: "What kind of connection helps you relax?",
+        connectionPrompt: "What kind of connection helps you relax?",
       },
       {
         weekNumber: 3,
@@ -52,7 +52,7 @@ export const guidedRhythm: Month[] = [
           "What do you often give easily but receive awkwardly?",
         communityInvitation:
           "Share something you are learning about asking for support, attention, touch, care, or clarity.",
-        pairingPrompt:
+        connectionPrompt:
           "What makes it easier or harder for you to ask for what you need?",
       },
       {
@@ -63,7 +63,7 @@ export const guidedRhythm: Month[] = [
           "When you withdraw, what are you usually protecting?",
         communityInvitation:
           "Share one way you create distance, even when part of you wants closeness.",
-        pairingPrompt:
+        connectionPrompt:
           "What do you notice in yourself when connection starts to feel real?",
       },
     ],
@@ -73,7 +73,7 @@ export const guidedRhythm: Month[] = [
       suggestedNextStep: "Choose one space you want to keep returning to.",
       nextSteps: [
         { label: "Revisit your quiz result", href: "/app/quiz" },
-        { label: "Join a connection pairing", href: "/app/pairing" },
+        { label: "Join a connection", href: "/app/connections" },
         { label: "Attend an event", href: "/app/events" },
         { label: "Explore a workshop or retreat", href: "/app/workshops" },
         { label: "Book a consultation", href: "https://trevorjamesla.as.me/free-consult" },
@@ -104,7 +104,7 @@ export const guidedRhythm: Month[] = [
           "Where do you tend to hold tension when you feel vulnerable?",
         communityInvitation:
           "Share one thing you are noticing about your body lately, without needing to explain or fix it.",
-        pairingPrompt: "When do you feel most present in your body?",
+        connectionPrompt: "When do you feel most present in your body?",
       },
       {
         weekNumber: 2,
@@ -114,7 +114,7 @@ export const guidedRhythm: Month[] = [
           "What makes affection feel safe, and what makes it feel complicated?",
         communityInvitation:
           "Share a kind of affection or closeness you miss that does not have to become sexual.",
-        pairingPrompt:
+        connectionPrompt:
           "What helps touch or affection feel relaxed instead of loaded?",
       },
       {
@@ -126,7 +126,7 @@ export const guidedRhythm: Month[] = [
           "What story do you tell yourself when you want touch but hesitate to ask?",
         communityInvitation:
           "Share what makes asking for affection feel vulnerable.",
-        pairingPrompt:
+        connectionPrompt:
           "What is one way you might ask for closeness more directly and kindly?",
       },
       {
@@ -137,7 +137,7 @@ export const guidedRhythm: Month[] = [
           "What happens inside you when someone offers attention, care, or tenderness?",
         communityInvitation:
           "Share something you are learning about receiving without deflecting.",
-        pairingPrompt:
+        connectionPrompt:
           "What kind of care do you tend to trust, and what kind feels harder to receive?",
       },
     ],
@@ -148,7 +148,7 @@ export const guidedRhythm: Month[] = [
         "Visit the Touch & Affection or Embodiment Practice space and respond to one prompt.",
       nextSteps: [
         { label: "Revisit your quiz result", href: "/app/quiz" },
-        { label: "Join a connection pairing", href: "/app/pairing" },
+        { label: "Join a connection", href: "/app/connections" },
         { label: "Attend an event", href: "/app/events" },
         { label: "Explore a workshop or retreat", href: "/app/workshops" },
         { label: "Book a consultation", href: "https://trevorjamesla.as.me/free-consult" },
@@ -172,7 +172,7 @@ export const guidedRhythm: Month[] = [
       options: [
         "Write it privately",
         "Share it in community",
-        "Discuss it in a pairing",
+        "Discuss it in a connection",
       ],
     },
     weeks: [
@@ -184,7 +184,7 @@ export const guidedRhythm: Month[] = [
           "Where do you hint at what you want instead of naming it?",
         communityInvitation:
           "Share one thing that makes desire feel easier or harder to talk about.",
-        pairingPrompt: "What helps desire feel honest instead of pressured?",
+        connectionPrompt: "What helps desire feel honest instead of pressured?",
       },
       {
         weekNumber: 2,
@@ -194,7 +194,7 @@ export const guidedRhythm: Month[] = [
           "What is something you were taught to feel embarrassed about that you are ready to meet with more kindness?",
         communityInvitation:
           "Share one place where you are practicing less shame and more curiosity.",
-        pairingPrompt:
+        connectionPrompt:
           "What helps you talk about tender or complicated things without shutting down?",
       },
       {
@@ -205,7 +205,7 @@ export const guidedRhythm: Month[] = [
         privateReflection: "Where do you compartmentalize parts of yourself?",
         communityInvitation:
           "Share what integration means to you in a practical, everyday way.",
-        pairingPrompt:
+        connectionPrompt:
           "What does it mean to bring more honesty and care to your sexuality?",
       },
       {
@@ -217,7 +217,7 @@ export const guidedRhythm: Month[] = [
           "What happens when you stop trying to be impressive and simply notice what you feel?",
         communityInvitation:
           "Share one way performance shows up in intimacy, dating, sex, or relationships.",
-        pairingPrompt:
+        connectionPrompt:
           'What would "feel more, perform less" look like for you this week?',
       },
     ],
@@ -228,7 +228,7 @@ export const guidedRhythm: Month[] = [
         "Take or revisit the What's Your Intimacy Pattern quiz, then reflect on what feels accurate now.",
       nextSteps: [
         { label: "Revisit your quiz result", href: "/app/quiz" },
-        { label: "Join a connection pairing", href: "/app/pairing" },
+        { label: "Join a connection", href: "/app/connections" },
         { label: "Attend an event", href: "/app/events" },
         { label: "Explore a workshop or retreat", href: "/app/workshops" },
         { label: "Book a consultation", href: "https://trevorjamesla.as.me/free-consult" },
@@ -264,7 +264,7 @@ export const guidedRhythm: Month[] = [
           "What do you usually do when you are afraid of being misunderstood?",
         communityInvitation:
           "Share a communication pattern you are trying to change.",
-        pairingPrompt:
+        connectionPrompt:
           "What helps you speak honestly without becoming harsh or guarded?",
       },
       {
@@ -275,7 +275,7 @@ export const guidedRhythm: Month[] = [
           "What does your defensiveness usually need underneath the surface?",
         communityInvitation:
           "Share one way you tend to react when you feel unseen, criticized, or overwhelmed.",
-        pairingPrompt:
+        connectionPrompt:
           "What helps you stay present when a conversation gets uncomfortable?",
       },
       {
@@ -286,7 +286,7 @@ export const guidedRhythm: Month[] = [
           "Where might a simple acknowledgment go further than a long explanation?",
         communityInvitation:
           "Share what repair looks like for you when it is gentle and real.",
-        pairingPrompt:
+        connectionPrompt:
           "What makes it easier for you to apologize, reconnect, or try again?",
       },
       {
@@ -297,7 +297,7 @@ export const guidedRhythm: Month[] = [
           "Where do you want more emotional, physical, or spiritual closeness in your relationships?",
         communityInvitation:
           "Share what closeness means to you at this stage of your life.",
-        pairingPrompt:
+        connectionPrompt:
           "What is one small way you and your partner could reach for each other this week without pressure?",
       },
     ],
@@ -308,7 +308,7 @@ export const guidedRhythm: Month[] = [
         "If you are partnered, visit Couples, Closeness & Repair. If you are single, reflect on how repair shows up in friendship, dating, family, or self-relationship.",
       nextSteps: [
         { label: "Revisit your quiz result", href: "/app/quiz" },
-        { label: "Join a connection pairing", href: "/app/pairing" },
+        { label: "Join a connection", href: "/app/connections" },
         { label: "Attend an event", href: "/app/events" },
         { label: "Explore a workshop or retreat", href: "/app/workshops" },
         { label: "Book a consultation", href: "https://trevorjamesla.as.me/free-consult" },
@@ -345,7 +345,7 @@ export const guidedRhythm: Month[] = [
           "Where do you feel most connected to something larger than yourself?",
         communityInvitation:
           "Share a moment that reminded you you are not just going through the motions.",
-        pairingPrompt:
+        connectionPrompt:
           "What gives your life a sense of depth or meaning these days?",
       },
       {
@@ -356,7 +356,7 @@ export const guidedRhythm: Month[] = [
           "Where do you perform being okay, evolved, spiritual, or 'above it' when something human is happening?",
         communityInvitation:
           "Share a simple practice that helps you return to yourself.",
-        pairingPrompt:
+        connectionPrompt:
           "What does spirituality look like when it is honest and ordinary?",
       },
       {
@@ -367,7 +367,7 @@ export const guidedRhythm: Month[] = [
           "Which part of yourself have you been trying to keep separate, hidden, or managed?",
         communityInvitation:
           "Share one area of life where you are practicing more integration.",
-        pairingPrompt:
+        connectionPrompt:
           "What does feeling whole mean to you, even imperfectly?",
       },
       {
@@ -378,7 +378,7 @@ export const guidedRhythm: Month[] = [
           "Where are you being invited to treat yourself, your body, your desire, or your relationships with more respect?",
         communityInvitation:
           "Share something you are learning to approach with more reverence and responsibility.",
-        pairingPrompt:
+        connectionPrompt:
           "What is one thing you want to care for more intentionally?",
       },
     ],
@@ -389,7 +389,7 @@ export const guidedRhythm: Month[] = [
         "Visit Spirituality, Sexuality & Integration and respond to one prompt that feels approachable.",
       nextSteps: [
         { label: "Revisit your quiz result", href: "/app/quiz" },
-        { label: "Join a connection pairing", href: "/app/pairing" },
+        { label: "Join a connection", href: "/app/connections" },
         { label: "Attend an event", href: "/app/events" },
         { label: "Explore a workshop or retreat", href: "/app/workshops" },
         { label: "Book a consultation", href: "https://trevorjamesla.as.me/free-consult" },
@@ -424,7 +424,7 @@ export const guidedRhythm: Month[] = [
         privateReflection: "What helps you believe there is room for you?",
         communityInvitation:
           "Share a moment when you felt welcomed, included, or less alone.",
-        pairingPrompt:
+        connectionPrompt:
           "What makes a community feel safe enough for you to participate?",
       },
       {
@@ -434,7 +434,7 @@ export const guidedRhythm: Month[] = [
         privateReflection: "How has friendship changed for you over time?",
         communityInvitation:
           "Share what meaningful friendship looks like to you now.",
-        pairingPrompt: "What do you appreciate most in a friend?",
+        connectionPrompt: "What do you appreciate most in a friend?",
       },
       {
         weekNumber: 3,
@@ -443,7 +443,7 @@ export const guidedRhythm: Month[] = [
         privateReflection: "What has been most useful to you here so far?",
         communityInvitation:
           "Share one thing from The Connection Room that you want to keep practicing in daily life.",
-        pairingPrompt:
+        connectionPrompt:
           "What helps you keep showing up without turning growth into pressure?",
       },
       {
@@ -454,17 +454,17 @@ export const guidedRhythm: Month[] = [
         privateReflection:
           "What kind of support, structure, or community would help you keep growing?",
         communityInvitation: "Share your intention for the next month.",
-        pairingPrompt: "What kind of connection feels worth moving toward now?",
+        connectionPrompt: "What kind of connection feels worth moving toward now?",
       },
     ],
     integration: {
       prompt:
         "Looking back over the last six months, what has shifted in how you understand yourself, your body, your desire, your relationships, or your need for connection?",
       suggestedNextStep:
-        "Choose one: Revisit your quiz result, Join a connection pairing, Attend an event, Explore a workshop or retreat, Book a consultation, or Return to The Seven Doors and notice what feels different now.",
+        "Choose one: Revisit your quiz result, Join a connection, Attend an event, Explore a workshop or retreat, Book a consultation, or Return to The Seven Doors and notice what feels different now.",
       nextSteps: [
         { label: "Revisit your quiz result", href: "/app/quiz" },
-        { label: "Join a connection pairing", href: "/app/pairing" },
+        { label: "Join a connection", href: "/app/connections" },
         { label: "Attend an event", href: "/app/events" },
         { label: "Explore a workshop or retreat", href: "/app/workshops" },
         { label: "Book a consultation", href: "https://trevorjamesla.as.me/free-consult" },
@@ -474,46 +474,46 @@ export const guidedRhythm: Month[] = [
   },
 ];
 
-export const pairingPromptBank: PairingPromptBank[] = [
+export const connectionPromptBank: ConnectionPromptBank[] = [
   {
-    id: "pairing-1",
+    id: "connection-1",
     prompt: "What kind of connection are you practicing this month?",
   },
   {
-    id: "pairing-2",
+    id: "connection-2",
     prompt: "What helps you feel safe enough to be honest?",
   },
   {
-    id: "pairing-3",
+    id: "connection-3",
     prompt:
       "What is one thing you are learning about asking, receiving, or being seen?",
   },
   {
-    id: "pairing-4",
+    id: "connection-4",
     prompt: "Where do you tend to protect yourself when connection gets real?",
   },
   {
-    id: "pairing-5",
+    id: "connection-5",
     prompt: "What kind of touch, affection, or attention feels meaningful to you?",
   },
   {
-    id: "pairing-6",
+    id: "connection-6",
     prompt: "What is one thing you are approaching with more curiosity and less shame?",
   },
   {
-    id: "pairing-7",
+    id: "connection-7",
     prompt: "What helps you come back to your body?",
   },
   {
-    id: "pairing-8",
+    id: "connection-8",
     prompt: "What does repair look like for you?",
   },
   {
-    id: "pairing-9",
+    id: "connection-9",
     prompt: "What kind of belonging are you looking for?",
   },
   {
-    id: "pairing-10",
+    id: "connection-10",
     prompt: "What is one intention you want to carry into the next month?",
   },
 ];

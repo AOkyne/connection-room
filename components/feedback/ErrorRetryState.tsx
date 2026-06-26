@@ -1,0 +1,70 @@
+"use client";
+
+import { Button } from "@/components/Button";
+
+interface ErrorRetryStateProps {
+  title?: string;
+  message: string;
+  onRetry: () => void;
+  isRetrying?: boolean;
+  action?: "try-again" | "go-home" | "sign-in" | "custom";
+  secondaryAction?: {
+    label: string;
+    onClick: () => void;
+  };
+}
+
+export function ErrorRetryState({
+  title = "Something went wrong",
+  message,
+  onRetry,
+  isRetrying = false,
+  action = "try-again",
+  secondaryAction,
+}: ErrorRetryStateProps) {
+  return (
+    <div className="min-h-screen bg-[#fdfbf7] flex flex-col items-center justify-center px-4 py-8">
+      <div className="max-w-md w-full space-y-6">
+        <div className="text-center space-y-4">
+          <div className="text-5xl">⚠️</div>
+          <h1 className="text-2xl font-medium text-[#2a2318]">{title}</h1>
+          <p className="text-[#6b5f52] leading-relaxed">{message}</p>
+        </div>
+
+        <div className="flex gap-3 flex-col">
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={onRetry}
+            disabled={isRetrying}
+            className="w-full"
+          >
+            {isRetrying ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                <span>Trying again...</span>
+              </div>
+            ) : (
+              "Try Again"
+            )}
+          </Button>
+
+          {secondaryAction && (
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={secondaryAction.onClick}
+              className="w-full"
+            >
+              {secondaryAction.label}
+            </Button>
+          )}
+        </div>
+
+        <p className="text-xs text-[#a0968a] text-center">
+          If this keeps happening, try refreshing the page or signing in again.
+        </p>
+      </div>
+    </div>
+  );
+}

@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
 import { createMemberSession, createAdminSession } from "@/lib/session";
@@ -86,10 +87,12 @@ function BetaAuthContent() {
     <div className="min-h-screen relative">
       {/* Full Screen Background Image */}
       <div className="absolute inset-0 overflow-hidden">
-        <img
+        <Image
           src="/imagery/image10.png"
           alt="Welcome"
-          className="w-full h-full object-cover"
+          fill
+          className="object-cover"
+          priority
         />
         <div className="absolute inset-0 bg-black/30"></div>
       </div>

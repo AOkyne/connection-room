@@ -138,7 +138,7 @@ export function SevenDoorsOverview() {
       )}
 
       {/* Progress Header */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-semibold text-[#2a2318]">
             The Seven Doors of Connection
@@ -161,6 +161,49 @@ export function SevenDoorsOverview() {
           A guided first week in The Connection Room. Each door is an invitation
           to a different aspect of authentic connection.
         </p>
+
+        {/* Door Overview Grid - Show all 7 doors at a glance */}
+        <div className="grid grid-cols-7 gap-2 p-4 bg-[#f3ede5] rounded-lg">
+          {firstWeekJourney.map((door) => {
+            const isCompleted = progress.completedDoors.includes(door.doorNumber);
+            const isCurrent = progress.currentDoor === door.doorNumber;
+
+            return (
+              <div
+                key={door.doorNumber}
+                className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all ${
+                  isCompleted
+                    ? "bg-[#8fa878] text-white"
+                    : isCurrent
+                    ? "bg-[#d4a574] text-white ring-2 ring-[#6b5f52] ring-offset-2 ring-offset-[#f3ede5]"
+                    : "bg-white text-[#6b5f52] border border-[#d4a574]"
+                }`}
+                title={door.title}
+              >
+                <div className="text-lg font-bold">{door.doorNumber}</div>
+                <div className="text-xs text-center leading-tight max-h-8 overflow-hidden">
+                  {door.title.split(" ").slice(0, 2).join(" ")}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Door Legend */}
+        <div className="flex flex-wrap gap-4 text-xs text-[#6b5f52]">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-[#8fa878] rounded" />
+            <span>Completed</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-[#d4a574] rounded ring-2 ring-[#6b5f52]" />
+            <span>Current</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-white border border-[#d4a574] rounded" />
+            <span>Coming</span>
+          </div>
+        </div>
       </div>
 
       {/* Completion Message */}
@@ -197,7 +240,7 @@ export function SevenDoorsOverview() {
             isCurrentDoor={true}
             onActionClick={(action) => {
               // Handle action navigation for links
-              if (action.type === "link" || action.type === "profile" || action.type === "quiz" || action.type === "pairing") {
+              if (action.type === "link" || action.type === "profile" || action.type === "quiz" || action.type === "connection") {
                 if (action.href) {
                   window.location.href = action.href;
                 }

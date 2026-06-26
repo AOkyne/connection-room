@@ -186,6 +186,35 @@ export function reportPairingConcern(userId: string, pairingId: string, concern:
   localStorage.setItem("connection-room:pairing-reports", JSON.stringify(reports));
 }
 
+// Create pairing from matched profile
+export function createPairingFromMatch(userProfile: Profile, partnerProfile: Profile, sharedInterests: string[]): Pairing {
+  const prompts = [
+    "What brought you here and what kind of connection are you practicing?",
+    "What has been challenging about intimacy or connection in your life?",
+    "What does it feel like to slow down and be present with someone?",
+    "Where do you feel yourself in your body right now?",
+    "What would it take to feel more safe in vulnerability?",
+    "How do you experience the interests you both share?",
+    "What would a meaningful connection look like for you?",
+  ];
+
+  const pairing: Pairing = {
+    id: `pairing-${Date.now()}`,
+    userId: userProfile.id,
+    partnerId: partnerProfile.id,
+    partnerName: partnerProfile.displayName,
+    partnerPronouns: partnerProfile.pronouns,
+    partnerPhoto: partnerProfile.profilePhoto,
+    partnerInterests: partnerProfile.interests || [],
+    status: "active",
+    createdAt: new Date(),
+    sharedPrompt: prompts[Math.floor(Math.random() * prompts.length)],
+    mutualContactOptIn: false,
+  };
+
+  return pairing;
+}
+
 // Get pairing history
 export function getPairingHistory(userId: string): Pairing[] {
   if (typeof window === "undefined") return [];

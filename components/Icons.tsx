@@ -141,8 +141,8 @@ export function IconHeart({ className = "", size = 24 }: IconProps) {
   );
 }
 
-// Pairing - two connected points
-export function IconPairing({ className = "", size = 24 }: IconProps) {
+// Connection - two connected points
+export function IconConnectionPoints({ className = "", size = 24 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
       <circle cx="6" cy="9" r="2.5" fill={COLOR}/>

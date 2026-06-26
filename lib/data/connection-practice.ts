@@ -1,7 +1,7 @@
-import { PairingInterest, ConnectionMilestone, ConnectionPracticeSummary } from "@/lib/types/connection";
+import { ConnectionInterest, ConnectionMilestone, ConnectionPracticeSummary } from "@/lib/types/connection";
 import { supabase } from "@/lib/supabase/client";
 
-const PAIRING_INTERESTS_KEY = "connection-room:pairing-interests";
+const CONNECTION_INTERESTS_KEY = "connection-room:connection-interests";
 const CONNECTION_MILESTONES_KEY = "connection-room:connection-milestones";
 
 // Get current user ID
@@ -17,14 +17,14 @@ async function getCurrentUserId(): Promise<string | null> {
   }
 }
 
-// Pairing Interests
-export async function savePairingInterest(interest: PairingInterest): Promise<void> {
+// Connection Interests
+export async function saveConnectionInterest(interest: ConnectionInterest): Promise<void> {
   if (typeof window === "undefined") return;
 
   const userId = await getCurrentUserId();
   if (userId && supabase) {
     try {
-      await supabase.from("pairing_interests").insert({
+      await supabase.from("connection_interests").insert({
         user_id: userId,
         theme: interest.theme,
         space_id: interest.spaceId,
@@ -32,27 +32,27 @@ export async function savePairingInterest(interest: PairingInterest): Promise<vo
         source_type: interest.sourceType,
       });
     } catch (error) {
-      console.warn("Error saving pairing interest to Supabase:", error);
+      console.warn("Error saving connection interest to Supabase:", error);
       // Fall back to localStorage
-      const interests = JSON.parse(localStorage.getItem(PAIRING_INTERESTS_KEY) || "[]");
+      const interests = JSON.parse(localStorage.getItem(CONNECTION_INTERESTS_KEY) || "[]");
       interests.push({ ...interest, userId });
-      localStorage.setItem(PAIRING_INTERESTS_KEY, JSON.stringify(interests));
+      localStorage.setItem(CONNECTION_INTERESTS_KEY, JSON.stringify(interests));
     }
   } else {
     // Demo mode: save to localStorage
-    const interests = JSON.parse(localStorage.getItem(PAIRING_INTERESTS_KEY) || "[]");
+    const interests = JSON.parse(localStorage.getItem(CONNECTION_INTERESTS_KEY) || "[]");
     interests.push({ ...interest, userId: userId || "demo-user" });
-    localStorage.setItem(PAIRING_INTERESTS_KEY, JSON.stringify(interests));
+    localStorage.setItem(CONNECTION_INTERESTS_KEY, JSON.stringify(interests));
   }
 }
 
-export async function getPairingInterests(userId: string): Promise<PairingInterest[]> {
+export async function getConnectionInterests(userId: string): Promise<ConnectionInterest[]> {
   if (typeof window === "undefined") return [];
 
   if (supabase) {
     try {
       const { data, error } = await supabase
-        .from("pairing_interests")
+        .from("connection_interests")
         .select("*")
         .eq("user_id", userId);
 
@@ -67,12 +67,12 @@ export async function getPairingInterests(userId: string): Promise<PairingIntere
         createdAt: new Date(item.created_at),
       }));
     } catch (error) {
-      console.warn("Error fetching pairing interests from Supabase:", error);
+      console.warn("Error fetching connection interests from Supabase:", error);
     }
   }
 
   // Fall back to localStorage
-  const interests = JSON.parse(localStorage.getItem(PAIRING_INTERESTS_KEY) || "[]");
+  const interests = JSON.parse(localStorage.getItem(CONNECTION_INTERESTS_KEY) || "[]");
   return interests.filter((i: any) => i.userId === userId);
 }
 
@@ -140,14 +140,14 @@ export async function getConnectionPracticeSummary(
   lastParticipationDate?: Date
 ): Promise<ConnectionPracticeSummary> {
   const milestones = await getConnectionMilestones(userId);
-  const pairingInterests = await getPairingInterests(userId);
+  const connectionInterests = await getConnectionInterests(userId);
 
   return {
     userId,
     reflectionsShared: postCount,
     commentsOffered: commentCount,
     spacesJoined: spacesJoinedCount,
-    pairingInterestsSaved: pairingInterests.length,
+    connectionInterestsSaved: connectionInterests.length,
     monthlyIntention,
     lastParticipationDate,
     milestones,

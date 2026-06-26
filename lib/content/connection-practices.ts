@@ -47,10 +47,10 @@ export const waysToConnect: WayToConnect[] = [
 export const waysToConnectHeader =
   "Connection does not have to start with a big reveal. Choose one small way to participate.";
 
-export const pairingInterestPrompt =
+export const connectionInterestPrompt =
   "This does not contact anyone. It simply helps us understand what kinds of connection conversations you may want in the future.";
 
-export const pairingThemes = [
+export const connectionThemes = [
   "Touch and affection",
   "Embodiment",
   "Desire",

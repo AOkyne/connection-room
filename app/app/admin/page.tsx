@@ -33,7 +33,7 @@ export default function AdminPage() {
 
       // Load reported concerns from localStorage
       if (typeof window !== "undefined") {
-        const storedConcerns = localStorage.getItem("connection-room:pairing-reports");
+        const storedConcerns = localStorage.getItem("connection-room:connection-reports");
         if (storedConcerns) {
           setConcerns(JSON.parse(storedConcerns));
         }
@@ -172,7 +172,7 @@ export default function AdminPage() {
           <CardHeader title="Quick Stats" icon={<IconProgress size={20} />} />
           <div className="space-y-2 text-sm">
             <p className="text-[#6b5f52]">Avg comments per post: 2.4</p>
-            <p className="text-[#6b5f52]">Pairing opt-in rate: 67%</p>
+            <p className="text-[#6b5f52]">Connection opt-in rate: 67%</p>
             <p className="text-[#6b5f52]">Retention (7 days): 78%</p>
           </div>
         </Card>

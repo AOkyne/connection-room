@@ -9,7 +9,7 @@ import { Card, CardHeader } from "@/components/Card";
 import { IconConnection, IconIntegration, IconProfile, IconCouples, IconReflection } from "@/components/Icons";
 import Link from "next/link";
 
-type Step = "welcome" | "agreements" | "member-type" | "basics" | "photo" | "interests" | "pairings" | "couples" | "prompt" | "complete";
+type Step = "welcome" | "agreements" | "member-type" | "basics" | "photo" | "interests" | "connections" | "couples" | "prompt" | "complete";
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -20,6 +20,7 @@ export default function OnboardingPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [completionSuccess, setCompletionSuccess] = useState(false);
+  const [hasAttemptedCompletion, setHasAttemptedCompletion] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -52,8 +53,8 @@ export default function OnboardingPage() {
   if (!profile) return null;
 
   const steps: Step[] = coupleMode
-    ? ["welcome", "agreements", "member-type", "basics", "photo", "interests", "pairings", "couples", "prompt", "complete"]
-    : ["welcome", "agreements", "member-type", "basics", "photo", "interests", "pairings", "prompt", "complete"];
+    ? ["welcome", "agreements", "member-type", "basics", "photo", "interests", "connections", "couples", "prompt", "complete"]
+    : ["welcome", "agreements", "member-type", "basics", "photo", "interests", "connections", "prompt", "complete"];
 
   const currentIndex = steps.indexOf(currentStep);
   const progress = ((currentIndex + 1) / steps.length) * 100;
@@ -79,9 +80,10 @@ export default function OnboardingPage() {
   };
 
   const handleComplete = async () => {
-    if (!profile) return;
+    if (!profile || isSubmitting || hasAttemptedCompletion) return;
 
     setIsSubmitting(true);
+    setHasAttemptedCompletion(true);
     setSubmitError(null);
 
     try {
@@ -93,13 +95,13 @@ export default function OnboardingPage() {
       }
 
       setProfile(updated);
-
-      // Show success state briefly
-      setIsSubmitting(false);
       setCompletionSuccess(true);
 
-      // Wait before showing next screen so user sees "You're in" state
+      // Wait before redirecting so user sees "You're in" state
       await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Redirect to app after success confirmed
+      router.push("/app");
     } catch (error) {
       console.error("Onboarding completion error:", error);
       setSubmitError(
@@ -108,10 +110,11 @@ export default function OnboardingPage() {
           : "Something went wrong. Please try again."
       );
       setIsSubmitting(false);
+      setHasAttemptedCompletion(false);
     }
   };
 
-  const handleNavigateAfterSuccess = (destination: string) => {
+  const handleNavigateToDestination = (destination: string) => {
     router.push(destination);
   };
 
@@ -151,13 +154,31 @@ export default function OnboardingPage() {
           {currentStep === "welcome" && (
             <Card>
               <div className="text-center space-y-6">
-                <h2 className="text-4xl text-[#2a2318]">Welcome</h2>
-                <p className="text-lg text-[#6b5f52]">
-                  Let's set up your profile and learn about our community agreements.
+                <div>
+                  <h2 className="text-5xl text-[#2a2318] mb-2">Welcome to The Connection Room</h2>
+                  <p className="text-lg text-[#d4a574] font-medium">A space for authentic connection</p>
+                </div>
+                <p className="text-lg text-[#6b5f52] leading-relaxed">
+                  We're creating a community of people committed to exploring intimacy, vulnerability, and real connection. Your profile helps us match you with people on the same journey.
                 </p>
-                <p className="text-[#6b5f52]">
-                  This takes about 5 minutes. You can edit your profile anytime after.
-                </p>
+                <div className="bg-[#f3ede5] p-6 rounded-lg space-y-3">
+                  <p className="font-semibold text-[#2a2318]">What's ahead:</p>
+                  <ul className="text-sm text-[#6b5f52] space-y-2 text-left">
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#d4a574]">✓</span>
+                      <span>Community agreements (what makes this space safe)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#d4a574]">✓</span>
+                      <span>Your story (who you are and what brings you here)</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#d4a574]">✓</span>
+                      <span>Your preferences (how you want to connect)</span>
+                    </li>
+                  </ul>
+                  <p className="text-xs text-[#a0968a] pt-2">⏱️ Takes about 5 minutes</p>
+                </div>
                 <Button variant="primary" size="lg" onClick={handleNext} className="">
                   Let's Begin
                 </Button>
@@ -169,8 +190,13 @@ export default function OnboardingPage() {
             <Card>
               <CardHeader title="Community Agreements" icon={<IconConnection size={20} />} />
               <div className="space-y-4">
-                <p className="text-[#6b5f52] mb-4">
-                  We're building a safe, respectful space. Please read and acknowledge these agreements:
+                <div className="bg-[#fffbf7] border-l-4 border-[#d4a574] p-4 rounded">
+                  <p className="text-[#6b5f52]">
+                    <span className="font-semibold text-[#2a2318]">Why this matters:</span> These agreements create the container for real connection. When everyone honors the same values, vulnerability becomes possible.
+                  </p>
+                </div>
+                <p className="text-[#6b5f52] mb-2">
+                  Please read and acknowledge these agreements:
                 </p>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {appConfig.communityAgreements.map((agreement, idx) => (
@@ -197,26 +223,47 @@ export default function OnboardingPage() {
           )}
 
           {currentStep === "member-type" && (
-            <Card>
+            <>
+              <div className="animate-in fade-in slide-in-from-top-6 duration-600" style={{ animationDelay: "0ms" }}>
+                <Card className="bg-orange-100 border-2 border-orange-400 mb-6">
+                  <div className="text-center space-y-3 py-1">
+                    <div className="text-4xl animate-bounce">✓</div>
+                    <div>
+                      <p className="text-lg font-bold text-[#6b5f52]">You've set the foundation.</p>
+                      <p className="text-sm text-[#8b7f77] mt-1">Community agreements create the container for real connection.</p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: "700ms" }}>
+                <Card>
               <CardHeader title="Who Are You?" icon={<IconProfile size={20} />} />
-              <div className="space-y-3">
-                {appConfig.memberTypeOptions.map((option) => (
-                  <button
-                    key={option.id}
-                    onClick={() => {
-                      handleUpdate({ memberType: option.id });
-                      if (option.id === "couple") setCoupleMode(true);
-                    }}
-                    className={`p-4 text-left rounded-lg border-2 transition-all ${
-                      profile.memberType === option.id
-                        ? "border-[#d4a574] bg-[#f3ede5]"
-                        : "border-[#e8ddd2] hover:border-[#d4a574]"
-                    }`}
-                  >
-                    <p className="font-medium text-[#2a2318]">{option.label}</p>
-                    <p className="text-sm text-[#6b5f52] mt-1">{option.description}</p>
-                  </button>
-                ))}
+              <div className="space-y-4">
+                <div className="bg-[#fffbf7] border-l-4 border-[#d4a574] p-4 rounded">
+                  <p className="text-[#6b5f52]">
+                    <span className="font-semibold text-[#2a2318]">This helps us:</span> Customize your experience and match you with people in similar situations who understand your journey.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  {appConfig.memberTypeOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      onClick={() => {
+                        handleUpdate({ memberType: option.id });
+                        if (option.id === "couple") setCoupleMode(true);
+                      }}
+                      className={`p-4 text-left rounded-lg border-2 transition-all ${
+                        profile.memberType === option.id
+                          ? "border-[#d4a574] bg-[#f3ede5]"
+                          : "border-[#e8ddd2] hover:border-[#d4a574]"
+                      }`}
+                    >
+                      <p className="font-medium text-[#2a2318]">{option.label}</p>
+                      <p className="text-sm text-[#6b5f52] mt-1">{option.description}</p>
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="flex gap-3 mt-6">
                 <Button variant="ghost" size="md" onClick={handleBack} className="flex-1">
@@ -233,12 +280,32 @@ export default function OnboardingPage() {
                 </Button>
               </div>
             </Card>
+              </div>
+            </>
           )}
 
           {currentStep === "basics" && (
-            <Card>
+            <>
+              <div className="animate-in fade-in slide-in-from-top-6 duration-600" style={{ animationDelay: "0ms" }}>
+                <Card className="bg-orange-100 border-2 border-orange-400 mb-6">
+                  <div className="text-center space-y-3 py-1">
+                    <div className="text-4xl animate-bounce">✓</div>
+                    <div>
+                      <p className="text-lg font-bold text-[#6b5f52]">Your path is becoming clear.</p>
+                      <p className="text-sm text-[#8b7f77] mt-1">Now we'll learn who you are.</p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: "700ms" }}>
+                <Card>
               <CardHeader title="Your Profile" icon={<IconIntegration size={20} />} />
               <div className="space-y-4">
+                <div className="bg-[#fffbf7] border-l-4 border-[#d4a574] p-4 rounded">
+                  <p className="text-[#6b5f52]">
+                    <span className="font-semibold text-[#2a2318]">This helps us:</span> Understand who you are so we can match you with compatible people and create meaningful connections.
+                  </p>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-[#2a2318] mb-2">First Name *</label>
@@ -330,6 +397,8 @@ export default function OnboardingPage() {
                 </Button>
               </div>
             </Card>
+              </div>
+            </>
           )}
 
           {currentStep === "photo" && (
@@ -347,83 +416,91 @@ export default function OnboardingPage() {
               </div>
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: "700ms" }}>
                 <Card>
-                <CardHeader title="Add Your Photo" icon="📸" />
-                <p className="text-[#6b5f52] mb-6">
-                  A real, current photo of yourself helps members recognize you and builds authentic connection. This is essential to our community.
-                </p>
+                  <CardHeader title="Add Your Photo" icon="📸" />
+                  <div className="space-y-4">
+                    <div className="bg-[#fffbf7] border-l-4 border-[#d4a574] p-4 rounded">
+                      <p className="text-[#6b5f52]">
+                        <span className="font-semibold text-[#2a2318]">Why your photo matters:</span> A real, current photo helps people recognize you and builds the human connection this community is built on.
+                      </p>
+                    </div>
 
-              {/* File Upload */}
-              <div className="space-y-4">
-                <label className="block text-sm font-medium text-[#2a2318]">
-                  Upload your photo
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (event) => {
-                        const dataUrl = event.target?.result as string;
-                        handleUpdate({ profilePhoto: dataUrl });
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
-                  className="w-full px-4 py-3 border-2 border-dashed border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm"
-                />
-                <p className="text-xs text-[#a0968a]">JPG, PNG, or GIF. Max 5MB. A clear, recent photo works best.</p>
-              </div>
-
-              {/* Current Photo Preview */}
-                {profile.profilePhoto && (
-                  <div className="mt-6 flex justify-center">
-                    <img
-                      src={profile.profilePhoto}
-                      alt="Your photo preview"
-                      className="w-24 h-24 rounded-lg object-cover"
-                    />
+                    <p className="text-[#6b5f52]">
+                      Share a clear, recent photo where your face is visible. This is essential to our community.
+                    </p>
                   </div>
-                )}
 
-                {/* Photo Confirmation Checkbox */}
-                {profile.profilePhoto && (
-                  <div className="mt-6 p-4 bg-[#f3ede5] rounded-lg">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={profile.photo_confirmed || false}
-                        onChange={(e) =>
-                          handleUpdate({
-                            photo_confirmed: e.target.checked,
-                            photo_confirmed_at: e.target.checked ? new Date() : undefined,
-                          })
-                        }
-                        className="w-5 h-5 mt-0.5 flex-shrink-0"
-                      />
-                      <span className="text-sm text-[#6b5f52]">
-                        I confirm this is a current, recognizable photograph of me and that I have permission to use it.
-                      </span>
+                  {/* File Upload */}
+                  <div className="space-y-4">
+                    <label className="block text-sm font-medium text-[#2a2318]">
+                      Upload your photo
                     </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            const dataUrl = event.target?.result as string;
+                            handleUpdate({ profilePhoto: dataUrl });
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="w-full px-4 py-3 border-2 border-dashed border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm"
+                    />
+                    <p className="text-xs text-[#a0968a]">JPG, PNG, or GIF. Max 5MB. A clear, recent photo works best.</p>
                   </div>
-                )}
 
-                <div className="flex gap-3 mt-6">
-                  <Button variant="ghost" size="md" onClick={handleBack} className="flex-1">
-                    Back
-                  </Button>
-                  <Button
-                    variant="primary"
-                    size="md"
-                    onClick={handleNext}
-                    disabled={!profile.profilePhoto || !profile.photo_confirmed}
-                    className="flex-1"
-                  >
-                    Continue
-                  </Button>
-                </div>
-              </Card>
+                  {/* Current Photo Preview */}
+                  {profile.profilePhoto && (
+                    <div className="mt-6 flex justify-center">
+                      <img
+                        src={profile.profilePhoto}
+                        alt="Your photo preview"
+                        className="w-24 h-24 rounded-lg object-cover"
+                      />
+                    </div>
+                  )}
+
+                  {/* Photo Confirmation Checkbox */}
+                  {profile.profilePhoto && (
+                    <div className="mt-6 p-4 bg-[#f3ede5] rounded-lg">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={profile.photo_confirmed || false}
+                          onChange={(e) =>
+                            handleUpdate({
+                              photo_confirmed: e.target.checked,
+                              photo_confirmed_at: e.target.checked ? new Date() : undefined,
+                            })
+                          }
+                          className="w-5 h-5 mt-0.5 flex-shrink-0"
+                        />
+                        <span className="text-sm text-[#6b5f52]">
+                          I confirm this is a current, recognizable photograph of me and that I have permission to use it.
+                        </span>
+                      </label>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 mt-6">
+                    <Button variant="ghost" size="md" onClick={handleBack} className="flex-1">
+                      Back
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="md"
+                      onClick={handleNext}
+                      disabled={!profile.profilePhoto || !profile.photo_confirmed}
+                      className="flex-1"
+                    >
+                      Continue
+                    </Button>
+                  </div>
+                </Card>
               </div>
             </>
           )}
@@ -443,62 +520,89 @@ export default function OnboardingPage() {
               </div>
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: "700ms" }}>
                 <Card>
-                <CardHeader title="Your Interests" icon={<IconIntegration size={20} />} />
-                <p className="text-[#6b5f52] mb-4">What draws you here? (Select all that apply)</p>
-              <div className="space-y-2">
-                {appConfig.interests.map((interest) => (
-                  <label key={interest} className="flex items-center gap-3 p-3 hover:bg-[#f3ede5] rounded-lg cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={profile.interests?.includes(interest) || false}
-                      onChange={(e) => {
-                        const interests = profile.interests || [];
-                        const updated = e.target.checked
-                          ? [...interests, interest]
-                          : interests.filter((i) => i !== interest);
-                        handleUpdate({ interests: updated });
-                      }}
-                      className="w-5 h-5"
-                    />
-                    <span className="text-[#6b5f52]">{interest}</span>
-                  </label>
-                ))}
-                <div className="border-t border-[#e8ddd2] pt-3 mt-3">
-                  <label className="block text-sm font-medium text-[#2a2318] mb-2">Other interests?</label>
-                  <input
-                    type="text"
-                    placeholder="Tell us what else draws you..."
-                    defaultValue={profile.interests?.find(i => !appConfig.interests.includes(i)) || ""}
-                    onChange={(e) => {
-                      const interests = profile.interests || [];
-                      const otherInterests = interests.filter(i => !appConfig.interests.includes(i));
-                      const baseInterests = interests.filter(i => appConfig.interests.includes(i));
-                      const updated = e.target.value ? [...baseInterests, e.target.value] : baseInterests;
-                      handleUpdate({ interests: updated });
-                    }}
-                      className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574] text-sm"
-                    />
+                  <CardHeader title="Your Interests" icon={<IconIntegration size={20} />} />
+                  <div className="space-y-4">
+                    <div className="bg-[#fffbf7] border-l-4 border-[#d4a574] p-4 rounded">
+                      <p className="text-[#6b5f52]">
+                        <span className="font-semibold text-[#2a2318]">This helps us:</span> Connect you with people who share your interests and are exploring similar aspects of intimacy and connection.
+                      </p>
+                    </div>
+
+                    <p className="text-[#6b5f52] mb-2">What draws you here? (Select all that apply)</p>
+                    <div className="space-y-2">
+                      {appConfig.interests.map((interest) => (
+                        <label key={interest} className="flex items-center gap-3 p-3 hover:bg-[#f3ede5] rounded-lg cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={profile.interests?.includes(interest) || false}
+                            onChange={(e) => {
+                              const interests = profile.interests || [];
+                              const updated = e.target.checked
+                                ? [...interests, interest]
+                                : interests.filter((i) => i !== interest);
+                              handleUpdate({ interests: updated });
+                            }}
+                            className="w-5 h-5"
+                          />
+                          <span className="text-[#6b5f52]">{interest}</span>
+                        </label>
+                      ))}
+                      <div className="border-t border-[#e8ddd2] pt-3 mt-3">
+                        <label className="block text-sm font-medium text-[#2a2318] mb-2">Other interests?</label>
+                        <input
+                          type="text"
+                          placeholder="Tell us what else draws you..."
+                          defaultValue={profile.interests?.find(i => !appConfig.interests.includes(i)) || ""}
+                          onChange={(e) => {
+                            const interests = profile.interests || [];
+                            const otherInterests = interests.filter(i => !appConfig.interests.includes(i));
+                            const baseInterests = interests.filter(i => appConfig.interests.includes(i));
+                            const updated = e.target.value ? [...baseInterests, e.target.value] : baseInterests;
+                            handleUpdate({ interests: updated });
+                          }}
+                          className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574] text-sm"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-3 mt-6">
-                  <Button variant="ghost" size="md" onClick={handleBack} className="flex-1">
-                    Back
-                  </Button>
-                  <Button variant="primary" size="md" onClick={handleNext} className="flex-1">
-                    Continue
-                  </Button>
-                </div>
-              </Card>
+
+                  <div className="flex gap-3 mt-6">
+                    <Button variant="ghost" size="md" onClick={handleBack} className="flex-1">
+                      Back
+                    </Button>
+                    <Button variant="primary" size="md" onClick={handleNext} className="flex-1">
+                      Continue
+                    </Button>
+                  </div>
+                </Card>
               </div>
             </>
           )}
 
-          {currentStep === "pairings" && (
-            <Card>
+          {currentStep === "connections" && (
+            <>
+              <div className="animate-in fade-in slide-in-from-top-6 duration-600" style={{ animationDelay: "0ms" }}>
+                <Card className="bg-orange-100 border-2 border-orange-400 mb-6">
+                  <div className="text-center space-y-3 py-1">
+                    <div className="text-4xl animate-bounce">✨</div>
+                    <div>
+                      <p className="text-lg font-bold text-[#6b5f52]">You know what draws you.</p>
+                      <p className="text-sm text-[#8b7f77] mt-1">Your interests light the way forward.</p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: "700ms" }}>
+                <Card>
               <CardHeader title="Connections" icon={<IconConnection size={20} />} />
               <div className="space-y-4">
+                <div className="bg-[#fffbf7] border-l-4 border-[#d4a574] p-4 rounded">
+                  <p className="text-[#6b5f52]">
+                    <span className="font-semibold text-[#2a2318]">What are connections:</span> Structured 20-minute conversations with matched members. A guided, safe way to practice vulnerability and authentic connection.
+                  </p>
+                </div>
                 <p className="text-[#6b5f52]">
-                  We offer optional connections with other members for structured 20-minute conversations. Would you like to participate?
+                  Would you like to participate in connections?
                 </p>
                 <div className="space-y-3">
                   {[
@@ -508,9 +612,9 @@ export default function OnboardingPage() {
                   ].map((option) => (
                     <button
                       key={option.id}
-                      onClick={() => handleUpdate({ pairingComfortLevel: option.id })}
+                      onClick={() => handleUpdate({ connectionComfortLevel: option.id })}
                       className={`p-3 text-left rounded-lg border-2 transition-all ${
-                        profile.pairingComfortLevel === option.id
+                        profile.connectionComfortLevel === option.id
                           ? "border-[#d4a574] bg-[#f3ede5]"
                           : "border-[#e8ddd2] hover:border-[#d4a574]"
                       }`}
@@ -532,12 +636,32 @@ export default function OnboardingPage() {
                 </Button>
               </div>
             </Card>
+              </div>
+            </>
           )}
 
           {currentStep === "couples" && coupleMode && (
-            <Card>
+            <>
+              <div className="animate-in fade-in slide-in-from-top-6 duration-600" style={{ animationDelay: "0ms" }}>
+                <Card className="bg-orange-100 border-2 border-orange-400 mb-6">
+                  <div className="text-center space-y-3 py-1">
+                    <div className="text-4xl animate-bounce">🤝</div>
+                    <div>
+                      <p className="text-lg font-bold text-[#6b5f52]">You're ready to connect.</p>
+                      <p className="text-sm text-[#8b7f77] mt-1">Now let's honor your partnership.</p>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: "700ms" }}>
+                <Card>
               <CardHeader title="Couples Profile" icon={<IconCouples size={20} />} />
               <div className="space-y-4">
+                <div className="bg-[#fffbf7] border-l-4 border-[#d4a574] p-4 rounded">
+                  <p className="text-[#6b5f52]">
+                    <span className="font-semibold text-[#2a2318]">Your couple journey:</span> Tell us about your partnership and what you're exploring together. This helps us suggest relevant experiences and matches.
+                  </p>
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-[#2a2318] mb-2">Couple Name (optional)</label>
                   <input
@@ -572,6 +696,8 @@ export default function OnboardingPage() {
                 </Button>
               </div>
             </Card>
+              </div>
+            </>
           )}
 
           {currentStep === "prompt" && (
@@ -589,55 +715,64 @@ export default function OnboardingPage() {
               </div>
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: "700ms" }}>
                 <Card>
-                <CardHeader title="First Reflection" icon={<IconReflection size={20} />} />
-                <div className="space-y-4">
-                <div className="bg-[#f3ede5] p-4 rounded-lg italic text-[#6b5f52]">
-                  "What kind of connection are you craving this week, and what part of you feels hesitant to ask for it?"
-                </div>
-                <textarea
-                  value={profile.firstPromptResponse || ""}
-                  onChange={(e) => handleUpdate({ firstPromptResponse: e.target.value })}
-                  placeholder="Your reflection (optional for now)..."
-                  rows={4}
-                  className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
-                />
-                <div className="space-y-3">
-                  <label className="text-sm font-medium text-[#2a2318] block">What would you like to do with this reflection?</label>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => handleUpdate({ firstPromptIsPublic: true })}
-                      className={`p-3 text-left rounded-lg border-2 transition-all ${
-                        profile.firstPromptIsPublic === true
-                          ? "border-[#d4a574] bg-[#f3ede5]"
-                          : "border-[#e8ddd2] hover:border-[#d4a574]"
-                      }`}
-                    >
-                      <p className="font-medium text-[#2a2318]">Share in the Community</p>
-                      <p className="text-xs text-[#6b5f52] mt-1">Other members can see and respond</p>
-                    </button>
-                    <button
-                      onClick={() => handleUpdate({ firstPromptIsPublic: false })}
-                      className={`p-3 text-left rounded-lg border-2 transition-all ${
-                        profile.firstPromptIsPublic === false
-                          ? "border-[#d4a574] bg-[#f3ede5]"
-                          : "border-[#e8ddd2] hover:border-[#d4a574]"
-                      }`}
-                    >
-                      <p className="font-medium text-[#2a2318]">Keep Private</p>
-                      <p className="text-xs text-[#6b5f52] mt-1">Just for your journey, not shared</p>
-                    </button>
+                  <CardHeader title="First Reflection" icon={<IconReflection size={20} />} />
+                  <div className="space-y-4">
+                    <div className="bg-[#fffbf7] border-l-4 border-[#d4a574] p-4 rounded">
+                      <p className="text-[#6b5f52]">
+                        <span className="font-semibold text-[#2a2318]">Reflections are private and powerful:</span> This first reflection sets the container for your experience. It's just for you—a chance to name what you're seeking and what's holding you back.
+                      </p>
+                    </div>
+
+                    <div className="bg-[#f3ede5] p-4 rounded-lg italic text-[#6b5f52]">
+                      "What kind of connection are you craving this week, and what part of you feels hesitant to ask for it?"
+                    </div>
+
+                    <textarea
+                      value={profile.firstPromptResponse || ""}
+                      onChange={(e) => handleUpdate({ firstPromptResponse: e.target.value })}
+                      placeholder="Your reflection (optional for now)..."
+                      rows={4}
+                      className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+                    />
+
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium text-[#2a2318] block">What would you like to do with this reflection?</label>
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => handleUpdate({ firstPromptIsPublic: true })}
+                          className={`p-3 text-left rounded-lg border-2 transition-all ${
+                            profile.firstPromptIsPublic === true
+                              ? "border-[#d4a574] bg-[#f3ede5]"
+                              : "border-[#e8ddd2] hover:border-[#d4a574]"
+                          }`}
+                        >
+                          <p className="font-medium text-[#2a2318]">Share in the Community</p>
+                          <p className="text-xs text-[#6b5f52] mt-1">Other members can see and respond</p>
+                        </button>
+                        <button
+                          onClick={() => handleUpdate({ firstPromptIsPublic: false })}
+                          className={`p-3 text-left rounded-lg border-2 transition-all ${
+                            profile.firstPromptIsPublic === false
+                              ? "border-[#d4a574] bg-[#f3ede5]"
+                              : "border-[#e8ddd2] hover:border-[#d4a574]"
+                          }`}
+                        >
+                          <p className="font-medium text-[#2a2318]">Keep Private</p>
+                          <p className="text-xs text-[#6b5f52] mt-1">Just for your journey, not shared</p>
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                </div>
-                <div className="flex gap-3 mt-6">
-                  <Button variant="ghost" size="md" onClick={handleBack} className="flex-1">
-                    Back
-                  </Button>
-                  <Button variant="primary" size="md" onClick={handleNext} className="flex-1">
-                    Continue
-                  </Button>
-                </div>
-              </Card>
+
+                  <div className="flex gap-3 mt-6">
+                    <Button variant="ghost" size="md" onClick={handleBack} className="flex-1">
+                      Back
+                    </Button>
+                    <Button variant="primary" size="md" onClick={handleNext} className="flex-1">
+                      Continue
+                    </Button>
+                  </div>
+                </Card>
               </div>
             </>
           )}
@@ -694,27 +829,46 @@ export default function OnboardingPage() {
           {currentStep === "complete" && completionSuccess && (
             <Card>
               <div className="text-center space-y-8">
-                <div>
-                  <div className="text-6xl mb-4">✓</div>
-                  <h2 className="text-4xl text-[#2a2318] mb-3">You're in</h2>
-                  <p className="text-lg text-[#6b5f52]">
-                    Your profile is ready, and you're part of the community.
+                <div className="space-y-2">
+                  <div className="text-6xl mb-4 animate-bounce">✓</div>
+                  <h2 className="text-5xl text-[#2a2318]">You're in</h2>
+                  <p className="text-xl text-[#d4a574] font-medium">Welcome to The Connection Room</p>
+                  <p className="text-lg text-[#6b5f52] mt-4 leading-relaxed">
+                    Your profile is complete, and you're now part of our community. You're ready to explore connection, meet others on the same path, and begin your journey toward authentic intimacy.
                   </p>
                 </div>
 
+                <div className="bg-[#f3ede5] p-6 rounded-lg space-y-3">
+                  <p className="font-semibold text-[#2a2318]">What you can do now:</p>
+                  <ul className="text-sm text-[#6b5f52] space-y-2 text-left">
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#d4a574]">🚪</span>
+                      <span><strong>Seven Doors:</strong> A guided 7-week journey through connection</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#d4a574]">🤝</span>
+                      <span><strong>Find Connections:</strong> Browse people matched to your interests</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-[#d4a574]">💬</span>
+                      <span><strong>Join Spaces:</strong> Share reflections and connect with the community</span>
+                    </li>
+                  </ul>
+                </div>
+
                 <div className="space-y-4">
-                  <p className="text-[#6b5f52] font-medium">Choose a place to begin:</p>
+                  <p className="text-[#6b5f52] font-medium">Where would you like to start?</p>
 
                   <button
-                    onClick={() => handleNavigateAfterSuccess("/app/journey")}
-                    className="p-4 text-left rounded-lg border-2 border-[#d4a574] bg-[#f3ede5] hover:bg-[#e8ddd2] transition-all"
+                    onClick={() => handleNavigateToDestination("/app/journey")}
+                    className="w-full p-4 text-left rounded-lg border-2 border-[#d4a574] bg-[#f3ede5] hover:bg-[#e8ddd2] transition-all"
                   >
-                    <p className="font-medium text-[#2a2318]">Start the Seven Doors</p>
-                    <p className="text-sm text-[#6b5f52] mt-1">Your first guided chapter inside The Connection Room</p>
+                    <p className="font-medium text-[#2a2318]">🚪 Start the Seven Doors</p>
+                    <p className="text-sm text-[#6b5f52] mt-1">Your first guided chapter—explore your connection patterns and begin your transformation</p>
                   </button>
 
                   <button
-                    onClick={() => handleNavigateAfterSuccess("/app/spaces?space=commons")}
+                    onClick={() => handleNavigateToDestination("/app/spaces?space=commons")}
                     className="p-4 text-left rounded-lg border-2 border-[#e8ddd2] hover:border-[#d4a574] hover:bg-[#f3ede5] transition-all"
                   >
                     <p className="font-medium text-[#2a2318]">Visit The Commons</p>
@@ -722,7 +876,7 @@ export default function OnboardingPage() {
                   </button>
 
                   <button
-                    onClick={() => handleNavigateAfterSuccess("/app/spaces")}
+                    onClick={() => handleNavigateToDestination("/app/spaces")}
                     className="p-4 text-left rounded-lg border-2 border-[#e8ddd2] hover:border-[#d4a574] hover:bg-[#f3ede5] transition-all"
                   >
                     <p className="font-medium text-[#2a2318]">Explore Your Spaces</p>
@@ -734,7 +888,7 @@ export default function OnboardingPage() {
                   <Button
                     variant="secondary"
                     size="md"
-                    onClick={() => handleNavigateAfterSuccess("/app")}
+                    onClick={() => handleNavigateToDestination("/app")}
                     className="flex-1"
                   >
                     Skip for Now

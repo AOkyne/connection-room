@@ -1,4 +1,4 @@
-export interface PairingInterest {
+export interface ConnectionInterest {
   id?: string;
   userId: string;
   theme: string;
@@ -25,7 +25,7 @@ export interface ConnectionPracticeSummary {
   reflectionsShared: number;
   commentsOffered: number;
   spacesJoined: number;
-  pairingInterestsSaved: number;
+  connectionInterestsSaved: number;
   monthlyIntention?: string;
   lastParticipationDate?: Date;
   milestones: ConnectionMilestone[];

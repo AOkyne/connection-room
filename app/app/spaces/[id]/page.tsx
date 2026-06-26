@@ -37,6 +37,9 @@ import { PostAnalytics } from "@/components/posts/PostAnalytics";
 import { demoMembers } from "@/lib/seed/demo-members";
 import { demoSpaceMemberships } from "@/lib/seed/demo-space-memberships";
 import Link from "next/link";
+import { ProfileModal } from "@/components/ProfileModal";
+import { spaceImageMap } from "@/lib/constants/spaceImages";
+import type { Profile } from "@/lib/data/profiles";
 
 const MAX_POST_LENGTH = 2000;
 const MIN_POST_LENGTH = 10;
@@ -76,6 +79,7 @@ export default function SpaceDetailPage() {
     if (typeof window === "undefined") return "all";
     return (localStorage.getItem("connection-room:post-filter") as "all" | "recent" | "popular") || "all";
   });
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
 
   // Filter and search posts
   const filteredPosts = posts.filter((post) => {
@@ -163,7 +167,7 @@ export default function SpaceDetailPage() {
       setNewPostContent("");
       setPendingPostContent(null);
       const previewText = trimmedContent.length > 50 ? trimmedContent.substring(0, 47) + "..." : trimmedContent;
-      showToast(`Shared: "${previewText}"`, "success", 4000);
+      showToast(`Your reflection is live! Others can now respond to: "${previewText}"`, "success", 4000);
 
       // Check and award milestones
       const postCount = posts.length + 1;
@@ -208,7 +212,7 @@ export default function SpaceDetailPage() {
       setNewCommentContent({ ...newCommentContent, [postId]: "" });
       setPendingCommentContent({ ...pendingCommentContent, [postId]: "" });
       const previewText = trimmedContent.length > 50 ? trimmedContent.substring(0, 47) + "..." : trimmedContent;
-      showToast(`Response added: "${previewText}"`, "success", 4000);
+      showToast(`Your response is visible: "${previewText}"`, "success", 4000);
 
       // Refresh posts to show updated comment count and comments
       const updatedPosts = await getPosts(spaceId);
@@ -306,6 +310,18 @@ export default function SpaceDetailPage() {
 
   return (
     <div className="space-y-8">
+      {/* Hero Image */}
+      {space && (
+        <div className="relative w-full h-64 -mx-4 -mt-4 mb-4 overflow-hidden rounded-b-lg">
+          <img
+            src={`/imagery/spaces/${spaceImageMap[space.id] || "The Commons.png"}`}
+            alt={space.name}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/10"></div>
+        </div>
+      )}
+
       {/* Space Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -347,15 +363,18 @@ export default function SpaceDetailPage() {
           <div className="flex flex-wrap gap-2 items-center bg-[#f3ede5] p-3 rounded-lg">
             <span className="text-xs font-medium text-[#6b5f52] mr-2">People:</span>
             {spaceMembers.slice(0, 12).map((member) => (
-              <Link key={member.id} href={`/members/${member.id}`}>
-                <div className="flex-shrink-0 group cursor-pointer" title={member.displayName}>
-                  <img
-                    src={member.profilePhoto}
-                    alt={member.displayName}
-                    className="w-6 h-6 rounded-full hover:ring-2 hover:ring-[#d4a574] transition-all"
-                  />
-                </div>
-              </Link>
+              <button
+                key={member.id}
+                onClick={() => setSelectedProfile(member)}
+                className="flex-shrink-0 group cursor-pointer"
+                title={member.displayName}
+              >
+                <img
+                  src={member.profilePhoto}
+                  alt={member.displayName}
+                  className="w-6 h-6 rounded-full hover:ring-2 hover:ring-[#d4a574] transition-all"
+                />
+              </button>
             ))}
             {spaceMembers.length > 12 && (
               <Link href={`/app/spaces/${spaceId}/members`}>
@@ -596,8 +615,19 @@ export default function SpaceDetailPage() {
           filteredPosts.map((post) => (
             <Card key={post.id}>
               <div className="flex items-start justify-between mb-3">
-                <Link href={`/app/users/${post.userId}`} className="flex items-start gap-3 flex-1 hover:opacity-80 transition-opacity">
-                  <Avatar name={post.authorName} photo={post.authorPhoto} size={40} className="cursor-pointer" />
+                <button
+                  onClick={() => {
+                    const authorFirstName = post.authorName.split(' ')[0];
+                    const author = demoMembers.find(m => m.displayName === authorFirstName || m.firstName === authorFirstName);
+                    if (author) setSelectedProfile(author);
+                  }}
+                  className="flex items-start gap-3 flex-1 hover:opacity-80 transition-opacity text-left"
+                >
+                  {(() => {
+                    const authorFirstName = post.authorName.split(' ')[0];
+                    const author = demoMembers.find(m => m.displayName === authorFirstName || m.firstName === authorFirstName);
+                    return <Avatar name={post.authorName} photo={author?.profilePhoto || post.authorPhoto} size={40} className="cursor-pointer" />;
+                  })()}
                   <div className="cursor-pointer">
                     <p className="font-medium text-[#2a2318]">
                       {post.authorName} {post.authorPronouns && `(${post.authorPronouns})`}
@@ -607,7 +637,7 @@ export default function SpaceDetailPage() {
                       {new Date(post.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
-                </Link>
+                </button>
               </div>
 
               <p className="text-[#6b5f52] mb-4">{post.content}</p>
@@ -630,7 +660,7 @@ export default function SpaceDetailPage() {
                 <PostAnalytics
                   commentCount={post.commentCount}
                   reactions={post.reactions}
-                  createdAt={post.createdAt}
+                  createdAt={post.createdAt instanceof Date ? post.createdAt.toISOString() : post.createdAt}
                   compact={true}
                 />
               </div>
@@ -642,15 +672,26 @@ export default function SpaceDetailPage() {
                   {(comments[post.id] || []).map((comment: Comment) => (
                     <div key={comment.id} className="bg-[#f3ede5] p-3 rounded-lg">
                       <div className="flex items-start gap-2">
-                        <Link href={`/app/users/${comment.userId}`} className="flex items-start gap-2 flex-1 hover:opacity-80 transition-opacity">
-                          <Avatar name={comment.authorName} photo={comment.authorPhoto} size={28} className="cursor-pointer" />
+                        <button
+                          onClick={() => {
+                            const authorFirstName = comment.authorName.split(' ')[0];
+                            const author = demoMembers.find(m => m.displayName === authorFirstName || m.firstName === authorFirstName);
+                            if (author) setSelectedProfile(author);
+                          }}
+                          className="flex items-start gap-2 flex-1 hover:opacity-80 transition-opacity text-left"
+                        >
+                          {(() => {
+                            const authorFirstName = comment.authorName.split(' ')[0];
+                            const author = demoMembers.find(m => m.displayName === authorFirstName || m.firstName === authorFirstName);
+                            return <Avatar name={comment.authorName} photo={author?.profilePhoto || comment.authorPhoto} size={28} className="cursor-pointer" />;
+                          })()}
                           <div className="flex-1 cursor-pointer">
                             <p className="text-sm font-medium text-[#2a2318]">
                               {comment.authorName} {comment.authorPronouns && `(${comment.authorPronouns})`}
                             </p>
                             <p className="text-sm text-[#6b5f52] mt-1">{comment.content}</p>
                           </div>
-                        </Link>
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -707,6 +748,29 @@ export default function SpaceDetailPage() {
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
+
+      {/* Profile Modal */}
+      {selectedProfile && (
+        <ProfileModal
+          userId={selectedProfile.id}
+          firstName={selectedProfile.firstName}
+          lastName={selectedProfile.lastName}
+          displayName={selectedProfile.displayName}
+          pronouns={selectedProfile.pronouns}
+          profilePhoto={selectedProfile.profilePhoto}
+          location={selectedProfile.location}
+          profile_tagline={selectedProfile.profile_tagline}
+          interests={selectedProfile.interests}
+          whatBroughtYouHere={selectedProfile.whatBroughtYouHere}
+          connectionHoping={selectedProfile.connectionHoping}
+          ageRange={selectedProfile.ageRange}
+          orientation={selectedProfile.orientation}
+          relationshipStatus={selectedProfile.relationshipStatus}
+          quizResult={selectedProfile.quizResult}
+          isOpen={!!selectedProfile}
+          onClose={() => setSelectedProfile(null)}
+        />
+      )}
     </div>
   );
 }

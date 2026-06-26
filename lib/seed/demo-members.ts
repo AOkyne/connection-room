@@ -13,7 +13,7 @@ export const demoMembers: Profile[] = [
   {
     id: "demo-marcus-h",
     firstName: "Marcus",
-    lastName: "",
+    lastName: "Harrison",
     displayName: "Marcus",
     pronouns: "he/him",
     location: "Los Angeles, CA",
@@ -27,7 +27,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "Spent a decade chasing achievement—the house, the status, the 'right' partner. But I kept waking up empty. This year I had a therapy breakthrough: I don't know how to actually let people see me. I'm here to learn that, maybe for the first time.",
     connectionHoping: "Men who are doing their own inner work and aren't afraid to bring their whole selves to the table",
-    pairingComfortLevel: "Comfortable",
+    connectionComfortLevel: "Comfortable",
     quizResult: "The Nurturer",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "touch-affection", "intimacy-patterns"],
@@ -43,7 +43,7 @@ export const demoMembers: Profile[] = [
   {
     id: "demo-daniel-r",
     firstName: "Daniel",
-    lastName: "",
+    lastName: "Rivera",
     displayName: "Daniel",
     pronouns: "he/him",
     location: "San Francisco, CA",
@@ -57,7 +57,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "My partner and I opened up about some fantasies we'd been sitting with for years. It scared us both—not the desires themselves, but the vulnerability required to share them. We wanted a space where that felt safe, where sexuality isn't just transaction but sacred conversation.",
     connectionHoping: "Real couples who understand that desire grows through honesty, not hiding",
-    pairingComfortLevel: "Somewhat comfortable",
+    connectionComfortLevel: "Somewhat comfortable",
     quizResult: "The Explorer",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "dating-desire", "couples"],
@@ -73,7 +73,7 @@ export const demoMembers: Profile[] = [
   {
     id: "demo-james-t",
     firstName: "James",
-    lastName: "",
+    lastName: "Torres",
     displayName: "James",
     pronouns: "he/him",
     location: "Portland, OR",
@@ -87,7 +87,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "I felt alone even in a city full of gay men. For years I thought I was past the point of real connection—figured I'd missed my window. Then I realized I was just looking in the wrong places. This community feels different. People are actually asking *who am I?* instead of just *what do you do?*",
     connectionHoping: "Real friendships with men brave enough to question themselves",
-    pairingComfortLevel: "Comfortable",
+    connectionComfortLevel: "Comfortable",
     quizResult: "The Philosopher",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "spirituality-sexuality", "masculinity-sex-sexuality", "sacred-sexuality", "workshops"],
@@ -103,7 +103,7 @@ export const demoMembers: Profile[] = [
   {
     id: "demo-alex-m",
     firstName: "Alex",
-    lastName: "",
+    lastName: "Martinez",
     displayName: "Alex",
     pronouns: "he/him",
     location: "Austin, TX",
@@ -117,7 +117,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "I came out at 22. Everyone assumed that was the hard part. But honestly, I still don't know who I am as a sexual or intimate being—I just know what I'm *not*. Dating apps gave me options but left me confused. I wanted actual conversation about desire, not just photos and hookups.",
     connectionHoping: "To explore what I actually want without judgment, and find people on the same journey",
-    pairingComfortLevel: "New to this",
+    connectionComfortLevel: "New to this",
     quizResult: "The Seeker",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "dating-desire", "embodiment"],
@@ -133,7 +133,7 @@ export const demoMembers: Profile[] = [
   {
     id: "demo-chris-w",
     firstName: "Chris",
-    lastName: "",
+    lastName: "Williams",
     displayName: "Chris",
     pronouns: "he/him",
     location: "Seattle, WA",
@@ -147,7 +147,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "My partner and I opened up our relationship last year. It was necessary—we both needed more than what we could give each other. But we were fumbling through it, creating rules and restrictions instead of understanding what we were actually looking for. We needed help from people who've done this well.",
     connectionHoping: "Couples who've learned to expand love without losing connection",
-    pairingComfortLevel: "Comfortable",
+    connectionComfortLevel: "Comfortable",
     quizResult: "The Bridge Builder",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "couples", "spirituality-sexuality", "workshops"],
@@ -163,7 +163,7 @@ export const demoMembers: Profile[] = [
   {
     id: "demo-jordan-k",
     firstName: "Jordan",
-    lastName: "",
+    lastName: "Kinney",
     displayName: "Jordan",
     pronouns: "he/him",
     location: "Denver, CO",
@@ -177,7 +177,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "My partner grew up in a house where touch was either absent or violent. He's spent years rebuilding his relationship with his body. I wanted to understand how to support his healing and learn what touch can really mean beyond sex—tenderness as language, skin as conversation.",
     connectionHoping: "To understand the spiritual side of physical intimacy and what safe touch actually creates",
-    pairingComfortLevel: "Comfortable",
+    connectionComfortLevel: "Comfortable",
     quizResult: "The Healer",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "touch-affection", "couples"],
@@ -193,7 +193,7 @@ export const demoMembers: Profile[] = [
   {
     id: "demo-david-l",
     firstName: "David",
-    lastName: "",
+    lastName: "Lincoln",
     displayName: "David",
     pronouns: "he/him",
     location: "Boston, MA",
@@ -207,7 +207,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "I spent 30 years hiding my feelings, thinking that was what being a man meant. My therapist finally said, 'What if the strongest thing you could do is actually feel?' That broke something open in me. Now I'm terrified and curious—what's real masculinity if not this armor I've been wearing?",
     connectionHoping: "Other men asking the same hard questions and willing to find new answers together",
-    pairingComfortLevel: "Learning",
+    connectionComfortLevel: "Learning",
     quizResult: "The Awakening",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "masculinity-sex-sexuality", "embodiment"],
@@ -223,7 +223,7 @@ export const demoMembers: Profile[] = [
   {
     id: "demo-ryan-p",
     firstName: "Ryan",
-    lastName: "",
+    lastName: "Patterson",
     displayName: "Ryan",
     pronouns: "he/him",
     location: "Chicago, IL",
@@ -237,7 +237,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "I grew up thinking gay relationships were impossible. I've dated, hooked up, had the apps. But somewhere along the way it all started to feel empty—like I was performing a version of gay life instead of living it. I want to remember why connection excited me in the first place.",
     connectionHoping: "Authentic relationships where both people can actually be themselves, not curated versions",
-    pairingComfortLevel: "Comfortable",
+    connectionComfortLevel: "Comfortable",
     quizResult: "The Romantic",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "dating-desire", "intimacy-patterns"],
@@ -253,7 +253,7 @@ export const demoMembers: Profile[] = [
   {
     id: "demo-sammy-c",
     firstName: "Sammy",
-    lastName: "",
+    lastName: "Chen",
     displayName: "Sammy",
     pronouns: "he/him",
     location: "New York, NY",
@@ -267,7 +267,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "I watched friends suffer through relationships built on assumptions instead of actual conversation. I wanted to be different—more conscious, more intentional. That means understanding not just what I want, but why I want it, and being able to actually *say* that to another person.",
     connectionHoping: "To understand sexuality as something spiritual and relational, not just physical",
-    pairingComfortLevel: "Very comfortable",
+    connectionComfortLevel: "Very comfortable",
     quizResult: "The Conscious",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "dating-desire", "spirituality-sexuality"],
@@ -297,7 +297,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "After 5 years together, we fell into routine. Sex became scheduled, predictable, something we did because we 'should.' We still love each other, but the aliveness went somewhere. We wanted to remember why we chose each other in the first place—to reignite not just sex but the *desire* behind it.",
     connectionHoping: "Practical wisdom from couples who've navigated the long game and kept romance alive",
-    pairingComfortLevel: "Comfortable",
+    connectionComfortLevel: "Comfortable",
     quizResult: "The Harmonizer",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "couples", "dating-desire"],
@@ -327,7 +327,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "Catholic school taught me my body was shameful. It took years of therapy to even touch myself without guilt. But I'm still working through the messages—the idea that pleasure is something to earn rather than something I deserve. I wanted a community where that healing feels possible.",
     connectionHoping: "To feel safe exploring sexuality without the old scripts playing in my head",
-    pairingComfortLevel: "Somewhat comfortable",
+    connectionComfortLevel: "Somewhat comfortable",
     quizResult: "The Transformer",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "embodiment", "touch-affection"],
@@ -357,7 +357,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "I realized I've spent my whole life being accommodating, not asking for anything, thinking that made me 'easy' or 'good.' But it left me empty and resentful. Now I'm learning that vulnerability includes wanting things, needing things, asking for things. It's harder than I thought.",
     connectionHoping: "Men willing to have difficult conversations and honor their own needs",
-    pairingComfortLevel: "Learning",
+    connectionComfortLevel: "Learning",
     quizResult: "The Awakening",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "masculinity-sex-sexuality", "touch-affection"],
@@ -387,7 +387,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "My partner and I practice tantra. For us, sex is a spiritual practice—it's meditation, it's prayer. But we felt isolated in that perspective. The gay community often treats sexuality one way, and spiritual communities treat it another. We wanted to find others who understood that integration.",
     connectionHoping: "A community that honors sex as spiritual practice, not something to hide or apologize for",
-    pairingComfortLevel: "Very comfortable",
+    connectionComfortLevel: "Very comfortable",
     quizResult: "The Mystic",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "spirituality-sexuality", "couples", "sacred-sexuality", "workshops"],
@@ -417,7 +417,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "Growing up, the only gay thing I could access was sex—it's all media showed, all friends talked about. Coming out was sexual. But I wanted to know: who am I as a queer person beyond that? What does queerness mean spiritually, relationally, as a way of being in the world?",
     connectionHoping: "Men exploring the fullness of queer identity, not just sexual identity",
-    pairingComfortLevel: "Comfortable",
+    connectionComfortLevel: "Comfortable",
     quizResult: "The Seeker",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "dating-desire", "spirituality-sexuality", "sacred-sexuality"],
@@ -447,7 +447,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "I had the career, the apartment, the lovers. Then I turned 45 and realized none of it was answering the questions that actually matter. I wanted to meet men in the second half of their lives asking the same thing: what's actually important? What does a good life actually look like?",
     connectionHoping: "Men asking big questions about meaning and purpose in midlife and beyond",
-    pairingComfortLevel: "Comfortable",
+    connectionComfortLevel: "Comfortable",
     quizResult: "The Philosopher",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "spirituality-sexuality", "masculinity-sex-sexuality", "sacred-sexuality", "workshops"],
@@ -477,7 +477,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "I grew up in a conservative faith tradition. Being gay felt like a betrayal. But I couldn't deny it, and I couldn't deny my faith either. My partner and I spent years keeping those parts separate. Now we're trying to integrate them—to find a spirituality that actually honors both who we are and what we believe.",
     connectionHoping: "Other men bridging faith and sexuality authentically, without having to choose",
-    pairingComfortLevel: "Learning",
+    connectionComfortLevel: "Learning",
     quizResult: "The Bridge Builder",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "spirituality-sexuality", "couples"],
@@ -507,7 +507,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "I want to experience pleasure in my body without the voice in my head saying I'm dirty or wrong. Growing up I learned that my sexuality was something to be ashamed of—and intellectually I know that's not true, but my body hasn't caught up yet. I wanted to be around people deconditioning from the same messages.",
     connectionHoping: "Men working together to reclaim pleasure as a birthright, not something to earn or hide",
-    pairingComfortLevel: "Comfortable",
+    connectionComfortLevel: "Comfortable",
     quizResult: "The Liberator",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "embodiment", "dating-desire"],
@@ -537,7 +537,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "My partner and I were drifting. We'd have the same fights over and over. We still love each other but we lost the skills to actually *talk*. We needed to learn how to have the hard conversations—to understand each other instead of defend ourselves.",
     connectionHoping: "Practical skills and wisdom from couples who've learned to communicate through conflict",
-    pairingComfortLevel: "Somewhat comfortable",
+    connectionComfortLevel: "Somewhat comfortable",
     quizResult: "The Harmonizer",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "couples", "touch-affection"],
@@ -567,7 +567,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "My sexuality felt like it died somewhere in my 30s. I thought it was just what happens—you get older, desire goes away. But a friend suggested maybe it was something else: maybe I'd learned to numb myself, maybe desire was still there but buried. I wanted to dig it back up and feel alive again.",
     connectionHoping: "Men bringing consciousness and intention back to desire at any age",
-    pairingComfortLevel: "Learning",
+    connectionComfortLevel: "Learning",
     quizResult: "The Awakening",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "dating-desire", "embodiment"],
@@ -597,7 +597,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "My parents had a toxic relationship—a lot of drama, manipulation, infidelity. I swore I'd do it differently but I don't actually know what different looks like. I watch healthy couples and I'm like 'how?' There's no script for this. I wanted to be around people modeling what actual health feels like.",
     connectionHoping: "Modeling and learning what healthy relationships actually look like in practice",
-    pairingComfortLevel: "New to this",
+    connectionComfortLevel: "New to this",
     quizResult: "The Seeker",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "dating-desire", "intimacy-patterns"],
@@ -627,7 +627,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "I lost my partner to AIDS in 1994. For 30 years I've kept myself closed off—it felt safer than risking that pain again. But I'm tired of living small. I realized I'd rather have 10 beautiful years with someone than 40 years of nothing. I'm here to learn how to open up again.",
     connectionHoping: "Safe space to grieve what was lost and learn to love again without rushing",
-    pairingComfortLevel: "Very careful",
+    connectionComfortLevel: "Very careful",
     quizResult: "The Healer",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "touch-affection", "spirituality-sexuality"],
@@ -657,7 +657,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "A 7-year relationship ended badly. For the first time I'm asking: was it *him*, or was I just not capable of showing up? I don't want to repeat this. I want to understand myself—what patterns I bring, where I check out, how I protect myself in ways that end relationships.",
     connectionHoping: "To rebuild trust in love and learn from my own patterns",
-    pairingComfortLevel: "Wounded but hopeful",
+    connectionComfortLevel: "Wounded but hopeful",
     quizResult: "The Transformer",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "dating-desire", "spirituality-sexuality"],
@@ -687,7 +687,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "I'm good at giving but terrible at receiving. My partner gives and gives, and I find ways to prove I don't need it—I deflect with jokes, I stay busy. Somehow I've learned that needing people is weakness. But my partner is exhausted from one-sided giving. We wanted help unlearning that.",
     connectionHoping: "Understanding vulnerability as strength, not weakness, and practicing receiving love",
-    pairingComfortLevel: "Somewhat comfortable",
+    connectionComfortLevel: "Somewhat comfortable",
     quizResult: "The Nurturer",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "couples", "touch-affection"],
@@ -717,7 +717,7 @@ export const demoMembers: Profile[] = [
     whatBroughtYouHere:
       "I grew up here. The gay scene is clubs and apps and hookups. That's the menu. But I wanted something different—actual conversation, actual vulnerability. I felt like I was the only person asking for that until I found this space. Turns out a lot of men are hungry for the same thing.",
     connectionHoping: "Real depth and connection beyond the surface-level interactions apps and bars offer",
-    pairingComfortLevel: "Comfortable",
+    connectionComfortLevel: "Comfortable",
     quizResult: "The Seeker",
     completedOnboarding: true,
     spacesJoined: ["commons", "start-here", "touch-affection", "dating-desire"],

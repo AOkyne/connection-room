@@ -5,7 +5,7 @@ import { WeeklyPrompt } from "@/lib/types/guided-rhythm";
 import { Card } from "@/components/Card";
 import { getProfile, saveProfile } from "@/lib/data/profiles";
 
-const PAIRING_FORMATS = [
+const CONNECTION_FORMATS = [
   { id: "text", label: "Text-only", description: "Written messages" },
   { id: "audio", label: "Audio call", description: "Phone/voice call" },
   { id: "video", label: "Video call", description: "Face-to-face video" },
@@ -24,16 +24,16 @@ export function WeeklyPromptCard({
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareContent, setShareContent] = useState("");
   const [isSharing, setIsSharing] = useState(false);
-  const [selectedPairingFormat, setSelectedPairingFormat] = useState<string | null>(null);
+  const [selectedConnectionFormat, setSelectedConnectionFormat] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadPairingPreference = async () => {
+    const loadConnectionPreference = async () => {
       const profile = await getProfile();
-      if (profile?.pairingComfortLevel) {
-        setSelectedPairingFormat(profile.pairingComfortLevel);
+      if (profile?.connectionComfortLevel) {
+        setSelectedConnectionFormat(profile.connectionComfortLevel);
       }
     };
-    loadPairingPreference();
+    loadConnectionPreference();
   }, []);
 
   const handleShare = async () => {
@@ -49,18 +49,18 @@ export function WeeklyPromptCard({
     }
   };
 
-  const handleSelectPairingFormat = async (formatId: string) => {
-    setSelectedPairingFormat(formatId);
+  const handleSelectConnectionFormat = async (formatId: string) => {
+    setSelectedConnectionFormat(formatId);
     try {
       const profile = await getProfile();
       if (profile) {
         await saveProfile({
           ...profile,
-          pairingComfortLevel: formatId,
+          connectionComfortLevel: formatId,
         });
       }
     } catch (error) {
-      console.error("Error saving pairing preference:", error);
+      console.error("Error saving connection preference:", error);
     }
   };
   return (
@@ -125,14 +125,14 @@ export function WeeklyPromptCard({
           </button>
         </div>
 
-        {/* Pairing Format Selection */}
+        {/* Connection Format Selection */}
         <div className="space-y-3">
           <div>
             <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-2">
               For Connections
             </p>
             <p className="text-sm text-[#6b5f52] leading-relaxed mb-3">
-              {week.pairingPrompt}
+              {week.connectionPrompt}
             </p>
           </div>
 
@@ -141,12 +141,12 @@ export function WeeklyPromptCard({
               Your Preferred Format
             </p>
             <div className="flex flex-wrap gap-3">
-              {PAIRING_FORMATS.map((format) => (
+              {CONNECTION_FORMATS.map((format) => (
                 <button
                   key={format.id}
-                  onClick={() => handleSelectPairingFormat(format.id)}
+                  onClick={() => handleSelectConnectionFormat(format.id)}
                   className={`px-3 py-2 rounded-lg transition-colors text-xs ${
-                    selectedPairingFormat === format.id
+                    selectedConnectionFormat === format.id
                       ? "bg-[#d4a574] text-[#ffffff] border border-[#d4a574]"
                       : "bg-[#f3ede5] text-[#2a2318] border border-[#e8ddd2] hover:border-[#d4a574]"
                   }`}

@@ -26,6 +26,7 @@ import { ToastContainer } from "@/components/Toast";
 import { useToast } from "@/lib/hooks/useToast";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
+import Image from "next/image";
 import { createPost } from "@/lib/data/posts";
 
 export default function AppHome() {
@@ -234,10 +235,12 @@ export default function AppHome() {
 
       {/* Hero Image */}
       <div className="relative w-full h-80 -mx-6 -mt-6 overflow-hidden rounded-b-2xl">
-        <img
+        <Image
           src="/imagery/image9.png"
           alt="Community"
-          className="w-full h-full object-cover"
+          fill
+          className="object-cover"
+          loading="lazy"
         />
         <div className="absolute inset-0 bg-black/15"></div>
       </div>

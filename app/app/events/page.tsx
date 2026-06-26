@@ -7,12 +7,16 @@ import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { IconUpcoming } from "@/components/Icons";
+import { useToast } from "@/lib/hooks/useToast";
+import { ToastContainer } from "@/components/Toast";
 
 export default function EventsPage() {
   const [profile, setProfile] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);
   const [interests, setInterests] = useState<Set<string>>(new Set());
   const [mounted, setMounted] = useState(false);
+  const [filterFormat, setFilterFormat] = useState<"all" | "virtual" | "in-person" | "hybrid">("all");
+  const { toasts, showToast, removeToast } = useToast();
 
   useEffect(() => {
     const loadData = async () => {
@@ -37,16 +41,57 @@ export default function EventsPage() {
     return <LoadingScreen message="Getting ready for events" subtitle="We're personalizing your experience. Just a moment..." />;
   }
 
-  const handleToggleInterest = (eventId: string) => {
+  const handleToggleInterest = (eventId: string, eventTitle: string) => {
     const isInterested = toggleEventInterest(profile.id, eventId);
     const newInterests = new Set(interests);
     if (isInterested) {
       newInterests.add(eventId);
+      showToast(`Marked "${eventTitle}" as interested!`, "success");
     } else {
       newInterests.delete(eventId);
+      showToast(`Removed "${eventTitle}" from interested`, "success");
     }
     setInterests(newInterests);
   };
+
+  const createGoogleCalendarUrl = (event: any) => {
+    const startDate = event.date.toISOString().split('T')[0].replace(/-/g, '');
+    const endDate = new Date(event.date.getTime() + 3600000).toISOString().split('T')[0].replace(/-/g, '');
+    const title = encodeURIComponent(event.title);
+    const description = encodeURIComponent(event.description);
+    const location = encodeURIComponent(event.location || 'Virtual');
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${description}&location=${location}`;
+  };
+
+  const createICalFile = (event: any) => {
+    const startDate = event.date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const endDate = new Date(event.date.getTime() + 3600000).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const ical = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//The Connection Room//Event//EN
+BEGIN:VEVENT
+UID:${event.id}@theconnectionroom.com
+DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z
+DTSTART:${startDate}
+DTEND:${endDate}
+SUMMARY:${event.title}
+DESCRIPTION:${event.description}
+LOCATION:${event.location || 'Virtual'}
+END:VEVENT
+END:VCALENDAR`;
+    const blob = new Blob([ical], { type: 'text/calendar' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${event.title}.ics`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const filteredEvents = events.filter(event => {
+    if (filterFormat === "all") return true;
+    return event.format.toLowerCase().replace(" ", "-") === filterFormat;
+  });
 
   return (
     <div className="space-y-8">
@@ -58,63 +103,129 @@ export default function EventsPage() {
         </p>
       </div>
 
+      {/* What are Events? */}
+      <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-l-4 border-[#d4a574]">
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-[#2a2318]">What are Events?</h2>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div>
+              <p className="font-semibold text-[#2a2318] mb-2">🎯 Live Experiences</p>
+              <p className="text-sm text-[#6b5f52]">Real-time connection with the community. Virtual circles, in-person workshops, and hybrid offerings.</p>
+            </div>
+            <div>
+              <p className="font-semibold text-[#2a2318] mb-2">🤝 Guided Learning</p>
+              <p className="text-sm text-[#6b5f52]">Facilitated by experienced hosts. Structured time to explore intimacy, vulnerability, and authentic connection.</p>
+            </div>
+            <div>
+              <p className="font-semibold text-[#2a2318] mb-2">🌱 Growth Opportunity</p>
+              <p className="text-sm text-[#6b5f52]">For all experience levels. Safe space to practice connection in a held, intentional environment.</p>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Filter by Format */}
+      <div className="space-y-3">
+        <p className="text-sm font-semibold text-[#6b5f52] uppercase tracking-wide">Filter by format</p>
+        <div className="flex flex-wrap gap-2">
+          {["all", "virtual", "in-person", "hybrid"].map((format) => (
+            <button
+              key={format}
+              onClick={() => setFilterFormat(format as any)}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                filterFormat === format
+                  ? "bg-[#d4a574] text-white"
+                  : "bg-[#f3ede5] text-[#6b5f52] hover:bg-[#e8ddd2]"
+              }`}
+            >
+              {format === "all" ? "All Events" : format.charAt(0).toUpperCase() + format.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Events List */}
       <div className="space-y-6">
-        {events.length === 0 ? (
+        {filteredEvents.length === 0 ? (
           <Card className="text-center py-8">
             <p className="text-[#a0968a]">No upcoming events at this time.</p>
           </Card>
         ) : (
-          events.map((event) => (
+          filteredEvents.map((event) => (
             <Card key={event.id} className="border-2 border-[#e8ddd2]">
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-start gap-3 mb-3">
-                    <h2 className="text-2xl text-[#2a2318]">{event.title}</h2>
-                    <span className="bg-[#d4a574] text-white px-2 py-1 rounded text-xs font-medium">
-                      {event.format}
-                    </span>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-start gap-3 mb-3">
+                      <h2 className="text-2xl text-[#2a2318]">{event.title}</h2>
+                      <span className="bg-[#d4a574] text-white px-2 py-1 rounded text-xs font-medium">
+                        {event.format}
+                      </span>
+                    </div>
+
+                    <p className="text-[#6b5f52] mb-4">{event.description}</p>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+                      <div>
+                        <p className="text-[#a0968a] uppercase tracking-wide text-xs">Date</p>
+                        <p className="text-[#2a2318] font-medium">
+                          {event.date.toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[#a0968a] uppercase tracking-wide text-xs">Time</p>
+                        <p className="text-[#2a2318] font-medium">{event.time}</p>
+                      </div>
+                      <div>
+                        <p className="text-[#a0968a] uppercase tracking-wide text-xs">Facilitator</p>
+                        <p className="text-[#2a2318] font-medium">{event.facilitator}</p>
+                      </div>
+                      <div>
+                        <p className="text-[#a0968a] uppercase tracking-wide text-xs">Interested</p>
+                        <p className="text-[#2a2318] font-medium">{event.attendeeCount}+</p>
+                      </div>
+                    </div>
+
+                    {event.location && event.format === "in-person" && (
+                      <p className="text-[#6b5f52] text-sm mb-4">📍 {event.location}</p>
+                    )}
                   </div>
 
-                  <p className="text-[#6b5f52] mb-4">{event.description}</p>
-
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
-                    <div>
-                      <p className="text-[#a0968a] uppercase tracking-wide text-xs">Date</p>
-                      <p className="text-[#2a2318] font-medium">
-                        {event.date.toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-[#a0968a] uppercase tracking-wide text-xs">Time</p>
-                      <p className="text-[#2a2318] font-medium">{event.time}</p>
-                    </div>
-                    <div>
-                      <p className="text-[#a0968a] uppercase tracking-wide text-xs">Facilitator</p>
-                      <p className="text-[#2a2318] font-medium">{event.facilitator}</p>
-                    </div>
-                    <div>
-                      <p className="text-[#a0968a] uppercase tracking-wide text-xs">Interested</p>
-                      <p className="text-[#2a2318] font-medium">{event.attendeeCount}+</p>
-                    </div>
+                  <div className="md:min-w-fit">
+                    <Button
+                      variant={interests.has(event.id) ? "primary" : "outline"}
+                      size="md"
+                      onClick={() => handleToggleInterest(event.id, event.title)}
+                    >
+                      {interests.has(event.id) ? "✓ Interested" : "Mark Interested"}
+                    </Button>
                   </div>
-
-                  {event.location && event.format === "in-person" && (
-                    <p className="text-[#6b5f52] text-sm mb-4">📍 {event.location}</p>
-                  )}
                 </div>
 
-                <div className="md:min-w-fit">
-                  <Button
-                    variant={interests.has(event.id) ? "primary" : "outline"}
-                    size="md"
-                    onClick={() => handleToggleInterest(event.id)}
-                  >
-                    {interests.has(event.id) ? "✓ Interested" : "Mark Interested"}
-                  </Button>
+                {/* Calendar Export Buttons */}
+                <div className="border-t border-[#e8ddd2] pt-4">
+                  <p className="text-xs font-semibold text-[#a0968a] uppercase tracking-wide mb-3">Add to Calendar</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(createGoogleCalendarUrl(event), "_blank")}
+                      className="text-xs"
+                    >
+                      Google Calendar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => createICalFile(event)}
+                      className="text-xs"
+                    >
+                      iCal / Outlook
+                    </Button>
+                  </div>
                 </div>
               </div>
             </Card>
@@ -142,8 +253,15 @@ export default function EventsPage() {
             <span className="text-[#d4a574]">✓</span>
             <span>Space for different comfort levels and experience</span>
           </li>
+          <li className="flex items-start gap-3">
+            <span className="text-[#d4a574]">✓</span>
+            <span>Easily add events to your Google Calendar, iCal, or Outlook</span>
+          </li>
         </ul>
       </Card>
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

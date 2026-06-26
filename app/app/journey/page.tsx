@@ -24,6 +24,7 @@ import { SkeletonCard, SkeletonGrid } from "@/components/Skeleton";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { withTimeout } from "@/lib/utils/with-timeout";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function JourneyPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -163,10 +164,12 @@ export default function JourneyPage() {
 
       {/* Hero Image */}
       <div className="relative w-full h-80 -mx-6 -mt-6 overflow-hidden rounded-b-2xl">
-        <img
+        <Image
           src="/imagery/image8.png"
           alt="Your Journey"
-          className="w-full h-full object-cover"
+          fill
+          className="object-cover"
+          loading="lazy"
         />
         <div className="absolute inset-0 bg-black/15"></div>
       </div>

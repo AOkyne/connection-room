@@ -393,15 +393,15 @@ export function RhythmContentEditor() {
 
               <div>
                 <label className="block text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
-                  Pairing Prompt
+                  Connection Prompt
                 </label>
                 <textarea
-                  value={week.pairingPrompt}
+                  value={week.connectionPrompt}
                   onChange={(e) =>
                     updateWeekField(
                       currentMonth.monthNumber,
                       week.weekNumber,
-                      "pairingPrompt",
+                      "connectionPrompt",
                       e.target.value
                     )
                   }

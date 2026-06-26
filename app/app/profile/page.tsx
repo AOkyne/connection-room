@@ -140,15 +140,15 @@ export default function ProfilePage() {
       </Card>
 
       <Card>
-        <CardHeader title="Pairing Preferences" icon={<IconConnection size={20} />} />
+        <CardHeader title="Connection Preferences" icon={<IconConnection size={20} />} />
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-[#1a1714] mb-2">
               Comfort Level with Connections
             </label>
             <select
-              value={profile.pairingComfortLevel || "text-based"}
-              onChange={(e) => setProfile({ ...profile, pairingComfortLevel: e.target.value })}
+              value={profile.connectionComfortLevel || "text-based"}
+              onChange={(e) => setProfile({ ...profile, connectionComfortLevel: e.target.value })}
               className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
             >
               <option value="text-based">Text-based only</option>
@@ -163,8 +163,8 @@ export default function ProfilePage() {
             </label>
             <textarea
               placeholder="Share any important preferences..."
-              value={profile.pairingBoundaries || ""}
-              onChange={(e) => setProfile({ ...profile, pairingBoundaries: e.target.value })}
+              value={profile.connectionBoundaries || ""}
+              onChange={(e) => setProfile({ ...profile, connectionBoundaries: e.target.value })}
               rows={2}
               className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
             />

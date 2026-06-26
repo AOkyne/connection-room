@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { SpaceIconSVG } from "@/components/SpaceIconSVG";
@@ -9,6 +10,7 @@ import { SpaceJoinedFeedback } from "@/components/feedback";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { getSpaces, joinSpace, leaveSpace, ensureRequiredSpaces, sortSpacesByPreference, saveSpaceOrder, isStartHereRequired, getAppVisits, type Space } from "@/lib/data/spaces";
 import { demoMembers } from "@/lib/seed/demo-members";
+import { spaceImageMap } from "@/lib/constants/spaceImages";
 
 export default function SpacesPage() {
   const [spaces, setSpaces] = useState<Space[]>([]);
@@ -148,7 +150,18 @@ export default function SpacesPage() {
                   onDrop={() => handleDrop(space.id)}
                   className={`transition-opacity ${draggedSpace === space.id ? "opacity-50" : ""} ${!isRequired ? "cursor-move" : ""}`}
                 >
-                  <Card>
+                  <Card className="overflow-hidden flex flex-col h-full">
+                    {/* Hero Image */}
+                    <div className="relative w-full h-40 -m-4 mb-2 overflow-hidden rounded-t-lg">
+                      <Image
+                        src={`/imagery/spaces/${spaceImageMap[space.id] || "The Commons.png"}`}
+                        alt={space.name}
+                        fill
+                        className="object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+
                     {isRequired && (
                       <div className="text-xs font-medium text-[#8fa878] mb-2 flex items-center gap-1">
                         <span>✓ Required</span>
@@ -165,7 +178,7 @@ export default function SpacesPage() {
                     <CardHeader title={space.name} icon={<SpaceIconSVG spaceId={space.id} size={32} />} />
                     <p className="text-sm text-[#6b5f52] mb-4">{space.description}</p>
                     <div className="text-xs text-[#a0968a] mb-4">{demoMembers.filter(m => m.spacesJoined?.includes(space.id)).length} members</div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 mt-auto">
                       <Link href={`/app/spaces/${space.id}`} className="flex-1">
                         <Button variant="secondary" size="sm" className="">
                           Enter Space
@@ -195,14 +208,25 @@ export default function SpacesPage() {
           <h2 className="text-2xl font-bold text-[#2a2318]">Explore More Spaces</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {availableSpaces.map((space) => (
-              <Card key={space.id}>
+              <Card key={space.id} className="overflow-hidden flex flex-col h-full">
+                {/* Hero Image */}
+                <div className="relative w-full h-40 -m-4 mb-2 overflow-hidden rounded-t-lg">
+                  <Image
+                    src={`/imagery/spaces/${spaceImageMap[space.id] || "The Commons.png"}`}
+                    alt={space.name}
+                    fill
+                    className="object-cover"
+                    loading="lazy"
+                  />
+                </div>
+
                 <CardHeader title={space.name} icon={<SpaceIconSVG spaceId={space.id} size={32} />} />
                 <p className="text-sm text-[#6b5f52] mb-4">{space.description}</p>
                 <div className="text-xs text-[#a0968a] mb-4">{demoMembers.filter(m => m.spacesJoined?.includes(space.id)).length} members</div>
                 <Button
                   variant="primary"
                   size="sm"
-                  className=""
+                  className="mt-auto"
                   onClick={() => handleJoinSpace(space.id)}
                 >
                   Join Space

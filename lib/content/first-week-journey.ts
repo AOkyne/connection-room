@@ -4,7 +4,7 @@
 export interface DoorAction {
   id: string;
   label: string;
-  type: "profile" | "quiz" | "post" | "comment" | "pairing" | "reflection" | "link";
+  type: "profile" | "quiz" | "post" | "comment" | "connection" | "reflection" | "link";
   href?: string;
   description?: string;
 }
@@ -221,13 +221,13 @@ export const firstWeekJourney: Door[] = [
     description:
       "Not dramatic risk. Human risk. The risk of reaching out. The risk of asking. The risk of being honest.",
     invitation:
-      "Choose one way to take a small risk. Join a pairing conversation. Ask a question you've been carrying. Or join a discussion that feels meaningful to you.",
+      "Choose one way to take a small risk. Join a connection conversation and ask a question you've been carrying. Or join a discussion that feels meaningful to you.",
     reflection: "What kind of connection feels slightly scary, but worth moving toward?",
     actions: [
       {
-        id: "door6-pairing",
+        id: "door6-connection",
         label: "Explore Connections",
-        type: "pairing",
+        type: "connection",
         href: "/app/connections",
         description: "Connect one-on-one with another member",
       },
@@ -251,7 +251,7 @@ export const firstWeekJourney: Door[] = [
       },
     ],
     completionCriteria: [
-      "User has opted into pairings or created/engaged in a post",
+      "User has opted into connections or created/engaged in a post",
       "User manually marks door complete",
     ],
   },
@@ -321,8 +321,8 @@ export const journeyCompletionMessage = {
       href: "/app/spaces",
     },
     {
-      title: "Connection Pairing",
-      description: "Join a pairing conversation with another member",
+      title: "Connection Practice",
+      description: "Join a connection conversation with another member",
       href: "/app/connections",
     },
     {

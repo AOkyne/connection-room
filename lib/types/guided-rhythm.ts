@@ -4,7 +4,7 @@ export interface WeeklyPrompt {
   dashboardPrompt: string;
   privateReflection: string;
   communityInvitation: string;
-  pairingPrompt: string;
+  connectionPrompt: string;
 }
 
 export interface MonthlyRitual {
@@ -46,7 +46,7 @@ export interface GuidedRhythmProgress {
   updatedAt: Date;
 }
 
-export interface PairingPromptBank {
+export interface ConnectionPromptBank {
   id: string;
   prompt: string;
   monthRelated?: number;
