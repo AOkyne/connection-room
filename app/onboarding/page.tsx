@@ -96,12 +96,7 @@ export default function OnboardingPage() {
 
       setProfile(updated);
       setCompletionSuccess(true);
-
-      // Wait before redirecting so user sees "You're in" state
-      await new Promise(resolve => setTimeout(resolve, 5000));
-
-      // Redirect to app after success confirmed
-      router.push("/app");
+      // Screen now stays visible until user clicks a button or "Skip for Now"
     } catch (error) {
       console.error("Onboarding completion error:", error);
       setSubmitError(
