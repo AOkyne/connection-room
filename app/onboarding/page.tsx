@@ -604,7 +604,7 @@ export default function OnboardingPage() {
                 <p className="text-[#6b5f52]">
                   Would you like to participate in connections?
                 </p>
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {[
                     { id: "weekly", label: "Connect me this week" },
                     { id: "monthly", label: "Connect me monthly" },
@@ -613,13 +613,13 @@ export default function OnboardingPage() {
                     <button
                       key={option.id}
                       onClick={() => handleUpdate({ connectionComfortLevel: option.id })}
-                      className={`p-3 text-left rounded-lg border-2 transition-all ${
+                      className={`p-4 text-center rounded-lg border-2 transition-all ${
                         profile.connectionComfortLevel === option.id
                           ? "border-[#d4a574] bg-[#f3ede5]"
                           : "border-[#e8ddd2] hover:border-[#d4a574]"
                       }`}
                     >
-                      <p className="text-[#6b5f52]">{option.label}</p>
+                      <p className="text-[#6b5f52] text-sm">{option.label}</p>
                     </button>
                   ))}
                 </div>
