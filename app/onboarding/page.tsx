@@ -98,7 +98,7 @@ export default function OnboardingPage() {
       setCompletionSuccess(true);
 
       // Wait before redirecting so user sees "You're in" state
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 5000));
 
       // Redirect to app after success confirmed
       router.push("/app");
