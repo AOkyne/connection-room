@@ -737,10 +737,10 @@ export default function OnboardingPage() {
 
                     <div className="space-y-3">
                       <label className="text-sm font-medium text-[#2a2318] block">What would you like to do with this reflection?</label>
-                      <div className="space-y-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <button
                           onClick={() => handleUpdate({ firstPromptIsPublic: true })}
-                          className={`p-3 text-left rounded-lg border-2 transition-all ${
+                          className={`p-4 text-left rounded-lg border-2 transition-all ${
                             profile.firstPromptIsPublic === true
                               ? "border-[#d4a574] bg-[#f3ede5]"
                               : "border-[#e8ddd2] hover:border-[#d4a574]"
@@ -751,7 +751,7 @@ export default function OnboardingPage() {
                         </button>
                         <button
                           onClick={() => handleUpdate({ firstPromptIsPublic: false })}
-                          className={`p-3 text-left rounded-lg border-2 transition-all ${
+                          className={`p-4 text-left rounded-lg border-2 transition-all ${
                             profile.firstPromptIsPublic === false
                               ? "border-[#d4a574] bg-[#f3ede5]"
                               : "border-[#e8ddd2] hover:border-[#d4a574]"
