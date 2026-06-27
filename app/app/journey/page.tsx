@@ -163,7 +163,7 @@ export default function JourneyPage() {
       />
 
       {/* Hero Image */}
-      <div className="relative w-full h-80 -mx-6 -mt-6 overflow-hidden rounded-b-2xl">
+      <div className="relative w-full h-64 -mx-6 overflow-hidden rounded-b-2xl">
         <Image
           src="/imagery/image8.png"
           alt="Your Journey"

@@ -234,7 +234,7 @@ export default function AppHome() {
       <ToastContainer toasts={toasts} onRemove={removeToast} />
 
       {/* Hero Image */}
-      <div className="relative w-full h-80 -mx-6 -mt-6 overflow-hidden rounded-b-2xl">
+      <div className="relative w-full h-64 -mx-6 overflow-hidden rounded-b-2xl">
         <Image
           src="/imagery/image9.png"
           alt="Community"
