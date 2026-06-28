@@ -157,7 +157,7 @@ export default function SpacesPage() {
                         src={`/imagery/spaces/${spaceImageMap[space.id] || "The Commons.png"}`}
                         alt={space.name}
                         fill
-                        className="object-cover"
+                        className="object-cover object-top"
                       />
                     </div>
 
@@ -214,8 +214,7 @@ export default function SpacesPage() {
                     src={`/imagery/spaces/${spaceImageMap[space.id] || "The Commons.png"}`}
                     alt={space.name}
                     fill
-                    className="object-cover"
-                    loading="lazy"
+                    className="object-cover object-top"
                   />
                 </div>
 
