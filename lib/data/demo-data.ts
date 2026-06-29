@@ -407,7 +407,7 @@ export const demoPosts: Post[] = [
     authorPronouns: "he/him",
     // authorPhoto removed - Avatar component will generate initials instead
     // authorPhoto: generateAvatarUrl("TW"),
-    spaceId: "embodiment",
+    spaceId: "spirituality-sexuality",
     promptId: undefined,
     content:
       "I didn't realize I clench my shoulders until I actually slowed down. Been holding tension there for so long I can't remember when it started. My chiropractor keeps saying 'relax' but I didn't know how until now.",
@@ -423,7 +423,7 @@ export const demoPosts: Post[] = [
     authorPronouns: "he/him",
     // authorPhoto removed - Avatar component will generate initials instead
     // authorPhoto: generateAvatarUrl("RA"),
-    spaceId: "embodiment",
+    spaceId: "spirituality-sexuality",
     promptId: undefined,
     content:
       "This grounding practice caught me off guard. Tried it for two minutes and immediately felt my anxiety drop. My brain kept wanting to solve problems, and I realized I literally use thinking as a way to avoid feeling scared.",
@@ -439,7 +439,7 @@ export const demoPosts: Post[] = [
     authorPronouns: "he/him",
     // authorPhoto removed - Avatar component will generate initials instead
     // authorPhoto: generateAvatarUrl("JT"),
-    spaceId: "embodiment",
+    spaceId: "spirituality-sexuality",
     promptId: undefined,
     content:
       "Paid attention to where I hold my stress this week – it's literally my chest and throat. I never talk about my needs, and my body's showing me that in real time. That's wild. I'm realizing I can't keep ignoring my own voice.",
@@ -654,7 +654,7 @@ export const demoPosts: Post[] = [
     authorPronouns: "he/him",
     // authorPhoto removed - Avatar component will generate initials instead
     // authorPhoto: generateAvatarUrl("QL"),
-    spaceId: "workshops",
+    spaceId: "couples-closeness",
     promptId: undefined,
     content:
       "Three days away from my phone, my job, my responsibilities. Just breathing and feeling my body. I came back home different. My husband noticed. More present, more here. I didn't know I was this gone until I came back.",
@@ -670,7 +670,7 @@ export const demoPosts: Post[] = [
     authorPronouns: "he/him",
     // authorPhoto removed - Avatar component will generate initials instead
     // authorPhoto: generateAvatarUrl("RN"),
-    spaceId: "workshops",
+    spaceId: "couples-closeness",
     promptId: undefined,
     content:
       "I've always been bad at asking for what I need. The workshop taught me I can actually say 'I'm scared' instead of just resenting everyone. My partner cried when I finally told him what's been bothering me.",
@@ -686,7 +686,7 @@ export const demoPosts: Post[] = [
     authorPronouns: "he/him",
     // authorPhoto removed - Avatar component will generate initials instead
     // authorPhoto: generateAvatarUrl("SO"),
-    spaceId: "workshops",
+    spaceId: "couples-closeness",
     promptId: undefined,
     content:
       "Being with 50 other people who are struggling with the same stuff – not judging, just witnessing each other. That alone healed something. I don't feel so crazy anymore.",
@@ -804,7 +804,7 @@ export const demoPosts: Post[] = [
     authorPronouns: "he/him",
     // authorPhoto removed - Avatar component will generate initials instead
     // authorPhoto: generateAvatarUrl("AS"),
-    spaceId: "sacred-sexuality",
+    spaceId: "spirituality-sexuality",
     promptId: undefined,
     content:
       "I've been chasing performance my whole life. With this practice – slowing down, breathing, actually feeling my partner – something shifted. Sex became less about doing and more about being. I feel more myself than ever.",
@@ -820,7 +820,7 @@ export const demoPosts: Post[] = [
     authorPronouns: "he/him",
     // authorPhoto removed - Avatar component will generate initials instead
     // authorPhoto: generateAvatarUrl("BR"),
-    spaceId: "sacred-sexuality",
+    spaceId: "spirituality-sexuality",
     promptId: undefined,
     content:
       "I never thought of sex as spiritual. But when I'm present with my body instead of in my head – that's transcendence. That's sacred. It's the deepest meditation I've ever experienced.",
@@ -836,7 +836,7 @@ export const demoPosts: Post[] = [
     authorPronouns: "he/him",
     // authorPhoto removed - Avatar component will generate initials instead
     // authorPhoto: generateAvatarUrl("CE"),
-    spaceId: "sacred-sexuality",
+    spaceId: "spirituality-sexuality",
     promptId: undefined,
     content:
       "When I breathe deeply and stay present with my partner, intention shifts everything. We're not just having sex – we're meeting. Really meeting. That's what sacred means to me now.",
