@@ -7,13 +7,6 @@ export function WaysToConnectCard() {
   return (
     <Card className="bg-gradient-to-br from-[#f8f6f2] to-white pb-0">
       <div className="space-y-4 pb-4">
-        {/* Header */}
-        <div>
-          <h3 className="text-lg font-semibold text-[#2a2318]">
-            Ways to Connect
-          </h3>
-        </div>
-
         {/* Ways - vertical stack for mobile, grid for larger screens */}
         <div className="space-y-3">
           {waysToConnect.map((way) => (
