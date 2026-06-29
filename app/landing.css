@@ -415,3 +415,44 @@ footer .links { margin-top: 6px; }
 
   .wrap { padding: 0 20px; }
 }
+
+/* ---------- Mobile-first condensed hero (below 600px) ---------- */
+.hero-mobile { display: none; }
+
+@media (max-width: 600px) {
+  .hero-desktop-copy { display: none; }
+  .hero-mobile { display: block; }
+
+  .hero { padding: 40px 0 36px; }
+  .hero-image-wrap img { height: 220px; }
+
+  .hero-mobile h1 {
+    font-size: 30px;
+    line-height: 1.16;
+    margin-bottom: 12px;
+  }
+  .hero-mobile p.lede {
+    font-size: 15.5px;
+    margin-bottom: 20px;
+  }
+  .hero-mobile .checklist {
+    gap: 8px;
+    margin-bottom: 22px;
+  }
+  .hero-mobile .checklist li { font-size: 14.5px; }
+  .hero-mobile .btn-primary {
+    display: block;
+    text-align: center;
+    width: 100%;
+    padding: 16px 0;
+    margin-bottom: 12px;
+  }
+  .hero-mobile .link-secondary {
+    display: block;
+    text-align: center;
+    font-size: 14px;
+  }
+  .hero-mobile .fine-print {
+    display: none; /* cut for length on small screens */
+  }
+}

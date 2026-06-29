@@ -19,26 +19,46 @@ export default function LandingPage() {
       <section className="hero">
         <div className="wrap hero-grid">
           <div>
-            <p className="eyebrow">A Private Community for Men &amp; Couples</p>
-            <h1>Honest connection, <em>minus</em> the small talk.</h1>
-            <p className="lede">
-              A guided space for men and couples practicing embodied intimacy, real
-              conversation, and the kind of presence that&apos;s hard to fake. No shame.
-              No pressure. No &quot;so, what do you do for work&quot; energy.
-            </p>
+            <div className="hero-desktop-copy">
+              <p className="eyebrow">A Private Community for Men &amp; Couples</p>
+              <h1>Honest connection, <em>minus</em> the small talk.</h1>
+              <p className="lede">
+                A guided space for men and couples practicing embodied intimacy, real
+                conversation, and the kind of presence that&apos;s hard to fake. No shame.
+                No pressure. No &quot;so, what do you do for work&quot; energy.
+              </p>
 
-            <ul className="checklist">
-              <li><span className="mark">✓</span> For individuals exploring personal connection and embodiment</li>
-              <li><span className="mark">✓</span> For couples practicing honesty, touch, and repair</li>
-              <li><span className="mark">✓</span> Zero tolerance for unsolicited anything (you know the kind)</li>
-              <li><span className="mark">✓</span> Guided by the EROS Method: Embody, Regulate, Own, Share</li>
-            </ul>
+              <ul className="checklist">
+                <li><span className="mark">✓</span> For individuals exploring personal connection and embodiment</li>
+                <li><span className="mark">✓</span> For couples practicing honesty, touch, and repair</li>
+                <li><span className="mark">✓</span> Zero tolerance for unsolicited anything (you know the kind)</li>
+                <li><span className="mark">✓</span> Guided by the EROS Method: Embody, Regulate, Own, Share</li>
+              </ul>
 
-            <div className="cta-row">
-              <Link href="/auth?mode=member" className="btn-primary">Enter the Community</Link>
-              <Link href="https://trevorjamesla.as.me/free-consult" className="link-secondary">Or talk to Trevor first →</Link>
+              <div className="cta-row">
+                <Link href="/auth?mode=member" className="btn-primary">Enter the Community</Link>
+                <Link href="https://trevorjamesla.as.me/free-consult" className="link-secondary">Or talk to Trevor first →</Link>
+              </div>
+              <p className="fine-print">Currently in private beta. Creating an account takes about 90 seconds, roughly the time it takes to overthink sending a text.</p>
             </div>
-            <p className="fine-print">Currently in private beta. Creating an account takes about 90 seconds, roughly the time it takes to overthink sending a text.</p>
+
+            {/* Condensed copy shown only under 600px. Same destinations, shorter trip. */}
+            <div className="hero-mobile">
+              <p className="eyebrow">A Private Community for Men &amp; Couples</p>
+              <h1>Honest connection, <em>minus</em> the small talk.</h1>
+              <p className="lede">
+                A guided space for honest, embodied intimacy. No shame, no pressure,
+                no &quot;so what do you do&quot; energy.
+              </p>
+
+              <ul className="checklist">
+                <li><span className="mark">✓</span> For individuals and couples</li>
+                <li><span className="mark">✓</span> Guided by the EROS Method</li>
+              </ul>
+
+              <Link href="/auth?mode=member" className="btn-primary">Enter the Community</Link>
+              <Link href="https://trevorjamesla.as.me/free-consult" className="link-secondary">Free 90-second signup. Or talk to Trevor first →</Link>
+            </div>
           </div>
 
           <div className="hero-image-wrap">
