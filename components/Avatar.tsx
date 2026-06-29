@@ -1,44 +1,34 @@
-"use client";
-
-import { useState } from "react";
-import { getInitials, getInitialColor } from "@/lib/utils/initials";
-
 interface AvatarProps {
   name: string;
-  photo?: string;
-  size?: number;
-  className?: string;
+  size?: "sm" | "md" | "lg";
 }
 
-export function Avatar({ name, photo, size = 40, className = "" }: AvatarProps) {
-  const [imageError, setImageError] = useState(false);
+export function Avatar({ name, size = "md" }: AvatarProps) {
+  const initials = name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
-  // Show photo if available and hasn't failed to load
-  if (photo && !imageError) {
-    return (
-      <img
-        src={photo}
-        alt={name}
-        onError={() => setImageError(true)}
-        style={{ width: size, height: size }}
-        className={`rounded-full flex-shrink-0 object-cover ${className}`}
-      />
-    );
-  }
+  const colors = [
+    "bg-[#d4a348]",
+    "bg-[#8b6f47]",
+    "bg-[#c97a2a]",
+    "bg-[#a84a2a]",
+    "bg-[#a0704a]",
+  ];
+  const color = colors[initials.charCodeAt(0) % colors.length];
 
-  // Fallback to initials
-  const initials = getInitials(name);
-  const color = getInitialColor(name);
+  const sizeClasses = {
+    sm: "w-6 h-6 text-xs",
+    md: "w-8 h-8 text-sm",
+    lg: "w-12 h-12 text-base",
+  };
 
   return (
     <div
-      style={{
-        width: size,
-        height: size,
-        backgroundColor: color,
-        color: "white",
-      }}
-      className={`rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm ${className}`}
+      className={`${color} ${sizeClasses[size]} rounded-full flex items-center justify-center font-bold text-white border border-[#dcc4b3]`}
     >
       {initials}
     </div>

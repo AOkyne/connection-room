@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getSession, clearSession, type AppSession } from "@/lib/session";
 import { recordAppVisit } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
+import { Avatar } from "@/components/Avatar";
 import { IconHome, IconJourney, IconConnectionsNav, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming } from "@/components/Icons";
 import Link from "next/link";
 
@@ -89,7 +90,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
               />
             </Link>
             {session && (
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <Avatar name={session.name} size="sm" />
                 <span className="text-sm text-[#1a0f0a]">{session.name}</span>
                 <Button variant="ghost" size="sm" onClick={handleLogout}>
                   Sign Out
