@@ -112,24 +112,10 @@ export function DailyCompanionDashboard({ displayName, userId }: DailyCompanionD
         </div>
       )}
 
-      {/* My Reflections Panel + Context Messages */}
+      {/* My Reflections Panel */}
       {userId && (
-        <div className="border-t border-[#e8ddd2] pt-8 space-y-4">
+        <div className="border-t border-[#e8ddd2] pt-8">
           <MyReflectionsPanel userId={userId} />
-
-          {/* Context Messages - One Row */}
-          <div className="grid md:grid-cols-2 gap-4">
-            <Card className="bg-[#f3ede5] text-center border-none flex items-center justify-center">
-              <p className="text-xs text-[#a0968a] italic leading-relaxed">
-                You haven't saved any reflections yet. Start with today's reflection above.
-              </p>
-            </Card>
-            <Card className="bg-[#f3ede5] text-center border-none flex items-center justify-center">
-              <p className="text-xs text-[#a0968a] italic leading-relaxed max-w-sm mx-auto">
-                This daily companion is designed to help you return to yourself. There's no pressure to complete everything. Choose what calls to you today. Return tomorrow for something new.
-              </p>
-            </Card>
-          </div>
         </div>
       )}
     </div>
