@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
+import { withTimeout } from "@/lib/utils/with-timeout";
 import {
   dailyThemes,
   reflectionPrompts,
@@ -171,52 +172,53 @@ export async function getTodaysDailyContent(): Promise<{
   const dayIndex = getDaysSinceLaunch() % 120;
 
   try {
-    // Add timeout - if Supabase doesn't respond in 3 seconds, use demo data
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    // Use withTimeout to avoid hanging on Supabase calls
+    const result = await withTimeout(
+      (async () => {
+        return await supabase
+          .from("daily_companion_content")
+          .select("*")
+          .eq("active", true)
+          .eq("rotation_index", dayIndex)
+          .order("content_type");
+      })(),
+      3000,
+      null
+    );
 
-    try {
-      const { data, error } = await supabase
-        .from("daily_companion_content")
-        .select("*")
-        .eq("active", true)
-        .eq("rotation_index", dayIndex)
-        .order("content_type");
-
-      clearTimeout(timeoutId);
-
-      if (error) {
-        console.warn("Error fetching daily content:", error);
-        // Fallback to seed data
-        throw error;
-      }
-
-      // Organize by content_type
-      const content: Record<string, DailyContent | null> = {
-        theme: null,
-        reflection: null,
-        practice: null,
-        checkin: null,
-        invitation: null,
-        quote: null,
-      };
-
-      data?.forEach((item) => {
-        content[item.content_type] = item;
-      });
-
-      return {
-        theme: content.theme as DailyContent,
-        reflection: content.reflection as DailyContent,
-        practice: content.practice as DailyContent,
-        checkin: content.checkin as DailyContent,
-        invitation: content.invitation as DailyContent,
-        quote: content.quote as DailyContent,
-      };
-    } catch (e) {
-      clearTimeout(timeoutId);
-      throw e;
+    if (!result) {
+      throw new Error("Daily content fetch timed out");
     }
+
+    const { data, error } = result;
+
+    if (error) {
+      console.warn("Error fetching daily content:", error);
+      throw error;
+    }
+
+    // Organize by content_type
+    const content: Record<string, DailyContent | null> = {
+      theme: null,
+      reflection: null,
+      practice: null,
+      checkin: null,
+      invitation: null,
+      quote: null,
+    };
+
+    data?.forEach((item) => {
+      content[item.content_type] = item;
+    });
+
+    return {
+      theme: content.theme as DailyContent,
+      reflection: content.reflection as DailyContent,
+      practice: content.practice as DailyContent,
+      checkin: content.checkin as DailyContent,
+      invitation: content.invitation as DailyContent,
+      quote: content.quote as DailyContent,
+    };
   } catch (error) {
     console.warn("Error fetching daily content, using demo data:", error);
     // Return demo data directly - don't call recursively
@@ -319,30 +321,36 @@ export async function getTrevorWeeklyNote(): Promise<WeeklyNote | null> {
   const weekIndex = getWeekSinceLaunch() % 16;
 
   try {
-    // Add timeout - if Supabase doesn't respond in 3 seconds, use demo data
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    // Use withTimeout to avoid hanging on Supabase calls
+    const result = await withTimeout(
+      (async () => {
+        return await supabase
+          .from("weekly_notes")
+          .select("*")
+          .eq("active", true)
+          .eq("rotation_index", weekIndex)
+          .single();
+      })(),
+      3000,
+      null
+    );
 
-    try {
-      const { data, error } = await supabase
-        .from("weekly_notes")
-        .select("*")
-        .eq("active", true)
-        .eq("rotation_index", weekIndex)
-        .single();
-
-      clearTimeout(timeoutId);
-
-      if (error && error.code !== "PGRST116") {
-        // PGRST116 = no rows found
-        console.warn("Error fetching weekly note:", error);
-      }
-
-      return data || null;
-    } catch (e) {
-      clearTimeout(timeoutId);
-      throw e;
+    if (!result) {
+      throw new Error("Weekly note fetch timed out");
     }
+
+    const { data, error } = result;
+
+    if (error && error.code !== "PGRST116") {
+      // PGRST116 = no rows found
+      console.warn("Error fetching weekly note:", error);
+    }
+
+    if (data) {
+      return data;
+    }
+
+    throw new Error("No weekly note found");
   } catch (error) {
     console.warn("Error fetching weekly note, using fallback:", error);
     // Fall back to demo data
