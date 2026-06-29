@@ -90,16 +90,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </Link>
             {session && (
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  {session.profilePhoto && (
-                    <img
-                      src={session.profilePhoto}
-                      alt={session.name}
-                      className="w-8 h-8 rounded-full object-cover border border-[#e8ddd2]"
-                    />
-                  )}
-                  <span className="text-sm text-[#6b6460]">{session.name}</span>
-                </div>
+                <span className="text-sm text-[#1a0f0a]">{session.name}</span>
                 <Button variant="ghost" size="sm" onClick={handleLogout}>
                   Sign Out
                 </Button>
