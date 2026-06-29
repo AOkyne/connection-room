@@ -38,8 +38,9 @@ export default function EditWeeklyNote() {
   const [loading, setLoading] = useState(!isNew);
 
   useEffect(() => {
-    // Load spaces for the dropdown
-    getSpaces().then((s) => setSpaces(s || [])).catch(() => setSpaces([]));
+    getSpaces()
+      .then((s) => setSpaces(s || []))
+      .catch(() => setSpaces([]));
 
     if (isNew || !supabase) {
       setLoading(false);
