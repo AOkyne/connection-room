@@ -55,7 +55,7 @@ export function MyReflectionsPanel({ userId }: MyReflectionsPanelProps) {
   if (reflections.length === 0) {
     return (
       <Card className="bg-[#f3ede5] text-center">
-        <p className="text-sm text-[#6b5f52]">You haven't saved any reflections yet. Start with today's reflection above.</p>
+        <p className="text-xs text-[#a0968a] italic max-w-md mx-auto">You haven't saved any reflections yet. Start with today's reflection above.</p>
       </Card>
     );
   }

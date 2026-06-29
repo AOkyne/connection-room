@@ -121,7 +121,7 @@ export function DailyCompanionDashboard({ displayName, userId }: DailyCompanionD
 
       {/* Context Message */}
       <Card className="bg-[#f3ede5] text-center border-none">
-        <p className="text-sm text-[#6b5f52] leading-relaxed">
+        <p className="text-xs text-[#a0968a] italic leading-relaxed max-w-2xl mx-auto">
           This daily companion is designed to help you return to yourself. There's no pressure to complete everything. Choose what calls to you today. Return tomorrow for something new.
         </p>
       </Card>
