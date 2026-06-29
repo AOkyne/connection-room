@@ -61,7 +61,12 @@ export function getWeekSinceLaunch(): number {
 // Get hero image URL based on theme category
 export function getThemeHeroImage(category?: string): string {
   const categoryName = category || "connection";
-  // Capitalize first letter to match filename convention
+  // Handle special cases where filenames are lowercase
+  const lowercaseCategories = ["authenticity", "healing"];
+  if (lowercaseCategories.includes(categoryName.toLowerCase())) {
+    return `/imagery/Themes/${categoryName.toLowerCase()}.png`;
+  }
+  // Capitalize first letter for other categories
   const fileName = categoryName.charAt(0).toUpperCase() + categoryName.slice(1);
   return `/imagery/Themes/${fileName}.png`;
 }
