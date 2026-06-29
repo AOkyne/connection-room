@@ -1,180 +1,165 @@
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { appConfig } from "@/lib/config";
-import { Button } from "@/components/Button";
-import { Card } from "@/components/Card";
-import { IconEmbodiment, IconConnection, IconIntegration, IconDemo } from "@/components/Icons";
 import Link from "next/link";
-import { createMemberSession, createAdminSession } from "@/lib/session";
-import { createDemoProfile } from "@/lib/data/profiles";
+import "./landing.css";
 
-export default function Home() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-
-  const handleDemoMember = async () => {
-    setLoading(true);
-    createMemberSession("Demo Member");
-    createDemoProfile("Demo Member", "individual");
-    setTimeout(() => {
-      router.push("/onboarding");
-    }, 100);
-  };
-
-  const handleDemoAdmin = async () => {
-    setLoading(true);
-    createAdminSession("Demo Admin");
-    createDemoProfile("Demo Admin", "individual");
-    setTimeout(() => {
-      router.push("/app/admin");
-    }, 100);
-  };
-
+export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#fdfbf7] flex flex-col">
-      {/* Header */}
-      <header className="border-b border-[#e8e3db] sticky top-0 z-40 bg-white/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex justify-between items-center">
-          <Link href="/" className="flex items-center">
-            <img
-              src="/Connection-room-logo.png?v=4"
-              alt="The Connection Room"
-              className="h-32 w-auto"
-            />
+    <>
+      <header>
+        <div className="wrap header-inner">
+          <Link href="/" className="logo-mark">
+            <img src="/Connection-room-logo.png" alt="The Connection Room" />
           </Link>
-          <Link href="/auth">
-            <Button variant="outline" size="md">
-              Sign In
-            </Button>
+          <Link href="/auth" className="signin-link">
+            Sign In
           </Link>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="flex-1 flex flex-col items-center justify-center px-4 py-16 sm:py-24 max-w-4xl mx-auto">
-        <div className="text-center space-y-6">
-          <div className="space-y-2">
-            <h2 className="text-5xl sm:text-6xl font-bold text-[#1a1714] leading-tight">
-              A Private Community for Honest Connection
-            </h2>
-            <p className="text-xl text-[#6b6460] max-w-2xl mx-auto leading-relaxed">
-              {appConfig.tagline}
+      {/* HERO */}
+      <section className="hero">
+        <div className="wrap hero-grid">
+          <div>
+            <p className="eyebrow">A Private Community for Men &amp; Couples</p>
+            <h1>Honest connection, <em>minus</em> the small talk.</h1>
+            <p className="lede">
+              A guided space for men and couples practicing embodied intimacy, real
+              conversation, and the kind of presence that&apos;s hard to fake. No shame.
+              No pressure. No &quot;so, what do you do for work&quot; energy.
             </p>
-          </div>
 
-          <div className="pt-6 space-y-4">
-            <p className="text-lg text-[#6b6460] max-w-2xl mx-auto">
-              The Connection Room is a guided space for men and couples exploring authentic
-              connection, embodied intimacy, spirituality, sexuality, and integration.
-            </p>
-            <ul className="text-base text-[#6b6460] max-w-2xl mx-auto space-y-2">
-              <li>✓ For individuals exploring personal connection and embodiment</li>
-              <li>✓ For couples practicing honesty, touch, and repair</li>
-              <li>✓ No shame, pressure, performance, or unsolicited sexual content</li>
-              <li>✓ Guided by the EROS Method: Embody, Regulate, Own, Share</li>
+            <ul className="checklist">
+              <li><span className="mark">✓</span> For individuals exploring personal connection and embodiment</li>
+              <li><span className="mark">✓</span> For couples practicing honesty, touch, and repair</li>
+              <li><span className="mark">✓</span> Zero tolerance for unsolicited anything (you know the kind)</li>
+              <li><span className="mark">✓</span> Guided by the EROS Method: Embody, Regulate, Own, Share</li>
             </ul>
+
+            <div className="cta-row">
+              <Link href="/auth?mode=member" className="btn-primary">Enter the Community</Link>
+              <Link href="https://trevorjamesla.as.me/free-consult" className="link-secondary">Or talk to Trevor first →</Link>
+            </div>
+            <p className="fine-print">Currently in private beta. Creating an account takes about 90 seconds, roughly the time it takes to overthink sending a text.</p>
           </div>
 
-          <div className="pt-8 flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={handleDemoMember}
-              disabled={loading}
-            >
-              {loading ? "Entering..." : "Join as Demo Member"}
-            </Button>
-            <Button
-              variant="secondary"
-              size="lg"
-              onClick={handleDemoAdmin}
-              disabled={loading}
-            >
-              {loading ? "Entering..." : "Explore as Demo Admin"}
-            </Button>
-          </div>
-
-          <p className="text-sm text-[#9d9490] pt-6 flex items-center justify-center gap-2">
-            <IconDemo size={16} /> This is a demo version. All data resets when you refresh.
-          </p>
-        </div>
-      </section>
-
-      {/* Quick Preview Cards */}
-      <section className="bg-white border-t border-[#e8e3db] px-4 py-16 sm:py-20">
-        <div className="max-w-6xl mx-auto">
-          <h3 className="text-2xl font-bold text-[#1a1714] text-center mb-12">
-            What You&apos;ll Explore
-          </h3>
-
-          <div className="grid sm:grid-cols-3 gap-6">
-            <Card className="text-center">
-              <div className="flex justify-center mb-4">
-                <IconEmbodiment size={48} className="text-[#d4a574]" />
-              </div>
-              <h4 className="text-lg font-bold text-[#1a1714] mb-2">Embodiment</h4>
-              <p className="text-[#6b6460]">Come back to your body. Notice sensation, presence, and aliveness.</p>
-            </Card>
-
-            <Card className="text-center">
-              <div className="flex justify-center mb-4">
-                <IconConnection size={48} className="text-[#d4a574]" />
-              </div>
-              <h4 className="text-lg font-bold text-[#1a1714] mb-2">Connection</h4>
-              <p className="text-[#6b6460]">Practice honest expression, vulnerability, and relational presence.</p>
-            </Card>
-
-            <Card className="text-center">
-              <div className="flex justify-center mb-4">
-                <IconIntegration size={48} className="text-[#d4a574]" />
-              </div>
-              <h4 className="text-lg font-bold text-[#1a1714] mb-2">Integration</h4>
-              <p className="text-[#6b6460]">Bring together spirit, sexuality, emotion, and embodiment.</p>
-            </Card>
+          <div className="hero-image-wrap">
+            <img src="/imagery/image10.png" alt="Members in conversation at The Connection Room" />
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="bg-[#f8f6f2] px-4 py-16 sm:py-20 border-t border-[#e8e3db]">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <h3 className="text-3xl font-bold text-[#1a1714]">Ready to Explore?</h3>
-          <p className="text-lg text-[#6b6460]">
-            Enter as a demo member to explore the community, or book a free consultation with
-            Trevor James.
-          </p>
+      {/* A LOOK INSIDE */}
+      <section className="block inside" id="look-inside">
+        <div className="wrap">
+          <div className="block-head">
+            <p className="eyebrow" style={{ textAlign: "center" }}>A Look Inside</p>
+            <h2>You don&apos;t have to take our word for it.</h2>
+            <p>Here&apos;s a small, honest piece of what&apos;s actually in here. Not a brochure. The real thing, just smaller.</p>
+          </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
-            <Link href="/auth?mode=member">
-              <Button variant="primary" size="lg">
-                Enter Community
-              </Button>
-            </Link>
-            <a href={appConfig.urls.freeConsult} target="_blank" rel="noopener noreferrer">
-              <Button variant="outline" size="lg">
-                Free Consultation
-              </Button>
-            </a>
+          <div className="inside-grid">
+            <div className="inside-card">
+              <h3>Your first week has a shape</h3>
+              <p style={{ color: "var(--ink-soft)", fontSize: "15px" }}>
+                New members move through the Seven Doors of Connection. Each one&apos;s
+                a small invitation, not a homework assignment.
+              </p>
+              <div className="doors-row" aria-hidden="true">
+                {[1, 2, 3, 4, 5, 6, 7].map((num) => (
+                  <div key={num} className="door-chip">{num}</div>
+                ))}
+              </div>
+              <p className="doors-caption">Arrival · Awareness · Being Seen · Curiosity · Embodiment · Courage · Intention</p>
+
+              <blockquote className="trevor">
+                &quot;You do not have to become a different person to belong here.
+                Start by noticing what helps you return: to your body, to honesty,
+                to connection, and to the parts of yourself that have been waiting
+                for a little more room.&quot;
+                <cite>— A note from Trevor</cite>
+              </blockquote>
+            </div>
+
+            <div className="inside-card">
+              <h3>This is what honesty sounds like here</h3>
+              <div className="commons-post">
+                <p>&quot;I walked in here expecting to be told what I&apos;m doing wrong.
+                Instead I&apos;m learning to ask myself: what do I actually want?
+                Not what looks good, not what impresses people. Just… me.
+                That&apos;s weirdly hard.&quot;</p>
+                <div className="reactions">
+                  <span className="pill">I feel this (4)</span>
+                  <span className="pill">That shifted something</span>
+                  <span className="pill">Oof, too real</span>
+                </div>
+              </div>
+              <p className="quip">A real reflection from a real member. The bar for vulnerability in here is delightfully low. Bring a sentence, not a TED talk.</p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-[#e8e3db] px-4 py-8 mt-auto">
-        <div className="max-w-6xl mx-auto text-center">
-          <p className="text-sm text-[#9d9490]">
-            © 2024 Trevor James LLC. All rights reserved. | Based in Los Angeles
-          </p>
-          <p className="text-xs text-[#9d9490] mt-2">
-            <a href={appConfig.urls.mainWebsite} className="hover:text-[#8b6f47]">
-              Main Website
-            </a>{" "}
-            · Built with care for authentic connection
-          </p>
+      {/* WHAT YOU'LL EXPLORE */}
+      <section className="block">
+        <div className="wrap">
+          <div className="block-head">
+            <h2>What You&apos;ll Explore</h2>
+            <p>Three threads, woven through everything here.</p>
+          </div>
+
+          <div className="explore-grid">
+            <div className="explore-card">
+              <div className="glyph"></div>
+              <h3>Embodiment</h3>
+              <p>Come back to your body. Notice sensation, presence, and aliveness, even if your body&apos;s been politely ignored since roughly 2019.</p>
+            </div>
+            <div className="explore-card">
+              <div className="glyph"></div>
+              <h3>Connection</h3>
+              <p>Practice honest expression, vulnerability, and relational presence. Turns out &quot;fine, you?&quot; was never actually a full conversation.</p>
+            </div>
+            <div className="explore-card">
+              <div className="glyph"></div>
+              <h3>Integration</h3>
+              <p>Bring together spirit, sexuality, emotion, and embodiment, so they stop operating like four separate apps that never sync.</p>
+            </div>
+          </div>
         </div>
+      </section>
+
+      {/* TRUST STRIP */}
+      <section className="trust">
+        <div className="wrap trust-grid">
+          <div>
+            <h4>What happens in the Room</h4>
+            <p>Your reflections, posts, and connection preferences are visible only to other members, never to the public, never indexed, never screenshotted into a brand deck.</p>
+          </div>
+          <div>
+            <h4>Real members, not avatars</h4>
+            <p>This is a beta community we&apos;re building deliberately. We&apos;d rather grow slowly with real people than fast with placeholder faces.</p>
+          </div>
+          <div>
+            <h4>Guided, not algorithmic</h4>
+            <p>Matching and structured conversations are guided by the EROS Method, not a swipe deck. You&apos;re here to connect, not to shop.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section className="final-cta">
+        <div className="wrap">
+          <h2>Ready when you are.</h2>
+          <p>No countdown timer, no &quot;spots filling fast.&quot; Come in when it feels right.</p>
+          <div className="cta-row" style={{ justifyContent: "center" }}>
+            <Link href="/auth?mode=member" className="btn-primary">Enter the Community</Link>
+            <Link href="https://trevorjamesla.as.me/free-consult" className="link-secondary">Free Consultation →</Link>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <p>&copy; 2026 Trevor James LLC. All rights reserved. | Based in Hollywood, Los Angeles</p>
+        <p className="links"><Link href="https://www.trevorjamesla.com">Main Website</Link> · Built with care for authentic connection</p>
       </footer>
-    </div>
+    </>
   );
 }
