@@ -33,6 +33,7 @@ export interface Space {
   memberCount: number;
   isJoined: boolean;
   featuredPrompt?: string;
+  hidden?: boolean;
 }
 
 export interface Prompt {
