@@ -43,6 +43,18 @@ export default function ProfilePage() {
     setProfile({ ...profile, interests: updated });
   };
 
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      setProfile({ ...profile, profilePhoto: dataUrl });
+    };
+    reader.readAsDataURL(file);
+  };
+
   if (!profile) return <LoadingScreen message="Loading your profile" subtitle="We're gathering your information. Just a moment..." />;
 
   return (
@@ -70,6 +82,32 @@ export default function ProfilePage() {
       <Card>
         <CardHeader title="Basic Information" icon={<IconProfile size={20} />} />
         <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-[#1a1714] mb-2">
+              Profile Photo
+            </label>
+            <div className="flex gap-4 items-start">
+              {profile.profilePhoto && !profile.profilePhoto.includes("data:image/svg") && (
+                <img
+                  src={profile.profilePhoto}
+                  alt="Profile"
+                  className="w-24 h-24 rounded-lg object-cover border border-[#e8e3db]"
+                />
+              )}
+              <div className="flex-1">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="block w-full text-sm text-[#6b6460] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-[#6b5a45] file:text-white hover:file:bg-[#5a4936]"
+                />
+                <p className="text-xs text-[#8b6f47] mt-2">
+                  Choose a JPG, PNG, or GIF (max 5MB)
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-[#1a1714] mb-2">
               Display Name
