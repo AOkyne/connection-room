@@ -1,9 +1,10 @@
 interface AvatarProps {
   name: string;
+  photo?: string;
   size?: "sm" | "md" | "lg";
 }
 
-export function Avatar({ name, size = "md" }: AvatarProps) {
+export function Avatar({ name, photo, size = "md" }: AvatarProps) {
   const initials = name
     .split(" ")
     .map((n) => n[0])
@@ -26,6 +27,18 @@ export function Avatar({ name, size = "md" }: AvatarProps) {
     lg: "w-12 h-12 text-base",
   };
 
+  // If photo exists, display it
+  if (photo) {
+    return (
+      <img
+        src={photo}
+        alt={name}
+        className={`${sizeClasses[size]} rounded-full object-cover border border-[#dcc4b3]`}
+      />
+    );
+  }
+
+  // Otherwise show initials
   return (
     <div
       className={`${color} ${sizeClasses[size]} rounded-full flex items-center justify-center font-bold text-white border border-[#dcc4b3]`}
