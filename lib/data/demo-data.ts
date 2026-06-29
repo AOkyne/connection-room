@@ -14,12 +14,7 @@ function generateAvatarUrl(initials: string): string {
   ];
   const color = colors[initials.charCodeAt(0) % colors.length];
 
-  const svg = `
-    <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
-      <rect width="200" height="200" fill="${color}"/>
-      <text x="100" y="120" font-size="80" font-weight="bold" fill="white" text-anchor="middle" font-family="system-ui">${initials}</text>
-    </svg>
-  `;
+  const svg = `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="${color}"/><text x="100" y="120" font-size="80" font-weight="bold" fill="white" text-anchor="middle" font-family="system-ui">${initials}</text></svg>`;
 
   return `data:image/svg+xml;base64,${btoa(svg)}`;
 }

@@ -14,6 +14,21 @@ export interface AppSession {
 const SESSION_STORAGE_KEY = "connection-room:session";
 const RECENT_SIGNUPS_KEY = "connection-room:recent-signups";
 
+// Helper to generate a profile photo from initials
+function generateAvatarUrl(initials: string): string {
+  const colors = [
+    "#d4a574",
+    "#9d7f5c",
+    "#8fa878",
+    "#b86a52",
+    "#6b5f52",
+    "#a0968a",
+  ];
+  const color = colors[initials.charCodeAt(0) % colors.length];
+  const svg = `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="${color}"/><text x="100" y="120" font-size="80" font-weight="bold" fill="white" text-anchor="middle" font-family="system-ui">${initials}</text></svg>`;
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+}
+
 // Get current session (either Supabase or demo)
 export async function getSession(): Promise<AppSession | null> {
   if (typeof window === "undefined") return null;
@@ -58,7 +73,21 @@ export async function getSession(): Promise<AppSession | null> {
   }
 
   const stored = localStorage.getItem(SESSION_STORAGE_KEY);
-  return stored ? JSON.parse(stored) : null;
+  if (stored) {
+    const session = JSON.parse(stored) as AppSession;
+    // Generate profilePhoto if missing
+    if (!session.profilePhoto && session.name) {
+      const initials = session.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
+      session.profilePhoto = generateAvatarUrl(initials);
+    }
+    return session;
+  }
+  return null;
 }
 
 // Track recent signup for admin dashboard
