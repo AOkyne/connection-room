@@ -22,7 +22,6 @@ import { WaysToConnectCard } from "@/components/connection/WaysToConnectCard";
 import { ReflectionsFromRoomCard } from "@/components/connection/ReflectionsFromRoomCard";
 import { DailyCompanionDashboard } from "@/components/daily-companion/DailyCompanionDashboard";
 import { ContinueWhereYouLeftOff } from "@/components/daily-companion/ContinueWhereYouLeftOff";
-import { FeaturedSpacesCard } from "@/components/daily-companion/FeaturedSpacesCard";
 import { sortSpacesByPreference } from "@/lib/data/spaces";
 import { LoadingError } from "@/components/LoadingError";
 import { withTimeout } from "@/lib/utils/with-timeout";
@@ -176,15 +175,30 @@ export default function AppHome() {
       {/* Divider */}
       <div className="border-t border-[#e8ddd2]" />
 
+      {/* Journey Cards - moved up before Continue Where You Left Off */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-[#2a2318]">Your Journey</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h4 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Seven Doors Journey</h4>
+            <FirstWeekDashboardCard />
+          </div>
+          <div>
+            <h4 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Guided Rhythm</h4>
+            <MonthlyDashboardCard />
+          </div>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-[#e8ddd2]" />
+
       {/* Continue Where You Left Off */}
       <ContinueWhereYouLeftOff
         profile={profile}
         recentReflections={recentReflections}
         upcomingEvents={upcomingEvents}
       />
-
-      {/* Featured Spaces */}
-      <FeaturedSpacesCard spaces={spaces} />
 
       {/* Divider */}
       <div className="border-t border-[#e8ddd2]" />
@@ -216,6 +230,13 @@ export default function AppHome() {
           </div>
         )}
 
+        {/* Explore All Spaces Button */}
+        <Link href="/app/spaces">
+          <Button variant="outline" className="w-full">
+            Explore All Spaces
+          </Button>
+        </Link>
+
         {/* Connection and Reflection Scaffolding */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -225,18 +246,6 @@ export default function AppHome() {
           <div>
             <h4 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">From the Room</h4>
             <ReflectionsFromRoomCard recentReflections={recentReflections} />
-          </div>
-        </div>
-
-        {/* Journey Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <h4 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Seven Doors Journey</h4>
-            <FirstWeekDashboardCard />
-          </div>
-          <div>
-            <h4 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Guided Rhythm</h4>
-            <MonthlyDashboardCard />
           </div>
         </div>
 
