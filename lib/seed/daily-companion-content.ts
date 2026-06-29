@@ -801,7 +801,7 @@ export const weeklyTrevorNotes = [
     title: "The Grace of Slowing Down",
     body: "We live in a culture of speed. Faster, more, now. But the deepest things happen slowly. Trust is built slowly. Intimacy deepens slowly. Presence emerges slowly. Your body knows this. It's constantly asking you to slow down. To breathe. To notice. This week, do one thing slowly. Consciously. One meal. One conversation. One moment. Not because you're being productive. But because it's the only way to be alive.",
     prompt_snapshot: "Where are you rushing that should be slowed?",
-    space_suggestion: "embodiment",
+    space_suggestion: "intimacy-patterns",
   },
   {
     week: 8,
@@ -822,7 +822,7 @@ export const weeklyTrevorNotes = [
     title: "The Body as Home",
     body: "You've been taught that your body is something to manage, to control, to transcend. But what if it's actually a home? A place to return to. A place that's always been waiting for you. When you come back to your body, you come back to yourself. You come back to presence. You come back to truth. This week, spend time getting reacquainted with your body. Not in a forced way. Just with curiosity. What does it feel like to be here?",
     prompt_snapshot: "Where does your body feel most alive?",
-    space_suggestion: "embodiment",
+    space_suggestion: "touch-affection",
   },
   {
     week: 11,

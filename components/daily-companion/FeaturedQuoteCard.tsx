@@ -11,10 +11,10 @@ export function FeaturedQuoteCard({ quote }: FeaturedQuoteCardProps) {
   if (!quote) return null;
 
   return (
-    <Card className="bg-gradient-to-br from-[#2a2318] to-[#3d3228] text-[#f4efe4]">
-      <div className="space-y-2">
-        <p className="text-lg italic leading-relaxed">{quote.body}</p>
-        <p className="text-xs text-[#cfc4ad] font-medium">— Trevor James</p>
+    <Card className="bg-gradient-to-br from-[#2a2318] to-[#3d3228]">
+      <div className="space-y-3">
+        <p className="text-lg italic leading-relaxed text-[#f4efe4]">{quote.body}</p>
+        <p className="text-xs font-medium text-[#b8a88f]">— Trevor James</p>
       </div>
     </Card>
   );
