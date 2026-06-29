@@ -238,7 +238,7 @@ export default function AppHome() {
         </Link>
 
         {/* Connection and Reflection Scaffolding */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-8">
           <div>
             <h4 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Ways to Connect</h4>
             <WaysToConnectCard />
