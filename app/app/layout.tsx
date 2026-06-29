@@ -91,7 +91,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </Link>
             {session && (
               <div className="flex items-center gap-3">
-                <Avatar name={session.name} size="sm" />
+                <Avatar name={session.name} size="lg" />
                 <span className="text-sm text-[#1a0f0a]">{session.name}</span>
                 <Button variant="ghost" size="sm" onClick={handleLogout}>
                   Sign Out
