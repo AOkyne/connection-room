@@ -38,23 +38,17 @@ export default function EditWeeklyNote() {
   const [loading, setLoading] = useState(!isNew);
 
   useEffect(() => {
-    const loadData = async () => {
-      // Load spaces
-      const s = await getSpaces();
-      setSpaces(s || []);
+    // Load spaces for the dropdown
+    getSpaces().then((s) => setSpaces(s || [])).catch(() => setSpaces([]));
 
-      if (isNew) {
-        setLoading(false);
-        return;
-      }
+    if (isNew || !supabase) {
+      setLoading(false);
+      return;
+    }
 
-      if (!supabase) {
-        setLoading(false);
-        return;
-      }
-
+    const loadNote = async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await supabase!
           .from("weekly_notes")
           .select("*")
           .eq("id", id)
@@ -67,7 +61,7 @@ export default function EditWeeklyNote() {
       }
     };
 
-    loadData();
+    loadNote();
   }, [id, isNew]);
 
   const handleSave = async () => {
