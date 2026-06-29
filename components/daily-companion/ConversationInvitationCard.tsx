@@ -20,8 +20,8 @@ export function ConversationInvitationCard({ invitation }: ConversationInvitatio
         </p>
         <p className="text-sm text-[#2a2318] leading-relaxed">{invitation.body}</p>
         <div className="flex gap-2">
-          <Link href="/app/spaces/commons" className="flex-1">
-            <Button variant="outline" size="sm" className="w-full">
+          <Link href="/app/spaces/commons">
+            <Button variant="outline" size="sm">
               Visit The Commons
             </Button>
           </Link>

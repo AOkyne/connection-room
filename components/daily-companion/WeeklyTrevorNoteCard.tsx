@@ -26,7 +26,7 @@ export function WeeklyTrevorNoteCard({ note }: WeeklyTrevorNoteCardProps) {
 
         {note.related_space_id && (
           <Link href={`/app/spaces/${note.related_space_id}`}>
-            <Button variant="outline" size="sm" className="w-full">
+            <Button variant="outline" size="sm">
               Explore Related Space
             </Button>
           </Link>
