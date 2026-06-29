@@ -8,17 +8,16 @@ import Link from "next/link";
 
 interface WeeklyTrevorNoteCardProps {
   note: WeeklyNote | null;
-  displayName?: string;
 }
 
-export function WeeklyTrevorNoteCard({ note, displayName }: WeeklyTrevorNoteCardProps) {
+export function WeeklyTrevorNoteCard({ note }: WeeklyTrevorNoteCardProps) {
   if (!note) return null;
 
   return (
     <Card className="bg-gradient-to-br from-[#f3ede5] to-white border-2 border-[#d4a348]">
       <div className="space-y-4">
         <div className="flex items-start gap-4">
-          {displayName && <Avatar name={displayName} size="lg" />}
+          <Avatar name="Trevor" size="lg" />
           <div>
             <p className="text-xs font-semibold text-[#c97a2a] uppercase tracking-wide mb-2">
               This Week from Trevor

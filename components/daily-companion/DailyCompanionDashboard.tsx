@@ -124,7 +124,7 @@ export function DailyCompanionDashboard({ displayName, userId }: DailyCompanionD
       {/* Trevor Weekly Note */}
       {weeklyNote && (
         <div className="border-t border-[#e8ddd2] pt-8">
-          <WeeklyTrevorNoteCard note={weeklyNote} displayName={displayName} />
+          <WeeklyTrevorNoteCard note={weeklyNote} />
         </div>
       )}
 
