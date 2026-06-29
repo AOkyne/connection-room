@@ -101,7 +101,7 @@ export default function AppHome() {
           Promise.allSettled([
             getUserBadges(p.id),
             getRecentReflections(5),
-            getRelevantOffers(),
+            Promise.resolve(getRelevantOffers(p)),
             Promise.resolve(getSuggestedSpace()),
           ]).then((results) => {
             if (results[0].status === "fulfilled") setBadges(results[0].value);

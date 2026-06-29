@@ -38,13 +38,16 @@ export default function EditWeeklyNote() {
   const [loading, setLoading] = useState(!isNew);
 
   useEffect(() => {
-    // Load spaces
-    const s = getSpaces();
-    setSpaces(s || []);
+    const loadData = async () => {
+      // Load spaces
+      const s = await getSpaces();
+      setSpaces(s || []);
 
-    if (isNew) return;
+      if (isNew) {
+        setLoading(false);
+        return;
+      }
 
-    const loadNote = async () => {
       if (!supabase) {
         setLoading(false);
         return;
@@ -64,7 +67,7 @@ export default function EditWeeklyNote() {
       }
     };
 
-    loadNote();
+    loadData();
   }, [id, isNew]);
 
   const handleSave = async () => {
