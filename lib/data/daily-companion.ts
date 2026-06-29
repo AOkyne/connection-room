@@ -61,7 +61,9 @@ export function getWeekSinceLaunch(): number {
 // Get hero image URL based on theme category
 export function getThemeHeroImage(category?: string): string {
   const categoryName = category || "connection";
-  return `/imagery/themes/${categoryName}.png`;
+  // Capitalize first letter to match filename convention
+  const fileName = categoryName.charAt(0).toUpperCase() + categoryName.slice(1);
+  return `/imagery/Themes/${fileName}.png`;
 }
 
 /**
