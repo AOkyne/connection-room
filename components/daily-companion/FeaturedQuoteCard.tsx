@@ -7,16 +7,34 @@ interface FeaturedQuoteCardProps {
 }
 
 export function FeaturedQuoteCard({ quote }: FeaturedQuoteCardProps) {
-  if (!quote) return null;
+  if (!quote || !quote.body) {
+    return null;
+  }
 
   return (
-    <div className="bg-gradient-to-br from-[#2a2318] to-[#3d3228] rounded-2xl p-8 shadow-sm border border-[#3d3228]">
-      <div className="space-y-4">
-        <p className="text-2xl italic leading-relaxed font-light text-[#ffffff]">
-          "{quote.body}"
-        </p>
-        <p className="text-base font-medium text-[#d4a574]">— Trevor James</p>
-      </div>
+    <div style={{
+      backgroundColor: "#2a2318",
+      padding: "32px 24px",
+      borderRadius: "16px",
+      marginTop: "24px"
+    }}>
+      <p style={{
+        fontSize: "20px",
+        fontStyle: "italic",
+        color: "#ffffff",
+        lineHeight: "1.6",
+        margin: "0 0 16px 0"
+      }}>
+        "{quote.body}"
+      </p>
+      <p style={{
+        fontSize: "14px",
+        color: "#d4a574",
+        margin: "0",
+        fontWeight: "500"
+      }}>
+        — Trevor James
+      </p>
     </div>
   );
 }
