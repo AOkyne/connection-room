@@ -199,7 +199,7 @@ export default function EditDailyContent() {
             onChange={(e) => setContent({ ...content, body: e.target.value })}
             placeholder="The actual content for this piece"
             rows={8}
-            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#2a2318] focus:outline-none focus:ring-2 focus:ring-[#d4a574] font-mono text-sm"
+            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#2a2318] focus:outline-none focus:ring-2 focus:ring-[#d4a574] resize-none"
           />
           <p className="text-xs text-[#6b5f52] mt-1">
             {content.body.length} characters

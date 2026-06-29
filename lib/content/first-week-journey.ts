@@ -34,7 +34,7 @@ export const firstWeekJourney: Door[] = [
       "Every man who enters The Connection Room arrives carrying something. For some, it is loneliness. For some, it is curiosity. For others, it is a desire for deeper friendships, intimacy, self-understanding, or community. Before anything else, take a moment to notice what brought you here.",
     invitation:
       "This door invites you to arrive fully. First, complete your profile so others can get to know you. Then, share your arrival story with the community.",
-    reflection: "What would make this community feel genuinely valuable to you six months from now?",
+    reflection: "What drew you here today?",
     actions: [
       {
         id: "door1-profile",
@@ -123,7 +123,7 @@ export const firstWeekJourney: Door[] = [
       "Many of us spend years being competent, capable, helpful, and agreeable. Being known is different.",
     invitation:
       "Share a moment when you felt truly connected to someone. What made that moment meaningful?",
-    reflection: "What helps you feel truly seen?",
+    reflection: "When you withdraw, what are you usually protecting?",
     actions: [
       {
         id: "door3-post",

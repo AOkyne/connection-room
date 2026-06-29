@@ -12,6 +12,7 @@ import {
 } from "@/lib/data/first-week-journey";
 import { withTimeout } from "@/lib/utils/with-timeout";
 import { DoorCard } from "./DoorCard";
+import { ProfileFormModal } from "./ProfileFormModal";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { DoorCompletionFeedback, PrivateReflectionFeedback } from "@/components/feedback";
@@ -24,6 +25,7 @@ export function SevenDoorsOverview() {
   const [customIntention, setCustomIntention] = useState("");
   const [completedDoorFeedback, setCompletedDoorFeedback] = useState<number | null>(null);
   const [savedReflectionFeedback, setSavedReflectionFeedback] = useState<number | null>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
     loadProgress();
@@ -137,6 +139,9 @@ export function SevenDoorsOverview() {
         />
       )}
 
+      {/* Profile Form Modal */}
+      <ProfileFormModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} />
+
       {/* Progress Header */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -240,7 +245,9 @@ export function SevenDoorsOverview() {
             isCurrentDoor={true}
             onActionClick={(action) => {
               // Handle action navigation for links
-              if (action.type === "link" || action.type === "profile" || action.type === "quiz" || action.type === "connection") {
+              if (action.type === "profile") {
+                setShowProfileModal(true);
+              } else if (action.type === "link" || action.type === "quiz" || action.type === "connection") {
                 if (action.href) {
                   window.location.href = action.href;
                 }

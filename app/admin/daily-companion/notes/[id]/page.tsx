@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { getSpaces } from "@/lib/data/spaces";
 
 interface WeeklyNote {
   id: string;
@@ -27,15 +28,20 @@ export default function EditWeeklyNote() {
     week_number: 1,
     title: "",
     body: "",
-    related_space_id: "",
+    related_space_id: undefined,
     rotation_index: 0,
     active: true,
   });
 
+  const [spaces, setSpaces] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(!isNew);
 
   useEffect(() => {
+    // Load spaces
+    const s = getSpaces();
+    setSpaces(s || []);
+
     if (isNew) return;
 
     const loadNote = async () => {
@@ -81,9 +87,7 @@ export default function EditWeeklyNote() {
 
     try {
       if (isNew) {
-        const { error } = await supabase
-          .from("weekly_notes")
-          .insert([note]);
+        const { error } = await supabase.from("weekly_notes").insert([note]);
 
         if (error) throw error;
       } else {
@@ -111,6 +115,8 @@ export default function EditWeeklyNote() {
     return <div className="text-center py-12">Loading...</div>;
   }
 
+  const relatedSpace = spaces.find((s) => s.id === note.related_space_id);
+
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       <div>
@@ -119,7 +125,7 @@ export default function EditWeeklyNote() {
         </h1>
         <p className="text-[#6b5f52] mt-2">
           {isNew
-            ? "Add a new weekly letter from Trevor"
+            ? "Add a new weekly Trevor note"
             : "Update this weekly note"}
         </p>
       </div>
@@ -141,7 +147,7 @@ export default function EditWeeklyNote() {
             className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#2a2318] focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
           />
           <p className="text-xs text-[#6b5f52] mt-1">
-            Notes cycle through weeks 1-16 continuously
+            Which week in the 16-week cycle (1-16)
           </p>
         </div>
 
@@ -154,7 +160,7 @@ export default function EditWeeklyNote() {
             type="text"
             value={note.title}
             onChange={(e) => setNote({ ...note, title: e.target.value })}
-            placeholder="e.g., 'Welcome to The Connection Room'"
+            placeholder="e.g., 'Week 1: Beginning Again'"
             className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#2a2318] focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
           />
         </div>
@@ -162,36 +168,44 @@ export default function EditWeeklyNote() {
         {/* Body */}
         <div>
           <label className="block text-sm font-semibold text-[#2a2318] mb-2">
-            Letter Content
+            Letter / Note
           </label>
           <textarea
             value={note.body}
             onChange={(e) => setNote({ ...note, body: e.target.value })}
-            placeholder="Trevor's weekly letter (120-200 words)"
+            placeholder="Trevor's weekly letter..."
             rows={10}
-            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#2a2318] focus:outline-none focus:ring-2 focus:ring-[#d4a574] font-mono text-sm"
+            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#2a2318] focus:outline-none focus:ring-2 focus:ring-[#d4a574] resize-none"
           />
           <p className="text-xs text-[#6b5f52] mt-1">
-            {note.body.length} characters (~{Math.round(note.body.split(/\s+/).length)} words)
+            {note.body.length} characters
           </p>
         </div>
 
-        {/* Related Space (optional) */}
+        {/* Related Space */}
         <div>
           <label className="block text-sm font-semibold text-[#2a2318] mb-2">
             Related Space (Optional)
           </label>
-          <input
-            type="text"
+          <select
             value={note.related_space_id || ""}
             onChange={(e) =>
-              setNote({ ...note, related_space_id: e.target.value })
+              setNote({
+                ...note,
+                related_space_id: e.target.value || undefined,
+              })
             }
-            placeholder="e.g., 'commons', 'embodiment'"
             className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#2a2318] focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
-          />
+          >
+            <option value="">None</option>
+            {spaces.map((space) => (
+              <option key={space.id} value={space.id}>
+                {space.name}
+              </option>
+            ))}
+          </select>
           <p className="text-xs text-[#6b5f52] mt-1">
-            If set, a link to this space will appear with the note
+            Link to a space that relates to this week's theme
           </p>
         </div>
 
@@ -232,22 +246,23 @@ export default function EditWeeklyNote() {
 
       {/* Preview */}
       {note.title && note.body && (
-        <Card className="bg-gradient-to-br from-[#f3ede5] to-white border-2 border-[#d4a574]">
+        <Card className="bg-[#f3ede5]">
+          <CardHeader title="Preview" />
           <div className="space-y-4">
             <div>
-              <p className="text-xs font-semibold text-[#8fa878] uppercase tracking-wide mb-2">
-                Week {note.week_number} from Trevor
+              <p className="text-xs font-bold text-[#8fa878] uppercase tracking-wide">
+                Week {note.week_number} Note
               </p>
-              <h3 className="text-xl font-semibold text-[#2a2318]">{note.title}</h3>
+              <h3 className="text-lg font-semibold text-[#2a2318] mt-1">
+                {note.title}
+              </h3>
             </div>
-
             <p className="text-sm text-[#6b5f52] leading-relaxed whitespace-pre-wrap">
               {note.body}
             </p>
-
-            {note.related_space_id && (
-              <p className="text-xs text-[#8fa878] font-medium">
-                Related space: {note.related_space_id}
+            {relatedSpace && (
+              <p className="text-xs text-[#6b5f52] pt-2 border-t border-[#e8ddd2]">
+                Related space: <span className="font-medium">{relatedSpace.name}</span>
               </p>
             )}
           </div>
