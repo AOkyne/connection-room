@@ -3,7 +3,7 @@ interface SpaceIconSVGProps {
   size?: number;
 }
 
-const COLOR = "#d4a574";
+const COLOR = "#d4a348";
 
 export function SpaceIconSVG({ spaceId, size = 32 }: SpaceIconSVGProps) {
   switch (spaceId) {

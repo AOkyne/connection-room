@@ -4,15 +4,15 @@ interface SpaceIconProps {
 }
 
 const iconStyles: { [key: string]: { bg: string; letter: string } } = {
-  commons: { bg: "#d4a574", letter: "C" },
-  "start-here": { bg: "#9d7f5c", letter: "S" },
-  "intimacy-patterns": { bg: "#b86a52", letter: "I" },
-  "touch-affection": { bg: "#8fa878", letter: "T" },
-  "spirituality-sexuality": { bg: "#6b5f52", letter: "X" },
-  "dating-desire": { bg: "#a0968a", letter: "D" },
+  commons: { bg: "#d4a348", letter: "C" },
+  "start-here": { bg: "#8b6f47", letter: "S" },
+  "intimacy-patterns": { bg: "#a84a2a", letter: "I" },
+  "touch-affection": { bg: "#c97a2a", letter: "T" },
+  "spirituality-sexuality": { bg: "#1a0f0a", letter: "X" },
+  "dating-desire": { bg: "#a0704a", letter: "D" },
   couples: { bg: "#c9956b", letter: "U" },
-  embodiment: { bg: "#9d7f5c", letter: "E" },
-  workshops: { bg: "#b86a52", letter: "W" },
+  embodiment: { bg: "#8b6f47", letter: "E" },
+  workshops: { bg: "#a84a2a", letter: "W" },
 };
 
 export function SpaceIcon({ iconId, size = 24 }: SpaceIconProps) {

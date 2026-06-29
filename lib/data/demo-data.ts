@@ -5,12 +5,12 @@ import type { Profile } from "./profiles";
 
 function generateAvatarUrl(initials: string): string {
   const colors = [
-    "#d4a574",
-    "#9d7f5c",
-    "#8fa878",
-    "#b86a52",
-    "#6b5f52",
-    "#a0968a",
+    "#d4a348",
+    "#8b6f47",
+    "#c97a2a",
+    "#a84a2a",
+    "#1a0f0a",
+    "#a0704a",
   ];
   const color = colors[initials.charCodeAt(0) % colors.length];
 

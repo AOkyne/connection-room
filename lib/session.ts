@@ -17,12 +17,12 @@ const RECENT_SIGNUPS_KEY = "connection-room:recent-signups";
 // Helper to generate a profile photo from initials
 function generateAvatarUrl(initials: string): string {
   const colors = [
-    "#d4a574",
-    "#9d7f5c",
-    "#8fa878",
-    "#b86a52",
-    "#6b5f52",
-    "#a0968a",
+    "#d4a348",
+    "#8b6f47",
+    "#c97a2a",
+    "#a84a2a",
+    "#1a0f0a",
+    "#a0704a",
   ];
   const color = colors[initials.charCodeAt(0) % colors.length];
   const svg = `<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="200" height="200" fill="${color}"/><text x="100" y="120" font-size="80" font-weight="bold" fill="white" text-anchor="middle" font-family="system-ui">${initials}</text></svg>`;

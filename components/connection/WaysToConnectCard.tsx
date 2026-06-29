@@ -13,10 +13,10 @@ export function WaysToConnectCard() {
             <a
               key={way.id}
               href={way.actionHref || "#"}
-              className="block px-4 py-3 rounded-lg bg-white border border-[#e8ddd2] hover:border-[#d4a574] hover:bg-[#f3ede5] transition-all"
+              className="block px-4 py-3 rounded-lg bg-white border border-[#e8ddd2] hover:border-[#d4a348] hover:bg-[#f3ede5] transition-all"
             >
-              <p className="text-sm font-medium text-[#2a2318]">{way.title}</p>
-              <p className="text-xs text-[#6b5f52] mt-1">{way.description}</p>
+              <p className="text-sm font-medium text-[#1a0f0a]">{way.title}</p>
+              <p className="text-xs text-[#1a0f0a] mt-1">{way.description}</p>
             </a>
           ))}
         </div>

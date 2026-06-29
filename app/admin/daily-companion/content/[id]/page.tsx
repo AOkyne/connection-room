@@ -111,10 +111,10 @@ export default function EditDailyContent() {
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       <div>
-        <h1 className="text-4xl font-bold text-[#2a2318]">
+        <h1 className="text-4xl font-bold text-[#1a0f0a]">
           {isNew ? "Create New Content" : "Edit Content"}
         </h1>
-        <p className="text-[#6b5f52] mt-2">
+        <p className="text-[#1a0f0a] mt-2">
           {isNew ? "Add a new piece of daily content" : "Update this content"}
         </p>
       </div>
@@ -122,13 +122,13 @@ export default function EditDailyContent() {
       <Card className="space-y-6">
         {/* Content Type */}
         <div>
-          <label className="block text-sm font-semibold text-[#2a2318] mb-2">
+          <label className="block text-sm font-semibold text-[#1a0f0a] mb-2">
             Content Type
           </label>
           <select
             value={content.content_type}
             onChange={(e) => setContent({ ...content, content_type: e.target.value })}
-            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#2a2318] focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
           >
             {CONTENT_TYPES.map((type) => (
               <option key={type} value={type}>
@@ -136,14 +136,14 @@ export default function EditDailyContent() {
               </option>
             ))}
           </select>
-          <p className="text-xs text-[#6b5f52] mt-1">
+          <p className="text-xs text-[#1a0f0a] mt-1">
             Choose what type of content this is
           </p>
         </div>
 
         {/* Rotation Index */}
         <div>
-          <label className="block text-sm font-semibold text-[#2a2318] mb-2">
+          <label className="block text-sm font-semibold text-[#1a0f0a] mb-2">
             Rotation Index (0-119)
           </label>
           <input
@@ -154,16 +154,16 @@ export default function EditDailyContent() {
             onChange={(e) =>
               setContent({ ...content, rotation_index: parseInt(e.target.value) || 0 })
             }
-            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#2a2318] focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
           />
-          <p className="text-xs text-[#6b5f52] mt-1">
+          <p className="text-xs text-[#1a0f0a] mt-1">
             Which day in the 120-day cycle (0-119). All content of this type at this index will appear on the same day.
           </p>
         </div>
 
         {/* Title */}
         <div>
-          <label className="block text-sm font-semibold text-[#2a2318] mb-2">
+          <label className="block text-sm font-semibold text-[#1a0f0a] mb-2">
             Title
           </label>
           <input
@@ -171,13 +171,13 @@ export default function EditDailyContent() {
             value={content.title}
             onChange={(e) => setContent({ ...content, title: e.target.value })}
             placeholder="e.g., 'Receiving Without Defending'"
-            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#2a2318] focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
           />
         </div>
 
         {/* Category (optional) */}
         <div>
-          <label className="block text-sm font-semibold text-[#2a2318] mb-2">
+          <label className="block text-sm font-semibold text-[#1a0f0a] mb-2">
             Category (Optional)
           </label>
           <input
@@ -185,13 +185,13 @@ export default function EditDailyContent() {
             value={content.category || ""}
             onChange={(e) => setContent({ ...content, category: e.target.value })}
             placeholder="e.g., 'connection', 'embodiment'"
-            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#2a2318] focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
           />
         </div>
 
         {/* Body */}
         <div>
-          <label className="block text-sm font-semibold text-[#2a2318] mb-2">
+          <label className="block text-sm font-semibold text-[#1a0f0a] mb-2">
             Content
           </label>
           <textarea
@@ -199,9 +199,9 @@ export default function EditDailyContent() {
             onChange={(e) => setContent({ ...content, body: e.target.value })}
             placeholder="The actual content for this piece"
             rows={8}
-            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#2a2318] focus:outline-none focus:ring-2 focus:ring-[#d4a574] resize-none"
+            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348] resize-none"
           />
-          <p className="text-xs text-[#6b5f52] mt-1">
+          <p className="text-xs text-[#1a0f0a] mt-1">
             {content.body.length} characters
           </p>
         </div>
@@ -213,11 +213,11 @@ export default function EditDailyContent() {
               type="checkbox"
               checked={content.active}
               onChange={(e) => setContent({ ...content, active: e.target.checked })}
-              className="w-4 h-4 rounded border border-[#d4a574]"
+              className="w-4 h-4 rounded border border-[#d4a348]"
             />
-            <span className="text-sm font-medium text-[#2a2318]">Active</span>
+            <span className="text-sm font-medium text-[#1a0f0a]">Active</span>
           </label>
-          <p className="text-xs text-[#6b5f52]">
+          <p className="text-xs text-[#1a0f0a]">
             Inactive content won't show to members
           </p>
         </div>
@@ -247,18 +247,18 @@ export default function EditDailyContent() {
           <CardHeader title="Preview" />
           <div className="space-y-3">
             <div>
-              <p className="text-xs font-bold text-[#8fa878] uppercase tracking-wide">
+              <p className="text-xs font-bold text-[#c97a2a] uppercase tracking-wide">
                 {content.content_type}
               </p>
-              <h3 className="text-lg font-semibold text-[#2a2318] mt-1">
+              <h3 className="text-lg font-semibold text-[#1a0f0a] mt-1">
                 {content.title}
               </h3>
             </div>
-            <p className="text-sm text-[#6b5f52] leading-relaxed whitespace-pre-wrap">
+            <p className="text-sm text-[#1a0f0a] leading-relaxed whitespace-pre-wrap">
               {content.body}
             </p>
             {content.category && (
-              <p className="text-xs text-[#6b5f52]">
+              <p className="text-xs text-[#1a0f0a]">
                 Category: <span className="font-medium">{content.category}</span>
               </p>
             )}

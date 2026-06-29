@@ -63,7 +63,7 @@ export function DailyCompanionDashboard({ displayName, userId }: DailyCompanionD
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-[#6b5f52]">Loading your daily companion...</p>
+        <p className="text-[#1a0f0a]">Loading your daily companion...</p>
       </div>
     );
   }
@@ -84,8 +84,8 @@ export function DailyCompanionDashboard({ displayName, userId }: DailyCompanionD
 
       {/* Greeting */}
       <div className="space-y-2">
-        <h1 className="text-3xl font-semibold text-[#2a2318]">Welcome back, {displayName}</h1>
-        <p className="text-[#6b5f52]">
+        <h1 className="text-3xl font-semibold text-[#1a0f0a]">Welcome back, {displayName}</h1>
+        <p className="text-[#1a0f0a]">
           {new Date().toLocaleDateString("en-US", {
             timeZone: "America/Los_Angeles",
             weekday: "long",

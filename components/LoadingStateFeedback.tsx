@@ -12,12 +12,12 @@ export function LoadingStateFeedback({
   subMessage = "Please wait while we fetch your data",
 }: LoadingStateFeedbackProps) {
   return (
-    <Card className="bg-[#f8f6f2] border-l-4 border-[#d4a574]">
+    <Card className="bg-[#f8f6f2] border-l-4 border-[#d4a348]">
       <div className="flex gap-4 items-start">
         <div className="text-2xl flex-shrink-0 animate-spin">⟳</div>
         <div className="flex-1">
-          <h3 className="font-semibold text-[#2a2318] mb-1">{message}</h3>
-          <p className="text-sm text-[#6b5f52]">{subMessage}</p>
+          <h3 className="font-semibold text-[#1a0f0a] mb-1">{message}</h3>
+          <p className="text-sm text-[#1a0f0a]">{subMessage}</p>
         </div>
       </div>
     </Card>

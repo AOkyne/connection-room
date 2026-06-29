@@ -99,7 +99,7 @@ export function SevenDoorsOverview() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-[#6b5f52]">Loading your journey...</p>
+        <p className="text-[#1a0f0a]">Loading your journey...</p>
       </div>
     );
   }
@@ -107,7 +107,7 @@ export function SevenDoorsOverview() {
   if (!progress) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-[#6b5f52]">Unable to load your journey</p>
+        <p className="text-[#1a0f0a]">Unable to load your journey</p>
       </div>
     );
   }
@@ -145,16 +145,16 @@ export function SevenDoorsOverview() {
       {/* Progress Header */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-semibold text-[#2a2318]">
+          <h2 className="text-2xl font-semibold text-[#1a0f0a]">
             The Seven Doors of Connection
           </h2>
           <div className="text-right">
-            <p className="text-sm text-[#6b5f52]">
+            <p className="text-sm text-[#1a0f0a]">
               {progress.completedDoors.length} of 7 doors completed
             </p>
             <div className="w-32 h-2 bg-[#e8ddd2] rounded-full overflow-hidden mt-2">
               <div
-                className="h-full bg-gradient-to-r from-[#d4a574] to-[#8fa878] transition-all"
+                className="h-full bg-gradient-to-r from-[#d4a348] to-[#c97a2a] transition-all"
                 style={{
                   width: `${(progress.completedDoors.length / 7) * 100}%`,
                 }}
@@ -162,7 +162,7 @@ export function SevenDoorsOverview() {
             </div>
           </div>
         </div>
-        <p className="text-sm text-[#6b5f52] leading-relaxed">
+        <p className="text-sm text-[#1a0f0a] leading-relaxed">
           A guided first week in The Connection Room. Each door is an invitation
           to a different aspect of authentic connection.
         </p>
@@ -178,10 +178,10 @@ export function SevenDoorsOverview() {
                 key={door.doorNumber}
                 className={`flex flex-col items-center justify-center gap-1 p-2 rounded-lg transition-all ${
                   isCompleted
-                    ? "bg-[#8fa878] text-white"
+                    ? "bg-[#c97a2a] text-white"
                     : isCurrent
-                    ? "bg-[#d4a574] text-white ring-2 ring-[#6b5f52] ring-offset-2 ring-offset-[#f3ede5]"
-                    : "bg-white text-[#6b5f52] border border-[#d4a574]"
+                    ? "bg-[#d4a348] text-white ring-2 ring-[#1a0f0a] ring-offset-2 ring-offset-[#f3ede5]"
+                    : "bg-white text-[#1a0f0a] border border-[#d4a348]"
                 }`}
                 title={door.title}
               >
@@ -195,17 +195,17 @@ export function SevenDoorsOverview() {
         </div>
 
         {/* Door Legend */}
-        <div className="flex flex-wrap gap-4 text-xs text-[#6b5f52]">
+        <div className="flex flex-wrap gap-4 text-xs text-[#1a0f0a]">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-[#8fa878] rounded" />
+            <div className="w-4 h-4 bg-[#c97a2a] rounded" />
             <span>Completed</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-[#d4a574] rounded ring-2 ring-[#6b5f52]" />
+            <div className="w-4 h-4 bg-[#d4a348] rounded ring-2 ring-[#1a0f0a]" />
             <span>Current</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-white border border-[#d4a574] rounded" />
+            <div className="w-4 h-4 bg-white border border-[#d4a348] rounded" />
             <span>Coming</span>
           </div>
         </div>
@@ -213,12 +213,12 @@ export function SevenDoorsOverview() {
 
       {/* Completion Message */}
       {isComplete && (
-        <Card className="bg-gradient-to-br from-[#f3ede5] to-[#f8f6f2] border-l-4 border-[#8fa878]">
+        <Card className="bg-gradient-to-br from-[#f3ede5] to-[#f8f6f2] border-l-4 border-[#c97a2a]">
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold text-[#2a2318]">
+            <h3 className="text-lg font-semibold text-[#1a0f0a]">
               {journeyCompletionMessage.title}
             </h3>
-            <p className="text-sm text-[#6b5f52] leading-relaxed">
+            <p className="text-sm text-[#1a0f0a] leading-relaxed">
               {journeyCompletionMessage.message}
             </p>
             <div className="grid grid-cols-1 gap-2">
@@ -226,7 +226,7 @@ export function SevenDoorsOverview() {
                 <a
                   key={step.href}
                   href={step.href}
-                  className="text-sm text-[#d4a574] hover:text-[#8fa878] font-medium"
+                  className="text-sm text-[#d4a348] hover:text-[#c97a2a] font-medium"
                 >
                   {step.title} →
                 </a>
@@ -264,12 +264,12 @@ export function SevenDoorsOverview() {
 
       {/* Intention Selection */}
       {progress.completedDoors.includes(7) && !isComplete && (
-        <Card className="bg-[#f3ede5] border-l-4 border-[#d4a574]">
+        <Card className="bg-[#f3ede5] border-l-4 border-[#d4a348]">
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold text-[#2a2318]">
+            <h3 className="text-lg font-semibold text-[#1a0f0a]">
               Choose Your First Month Intention
             </h3>
-            <p className="text-sm text-[#6b5f52]">
+            <p className="text-sm text-[#1a0f0a]">
               {progress.selectedIntention
                 ? `Your intention: ${progress.selectedIntention}`
                 : "Select an intention for your first month in The Connection Room"}
@@ -298,7 +298,7 @@ export function SevenDoorsOverview() {
         >
           <Card className="w-full max-w-md mx-4">
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-[#2a2318]">
+              <h3 className="text-lg font-semibold text-[#1a0f0a]">
                 Choose Your First Month Intention
               </h3>
 
@@ -307,7 +307,7 @@ export function SevenDoorsOverview() {
                   <button
                     key={intention}
                     onClick={() => handleSetIntention(intention)}
-                    className="text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
+                    className="text-left px-3 py-2 rounded-lg text-sm text-[#1a0f0a] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
                   >
                     {intention}
                   </button>
@@ -315,14 +315,14 @@ export function SevenDoorsOverview() {
               </div>
 
               <div className="space-y-2">
-                <p className="text-xs text-[#8fa878] font-medium uppercase tracking-wide">
+                <p className="text-xs text-[#c97a2a] font-medium uppercase tracking-wide">
                   Or write your own
                 </p>
                 <textarea
                   value={customIntention}
                   onChange={(e) => setCustomIntention(e.target.value)}
                   placeholder="Write a custom intention..."
-                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm text-[#2a2318] bg-white"
+                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm text-[#1a0f0a] bg-white"
                   rows={2}
                 />
                 <Button
@@ -338,7 +338,7 @@ export function SevenDoorsOverview() {
 
               <button
                 onClick={() => setShowIntentionModal(false)}
-                className="px-3 py-2 text-sm text-[#6b5f52] hover:bg-[#f3ede5] rounded"
+                className="px-3 py-2 text-sm text-[#1a0f0a] hover:bg-[#f3ede5] rounded"
               >
                 Close
               </button>

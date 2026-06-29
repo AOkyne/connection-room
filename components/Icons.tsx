@@ -1,5 +1,5 @@
 // Custom SVG icons - bold, simple, iconic
-const COLOR = "#d4a574";
+const COLOR = "#d4a348";
 const STROKE = 2.5;
 
 interface IconProps {

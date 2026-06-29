@@ -20,8 +20,8 @@ export function LoadingError({
           <div className="flex justify-center mb-4">
             <div className="text-5xl">⚠️</div>
           </div>
-          <h2 className="text-2xl text-[#2a2318] font-semibold">{message}</h2>
-          <p className="text-base text-[#6b5f52]">
+          <h2 className="text-2xl text-[#1a0f0a] font-semibold">{message}</h2>
+          <p className="text-base text-[#1a0f0a]">
             The page did not finish loading. This might be a temporary connection issue.
           </p>
         </div>
@@ -41,7 +41,7 @@ export function LoadingError({
           </Button>
         </div>
 
-        <p className="text-xs text-[#a0968a] pt-4">
+        <p className="text-xs text-[#a0704a] pt-4">
           If this keeps happening, try refreshing the page or clearing your browser cache.
         </p>
       </div>

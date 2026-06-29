@@ -36,17 +36,17 @@ export function FeaturedSpacesCard({ spaces }: FeaturedSpacesCardProps) {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-[#2a2318]">Featured Spaces</h3>
+      <h3 className="text-lg font-semibold text-[#1a0f0a]">Featured Spaces</h3>
       <div className="grid md:grid-cols-2 gap-4">
         {featuredSpaces.map((space) => (
-          <Card key={space.id} className={`${space.color} border-l-4 border-[#d4a574]`}>
+          <Card key={space.id} className={`${space.color} border-l-4 border-[#d4a348]`}>
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <SpaceIconSVG spaceId={space.id} size={16} />
-                  <p className="text-sm font-semibold text-[#2a2318]">{space.name}</p>
+                  <p className="text-sm font-semibold text-[#1a0f0a]">{space.name}</p>
                 </div>
-                <p className="text-xs text-[#6b5f52] line-clamp-2">{space.description}</p>
+                <p className="text-xs text-[#1a0f0a] line-clamp-2">{space.description}</p>
               </div>
               <Link href={`/app/spaces/${space.id}`} className="flex-shrink-0">
                 <Button variant={space.isJoined ? "outline" : "primary"} size="sm">

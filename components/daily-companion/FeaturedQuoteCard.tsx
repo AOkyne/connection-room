@@ -13,7 +13,7 @@ export function FeaturedQuoteCard({ quote }: FeaturedQuoteCardProps) {
 
   return (
     <div style={{
-      backgroundColor: "#2a2318",
+      backgroundColor: "#1a0f0a",
       padding: "48px 40px",
       borderRadius: "16px",
       marginTop: "24px"
@@ -31,7 +31,7 @@ export function FeaturedQuoteCard({ quote }: FeaturedQuoteCardProps) {
       </p>
       <p style={{
         fontSize: "16px",
-        color: "#d4a574",
+        color: "#d4a348",
         margin: "0",
         fontWeight: "500",
         letterSpacing: "0.5px"

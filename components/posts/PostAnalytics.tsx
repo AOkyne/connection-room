@@ -36,7 +36,7 @@ export function PostAnalytics({
 
   if (compact) {
     return (
-      <div className="flex gap-3 text-xs text-[#a0968a]">
+      <div className="flex gap-3 text-xs text-[#a0704a]">
         {totalReactions > 0 && (
           <span className="flex items-center gap-1">
             {mostReactedEmoji ? mostReactedEmoji[0] : "👍"}{" "}
@@ -54,13 +54,13 @@ export function PostAnalytics({
   }
 
   return (
-    <div className="flex gap-4 text-sm text-[#6b5f52] py-2 border-t border-[#e8ddd2] mt-2">
+    <div className="flex gap-4 text-sm text-[#1a0f0a] py-2 border-t border-[#e8ddd2] mt-2">
       {/* Engagement Stats */}
       <div className="flex items-center gap-2">
         <span className="text-lg">💬</span>
         <div>
-          <p className="font-medium text-[#2a2318]">{commentCount}</p>
-          <p className="text-xs text-[#a0968a]">
+          <p className="font-medium text-[#1a0f0a]">{commentCount}</p>
+          <p className="text-xs text-[#a0704a]">
             {commentCount === 1 ? "comment" : "comments"}
           </p>
         </div>
@@ -70,8 +70,8 @@ export function PostAnalytics({
         <div className="flex items-center gap-2">
           <span className="text-lg">{mostReactedEmoji?.[0] || "👍"}</span>
           <div>
-            <p className="font-medium text-[#2a2318]">{totalReactions}</p>
-            <p className="text-xs text-[#a0968a]">
+            <p className="font-medium text-[#1a0f0a]">{totalReactions}</p>
+            <p className="text-xs text-[#a0704a]">
               {totalReactions === 1 ? "reaction" : "reactions"}
             </p>
           </div>
@@ -80,8 +80,8 @@ export function PostAnalytics({
 
       {/* Time Posted */}
       <div className="ml-auto text-right">
-        <p className="text-xs text-[#a0968a]">Posted</p>
-        <p className="font-medium text-[#2a2318]">{formatTimeAgo(createdAt)}</p>
+        <p className="text-xs text-[#a0704a]">Posted</p>
+        <p className="font-medium text-[#1a0f0a]">{formatTimeAgo(createdAt)}</p>
       </div>
     </div>
   );

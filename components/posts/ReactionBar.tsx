@@ -108,7 +108,7 @@ export function ReactionBar({
           aria-label="More reactions"
           aria-expanded={showMoreMenu}
           aria-haspopup="menu"
-          className="px-3 py-2 text-sm font-medium rounded-full border border-[#e8ddd2] text-[#6b5f52] hover:border-[#d4a574] hover:bg-[#f8f6f2] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-2 text-sm font-medium rounded-full border border-[#e8ddd2] text-[#1a0f0a] hover:border-[#d4a348] hover:bg-[#f8f6f2] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           More
         </button>
@@ -132,8 +132,8 @@ export function ReactionBar({
                     role="menuitem"
                     className={`block text-left px-3 py-2 text-sm rounded-lg transition-colors ${
                       isSelected
-                        ? "bg-[#d4a574] text-white"
-                        : "text-[#6b5f52] hover:bg-[#f3ede5]"
+                        ? "bg-[#d4a348] text-white"
+                        : "text-[#1a0f0a] hover:bg-[#f3ede5]"
                     }`}
                     aria-pressed={isSelected}
                   >

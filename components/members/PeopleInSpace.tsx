@@ -24,10 +24,10 @@ export function PeopleInSpace({
   return (
     <section className="space-y-4">
       <div>
-        <h3 className="text-xl font-semibold text-[#2a2318] mb-2">
+        <h3 className="text-xl font-semibold text-[#1a0f0a] mb-2">
           People in This Space
         </h3>
-        <p className="text-sm text-[#6b5f52]">
+        <p className="text-sm text-[#1a0f0a]">
           Meet the members exploring this topic together.
         </p>
       </div>
@@ -44,14 +44,14 @@ export function PeopleInSpace({
                 />
               </div>
               <div className="space-y-1">
-                <p className="font-medium text-sm text-[#2a2318] group-hover:text-[#d4a574] transition-colors">
+                <p className="font-medium text-sm text-[#1a0f0a] group-hover:text-[#d4a348] transition-colors">
                   {member.displayName}
                 </p>
                 {member.pronouns && (
-                  <p className="text-xs text-[#a0968a]">{member.pronouns}</p>
+                  <p className="text-xs text-[#a0704a]">{member.pronouns}</p>
                 )}
                 {member.profile_tagline && (
-                  <p className="text-xs text-[#6b5f52] italic">
+                  <p className="text-xs text-[#1a0f0a] italic">
                     "{member.profile_tagline}"
                   </p>
                 )}
@@ -65,7 +65,7 @@ export function PeopleInSpace({
         <div className="pt-2">
           <Link
             href={`/app/spaces/${spaceId}/members`}
-            className="inline-block text-sm font-medium text-[#d4a574] hover:text-[#c9956d] transition-colors"
+            className="inline-block text-sm font-medium text-[#d4a348] hover:text-[#c9956d] transition-colors"
           >
             See all {members.length} members
           </Link>

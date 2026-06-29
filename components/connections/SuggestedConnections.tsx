@@ -18,15 +18,15 @@ interface SuggestedConnectionsProps {
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 75) return "text-[#8fa878]";
-  if (score >= 50) return "text-[#d4a574]";
-  return "text-[#a0968a]";
+  if (score >= 75) return "text-[#c97a2a]";
+  if (score >= 50) return "text-[#d4a348]";
+  return "text-[#a0704a]";
 }
 
 function getScoreBgColor(score: number): string {
-  if (score >= 75) return "bg-[#8fa878]/10";
-  if (score >= 50) return "bg-[#d4a574]/10";
-  return "bg-[#a0968a]/10";
+  if (score >= 75) return "bg-[#c97a2a]/10";
+  if (score >= 50) return "bg-[#d4a348]/10";
+  return "bg-[#a0704a]/10";
 }
 
 export function SuggestedConnections({
@@ -90,7 +90,7 @@ export function SuggestedConnections({
     return (
       <Card>
         <CardHeader title="Suggested Connections" icon="🔗" />
-        <p className="text-center text-[#6b5f52] py-6">
+        <p className="text-center text-[#1a0f0a] py-6">
           No potential matches available right now. Check back soon!
         </p>
       </Card>
@@ -120,12 +120,12 @@ export function SuggestedConnections({
                 )}
 
                 <div className="p-3 w-full">
-                  <p className="font-medium text-[#2a2318] text-sm line-clamp-2 mb-1">
+                  <p className="font-medium text-[#1a0f0a] text-sm line-clamp-2 mb-1">
                     {match.profile.displayName}
                     {match.profile.pronouns && ` (${match.profile.pronouns})`}
                   </p>
 
-                  <p className="text-xs text-[#a0968a] mb-2 line-clamp-1">
+                  <p className="text-xs text-[#a0704a] mb-2 line-clamp-1">
                     {match.profile.location}
                   </p>
 
@@ -136,7 +136,7 @@ export function SuggestedConnections({
                   </div>
 
                   {match.sharedInterests.length > 0 && (
-                    <p className="text-xs text-[#6b5f52]">
+                    <p className="text-xs text-[#1a0f0a]">
                       {match.sharedInterests.length} shared interest{match.sharedInterests.length !== 1 ? 's' : ''}
                     </p>
                   )}

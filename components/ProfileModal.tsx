@@ -67,7 +67,7 @@ export function ProfileModal({
         <div className="sticky top-0 bg-white border-b border-[#e8ddd2] p-4 flex justify-end">
           <button
             onClick={onClose}
-            className="text-2xl text-[#a0968a] hover:text-[#6b5f52] transition-colors"
+            className="text-2xl text-[#a0704a] hover:text-[#1a0f0a] transition-colors"
             aria-label="Close"
           >
             ✕
@@ -83,7 +83,7 @@ export function ProfileModal({
                   src={profilePhoto}
                   alt={displayName}
                   onError={() => setPhotoError(true)}
-                  className="w-24 h-24 rounded-full object-cover border-2 border-[#d4a574]"
+                  className="w-24 h-24 rounded-full object-cover border-2 border-[#d4a348]"
                 />
               ) : (
                 <div
@@ -93,20 +93,20 @@ export function ProfileModal({
                     backgroundColor: getInitialColor(fullName),
                     color: "white",
                   }}
-                  className="rounded-full flex items-center justify-center border-2 border-[#d4a574] font-bold text-2xl"
+                  className="rounded-full flex items-center justify-center border-2 border-[#d4a348] font-bold text-2xl"
                 >
                   {getInitials(fullName)}
                 </div>
               )}
             </div>
-            <h2 className="text-2xl font-bold text-[#2a2318]">
+            <h2 className="text-2xl font-bold text-[#1a0f0a]">
               {fullName}
-              {pronouns && <span className="text-sm text-[#6b5f52] ml-2">({pronouns})</span>}
+              {pronouns && <span className="text-sm text-[#1a0f0a] ml-2">({pronouns})</span>}
             </h2>
           </div>
 
           {/* Location and Basic Info */}
-          <div className="space-y-3 text-center text-[#6b5f52]">
+          <div className="space-y-3 text-center text-[#1a0f0a]">
             {location && <p className="text-sm">📍 {location}</p>}
             {ageRange && <p className="text-sm">{ageRange}</p>}
             {orientation && relationshipStatus && (
@@ -119,27 +119,27 @@ export function ProfileModal({
           {/* Tagline */}
           {profile_tagline && (
             <div className="bg-[#f3ede5] p-4 rounded-lg">
-              <p className="text-center font-medium text-[#2a2318] italic">{profile_tagline}</p>
+              <p className="text-center font-medium text-[#1a0f0a] italic">{profile_tagline}</p>
             </div>
           )}
 
           {/* Quiz Result */}
           {quizResult && (
-            <div className="border-l-4 border-[#d4a574] pl-4">
-              <p className="text-xs uppercase tracking-wide text-[#a0968a] mb-1">Connection Pattern</p>
-              <p className="font-medium text-[#2a2318]">{quizResult}</p>
+            <div className="border-l-4 border-[#d4a348] pl-4">
+              <p className="text-xs uppercase tracking-wide text-[#a0704a] mb-1">Connection Pattern</p>
+              <p className="font-medium text-[#1a0f0a]">{quizResult}</p>
             </div>
           )}
 
           {/* Interests */}
           {interests && interests.length > 0 && (
             <div>
-              <p className="text-xs uppercase tracking-wide text-[#a0968a] mb-3">Interests</p>
+              <p className="text-xs uppercase tracking-wide text-[#a0704a] mb-3">Interests</p>
               <div className="flex flex-wrap gap-2">
                 {interests.map((interest) => (
                   <span
                     key={interest}
-                    className="bg-[#d4a574]/10 text-[#8a6f4f] text-sm px-3 py-1 rounded-full"
+                    className="bg-[#d4a348]/10 text-[#8a6f4f] text-sm px-3 py-1 rounded-full"
                   >
                     {interest}
                   </span>
@@ -151,16 +151,16 @@ export function ProfileModal({
           {/* What Brought You Here */}
           {whatBroughtYouHere && (
             <div>
-              <p className="text-xs uppercase tracking-wide text-[#a0968a] mb-2">What brought them here</p>
-              <p className="text-sm text-[#6b5f52] leading-relaxed">{whatBroughtYouHere}</p>
+              <p className="text-xs uppercase tracking-wide text-[#a0704a] mb-2">What brought them here</p>
+              <p className="text-sm text-[#1a0f0a] leading-relaxed">{whatBroughtYouHere}</p>
             </div>
           )}
 
           {/* Connection Hoping */}
           {connectionHoping && (
             <div>
-              <p className="text-xs uppercase tracking-wide text-[#a0968a] mb-2">Looking to connect with</p>
-              <p className="text-sm text-[#6b5f52] leading-relaxed">{connectionHoping}</p>
+              <p className="text-xs uppercase tracking-wide text-[#a0704a] mb-2">Looking to connect with</p>
+              <p className="text-sm text-[#1a0f0a] leading-relaxed">{connectionHoping}</p>
             </div>
           )}
 

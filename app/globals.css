@@ -5,13 +5,13 @@
   --surface: #f3ede5;
   --card: #fffbf7;
   --border: #e8ddd2;
-  --text: #2a2318;
-  --text-secondary: #6b5f52;
-  --text-muted: #a0968a;
-  --accent: #d4a574;
-  --accent-dark: #9d7f5c;
-  --rust: #b86a52;
-  --success: #8fa878;
+  --text: #1a0f0a;
+  --text-secondary: #1a0f0a;
+  --text-muted: #a0704a;
+  --accent: #d4a348;
+  --accent-dark: #8b6f47;
+  --rust: #a84a2a;
+  --success: #c97a2a;
 }
 
 @theme inline {

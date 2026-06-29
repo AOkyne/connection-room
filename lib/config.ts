@@ -24,15 +24,15 @@ export const appConfig = {
     surface: "#f3ede5", // warm sand
     card: "#fffbf7", // off-white with warmth
     border: "#e8ddd2", // warm neutral border
-    text: "#2a2318", // deep warm brown
-    textSecondary: "#6b5f52", // medium warm brown
-    textMuted: "#a0968a", // muted warm tone
-    accent: "#d4a574", // warm gold/amber
-    accentDark: "#9d7f5c", // deeper warm gold
-    rust: "#b86a52", // warm rust
-    success: "#8fa878", // soft sage green
-    warning: "#d4a574", // warm gold
-    error: "#b86a52", // warm rust
+    text: "#1a0f0a", // deep warm brown
+    textSecondary: "#1a0f0a", // medium warm brown
+    textMuted: "#a0704a", // muted warm tone
+    accent: "#d4a348", // warm gold/amber
+    accentDark: "#8b6f47", // deeper warm gold
+    rust: "#a84a2a", // warm rust
+    success: "#c97a2a", // soft sage green
+    warning: "#d4a348", // warm gold
+    error: "#a84a2a", // warm rust
   },
 
   // EROS Method Framework (for conceptual foundation)

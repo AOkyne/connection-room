@@ -40,19 +40,19 @@ export function ReflectionPromptCard({ prompt, userId, onSave }: ReflectionPromp
   if (!prompt) return null;
 
   return (
-    <Card className="bg-[#f3ede5] border-l-4 border-[#8fa878]">
+    <Card className="bg-[#f3ede5] border-l-4 border-[#c97a2a]">
       <div className="space-y-4">
         <div>
-          <p className="text-xs font-semibold text-[#8fa878] uppercase tracking-wide mb-2">
+          <p className="text-xs font-semibold text-[#c97a2a] uppercase tracking-wide mb-2">
             Today's Reflection
           </p>
-          <p className="text-lg text-[#2a2318] font-medium">{prompt.body}</p>
+          <p className="text-lg text-[#1a0f0a] font-medium">{prompt.body}</p>
         </div>
 
         {!showForm ? (
           <div className="flex gap-3 items-center">
             {!userId ? (
-              <p className="text-sm text-[#6b5f52] italic">Sign in to save your reflections</p>
+              <p className="text-sm text-[#1a0f0a] italic">Sign in to save your reflections</p>
             ) : (
               <>
                 <Button
@@ -62,7 +62,7 @@ export function ReflectionPromptCard({ prompt, userId, onSave }: ReflectionPromp
                 >
                   Write Your Response
                 </Button>
-                {saved && <span className="text-sm text-[#8fa878] font-medium">Saved</span>}
+                {saved && <span className="text-sm text-[#c97a2a] font-medium">Saved</span>}
               </>
             )}
           </div>
@@ -72,16 +72,16 @@ export function ReflectionPromptCard({ prompt, userId, onSave }: ReflectionPromp
               value={response}
               onChange={(e) => setResponse(e.target.value)}
               placeholder="Your reflection is private. Write freely."
-              className="w-full px-4 py-3 border border-[#e8ddd2] rounded-lg bg-white text-[#2a2318] focus:outline-none focus:ring-2 focus:ring-[#d4a574] resize-none"
+              className="w-full px-4 py-3 border border-[#e8ddd2] rounded-lg bg-white text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348] resize-none"
               rows={4}
             />
-            <p className="text-xs text-[#6b5f52] italic">
+            <p className="text-xs text-[#1a0f0a] italic">
               This reflection is completely private. Only you can see it.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowForm(false)}
-                className="px-4 py-2 text-sm text-[#6b5f52] hover:bg-[#e8ddd2] rounded font-medium"
+                className="px-4 py-2 text-sm text-[#1a0f0a] hover:bg-[#e8ddd2] rounded font-medium"
               >
                 Cancel
               </button>

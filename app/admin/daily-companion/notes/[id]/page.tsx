@@ -118,10 +118,10 @@ export default function EditWeeklyNote() {
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       <div>
-        <h1 className="text-4xl font-bold text-[#2a2318]">
+        <h1 className="text-4xl font-bold text-[#1a0f0a]">
           {isNew ? "Create New Weekly Note" : "Edit Weekly Note"}
         </h1>
-        <p className="text-[#6b5f52] mt-2">
+        <p className="text-[#1a0f0a] mt-2">
           {isNew
             ? "Add a new weekly Trevor note"
             : "Update this weekly note"}
@@ -131,7 +131,7 @@ export default function EditWeeklyNote() {
       <Card className="space-y-6">
         {/* Week Number */}
         <div>
-          <label className="block text-sm font-semibold text-[#2a2318] mb-2">
+          <label className="block text-sm font-semibold text-[#1a0f0a] mb-2">
             Week Number (1-16)
           </label>
           <input
@@ -142,16 +142,16 @@ export default function EditWeeklyNote() {
             onChange={(e) =>
               setNote({ ...note, week_number: parseInt(e.target.value) || 1 })
             }
-            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#2a2318] focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
           />
-          <p className="text-xs text-[#6b5f52] mt-1">
+          <p className="text-xs text-[#1a0f0a] mt-1">
             Which week in the 16-week cycle (1-16)
           </p>
         </div>
 
         {/* Title */}
         <div>
-          <label className="block text-sm font-semibold text-[#2a2318] mb-2">
+          <label className="block text-sm font-semibold text-[#1a0f0a] mb-2">
             Title
           </label>
           <input
@@ -159,13 +159,13 @@ export default function EditWeeklyNote() {
             value={note.title}
             onChange={(e) => setNote({ ...note, title: e.target.value })}
             placeholder="e.g., 'Week 1: Beginning Again'"
-            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#2a2318] focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
           />
         </div>
 
         {/* Body */}
         <div>
-          <label className="block text-sm font-semibold text-[#2a2318] mb-2">
+          <label className="block text-sm font-semibold text-[#1a0f0a] mb-2">
             Letter / Note
           </label>
           <textarea
@@ -173,16 +173,16 @@ export default function EditWeeklyNote() {
             onChange={(e) => setNote({ ...note, body: e.target.value })}
             placeholder="Trevor's weekly letter..."
             rows={10}
-            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#2a2318] focus:outline-none focus:ring-2 focus:ring-[#d4a574] resize-none"
+            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348] resize-none"
           />
-          <p className="text-xs text-[#6b5f52] mt-1">
+          <p className="text-xs text-[#1a0f0a] mt-1">
             {note.body.length} characters
           </p>
         </div>
 
         {/* Related Space */}
         <div>
-          <label className="block text-sm font-semibold text-[#2a2318] mb-2">
+          <label className="block text-sm font-semibold text-[#1a0f0a] mb-2">
             Related Space (Optional)
           </label>
           <select
@@ -193,7 +193,7 @@ export default function EditWeeklyNote() {
                 related_space_id: e.target.value || undefined,
               })
             }
-            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#2a2318] focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+            className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
           >
             <option value="">None</option>
             {spaces.map((space) => (
@@ -202,7 +202,7 @@ export default function EditWeeklyNote() {
               </option>
             ))}
           </select>
-          <p className="text-xs text-[#6b5f52] mt-1">
+          <p className="text-xs text-[#1a0f0a] mt-1">
             Link to a space that relates to this week's theme
           </p>
         </div>
@@ -214,11 +214,11 @@ export default function EditWeeklyNote() {
               type="checkbox"
               checked={note.active}
               onChange={(e) => setNote({ ...note, active: e.target.checked })}
-              className="w-4 h-4 rounded border border-[#d4a574]"
+              className="w-4 h-4 rounded border border-[#d4a348]"
             />
-            <span className="text-sm font-medium text-[#2a2318]">Active</span>
+            <span className="text-sm font-medium text-[#1a0f0a]">Active</span>
           </label>
-          <p className="text-xs text-[#6b5f52]">
+          <p className="text-xs text-[#1a0f0a]">
             Inactive notes won't show to members
           </p>
         </div>
@@ -248,18 +248,18 @@ export default function EditWeeklyNote() {
           <CardHeader title="Preview" />
           <div className="space-y-4">
             <div>
-              <p className="text-xs font-bold text-[#8fa878] uppercase tracking-wide">
+              <p className="text-xs font-bold text-[#c97a2a] uppercase tracking-wide">
                 Week {note.week_number} Note
               </p>
-              <h3 className="text-lg font-semibold text-[#2a2318] mt-1">
+              <h3 className="text-lg font-semibold text-[#1a0f0a] mt-1">
                 {note.title}
               </h3>
             </div>
-            <p className="text-sm text-[#6b5f52] leading-relaxed whitespace-pre-wrap">
+            <p className="text-sm text-[#1a0f0a] leading-relaxed whitespace-pre-wrap">
               {note.body}
             </p>
             {relatedSpace && (
-              <p className="text-xs text-[#6b5f52] pt-2 border-t border-[#e8ddd2]">
+              <p className="text-xs text-[#1a0f0a] pt-2 border-t border-[#e8ddd2]">
                 Related space: <span className="font-medium">{relatedSpace.name}</span>
               </p>
             )}

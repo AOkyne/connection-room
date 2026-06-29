@@ -37,7 +37,7 @@ export function SpaceMemberAvatars({
         {displayMembers.map((member, idx) => (
           <Link key={member.id} href={`/members/${member.id}`}>
             <div
-              className={`${sizeClasses[size]} rounded-full border-2 border-white overflow-hidden flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-[#d4a574] transition-all ${
+              className={`${sizeClasses[size]} rounded-full border-2 border-white overflow-hidden flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-[#d4a348] transition-all ${
                 idx > 0 ? overlapClasses[size] : ""
               }`}
               title={`${member.displayName} (${member.pronouns || "they/them"})`}
@@ -53,8 +53,8 @@ export function SpaceMemberAvatars({
       </div>
 
       <div className="text-sm">
-        <p className="font-medium text-[#2a2318]">{members.length}</p>
-        <p className="text-xs text-[#a0968a]">
+        <p className="font-medium text-[#1a0f0a]">{members.length}</p>
+        <p className="text-xs text-[#a0704a]">
           {members.length === 1 ? "member" : "members"}
         </p>
       </div>
@@ -62,7 +62,7 @@ export function SpaceMemberAvatars({
       {remainingCount > 0 && (
         <Link
           href={`/app/spaces/${spaceId}/members`}
-          className="text-xs text-[#d4a574] hover:text-[#c9956d] font-medium ml-1"
+          className="text-xs text-[#d4a348] hover:text-[#c9956d] font-medium ml-1"
         >
           +{remainingCount} more
         </Link>

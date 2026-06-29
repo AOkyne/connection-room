@@ -34,16 +34,16 @@ export function EventReminderBanner() {
 
   const bgColor =
     current.timing === "within_hour"
-      ? "bg-[#b86a52]/10 border-[#b86a52]" // rust/warning
+      ? "bg-[#a84a2a]/10 border-[#a84a2a]" // rust/warning
       : current.timing === "within_day"
-      ? "bg-[#d4a574]/10 border-[#d4a574]" // gold/attention
-      : "bg-[#8fa878]/10 border-[#8fa878]"; // sage/info
+      ? "bg-[#d4a348]/10 border-[#d4a348]" // gold/attention
+      : "bg-[#c97a2a]/10 border-[#c97a2a]"; // sage/info
 
   const textColor =
     current.timing === "within_hour"
-      ? "text-[#b86a52]"
+      ? "text-[#a84a2a]"
       : current.timing === "within_day"
-      ? "text-[#9d7f5c]"
+      ? "text-[#8b6f47]"
       : "text-[#7a8f6e]";
 
   return (
@@ -51,7 +51,7 @@ export function EventReminderBanner() {
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <p className={`font-medium ${textColor}`}>{message}</p>
-          <p className="text-xs text-[#a0968a] mt-2">
+          <p className="text-xs text-[#a0704a] mt-2">
             {current.timing === "within_hour" && "This event is starting soon!"}
             {current.timing === "within_day" && "See you tomorrow!"}
             {current.timing === "within_week" && "Mark your calendar!"}
@@ -60,7 +60,7 @@ export function EventReminderBanner() {
         {reminders.length > 1 && (
           <button
             onClick={() => setCurrentIndex((i) => (i + 1) % reminders.length)}
-            className="text-xs font-medium text-[#6b5f52] hover:text-[#2a2318] whitespace-nowrap"
+            className="text-xs font-medium text-[#1a0f0a] hover:text-[#1a0f0a] whitespace-nowrap"
           >
             Next ({currentIndex + 1}/{reminders.length})
           </button>

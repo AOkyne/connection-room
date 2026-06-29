@@ -37,7 +37,7 @@ export function ProfileVisibilitySettings({
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="text-sm text-[#d4a574] hover:text-[#c9956d] font-medium"
+        className="text-sm text-[#d4a348] hover:text-[#c9956d] font-medium"
       >
         Privacy Settings
       </button>
@@ -45,7 +45,7 @@ export function ProfileVisibilitySettings({
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6 space-y-6">
-            <h2 className="text-2xl font-semibold text-[#2a2318]">
+            <h2 className="text-2xl font-semibold text-[#1a0f0a]">
               Profile Visibility
             </h2>
 
@@ -64,10 +64,10 @@ export function ProfileVisibilitySettings({
                   className="w-5 h-5 mt-0.5"
                 />
                 <div className="flex-1">
-                  <p className="font-medium text-[#2a2318]">
+                  <p className="font-medium text-[#1a0f0a]">
                     Show in member lists
                   </p>
-                  <p className="text-sm text-[#a0968a]">
+                  <p className="text-sm text-[#a0704a]">
                     Allow others to see you in space directories
                   </p>
                 </div>
@@ -75,7 +75,7 @@ export function ProfileVisibilitySettings({
 
               {/* Visibility level */}
               <div className="border-t border-[#e8ddd2] pt-4">
-                <label className="block text-sm font-medium text-[#2a2318] mb-3">
+                <label className="block text-sm font-medium text-[#1a0f0a] mb-3">
                   Who can view your full profile?
                 </label>
                 <div className="space-y-2">
@@ -114,10 +114,10 @@ export function ProfileVisibilitySettings({
                         className="w-5 h-5 mt-0.5"
                       />
                       <div className="flex-1">
-                        <p className="font-medium text-[#2a2318]">
+                        <p className="font-medium text-[#1a0f0a]">
                           {option.label}
                         </p>
-                        <p className="text-xs text-[#a0968a]">{option.desc}</p>
+                        <p className="text-xs text-[#a0704a]">{option.desc}</p>
                       </div>
                     </label>
                   ))}
@@ -138,10 +138,10 @@ export function ProfileVisibilitySettings({
                   className="w-5 h-5 mt-0.5"
                 />
                 <div className="flex-1">
-                  <p className="font-medium text-[#2a2318]">
+                  <p className="font-medium text-[#1a0f0a]">
                     Show your location
                   </p>
-                  <p className="text-sm text-[#a0968a]">
+                  <p className="text-sm text-[#a0704a]">
                     Display your city/state on your profile
                   </p>
                 </div>
@@ -161,10 +161,10 @@ export function ProfileVisibilitySettings({
                   className="w-5 h-5 mt-0.5"
                 />
                 <div className="flex-1">
-                  <p className="font-medium text-[#2a2318]">
+                  <p className="font-medium text-[#1a0f0a]">
                     Show recent posts
                   </p>
-                  <p className="text-sm text-[#a0968a]">
+                  <p className="text-sm text-[#a0704a]">
                     Display your recent posts on your profile
                   </p>
                 </div>

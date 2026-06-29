@@ -43,8 +43,8 @@ export default function OnboardingPage() {
     return (
       <div className="min-h-screen bg-[#faf7f2] flex flex-col items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="animate-spin h-12 w-12 border-4 border-[#d4a574] border-t-transparent rounded-full mx-auto" />
-          <p className="text-[#6b5f52]">Setting up your profile...</p>
+          <div className="animate-spin h-12 w-12 border-4 border-[#d4a348] border-t-transparent rounded-full mx-auto" />
+          <p className="text-[#1a0f0a]">Setting up your profile...</p>
         </div>
       </div>
     );
@@ -127,7 +127,7 @@ export default function OnboardingPage() {
               />
             </Link>
             {currentStep !== "welcome" && (
-              <span className="text-sm text-[#a0968a]">
+              <span className="text-sm text-[#a0704a]">
                 Step {currentIndex + 1} of {steps.length}
               </span>
             )}
@@ -135,7 +135,7 @@ export default function OnboardingPage() {
           {currentStep !== "welcome" && (
             <div className="w-full bg-[#e8ddd2] rounded-full h-2">
               <div
-                className="bg-[#d4a574] h-2 rounded-full transition-all duration-300"
+                className="bg-[#d4a348] h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -150,29 +150,29 @@ export default function OnboardingPage() {
             <Card>
               <div className="text-center space-y-6">
                 <div>
-                  <h2 className="text-5xl text-[#2a2318] mb-2">Welcome to The Connection Room</h2>
-                  <p className="text-lg text-[#d4a574] font-medium">A space for authentic connection</p>
+                  <h2 className="text-5xl text-[#1a0f0a] mb-2">Welcome to The Connection Room</h2>
+                  <p className="text-lg text-[#d4a348] font-medium">A space for authentic connection</p>
                 </div>
-                <p className="text-lg text-[#6b5f52] leading-relaxed">
+                <p className="text-lg text-[#1a0f0a] leading-relaxed">
                   We're creating a community of people committed to exploring intimacy, vulnerability, and real connection. Your profile helps us match you with people on the same journey.
                 </p>
                 <div className="bg-[#f3ede5] p-6 rounded-lg space-y-3">
-                  <p className="font-semibold text-[#2a2318]">What's ahead:</p>
-                  <ul className="text-sm text-[#6b5f52] space-y-2 text-left">
+                  <p className="font-semibold text-[#1a0f0a]">What's ahead:</p>
+                  <ul className="text-sm text-[#1a0f0a] space-y-2 text-left">
                     <li className="flex items-start gap-2">
-                      <span className="text-[#d4a574]">✓</span>
+                      <span className="text-[#d4a348]">✓</span>
                       <span>Community agreements (what makes this space safe)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-[#d4a574]">✓</span>
+                      <span className="text-[#d4a348]">✓</span>
                       <span>Your story (who you are and what brings you here)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-[#d4a574]">✓</span>
+                      <span className="text-[#d4a348]">✓</span>
                       <span>Your preferences (how you want to connect)</span>
                     </li>
                   </ul>
-                  <p className="text-xs text-[#a0968a] pt-2">⏱️ Takes about 5 minutes</p>
+                  <p className="text-xs text-[#a0704a] pt-2">⏱️ Takes about 5 minutes</p>
                 </div>
                 <Button variant="primary" size="lg" onClick={handleNext} className="">
                   Let's Begin
@@ -185,25 +185,25 @@ export default function OnboardingPage() {
             <Card>
               <CardHeader title="Community Agreements" icon={<IconConnection size={20} />} />
               <div className="space-y-4">
-                <div className="bg-[#fffbf7] border-l-4 border-[#d4a574] p-4 rounded">
-                  <p className="text-[#6b5f52]">
-                    <span className="font-semibold text-[#2a2318]">Why this matters:</span> These agreements create the container for real connection. When everyone honors the same values, vulnerability becomes possible.
+                <div className="bg-[#fffbf7] border-l-4 border-[#d4a348] p-4 rounded">
+                  <p className="text-[#1a0f0a]">
+                    <span className="font-semibold text-[#1a0f0a]">Why this matters:</span> These agreements create the container for real connection. When everyone honors the same values, vulnerability becomes possible.
                   </p>
                 </div>
-                <p className="text-[#6b5f52] mb-2">
+                <p className="text-[#1a0f0a] mb-2">
                   Please read and acknowledge these agreements:
                 </p>
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {appConfig.communityAgreements.map((agreement, idx) => (
                     <div key={idx} className="flex items-start gap-3 p-3 bg-[#f3ede5] rounded-lg">
-                      <span className="text-[#d4a574]">✓</span>
-                      <span className="text-sm text-[#6b5f52]">{agreement}</span>
+                      <span className="text-[#d4a348]">✓</span>
+                      <span className="text-sm text-[#1a0f0a]">{agreement}</span>
                     </div>
                   ))}
                 </div>
-                <label className="flex items-center gap-3 p-3 border-2 border-[#d4a574] rounded-lg cursor-pointer mt-4">
+                <label className="flex items-center gap-3 p-3 border-2 border-[#d4a348] rounded-lg cursor-pointer mt-4">
                   <input type="checkbox" defaultChecked className="w-5 h-5" />
-                  <span className="text-[#6b5f52]">I agree to uphold these agreements</span>
+                  <span className="text-[#1a0f0a]">I agree to uphold these agreements</span>
                 </label>
               </div>
               <div className="flex gap-3 mt-6">
@@ -224,7 +224,7 @@ export default function OnboardingPage() {
                   <div className="text-center space-y-3 py-1">
                     <div className="text-4xl animate-bounce">✓</div>
                     <div>
-                      <p className="text-lg font-bold text-[#6b5f52]">You've set the foundation.</p>
+                      <p className="text-lg font-bold text-[#1a0f0a]">You've set the foundation.</p>
                       <p className="text-sm text-[#8b7f77] mt-1">Community agreements create the container for real connection.</p>
                     </div>
                   </div>
@@ -234,9 +234,9 @@ export default function OnboardingPage() {
                 <Card>
               <CardHeader title="Who Are You?" icon={<IconProfile size={20} />} />
               <div className="space-y-4">
-                <div className="bg-[#fffbf7] border-l-4 border-[#d4a574] p-4 rounded">
-                  <p className="text-[#6b5f52]">
-                    <span className="font-semibold text-[#2a2318]">This helps us:</span> Customize your experience and match you with people in similar situations who understand your journey.
+                <div className="bg-[#fffbf7] border-l-4 border-[#d4a348] p-4 rounded">
+                  <p className="text-[#1a0f0a]">
+                    <span className="font-semibold text-[#1a0f0a]">This helps us:</span> Customize your experience and match you with people in similar situations who understand your journey.
                   </p>
                 </div>
 
@@ -250,12 +250,12 @@ export default function OnboardingPage() {
                       }}
                       className={`p-4 text-left rounded-lg border-2 transition-all ${
                         profile.memberType === option.id
-                          ? "border-[#d4a574] bg-[#f3ede5]"
-                          : "border-[#e8ddd2] hover:border-[#d4a574]"
+                          ? "border-[#d4a348] bg-[#f3ede5]"
+                          : "border-[#e8ddd2] hover:border-[#d4a348]"
                       }`}
                     >
-                      <p className="font-medium text-[#2a2318]">{option.label}</p>
-                      <p className="text-sm text-[#6b5f52] mt-1">{option.description}</p>
+                      <p className="font-medium text-[#1a0f0a]">{option.label}</p>
+                      <p className="text-sm text-[#1a0f0a] mt-1">{option.description}</p>
                     </button>
                   ))}
                 </div>
@@ -286,7 +286,7 @@ export default function OnboardingPage() {
                   <div className="text-center space-y-3 py-1">
                     <div className="text-4xl animate-bounce">✓</div>
                     <div>
-                      <p className="text-lg font-bold text-[#6b5f52]">Your path is becoming clear.</p>
+                      <p className="text-lg font-bold text-[#1a0f0a]">Your path is becoming clear.</p>
                       <p className="text-sm text-[#8b7f77] mt-1">Now we'll learn who you are.</p>
                     </div>
                   </div>
@@ -296,14 +296,14 @@ export default function OnboardingPage() {
                 <Card>
               <CardHeader title="Your Profile" icon={<IconIntegration size={20} />} />
               <div className="space-y-4">
-                <div className="bg-[#fffbf7] border-l-4 border-[#d4a574] p-4 rounded">
-                  <p className="text-[#6b5f52]">
-                    <span className="font-semibold text-[#2a2318]">This helps us:</span> Understand who you are so we can match you with compatible people and create meaningful connections.
+                <div className="bg-[#fffbf7] border-l-4 border-[#d4a348] p-4 rounded">
+                  <p className="text-[#1a0f0a]">
+                    <span className="font-semibold text-[#1a0f0a]">This helps us:</span> Understand who you are so we can match you with compatible people and create meaningful connections.
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-[#2a2318] mb-2">First Name *</label>
+                    <label className="block text-sm font-medium text-[#1a0f0a] mb-2">First Name *</label>
                     <input
                       type="text"
                       value={profile.firstName}
@@ -314,12 +314,12 @@ export default function OnboardingPage() {
                           : firstName;
                         handleUpdate({ firstName, displayName });
                       }}
-                      className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+                      className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
                       placeholder="First name"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#2a2318] mb-2">Last Name *</label>
+                    <label className="block text-sm font-medium text-[#1a0f0a] mb-2">Last Name *</label>
                     <input
                       type="text"
                       value={profile.lastName}
@@ -330,56 +330,56 @@ export default function OnboardingPage() {
                           : profile.firstName;
                         handleUpdate({ lastName, displayName });
                       }}
-                      className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+                      className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
                       placeholder="Last name"
                     />
                   </div>
                 </div>
                 <div className="p-3 bg-[#f3ede5] rounded-lg">
-                  <p className="text-sm text-[#6b5f52]">
+                  <p className="text-sm text-[#1a0f0a]">
                     <span className="font-medium">Display name:</span> {profile.displayName || "(Will appear as First L.)"}
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-[#2a2318] mb-2">Pronouns</label>
+                    <label className="block text-sm font-medium text-[#1a0f0a] mb-2">Pronouns</label>
                     <input
                       type="text"
                       value={profile.pronouns || ""}
                       onChange={(e) => handleUpdate({ pronouns: e.target.value })}
                       placeholder="he/him"
-                      className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+                      className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#2a2318] mb-2">Location</label>
+                    <label className="block text-sm font-medium text-[#1a0f0a] mb-2">Location</label>
                     <input
                       type="text"
                       value={profile.location || ""}
                       onChange={(e) => handleUpdate({ location: e.target.value })}
                       placeholder="City, State"
-                      className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+                      className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#2a2318] mb-2">What brought you here?</label>
+                  <label className="block text-sm font-medium text-[#1a0f0a] mb-2">What brought you here?</label>
                   <textarea
                     value={profile.whatBroughtYouHere || ""}
                     onChange={(e) => handleUpdate({ whatBroughtYouHere: e.target.value })}
                     placeholder="Share what drew you to this community..."
                     rows={3}
-                    className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+                    className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#2a2318] mb-2">Profile tagline (optional)</label>
+                  <label className="block text-sm font-medium text-[#1a0f0a] mb-2">Profile tagline (optional)</label>
                   <input
                     type="text"
                     value={profile.profile_tagline || ""}
                     onChange={(e) => handleUpdate({ profile_tagline: e.target.value })}
                     placeholder="A short phrase that captures who you are (e.g., 'Learning to be vulnerable')"
-                    className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+                    className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
                   />
                 </div>
               </div>
@@ -403,7 +403,7 @@ export default function OnboardingPage() {
                   <div className="text-center space-y-3 py-1">
                     <div className="text-4xl animate-bounce">✓</div>
                     <div>
-                      <p className="text-lg font-bold text-[#6b5f52]">You're halfway there.</p>
+                      <p className="text-lg font-bold text-[#1a0f0a]">You're halfway there.</p>
                       <p className="text-sm text-[#8b7f77] mt-1">Thanks for arriving thoughtfully.</p>
                     </div>
                   </div>
@@ -413,20 +413,20 @@ export default function OnboardingPage() {
                 <Card>
                   <CardHeader title="Add Your Photo" icon="📸" />
                   <div className="space-y-4">
-                    <div className="bg-[#fffbf7] border-l-4 border-[#d4a574] p-4 rounded">
-                      <p className="text-[#6b5f52]">
-                        <span className="font-semibold text-[#2a2318]">Why your photo matters:</span> A real, current photo helps people recognize you and builds the human connection this community is built on.
+                    <div className="bg-[#fffbf7] border-l-4 border-[#d4a348] p-4 rounded">
+                      <p className="text-[#1a0f0a]">
+                        <span className="font-semibold text-[#1a0f0a]">Why your photo matters:</span> A real, current photo helps people recognize you and builds the human connection this community is built on.
                       </p>
                     </div>
 
-                    <p className="text-[#6b5f52]">
+                    <p className="text-[#1a0f0a]">
                       Share a clear, recent photo where your face is visible. This is essential to our community.
                     </p>
                   </div>
 
                   {/* File Upload */}
                   <div className="space-y-4">
-                    <label className="block text-sm font-medium text-[#2a2318]">
+                    <label className="block text-sm font-medium text-[#1a0f0a]">
                       Upload your photo
                     </label>
                     <input
@@ -443,9 +443,9 @@ export default function OnboardingPage() {
                           reader.readAsDataURL(file);
                         }
                       }}
-                      className="w-full px-4 py-3 border-2 border-dashed border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm"
+                      className="w-full px-4 py-3 border-2 border-dashed border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm"
                     />
-                    <p className="text-xs text-[#a0968a]">JPG, PNG, or GIF. Max 5MB. A clear, recent photo works best.</p>
+                    <p className="text-xs text-[#a0704a]">JPG, PNG, or GIF. Max 5MB. A clear, recent photo works best.</p>
                   </div>
 
                   {/* Current Photo Preview */}
@@ -474,7 +474,7 @@ export default function OnboardingPage() {
                           }
                           className="w-5 h-5 mt-0.5 flex-shrink-0"
                         />
-                        <span className="text-sm text-[#6b5f52]">
+                        <span className="text-sm text-[#1a0f0a]">
                           I confirm this is a current, recognizable photograph of me and that I have permission to use it.
                         </span>
                       </label>
@@ -507,7 +507,7 @@ export default function OnboardingPage() {
                   <div className="text-center space-y-3 py-1">
                     <div className="text-4xl animate-bounce">✓</div>
                     <div>
-                      <p className="text-lg font-bold text-[#6b5f52]">Your photo is in place.</p>
+                      <p className="text-lg font-bold text-[#1a0f0a]">Your photo is in place.</p>
                       <p className="text-sm text-[#8b7f77] mt-1">A real face helps the room feel more human.</p>
                     </div>
                   </div>
@@ -517,13 +517,13 @@ export default function OnboardingPage() {
                 <Card>
                   <CardHeader title="Your Interests" icon={<IconIntegration size={20} />} />
                   <div className="space-y-4">
-                    <div className="bg-[#fffbf7] border-l-4 border-[#d4a574] p-4 rounded">
-                      <p className="text-[#6b5f52]">
-                        <span className="font-semibold text-[#2a2318]">This helps us:</span> Connect you with people who share your interests and are exploring similar aspects of intimacy and connection.
+                    <div className="bg-[#fffbf7] border-l-4 border-[#d4a348] p-4 rounded">
+                      <p className="text-[#1a0f0a]">
+                        <span className="font-semibold text-[#1a0f0a]">This helps us:</span> Connect you with people who share your interests and are exploring similar aspects of intimacy and connection.
                       </p>
                     </div>
 
-                    <p className="text-[#6b5f52] mb-2">What draws you here? (Select all that apply)</p>
+                    <p className="text-[#1a0f0a] mb-2">What draws you here? (Select all that apply)</p>
                     <div className="space-y-2">
                       {appConfig.interests.map((interest) => (
                         <label key={interest} className="flex items-center gap-3 p-3 hover:bg-[#f3ede5] rounded-lg cursor-pointer">
@@ -539,11 +539,11 @@ export default function OnboardingPage() {
                             }}
                             className="w-5 h-5"
                           />
-                          <span className="text-[#6b5f52]">{interest}</span>
+                          <span className="text-[#1a0f0a]">{interest}</span>
                         </label>
                       ))}
                       <div className="border-t border-[#e8ddd2] pt-3 mt-3">
-                        <label className="block text-sm font-medium text-[#2a2318] mb-2">Other interests?</label>
+                        <label className="block text-sm font-medium text-[#1a0f0a] mb-2">Other interests?</label>
                         <input
                           type="text"
                           placeholder="Tell us what else draws you..."
@@ -555,7 +555,7 @@ export default function OnboardingPage() {
                             const updated = e.target.value ? [...baseInterests, e.target.value] : baseInterests;
                             handleUpdate({ interests: updated });
                           }}
-                          className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574] text-sm"
+                          className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-sm"
                         />
                       </div>
                     </div>
@@ -581,7 +581,7 @@ export default function OnboardingPage() {
                   <div className="text-center space-y-3 py-1">
                     <div className="text-4xl animate-bounce">✨</div>
                     <div>
-                      <p className="text-lg font-bold text-[#6b5f52]">You know what draws you.</p>
+                      <p className="text-lg font-bold text-[#1a0f0a]">You know what draws you.</p>
                       <p className="text-sm text-[#8b7f77] mt-1">Your interests light the way forward.</p>
                     </div>
                   </div>
@@ -591,12 +591,12 @@ export default function OnboardingPage() {
                 <Card>
               <CardHeader title="Connections" icon={<IconConnection size={20} />} />
               <div className="space-y-4">
-                <div className="bg-[#fffbf7] border-l-4 border-[#d4a574] p-4 rounded">
-                  <p className="text-[#6b5f52]">
-                    <span className="font-semibold text-[#2a2318]">What are connections:</span> Structured 20-minute conversations with matched members. A guided, safe way to practice vulnerability and authentic connection.
+                <div className="bg-[#fffbf7] border-l-4 border-[#d4a348] p-4 rounded">
+                  <p className="text-[#1a0f0a]">
+                    <span className="font-semibold text-[#1a0f0a]">What are connections:</span> Structured 20-minute conversations with matched members. A guided, safe way to practice vulnerability and authentic connection.
                   </p>
                 </div>
-                <p className="text-[#6b5f52]">
+                <p className="text-[#1a0f0a]">
                   Would you like to participate in connections?
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -610,15 +610,15 @@ export default function OnboardingPage() {
                       onClick={() => handleUpdate({ connectionComfortLevel: option.id })}
                       className={`p-4 text-center rounded-lg border-2 transition-all ${
                         profile.connectionComfortLevel === option.id
-                          ? "border-[#d4a574] bg-[#f3ede5]"
-                          : "border-[#e8ddd2] hover:border-[#d4a574]"
+                          ? "border-[#d4a348] bg-[#f3ede5]"
+                          : "border-[#e8ddd2] hover:border-[#d4a348]"
                       }`}
                     >
-                      <p className="text-[#6b5f52] text-sm">{option.label}</p>
+                      <p className="text-[#1a0f0a] text-sm">{option.label}</p>
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-[#a0968a] pt-2">
+                <p className="text-xs text-[#a0704a] pt-2">
                   You can update your connection preferences anytime in your profile.
                 </p>
               </div>
@@ -642,7 +642,7 @@ export default function OnboardingPage() {
                   <div className="text-center space-y-3 py-1">
                     <div className="text-4xl animate-bounce">🤝</div>
                     <div>
-                      <p className="text-lg font-bold text-[#6b5f52]">You're ready to connect.</p>
+                      <p className="text-lg font-bold text-[#1a0f0a]">You're ready to connect.</p>
                       <p className="text-sm text-[#8b7f77] mt-1">Now let's honor your partnership.</p>
                     </div>
                   </div>
@@ -652,32 +652,32 @@ export default function OnboardingPage() {
                 <Card>
               <CardHeader title="Couples Profile" icon={<IconCouples size={20} />} />
               <div className="space-y-4">
-                <div className="bg-[#fffbf7] border-l-4 border-[#d4a574] p-4 rounded">
-                  <p className="text-[#6b5f52]">
-                    <span className="font-semibold text-[#2a2318]">Your couple journey:</span> Tell us about your partnership and what you're exploring together. This helps us suggest relevant experiences and matches.
+                <div className="bg-[#fffbf7] border-l-4 border-[#d4a348] p-4 rounded">
+                  <p className="text-[#1a0f0a]">
+                    <span className="font-semibold text-[#1a0f0a]">Your couple journey:</span> Tell us about your partnership and what you're exploring together. This helps us suggest relevant experiences and matches.
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#2a2318] mb-2">Couple Name (optional)</label>
+                  <label className="block text-sm font-medium text-[#1a0f0a] mb-2">Couple Name (optional)</label>
                   <input
                     type="text"
                     placeholder="How would you like to be known as a couple?"
-                    className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+                    className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#2a2318] mb-2">What are your couple goals? (Select all)</label>
+                  <label className="block text-sm font-medium text-[#1a0f0a] mb-2">What are your couple goals? (Select all)</label>
                   <div className="space-y-2">
                     {appConfig.coupleGoals.map((goal) => (
                       <label key={goal} className="flex items-center gap-3 p-2 hover:bg-[#f3ede5] rounded-lg cursor-pointer">
                         <input type="checkbox" className="w-5 h-5" />
-                        <span className="text-sm text-[#6b5f52]">{goal}</span>
+                        <span className="text-sm text-[#1a0f0a]">{goal}</span>
                       </label>
                     ))}
                   </div>
                 </div>
                 <div className="bg-[#f3ede5] p-4 rounded-lg">
-                  <p className="text-sm text-[#6b5f52]">
+                  <p className="text-sm text-[#1a0f0a]">
                     💡 <strong>Partner Invitation:</strong> Partner accounts coming in Phase 2. For now, complete your profile and we'll guide you on next steps.
                   </p>
                 </div>
@@ -702,7 +702,7 @@ export default function OnboardingPage() {
                   <div className="text-center space-y-3 py-1">
                     <div className="text-4xl animate-pulse">✨</div>
                     <div>
-                      <p className="text-lg font-bold text-[#6b5f52]">One final reflection,</p>
+                      <p className="text-lg font-bold text-[#1a0f0a]">One final reflection,</p>
                       <p className="text-sm text-[#8b7f77] mt-1">then the room is yours to explore.</p>
                     </div>
                   </div>
@@ -712,13 +712,13 @@ export default function OnboardingPage() {
                 <Card>
                   <CardHeader title="First Reflection" icon={<IconReflection size={20} />} />
                   <div className="space-y-4">
-                    <div className="bg-[#fffbf7] border-l-4 border-[#d4a574] p-4 rounded">
-                      <p className="text-[#6b5f52]">
-                        <span className="font-semibold text-[#2a2318]">Reflections are private and powerful:</span> This first reflection sets the container for your experience. It's just for you—a chance to name what you're seeking and what's holding you back.
+                    <div className="bg-[#fffbf7] border-l-4 border-[#d4a348] p-4 rounded">
+                      <p className="text-[#1a0f0a]">
+                        <span className="font-semibold text-[#1a0f0a]">Reflections are private and powerful:</span> This first reflection sets the container for your experience. It's just for you—a chance to name what you're seeking and what's holding you back.
                       </p>
                     </div>
 
-                    <div className="bg-[#f3ede5] p-4 rounded-lg italic text-[#6b5f52]">
+                    <div className="bg-[#f3ede5] p-4 rounded-lg italic text-[#1a0f0a]">
                       "What kind of connection are you craving this week, and what part of you feels hesitant to ask for it?"
                     </div>
 
@@ -727,33 +727,33 @@ export default function OnboardingPage() {
                       onChange={(e) => handleUpdate({ firstPromptResponse: e.target.value })}
                       placeholder="Your reflection (optional for now)..."
                       rows={4}
-                      className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a574]"
+                      className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
                     />
 
                     <div className="space-y-3">
-                      <label className="text-sm font-medium text-[#2a2318] block">What would you like to do with this reflection?</label>
+                      <label className="text-sm font-medium text-[#1a0f0a] block">What would you like to do with this reflection?</label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <button
                           onClick={() => handleUpdate({ firstPromptIsPublic: true })}
                           className={`p-4 text-left rounded-lg border-2 transition-all ${
                             profile.firstPromptIsPublic === true
-                              ? "border-[#d4a574] bg-[#f3ede5]"
-                              : "border-[#e8ddd2] hover:border-[#d4a574]"
+                              ? "border-[#d4a348] bg-[#f3ede5]"
+                              : "border-[#e8ddd2] hover:border-[#d4a348]"
                           }`}
                         >
-                          <p className="font-medium text-[#2a2318]">Share in the Community</p>
-                          <p className="text-xs text-[#6b5f52] mt-1">Other members can see and respond</p>
+                          <p className="font-medium text-[#1a0f0a]">Share in the Community</p>
+                          <p className="text-xs text-[#1a0f0a] mt-1">Other members can see and respond</p>
                         </button>
                         <button
                           onClick={() => handleUpdate({ firstPromptIsPublic: false })}
                           className={`p-4 text-left rounded-lg border-2 transition-all ${
                             profile.firstPromptIsPublic === false
-                              ? "border-[#d4a574] bg-[#f3ede5]"
-                              : "border-[#e8ddd2] hover:border-[#d4a574]"
+                              ? "border-[#d4a348] bg-[#f3ede5]"
+                              : "border-[#e8ddd2] hover:border-[#d4a348]"
                           }`}
                         >
-                          <p className="font-medium text-[#2a2318]">Keep Private</p>
-                          <p className="text-xs text-[#6b5f52] mt-1">Just for your journey, not shared</p>
+                          <p className="font-medium text-[#1a0f0a]">Keep Private</p>
+                          <p className="text-xs text-[#1a0f0a] mt-1">Just for your journey, not shared</p>
                         </button>
                       </div>
                     </div>
@@ -776,8 +776,8 @@ export default function OnboardingPage() {
             <Card>
               <div className="text-center space-y-6">
                 <div className="text-6xl">🎉</div>
-                <h2 className="text-3xl text-[#2a2318]">Welcome to The Connection Room</h2>
-                <p className="text-lg text-[#6b5f52]">
+                <h2 className="text-3xl text-[#1a0f0a]">Welcome to The Connection Room</h2>
+                <p className="text-lg text-[#1a0f0a]">
                   Your profile is ready, and you're part of the community.
                 </p>
 
@@ -812,7 +812,7 @@ export default function OnboardingPage() {
                   </Button>
                 </div>
 
-                <p className="text-xs text-[#a0968a] pt-2">
+                <p className="text-xs text-[#a0704a] pt-2">
                   {isSubmitting
                     ? "Saving your profile..."
                     : "Your profile will be saved and you'll enter the app."}
@@ -826,56 +826,56 @@ export default function OnboardingPage() {
               <div className="text-center space-y-8">
                 <div className="space-y-2">
                   <div className="text-6xl mb-4 animate-bounce">✓</div>
-                  <h2 className="text-5xl text-[#2a2318]">You're in</h2>
-                  <p className="text-xl text-[#d4a574] font-medium">Welcome to The Connection Room</p>
-                  <p className="text-lg text-[#6b5f52] mt-4 leading-relaxed">
+                  <h2 className="text-5xl text-[#1a0f0a]">You're in</h2>
+                  <p className="text-xl text-[#d4a348] font-medium">Welcome to The Connection Room</p>
+                  <p className="text-lg text-[#1a0f0a] mt-4 leading-relaxed">
                     Your profile is complete, and you're now part of our community. You're ready to explore connection, meet others on the same path, and begin your journey toward authentic intimacy.
                   </p>
                 </div>
 
                 <div className="bg-[#f3ede5] p-6 rounded-lg space-y-3">
-                  <p className="font-semibold text-[#2a2318]">What you can do now:</p>
-                  <ul className="text-sm text-[#6b5f52] space-y-2 text-left">
+                  <p className="font-semibold text-[#1a0f0a]">What you can do now:</p>
+                  <ul className="text-sm text-[#1a0f0a] space-y-2 text-left">
                     <li className="flex items-start gap-2">
-                      <span className="text-[#d4a574]">🚪</span>
+                      <span className="text-[#d4a348]">🚪</span>
                       <span><strong>Seven Doors:</strong> A guided 7-week journey through connection</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-[#d4a574]">🤝</span>
+                      <span className="text-[#d4a348]">🤝</span>
                       <span><strong>Find Connections:</strong> Browse people matched to your interests</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-[#d4a574]">💬</span>
+                      <span className="text-[#d4a348]">💬</span>
                       <span><strong>Join Spaces:</strong> Share reflections and connect with the community</span>
                     </li>
                   </ul>
                 </div>
 
                 <div className="space-y-4">
-                  <p className="text-[#6b5f52] font-medium">Where would you like to start?</p>
+                  <p className="text-[#1a0f0a] font-medium">Where would you like to start?</p>
 
                   <button
                     onClick={() => handleNavigateToDestination("/app/journey")}
-                    className="w-full p-4 text-left rounded-lg border-2 border-[#d4a574] bg-[#f3ede5] hover:bg-[#e8ddd2] transition-all"
+                    className="w-full p-4 text-left rounded-lg border-2 border-[#d4a348] bg-[#f3ede5] hover:bg-[#e8ddd2] transition-all"
                   >
-                    <p className="font-medium text-[#2a2318]">🚪 Start the Seven Doors</p>
-                    <p className="text-sm text-[#6b5f52] mt-1">Your first guided chapter—explore your connection patterns and begin your transformation</p>
+                    <p className="font-medium text-[#1a0f0a]">🚪 Start the Seven Doors</p>
+                    <p className="text-sm text-[#1a0f0a] mt-1">Your first guided chapter—explore your connection patterns and begin your transformation</p>
                   </button>
 
                   <button
                     onClick={() => handleNavigateToDestination("/app/spaces?space=commons")}
-                    className="p-4 text-left rounded-lg border-2 border-[#e8ddd2] hover:border-[#d4a574] hover:bg-[#f3ede5] transition-all"
+                    className="p-4 text-left rounded-lg border-2 border-[#e8ddd2] hover:border-[#d4a348] hover:bg-[#f3ede5] transition-all"
                   >
-                    <p className="font-medium text-[#2a2318]">Visit The Commons</p>
-                    <p className="text-sm text-[#6b5f52] mt-1">Introduce yourself and see who else is here</p>
+                    <p className="font-medium text-[#1a0f0a]">Visit The Commons</p>
+                    <p className="text-sm text-[#1a0f0a] mt-1">Introduce yourself and see who else is here</p>
                   </button>
 
                   <button
                     onClick={() => handleNavigateToDestination("/app/spaces")}
-                    className="p-4 text-left rounded-lg border-2 border-[#e8ddd2] hover:border-[#d4a574] hover:bg-[#f3ede5] transition-all"
+                    className="p-4 text-left rounded-lg border-2 border-[#e8ddd2] hover:border-[#d4a348] hover:bg-[#f3ede5] transition-all"
                   >
-                    <p className="font-medium text-[#2a2318]">Explore Your Spaces</p>
-                    <p className="text-sm text-[#6b5f52] mt-1">Browse all the communities available to you</p>
+                    <p className="font-medium text-[#1a0f0a]">Explore Your Spaces</p>
+                    <p className="text-sm text-[#1a0f0a] mt-1">Browse all the communities available to you</p>
                   </button>
                 </div>
 

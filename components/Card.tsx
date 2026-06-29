@@ -35,8 +35,8 @@ export function CardHeader({ title, subtitle, icon }: CardHeaderProps) {
           </div>
         )}
         <div>
-          <h3 className="text-2xl text-[#2a2318]">{title}</h3>
-          {subtitle && <p className="text-sm text-[#a0968a] mt-1">{subtitle}</p>}
+          <h3 className="text-2xl text-[#1a0f0a]">{title}</h3>
+          {subtitle && <p className="text-sm text-[#a0704a] mt-1">{subtitle}</p>}
         </div>
       </div>
     </div>

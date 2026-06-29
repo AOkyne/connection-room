@@ -30,10 +30,10 @@ export function Toast({ message, type = "info", duration = 3000, onClose, action
   if (!isVisible) return null;
 
   const styles = {
-    success: { bg: "bg-[#8fa878]", icon: "✓" },
+    success: { bg: "bg-[#c97a2a]", icon: "✓" },
     error: { bg: "bg-[#d97706]", icon: "✕" },
-    warning: { bg: "bg-[#d4a574]", icon: "⚠" },
-    info: { bg: "bg-[#6b5f52]", icon: "ℹ" },
+    warning: { bg: "bg-[#d4a348]", icon: "⚠" },
+    info: { bg: "bg-[#1a0f0a]", icon: "ℹ" },
   }[type];
 
   return (

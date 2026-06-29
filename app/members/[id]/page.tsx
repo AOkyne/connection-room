@@ -36,7 +36,7 @@ export default function MemberProfilePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center">
-        <p className="text-[#a0968a]">Loading profile...</p>
+        <p className="text-[#a0704a]">Loading profile...</p>
       </div>
     );
   }
@@ -44,7 +44,7 @@ export default function MemberProfilePage() {
   if (!member) {
     return (
       <div className="min-h-screen bg-[#faf7f2] flex items-center justify-center">
-        <p className="text-[#6b5f52]">Member not found</p>
+        <p className="text-[#1a0f0a]">Member not found</p>
       </div>
     );
   }
@@ -66,7 +66,7 @@ export default function MemberProfilePage() {
         <div className="max-w-4xl mx-auto px-4 py-4 sm:px-6">
           <button
             onClick={() => router.back()}
-            className="inline-flex text-[#d4a574] hover:text-[#c9956d] mb-4 bg-none border-none cursor-pointer font-inherit"
+            className="inline-flex text-[#d4a348] hover:text-[#c9956d] mb-4 bg-none border-none cursor-pointer font-inherit"
           >
             Back
           </button>
@@ -88,7 +88,7 @@ export default function MemberProfilePage() {
                 />
               </div>
               {member.is_demo_profile && (
-                <span className="bg-[#e8ddd2] text-[#a0968a] text-xs font-normal px-2 py-0.5 rounded">
+                <span className="bg-[#e8ddd2] text-[#a0704a] text-xs font-normal px-2 py-0.5 rounded">
                   Sample
                 </span>
               )}
@@ -97,36 +97,36 @@ export default function MemberProfilePage() {
             {/* Info */}
             <div className="sm:col-span-2 space-y-6">
               <div>
-                <h1 className="text-3xl font-semibold text-[#2a2318] mb-1">
+                <h1 className="text-3xl font-semibold text-[#1a0f0a] mb-1">
                   {member.displayName}
                 </h1>
                 {member.pronouns && (
-                  <p className="text-[#a0968a]">{member.pronouns}</p>
+                  <p className="text-[#a0704a]">{member.pronouns}</p>
                 )}
               </div>
 
               {member.profile_tagline && (
-                <div className="bg-[#f3ede5] p-4 rounded-lg italic text-[#6b5f52]">
+                <div className="bg-[#f3ede5] p-4 rounded-lg italic text-[#1a0f0a]">
                   "{member.profile_tagline}"
                 </div>
               )}
 
               <div className="space-y-2">
                 {member.location && (
-                  <p className="text-[#6b5f52]">
-                    <strong className="text-[#2a2318]">Location:</strong>{" "}
+                  <p className="text-[#1a0f0a]">
+                    <strong className="text-[#1a0f0a]">Location:</strong>{" "}
                     {member.location}
                   </p>
                 )}
                 {member.ageRange && (
-                  <p className="text-[#6b5f52]">
-                    <strong className="text-[#2a2318]">Age:</strong>{" "}
+                  <p className="text-[#1a0f0a]">
+                    <strong className="text-[#1a0f0a]">Age:</strong>{" "}
                     {member.ageRange}
                   </p>
                 )}
                 {member.relationshipStatus && (
-                  <p className="text-[#6b5f52]">
-                    <strong className="text-[#2a2318]">Relationship:</strong>{" "}
+                  <p className="text-[#1a0f0a]">
+                    <strong className="text-[#1a0f0a]">Relationship:</strong>{" "}
                     {member.relationshipStatus}
                   </p>
                 )}
@@ -134,7 +134,7 @@ export default function MemberProfilePage() {
 
               {sharedSpaces.length > 0 && (
                 <div className="pt-4 border-t border-[#e8ddd2]">
-                  <p className="text-sm text-[#a0968a] mb-2">
+                  <p className="text-sm text-[#a0704a] mb-2">
                     You're both in {sharedSpaces.length} space
                     {sharedSpaces.length !== 1 ? "s" : ""}
                   </p>
@@ -147,10 +147,10 @@ export default function MemberProfilePage() {
         {/* About Section */}
         {member.whatBroughtYouHere && (
           <section className="bg-white rounded-lg p-6 sm:p-8 space-y-4">
-            <h2 className="text-2xl font-semibold text-[#2a2318]">
+            <h2 className="text-2xl font-semibold text-[#1a0f0a]">
               What Brought Them Here
             </h2>
-            <p className="text-[#6b5f52] leading-relaxed">
+            <p className="text-[#1a0f0a] leading-relaxed">
               {member.whatBroughtYouHere}
             </p>
           </section>
@@ -159,10 +159,10 @@ export default function MemberProfilePage() {
         {/* Connection Hoping */}
         {member.connectionHoping && (
           <section className="bg-white rounded-lg p-6 sm:p-8 space-y-4">
-            <h2 className="text-2xl font-semibold text-[#2a2318]">
+            <h2 className="text-2xl font-semibold text-[#1a0f0a]">
               What They're Looking For
             </h2>
-            <p className="text-[#6b5f52] leading-relaxed">
+            <p className="text-[#1a0f0a] leading-relaxed">
               {member.connectionHoping}
             </p>
           </section>
@@ -171,12 +171,12 @@ export default function MemberProfilePage() {
         {/* Interests */}
         {member.interests && member.interests.length > 0 && (
           <section className="bg-white rounded-lg p-6 sm:p-8 space-y-4">
-            <h2 className="text-2xl font-semibold text-[#2a2318]">Interests</h2>
+            <h2 className="text-2xl font-semibold text-[#1a0f0a]">Interests</h2>
             <div className="flex flex-wrap gap-2">
               {member.interests.map((interest) => (
                 <span
                   key={interest}
-                  className="inline-block bg-[#f3ede5] text-[#6b5f52] px-4 py-2 rounded-full text-sm"
+                  className="inline-block bg-[#f3ede5] text-[#1a0f0a] px-4 py-2 rounded-full text-sm"
                 >
                   {interest}
                 </span>
@@ -188,7 +188,7 @@ export default function MemberProfilePage() {
         {/* Spaces */}
         {memberSpaces.length > 0 && (
           <section className="bg-white rounded-lg p-6 sm:p-8 space-y-4">
-            <h2 className="text-2xl font-semibold text-[#2a2318]">
+            <h2 className="text-2xl font-semibold text-[#1a0f0a]">
               Spaces They've Joined ({memberSpaces.length})
             </h2>
             <div className="space-y-2">
@@ -198,10 +198,10 @@ export default function MemberProfilePage() {
                   href={`/app/spaces/${space.id}`}
                   className="block p-3 rounded-lg hover:bg-[#f3ede5] transition-colors group"
                 >
-                  <p className="font-medium text-[#2a2318] group-hover:text-[#d4a574] transition-colors">
+                  <p className="font-medium text-[#1a0f0a] group-hover:text-[#d4a348] transition-colors">
                     {space.name}
                   </p>
-                  <p className="text-sm text-[#a0968a]">
+                  <p className="text-sm text-[#a0704a]">
                     {space.description}
                   </p>
                 </Link>
@@ -213,12 +213,12 @@ export default function MemberProfilePage() {
         {/* Connection Profile */}
         {member.quizResult && (
           <section className="bg-[#f3ede5] rounded-lg p-6 sm:p-8 space-y-4">
-            <h2 className="text-lg font-semibold text-[#2a2318]">
+            <h2 className="text-lg font-semibold text-[#1a0f0a]">
               Connection Profile
             </h2>
-            <p className="text-[#6b5f52]">
+            <p className="text-[#1a0f0a]">
               Their connection profile is{" "}
-              <strong className="text-[#2a2318]">{member.quizResult}</strong>
+              <strong className="text-[#1a0f0a]">{member.quizResult}</strong>
             </p>
           </section>
         )}

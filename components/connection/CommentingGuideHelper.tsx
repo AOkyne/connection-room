@@ -12,13 +12,13 @@ export function CommentingGuideHelper({ compact = false }: CommentingGuideHelper
 
   if (compact) {
     return (
-      <div className="text-xs text-[#a0968a] space-y-2">
+      <div className="text-xs text-[#a0704a] space-y-2">
         <p>
           Try presence before advice. "I relate to this" or "Thank you for sharing" is enough.
         </p>
         <button
           onClick={() => setShowFull(!showFull)}
-          className="text-[#8fa878] hover:underline"
+          className="text-[#c97a2a] hover:underline"
         >
           {showFull ? "Hide guide" : "Responding with care →"}
         </button>
@@ -34,17 +34,17 @@ function CommentingGuideContent() {
   return (
     <div className="bg-[#f8f6f2] rounded-lg p-4 space-y-3 text-sm">
       <div>
-        <p className="font-medium text-[#2a2318] mb-2">{commentingGuide.title}</p>
-        <p className="text-[#6b5f52] italic mb-3">{commentingGuide.tagline}</p>
+        <p className="font-medium text-[#1a0f0a] mb-2">{commentingGuide.title}</p>
+        <p className="text-[#1a0f0a] italic mb-3">{commentingGuide.tagline}</p>
       </div>
 
       {/* Helpful Responses */}
       <div>
-        <p className="font-medium text-[#2a2318] mb-2">Helpful responses:</p>
+        <p className="font-medium text-[#1a0f0a] mb-2">Helpful responses:</p>
         <ul className="space-y-1">
           {commentingGuide.helpfulResponses.map((response, idx) => (
-            <li key={idx} className="text-[#6b5f52] flex gap-2">
-              <span className="text-[#d4a574]">•</span>
+            <li key={idx} className="text-[#1a0f0a] flex gap-2">
+              <span className="text-[#d4a348]">•</span>
               <span>{response}</span>
             </li>
           ))}
@@ -53,11 +53,11 @@ function CommentingGuideContent() {
 
       {/* Less Helpful Responses */}
       <div>
-        <p className="font-medium text-[#2a2318] mb-2">Less helpful:</p>
+        <p className="font-medium text-[#1a0f0a] mb-2">Less helpful:</p>
         <ul className="space-y-1">
           {commentingGuide.lessHelpfulResponses.map((response, idx) => (
-            <li key={idx} className="text-[#6b5f52] flex gap-2">
-              <span className="text-[#a0968a]">—</span>
+            <li key={idx} className="text-[#1a0f0a] flex gap-2">
+              <span className="text-[#a0704a]">—</span>
               <span>{response}</span>
             </li>
           ))}
@@ -65,7 +65,7 @@ function CommentingGuideContent() {
       </div>
 
       {/* Closing Note */}
-      <p className="text-[#6b5f52] italic pt-2 border-t border-[#e8ddd2]">
+      <p className="text-[#1a0f0a] italic pt-2 border-t border-[#e8ddd2]">
         {commentingGuide.closingNote}
       </p>
     </div>

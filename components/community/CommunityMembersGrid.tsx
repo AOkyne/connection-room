@@ -12,7 +12,7 @@ export function CommunityMembersGrid() {
 
   return (
     <div className="space-y-3">
-      <h4 className="text-sm font-medium text-[#8fa878] uppercase tracking-wide">Community Members</h4>
+      <h4 className="text-sm font-medium text-[#c97a2a] uppercase tracking-wide">Community Members</h4>
       <div className="flex flex-wrap gap-3">
         {members.map((member) => (
           <div
@@ -23,10 +23,10 @@ export function CommunityMembersGrid() {
               <img
                 src={member.profilePhoto}
                 alt={member.displayName}
-                className="w-12 h-12 rounded-full object-cover border-2 border-[#e8ddd2] group-hover:border-[#d4a574] transition-colors"
+                className="w-12 h-12 rounded-full object-cover border-2 border-[#e8ddd2] group-hover:border-[#d4a348] transition-colors"
               />
             ) : (
-              <div className="w-12 h-12 rounded-full bg-[#f3ede5] border-2 border-[#e8ddd2] flex items-center justify-center text-xs font-bold text-[#d4a574]">
+              <div className="w-12 h-12 rounded-full bg-[#f3ede5] border-2 border-[#e8ddd2] flex items-center justify-center text-xs font-bold text-[#d4a348]">
                 {member.displayName
                   .split(" ")
                   .map((n) => n[0])
@@ -35,7 +35,7 @@ export function CommunityMembersGrid() {
                   .slice(0, 2)}
               </div>
             )}
-            <p className="text-xs text-[#6b5f52] text-center max-w-[60px] line-clamp-2 group-hover:text-[#d4a574] transition-colors">
+            <p className="text-xs text-[#1a0f0a] text-center max-w-[60px] line-clamp-2 group-hover:text-[#d4a348] transition-colors">
               {member.displayName}
             </p>
           </div>

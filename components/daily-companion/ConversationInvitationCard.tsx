@@ -15,10 +15,10 @@ export function ConversationInvitationCard({ invitation }: ConversationInvitatio
   return (
     <Card className="border-l-4 border-[#c9a876] bg-white">
       <div className="space-y-4">
-        <p className="text-xs font-semibold text-[#8fa878] uppercase tracking-wide">
+        <p className="text-xs font-semibold text-[#c97a2a] uppercase tracking-wide">
           Conversation Invitation
         </p>
-        <p className="text-sm text-[#2a2318] leading-relaxed">{invitation.body}</p>
+        <p className="text-sm text-[#1a0f0a] leading-relaxed">{invitation.body}</p>
         <div className="flex gap-2">
           <Link href="/app/spaces/commons">
             <Button variant="outline" size="sm">

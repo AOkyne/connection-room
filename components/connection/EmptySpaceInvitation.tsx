@@ -27,8 +27,8 @@ export function EmptySpaceInvitation({
               key={idx}
               className={
                 idx === 0
-                  ? "font-semibold text-lg text-[#2a2318]"
-                  : "text-sm text-[#6b5f52] leading-relaxed"
+                  ? "font-semibold text-lg text-[#1a0f0a]"
+                  : "text-sm text-[#1a0f0a] leading-relaxed"
               }
             >
               {line}
@@ -43,9 +43,9 @@ export function EmptySpaceInvitation({
               <button
                 key={prompt.id}
                 onClick={onStartPost}
-                className="px-4 py-3 rounded-lg bg-white border border-[#e8ddd2] hover:border-[#d4a574] hover:bg-[#f3ede5] transition-colors text-left"
+                className="px-4 py-3 rounded-lg bg-white border border-[#e8ddd2] hover:border-[#d4a348] hover:bg-[#f3ede5] transition-colors text-left"
               >
-                <p className="text-sm text-[#6b5f52] italic">"{prompt.text}"</p>
+                <p className="text-sm text-[#1a0f0a] italic">"{prompt.text}"</p>
               </button>
             ))}
           </div>
@@ -54,7 +54,7 @@ export function EmptySpaceInvitation({
         {/* Call to Action */}
         <button
           onClick={onStartPost}
-          className="inline-block px-6 py-2 bg-[#d4a574] text-[#ffffff] rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
+          className="inline-block px-6 py-2 bg-[#d4a348] text-[#ffffff] rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
         >
           Start a Reflection
         </button>

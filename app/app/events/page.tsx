@@ -97,28 +97,28 @@ END:VCALENDAR`;
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-4xl text-[#2a2318]">Upcoming Events</h1>
-        <p className="text-lg text-[#6b5f52] mt-2">
+        <h1 className="text-4xl text-[#1a0f0a]">Upcoming Events</h1>
+        <p className="text-lg text-[#1a0f0a] mt-2">
           Connection circles, workshops, and gatherings
         </p>
       </div>
 
       {/* What are Events? */}
-      <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-l-4 border-[#d4a574]">
+      <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-l-4 border-[#d4a348]">
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-[#2a2318]">What are Events?</h2>
+          <h2 className="text-2xl font-bold text-[#1a0f0a]">What are Events?</h2>
           <div className="grid md:grid-cols-3 gap-4">
             <div>
-              <p className="font-semibold text-[#2a2318] mb-2">🎯 Live Experiences</p>
-              <p className="text-sm text-[#6b5f52]">Real-time connection with the community. Virtual circles, in-person workshops, and hybrid offerings.</p>
+              <p className="font-semibold text-[#1a0f0a] mb-2">🎯 Live Experiences</p>
+              <p className="text-sm text-[#1a0f0a]">Real-time connection with the community. Virtual circles, in-person workshops, and hybrid offerings.</p>
             </div>
             <div>
-              <p className="font-semibold text-[#2a2318] mb-2">🤝 Guided Learning</p>
-              <p className="text-sm text-[#6b5f52]">Facilitated by experienced hosts. Structured time to explore intimacy, vulnerability, and authentic connection.</p>
+              <p className="font-semibold text-[#1a0f0a] mb-2">🤝 Guided Learning</p>
+              <p className="text-sm text-[#1a0f0a]">Facilitated by experienced hosts. Structured time to explore intimacy, vulnerability, and authentic connection.</p>
             </div>
             <div>
-              <p className="font-semibold text-[#2a2318] mb-2">🌱 Growth Opportunity</p>
-              <p className="text-sm text-[#6b5f52]">For all experience levels. Safe space to practice connection in a held, intentional environment.</p>
+              <p className="font-semibold text-[#1a0f0a] mb-2">🌱 Growth Opportunity</p>
+              <p className="text-sm text-[#1a0f0a]">For all experience levels. Safe space to practice connection in a held, intentional environment.</p>
             </div>
           </div>
         </div>
@@ -126,7 +126,7 @@ END:VCALENDAR`;
 
       {/* Filter by Format */}
       <div className="space-y-3">
-        <p className="text-sm font-semibold text-[#6b5f52] uppercase tracking-wide">Filter by format</p>
+        <p className="text-sm font-semibold text-[#1a0f0a] uppercase tracking-wide">Filter by format</p>
         <div className="flex flex-wrap gap-2">
           {["all", "virtual", "in-person", "hybrid"].map((format) => (
             <button
@@ -134,8 +134,8 @@ END:VCALENDAR`;
               onClick={() => setFilterFormat(format as any)}
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 filterFormat === format
-                  ? "bg-[#d4a574] text-white"
-                  : "bg-[#f3ede5] text-[#6b5f52] hover:bg-[#e8ddd2]"
+                  ? "bg-[#d4a348] text-white"
+                  : "bg-[#f3ede5] text-[#1a0f0a] hover:bg-[#e8ddd2]"
               }`}
             >
               {format === "all" ? "All Events" : format.charAt(0).toUpperCase() + format.slice(1)}
@@ -148,7 +148,7 @@ END:VCALENDAR`;
       <div className="space-y-6">
         {filteredEvents.length === 0 ? (
           <Card className="text-center py-8">
-            <p className="text-[#a0968a]">No upcoming events at this time.</p>
+            <p className="text-[#a0704a]">No upcoming events at this time.</p>
           </Card>
         ) : (
           filteredEvents.map((event) => (
@@ -157,18 +157,18 @@ END:VCALENDAR`;
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-start gap-3 mb-3">
-                      <h2 className="text-2xl text-[#2a2318]">{event.title}</h2>
-                      <span className="bg-[#d4a574] text-white px-2 py-1 rounded text-xs font-medium">
+                      <h2 className="text-2xl text-[#1a0f0a]">{event.title}</h2>
+                      <span className="bg-[#d4a348] text-white px-2 py-1 rounded text-xs font-medium">
                         {event.format}
                       </span>
                     </div>
 
-                    <p className="text-[#6b5f52] mb-4">{event.description}</p>
+                    <p className="text-[#1a0f0a] mb-4">{event.description}</p>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
                       <div>
-                        <p className="text-[#a0968a] uppercase tracking-wide text-xs">Date</p>
-                        <p className="text-[#2a2318] font-medium">
+                        <p className="text-[#a0704a] uppercase tracking-wide text-xs">Date</p>
+                        <p className="text-[#1a0f0a] font-medium">
                           {event.date.toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
@@ -176,21 +176,21 @@ END:VCALENDAR`;
                         </p>
                       </div>
                       <div>
-                        <p className="text-[#a0968a] uppercase tracking-wide text-xs">Time</p>
-                        <p className="text-[#2a2318] font-medium">{event.time}</p>
+                        <p className="text-[#a0704a] uppercase tracking-wide text-xs">Time</p>
+                        <p className="text-[#1a0f0a] font-medium">{event.time}</p>
                       </div>
                       <div>
-                        <p className="text-[#a0968a] uppercase tracking-wide text-xs">Facilitator</p>
-                        <p className="text-[#2a2318] font-medium">{event.facilitator}</p>
+                        <p className="text-[#a0704a] uppercase tracking-wide text-xs">Facilitator</p>
+                        <p className="text-[#1a0f0a] font-medium">{event.facilitator}</p>
                       </div>
                       <div>
-                        <p className="text-[#a0968a] uppercase tracking-wide text-xs">Interested</p>
-                        <p className="text-[#2a2318] font-medium">{event.attendeeCount}+</p>
+                        <p className="text-[#a0704a] uppercase tracking-wide text-xs">Interested</p>
+                        <p className="text-[#1a0f0a] font-medium">{event.attendeeCount}+</p>
                       </div>
                     </div>
 
                     {event.location && event.format === "in-person" && (
-                      <p className="text-[#6b5f52] text-sm mb-4">📍 {event.location}</p>
+                      <p className="text-[#1a0f0a] text-sm mb-4">📍 {event.location}</p>
                     )}
                   </div>
 
@@ -207,7 +207,7 @@ END:VCALENDAR`;
 
                 {/* Calendar Export Buttons */}
                 <div className="border-t border-[#e8ddd2] pt-4">
-                  <p className="text-xs font-semibold text-[#a0968a] uppercase tracking-wide mb-3">Add to Calendar</p>
+                  <p className="text-xs font-semibold text-[#a0704a] uppercase tracking-wide mb-3">Add to Calendar</p>
                   <div className="flex flex-wrap gap-2">
                     <Button
                       variant="outline"
@@ -236,25 +236,25 @@ END:VCALENDAR`;
       {/* Info Card */}
       <Card className="bg-[#f3ede5]">
         <CardHeader title="About Events" icon={<IconUpcoming size={20} />} />
-        <ul className="space-y-3 text-[#6b5f52] text-sm">
+        <ul className="space-y-3 text-[#1a0f0a] text-sm">
           <li className="flex items-start gap-3">
-            <span className="text-[#d4a574]">✓</span>
+            <span className="text-[#d4a348]">✓</span>
             <span>Mark events to stay notified and connect with other attendees</span>
           </li>
           <li className="flex items-start gap-3">
-            <span className="text-[#d4a574]">✓</span>
+            <span className="text-[#d4a348]">✓</span>
             <span>Mix of virtual circles, in-person workshops, and hybrid offerings</span>
           </li>
           <li className="flex items-start gap-3">
-            <span className="text-[#d4a574]">✓</span>
+            <span className="text-[#d4a348]">✓</span>
             <span>All events honor the community agreements and create safe space</span>
           </li>
           <li className="flex items-start gap-3">
-            <span className="text-[#d4a574]">✓</span>
+            <span className="text-[#d4a348]">✓</span>
             <span>Space for different comfort levels and experience</span>
           </li>
           <li className="flex items-start gap-3">
-            <span className="text-[#d4a574]">✓</span>
+            <span className="text-[#d4a348]">✓</span>
             <span>Easily add events to your Google Calendar, iCal, or Outlook</span>
           </li>
         </ul>

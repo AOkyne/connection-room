@@ -39,16 +39,16 @@ export function PrivateReflectionBox({
   };
 
   return (
-    <Card className="bg-gradient-to-br from-[#f3ede5] to-[#f8f6f2] border-l-4 border-[#8fa878]">
+    <Card className="bg-gradient-to-br from-[#f3ede5] to-[#f8f6f2] border-l-4 border-[#c97a2a]">
       <div className="space-y-3">
         <div>
-          <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide">
+          <p className="text-xs font-medium text-[#c97a2a] uppercase tracking-wide">
             Private Reflection
           </p>
-          <p className="text-xs text-[#a0968a] mt-1">{subtitle}</p>
+          <p className="text-xs text-[#a0704a] mt-1">{subtitle}</p>
         </div>
 
-        <p className="text-sm text-[#6b5f52] italic">{prompt}</p>
+        <p className="text-sm text-[#1a0f0a] italic">{prompt}</p>
 
         <textarea
           value={text}
@@ -57,7 +57,7 @@ export function PrivateReflectionBox({
             setIsSaved(false);
           }}
           placeholder="Your reflection here... A sentence or two is enough."
-          className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#8fa878] text-sm text-[#2a2318] bg-white"
+          className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#c97a2a] text-sm text-[#1a0f0a] bg-white"
           rows={4}
         />
 
@@ -65,16 +65,16 @@ export function PrivateReflectionBox({
           <button
             onClick={handleSave}
             disabled={!text.trim() || isSaving}
-            className="px-4 py-2 bg-[#8fa878] text-white rounded-lg text-sm font-medium hover:bg-[#7a9067] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 bg-[#c97a2a] text-white rounded-lg text-sm font-medium hover:bg-[#7a9067] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSaving ? "Saving..." : "Save"}
           </button>
           {isSaved && (
-            <p className="text-xs text-[#8fa878] font-medium">✓ Saved</p>
+            <p className="text-xs text-[#c97a2a] font-medium">✓ Saved</p>
           )}
         </div>
 
-        <p className="text-xs text-[#a0968a] italic">
+        <p className="text-xs text-[#a0704a] italic">
           Your reflection is private and only you can see it.
         </p>
       </div>

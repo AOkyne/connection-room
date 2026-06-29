@@ -105,17 +105,17 @@ export function RhythmContentEditor() {
   }
 
   if (loading) {
-    return <div className="text-[#6b5f52]">Loading content editor...</div>;
+    return <div className="text-[#1a0f0a]">Loading content editor...</div>;
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-2">
-        <h2 className="text-2xl font-semibold text-[#2a2318]">
+        <h2 className="text-2xl font-semibold text-[#1a0f0a]">
           Guided Rhythm Content Editor
         </h2>
-        <p className="text-sm text-[#6b5f52]">
+        <p className="text-sm text-[#1a0f0a]">
           Edit monthly themes, weekly prompts, and integration questions. Changes
           save to your account.
         </p>
@@ -123,15 +123,15 @@ export function RhythmContentEditor() {
 
       {/* Save Status */}
       {unsavedChanges && (
-        <Card className="bg-[#d4a574]/10 border-l-4 border-[#d4a574]">
+        <Card className="bg-[#d4a348]/10 border-l-4 border-[#d4a348]">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-[#d4a574] font-medium">
+            <p className="text-sm text-[#d4a348] font-medium">
               ⚠ You have unsaved changes
             </p>
             <button
               onClick={handleSave}
               disabled={saveStatus === "saving"}
-              className="px-4 py-2 bg-[#d4a574] text-white rounded-lg text-sm font-medium hover:bg-[#c09560] disabled:opacity-50"
+              className="px-4 py-2 bg-[#d4a348] text-white rounded-lg text-sm font-medium hover:bg-[#c09560] disabled:opacity-50"
             >
               {saveStatus === "saving" ? "Saving..." : "Save Changes"}
             </button>
@@ -140,15 +140,15 @@ export function RhythmContentEditor() {
       )}
 
       {saveStatus === "saved" && (
-        <Card className="bg-[#8fa878]/10 border-l-4 border-[#8fa878]">
-          <p className="text-sm text-[#8fa878] font-medium">✓ Content saved</p>
+        <Card className="bg-[#c97a2a]/10 border-l-4 border-[#c97a2a]">
+          <p className="text-sm text-[#c97a2a] font-medium">✓ Content saved</p>
         </Card>
       )}
 
       {/* Month Selector */}
       <Card>
         <div className="space-y-3">
-          <p className="text-sm font-medium text-[#2a2318]">Select Month</p>
+          <p className="text-sm font-medium text-[#1a0f0a]">Select Month</p>
           <div className="grid grid-cols-2 gap-2">
             {months.map((month) => (
               <button
@@ -156,8 +156,8 @@ export function RhythmContentEditor() {
                 onClick={() => setSelectedMonth(month.monthNumber)}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   selectedMonth === month.monthNumber
-                    ? "bg-[#d4a574] text-white"
-                    : "bg-[#f3ede5] text-[#2a2318] hover:bg-[#e8ddd2]"
+                    ? "bg-[#d4a348] text-white"
+                    : "bg-[#f3ede5] text-[#1a0f0a] hover:bg-[#e8ddd2]"
                 }`}
               >
                 Month {month.monthNumber}: {month.title}
@@ -171,13 +171,13 @@ export function RhythmContentEditor() {
         <>
           {/* Month-Level Fields */}
           <Card className="space-y-4">
-            <h3 className="text-lg font-semibold text-[#2a2318]">
+            <h3 className="text-lg font-semibold text-[#1a0f0a]">
               Month {currentMonth.monthNumber}: {currentMonth.title}
             </h3>
 
             {/* Title */}
             <div>
-              <label className="block text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
+              <label className="block text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-1">
                 Month Title
               </label>
               <input
@@ -190,13 +190,13 @@ export function RhythmContentEditor() {
                     e.target.value
                   )
                 }
-                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm"
+                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm"
               />
             </div>
 
             {/* Monthly Theme */}
             <div>
-              <label className="block text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
+              <label className="block text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-1">
                 Monthly Theme
               </label>
               <textarea
@@ -208,14 +208,14 @@ export function RhythmContentEditor() {
                     e.target.value
                   )
                 }
-                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm"
+                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm"
                 rows={3}
               />
             </div>
 
             {/* Monthly Reflection */}
             <div>
-              <label className="block text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
+              <label className="block text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-1">
                 Monthly Reflection Question
               </label>
               <textarea
@@ -227,14 +227,14 @@ export function RhythmContentEditor() {
                     e.target.value
                   )
                 }
-                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm"
+                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm"
                 rows={2}
               />
             </div>
 
             {/* Trevor Note */}
             <div>
-              <label className="block text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
+              <label className="block text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-1">
                 Trevor Note
               </label>
               <textarea
@@ -246,14 +246,14 @@ export function RhythmContentEditor() {
                     e.target.value
                   )
                 }
-                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm"
+                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm"
                 rows={4}
               />
             </div>
 
             {/* Ritual Title */}
             <div>
-              <label className="block text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
+              <label className="block text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-1">
                 Monthly Ritual Title
               </label>
               <input
@@ -275,13 +275,13 @@ export function RhythmContentEditor() {
                   );
                   setUnsavedChanges(true);
                 }}
-                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm"
+                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm"
               />
             </div>
 
             {/* Ritual Description */}
             <div>
-              <label className="block text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
+              <label className="block text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-1">
                 Ritual Description
               </label>
               <textarea
@@ -302,7 +302,7 @@ export function RhythmContentEditor() {
                   );
                   setUnsavedChanges(true);
                 }}
-                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm"
+                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm"
                 rows={2}
               />
             </div>
@@ -311,12 +311,12 @@ export function RhythmContentEditor() {
           {/* Weekly Prompts */}
           {currentMonth.weeks.map((week) => (
             <Card key={week.weekNumber} className="space-y-4">
-              <h4 className="text-lg font-semibold text-[#2a2318]">
+              <h4 className="text-lg font-semibold text-[#1a0f0a]">
                 Week {week.weekNumber}: {week.title}
               </h4>
 
               <div>
-                <label className="block text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
+                <label className="block text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-1">
                   Week Title
                 </label>
                 <input
@@ -330,12 +330,12 @@ export function RhythmContentEditor() {
                       e.target.value
                     )
                   }
-                  className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm"
+                  className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
+                <label className="block text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-1">
                   Dashboard Prompt
                 </label>
                 <textarea
@@ -348,13 +348,13 @@ export function RhythmContentEditor() {
                       e.target.value
                     )
                   }
-                  className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm"
+                  className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm"
                   rows={2}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
+                <label className="block text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-1">
                   Private Reflection Prompt
                 </label>
                 <textarea
@@ -367,13 +367,13 @@ export function RhythmContentEditor() {
                       e.target.value
                     )
                   }
-                  className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm"
+                  className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm"
                   rows={2}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
+                <label className="block text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-1">
                   Community Invitation
                 </label>
                 <textarea
@@ -386,13 +386,13 @@ export function RhythmContentEditor() {
                       e.target.value
                     )
                   }
-                  className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm"
+                  className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm"
                   rows={2}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
+                <label className="block text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-1">
                   Connection Prompt
                 </label>
                 <textarea
@@ -405,7 +405,7 @@ export function RhythmContentEditor() {
                       e.target.value
                     )
                   }
-                  className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm"
+                  className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm"
                   rows={2}
                 />
               </div>
@@ -414,12 +414,12 @@ export function RhythmContentEditor() {
 
           {/* Monthly Integration */}
           <Card className="space-y-4">
-            <h4 className="text-lg font-semibold text-[#2a2318]">
+            <h4 className="text-lg font-semibold text-[#1a0f0a]">
               Integration
             </h4>
 
             <div>
-              <label className="block text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
+              <label className="block text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-1">
                 Integration Prompt
               </label>
               <textarea
@@ -431,13 +431,13 @@ export function RhythmContentEditor() {
                     e.target.value
                   )
                 }
-                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm"
+                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm"
                 rows={3}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
+              <label className="block text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-1">
                 Suggested Next Step
               </label>
               <textarea
@@ -449,7 +449,7 @@ export function RhythmContentEditor() {
                     e.target.value
                   )
                 }
-                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm"
+                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm"
                 rows={2}
               />
             </div>
@@ -473,7 +473,7 @@ export function RhythmContentEditor() {
 
       {/* Info */}
       <Card className="bg-[#f3ede5]">
-        <p className="text-xs text-[#6b5f52] leading-relaxed">
+        <p className="text-xs text-[#1a0f0a] leading-relaxed">
           <strong>Tip:</strong> Changes are automatically saved to your account.
           If you edit the code file directly ({"{"}lib/content/guided-rhythm.ts{"}"}),
           those changes will override these edits. Use either the editor or code

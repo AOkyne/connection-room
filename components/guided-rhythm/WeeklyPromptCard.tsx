@@ -67,7 +67,7 @@ export function WeeklyPromptCard({
     <Card
       className={`${
         isCurrentWeek
-          ? "ring-2 ring-[#d4a574] bg-white"
+          ? "ring-2 ring-[#d4a348] bg-white"
           : "bg-[#f8f6f2]"
       }`}
     >
@@ -75,14 +75,14 @@ export function WeeklyPromptCard({
         {/* Week Header */}
         <div className="flex items-baseline gap-3">
           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[#f3ede5]">
-            <span className="text-[#d4a574] font-bold">W{week.weekNumber}</span>
+            <span className="text-[#d4a348] font-bold">W{week.weekNumber}</span>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-[#2a2318]">
+            <h3 className="text-lg font-semibold text-[#1a0f0a]">
               {week.title}
             </h3>
             {isCurrentWeek && (
-              <p className="text-xs text-[#8fa878] font-medium uppercase tracking-wide mt-1">
+              <p className="text-xs text-[#c97a2a] font-medium uppercase tracking-wide mt-1">
                 This Week
               </p>
             )}
@@ -90,36 +90,36 @@ export function WeeklyPromptCard({
         </div>
 
         {/* Dashboard Prompt */}
-        <div className="bg-gradient-to-r from-[#f3ede5] to-white rounded-lg p-4 border-l-4 border-[#d4a574]">
-          <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-2">
+        <div className="bg-gradient-to-r from-[#f3ede5] to-white rounded-lg p-4 border-l-4 border-[#d4a348]">
+          <p className="text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-2">
             Today's Invitation
           </p>
-          <p className="text-sm text-[#6b5f52] leading-relaxed italic">
+          <p className="text-sm text-[#1a0f0a] leading-relaxed italic">
             {week.dashboardPrompt}
           </p>
         </div>
 
         {/* Private Reflection */}
         <div>
-          <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-2">
+          <p className="text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-2">
             Private Reflection
           </p>
-          <p className="text-sm text-[#6b5f52] leading-relaxed">
+          <p className="text-sm text-[#1a0f0a] leading-relaxed">
             {week.privateReflection}
           </p>
         </div>
 
         {/* Community Invitation */}
         <div className="bg-[#f3ede5] rounded-lg p-4">
-          <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-2">
+          <p className="text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-2">
             If You Want to Share
           </p>
-          <p className="text-sm text-[#6b5f52] leading-relaxed mb-3">
+          <p className="text-sm text-[#1a0f0a] leading-relaxed mb-3">
             {week.communityInvitation}
           </p>
           <button
             onClick={() => setShowShareModal(true)}
-            className="px-4 py-2 bg-[#d4a574] text-[#ffffff] rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
+            className="px-4 py-2 bg-[#d4a348] text-[#ffffff] rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
           >
             Share to The Commons
           </button>
@@ -128,16 +128,16 @@ export function WeeklyPromptCard({
         {/* Connection Format Selection */}
         <div className="space-y-3">
           <div>
-            <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-2">
+            <p className="text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-2">
               For Connections
             </p>
-            <p className="text-sm text-[#6b5f52] leading-relaxed mb-3">
+            <p className="text-sm text-[#1a0f0a] leading-relaxed mb-3">
               {week.connectionPrompt}
             </p>
           </div>
 
           <div className="space-y-2">
-            <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide">
+            <p className="text-xs font-medium text-[#c97a2a] uppercase tracking-wide">
               Your Preferred Format
             </p>
             <div className="flex flex-wrap gap-3">
@@ -147,8 +147,8 @@ export function WeeklyPromptCard({
                   onClick={() => handleSelectConnectionFormat(format.id)}
                   className={`px-3 py-2 rounded-lg transition-colors text-xs ${
                     selectedConnectionFormat === format.id
-                      ? "bg-[#d4a574] text-[#ffffff] border border-[#d4a574]"
-                      : "bg-[#f3ede5] text-[#2a2318] border border-[#e8ddd2] hover:border-[#d4a574]"
+                      ? "bg-[#d4a348] text-[#ffffff] border border-[#d4a348]"
+                      : "bg-[#f3ede5] text-[#1a0f0a] border border-[#e8ddd2] hover:border-[#d4a348]"
                   }`}
                   title={format.description}
                 >
@@ -161,7 +161,7 @@ export function WeeklyPromptCard({
 
         {/* Microcopy */}
         <div className="pt-3 border-t border-[#e8ddd2]">
-          <p className="text-xs text-[#a0968a] italic">
+          <p className="text-xs text-[#a0704a] italic">
             Use what speaks to you. Leave what does not. A small honest
             reflection is enough.
           </p>
@@ -182,10 +182,10 @@ export function WeeklyPromptCard({
           <Card className="w-full max-w-2xl mx-4">
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold text-[#2a2318]">
+                <h3 className="text-lg font-semibold text-[#1a0f0a]">
                   Share to The Commons
                 </h3>
-                <p className="text-sm text-[#6b5f52] mt-1">
+                <p className="text-sm text-[#1a0f0a] mt-1">
                   {week.communityInvitation}
                 </p>
               </div>
@@ -194,23 +194,23 @@ export function WeeklyPromptCard({
                 value={shareContent}
                 onChange={(e) => setShareContent(e.target.value)}
                 placeholder="Share your thoughts..."
-                className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm text-[#2a2318] bg-white"
+                className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm text-[#1a0f0a] bg-white"
                 rows={6}
               />
 
-              <p className="text-xs text-[#8fa878]">A sentence or two is enough. No need to write a memoir unless the memoir insists.</p>
+              <p className="text-xs text-[#c97a2a]">A sentence or two is enough. No need to write a memoir unless the memoir insists.</p>
 
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowShareModal(false)}
-                  className="flex-1 px-4 py-2 text-sm text-[#6b5f52] hover:bg-[#f3ede5] rounded border border-[#e8ddd2]"
+                  className="flex-1 px-4 py-2 text-sm text-[#1a0f0a] hover:bg-[#f3ede5] rounded border border-[#e8ddd2]"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleShare}
                   disabled={!shareContent.trim() || isSharing}
-                  className="flex-1 px-4 py-2 text-sm bg-[#d4a574] text-[#ffffff] rounded hover:bg-[#c09560] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex-1 px-4 py-2 text-sm bg-[#d4a348] text-[#ffffff] rounded hover:bg-[#c09560] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {isSharing ? "Sharing..." : "Post to The Commons"}
                 </button>

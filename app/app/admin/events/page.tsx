@@ -114,7 +114,7 @@ export default function EventsAdmin() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl text-[#2a2318]">Manage Events</h1>
+        <h1 className="text-3xl text-[#1a0f0a]">Manage Events</h1>
         <Link href="/app/admin">
           <Button variant="ghost" size="sm">
             ← Back
@@ -131,12 +131,12 @@ export default function EventsAdmin() {
       {showForm && (
         <Card>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <h2 className="text-xl font-semibold text-[#2a2318]">
+            <h2 className="text-xl font-semibold text-[#1a0f0a]">
               {editingId ? "Edit Event" : "Create New Event"}
             </h2>
 
             <div>
-              <label className="block text-sm font-medium text-[#2a2318] mb-1">
+              <label className="block text-sm font-medium text-[#1a0f0a] mb-1">
                 Event Title *
               </label>
               <input
@@ -144,13 +144,13 @@ export default function EventsAdmin() {
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="e.g., Monthly Connection Circle"
-                className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-[#2a2318]"
+                className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a]"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#2a2318] mb-1">
+              <label className="block text-sm font-medium text-[#1a0f0a] mb-1">
                 Description
               </label>
               <textarea
@@ -158,26 +158,26 @@ export default function EventsAdmin() {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="What is this event about?"
                 rows={3}
-                className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-[#2a2318]"
+                className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a]"
               />
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#2a2318] mb-1">
+                <label className="block text-sm font-medium text-[#1a0f0a] mb-1">
                   Date *
                 </label>
                 <input
                   type="date"
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-[#2a2318]"
+                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a]"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#2a2318] mb-1">
+                <label className="block text-sm font-medium text-[#1a0f0a] mb-1">
                   Time *
                 </label>
                 <input
@@ -185,7 +185,7 @@ export default function EventsAdmin() {
                   value={formData.time}
                   onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                   placeholder="e.g., 7:00 PM PT"
-                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-[#2a2318]"
+                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a]"
                   required
                 />
               </div>
@@ -193,13 +193,13 @@ export default function EventsAdmin() {
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#2a2318] mb-1">
+                <label className="block text-sm font-medium text-[#1a0f0a] mb-1">
                   Format
                 </label>
                 <select
                   value={formData.format}
                   onChange={(e) => setFormData({ ...formData, format: e.target.value as any })}
-                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-[#2a2318]"
+                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a]"
                 >
                   <option value="virtual">Virtual</option>
                   <option value="in-person">In-Person</option>
@@ -209,7 +209,7 @@ export default function EventsAdmin() {
 
               {(formData.format === "in-person" || formData.format === "hybrid") && (
                 <div>
-                  <label className="block text-sm font-medium text-[#2a2318] mb-1">
+                  <label className="block text-sm font-medium text-[#1a0f0a] mb-1">
                     Location
                   </label>
                   <input
@@ -217,7 +217,7 @@ export default function EventsAdmin() {
                     value={formData.location || ""}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     placeholder="e.g., Los Angeles, CA"
-                    className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-[#2a2318]"
+                    className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a]"
                   />
                 </div>
               )}
@@ -225,7 +225,7 @@ export default function EventsAdmin() {
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#2a2318] mb-1">
+                <label className="block text-sm font-medium text-[#1a0f0a] mb-1">
                   Facilitator
                 </label>
                 <input
@@ -233,12 +233,12 @@ export default function EventsAdmin() {
                   value={formData.facilitator}
                   onChange={(e) => setFormData({ ...formData, facilitator: e.target.value })}
                   placeholder="e.g., Trevor James"
-                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-[#2a2318]"
+                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a]"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#2a2318] mb-1">
+                <label className="block text-sm font-medium text-[#1a0f0a] mb-1">
                   Attendee Count
                 </label>
                 <input
@@ -246,7 +246,7 @@ export default function EventsAdmin() {
                   value={formData.attendeeCount}
                   onChange={(e) => setFormData({ ...formData, attendeeCount: parseInt(e.target.value) || 0 })}
                   min="0"
-                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-[#2a2318]"
+                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a]"
                 />
               </div>
             </div>
@@ -264,24 +264,24 @@ export default function EventsAdmin() {
       )}
 
       <div className="space-y-3">
-        <h2 className="text-xl font-semibold text-[#2a2318]">Events ({events.length})</h2>
+        <h2 className="text-xl font-semibold text-[#1a0f0a]">Events ({events.length})</h2>
 
         {events.length === 0 ? (
-          <p className="text-[#6b5f52]">No events yet. Create one to get started!</p>
+          <p className="text-[#1a0f0a]">No events yet. Create one to get started!</p>
         ) : (
           events.map((event) => (
             <Card key={event.id}>
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-[#2a2318]">{event.title}</h3>
-                  <p className="text-sm text-[#6b5f52] mt-1">{event.description}</p>
-                  <div className="flex gap-4 mt-2 text-sm text-[#a0968a]">
+                  <h3 className="text-lg font-semibold text-[#1a0f0a]">{event.title}</h3>
+                  <p className="text-sm text-[#1a0f0a] mt-1">{event.description}</p>
+                  <div className="flex gap-4 mt-2 text-sm text-[#a0704a]">
                     <span>📅 {new Date(event.date).toLocaleDateString()}</span>
                     <span>🕐 {event.time}</span>
                     <span>👥 {event.format}</span>
                     {event.location && <span>📍 {event.location}</span>}
                   </div>
-                  <p className="text-sm text-[#8fa878] mt-2">Facilitator: {event.facilitator}</p>
+                  <p className="text-sm text-[#c97a2a] mt-2">Facilitator: {event.facilitator}</p>
                 </div>
 
                 <div className="flex gap-2 ml-4">
@@ -296,7 +296,7 @@ export default function EventsAdmin() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleDelete(event.id)}
-                    className="border-[#b86a52] text-[#b86a52]"
+                    className="border-[#a84a2a] text-[#a84a2a]"
                   >
                     Delete
                   </Button>

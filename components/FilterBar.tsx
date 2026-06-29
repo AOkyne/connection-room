@@ -25,8 +25,8 @@ export function FilterBar({
           onClick={() => onFilterChange("")}
           className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
             !selectedFilter
-              ? "bg-[#d4a574] text-white"
-              : "bg-[#f3ede5] text-[#6b5f52] hover:bg-[#e8ddd2]"
+              ? "bg-[#d4a348] text-white"
+              : "bg-[#f3ede5] text-[#1a0f0a] hover:bg-[#e8ddd2]"
           }`}
         >
           All
@@ -38,8 +38,8 @@ export function FilterBar({
           onClick={() => onFilterChange(filter.id)}
           className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
             selectedFilter === filter.id
-              ? "bg-[#d4a574] text-white"
-              : "bg-[#f3ede5] text-[#6b5f52] hover:bg-[#e8ddd2]"
+              ? "bg-[#d4a348] text-white"
+              : "bg-[#f3ede5] text-[#1a0f0a] hover:bg-[#e8ddd2]"
           }`}
         >
           {filter.label}

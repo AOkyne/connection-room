@@ -26,8 +26,8 @@ export default function IntimacyPatternQuizPage() {
             ← Back to Quizzes
           </Button>
         </Link>
-        <h1 className="text-4xl font-bold text-[#2a2318] mt-4">What's Your Intimacy Pattern?</h1>
-        <p className="text-lg text-[#6b5f52]">
+        <h1 className="text-4xl font-bold text-[#1a0f0a] mt-4">What's Your Intimacy Pattern?</h1>
+        <p className="text-lg text-[#1a0f0a]">
           Discover your attachment style and how it shows up in your intimate relationships.
         </p>
       </div>

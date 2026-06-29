@@ -73,18 +73,18 @@ export function ContinueWhereYouLeftOff({
 
   return (
     <div className="space-y-3">
-      <h3 className="text-lg font-semibold text-[#2a2318]">Continue Where You Left Off</h3>
+      <h3 className="text-lg font-semibold text-[#1a0f0a]">Continue Where You Left Off</h3>
       <div className="grid md:grid-cols-2 gap-3">
         {items.map((item, idx) => (
           <Card key={idx} className="bg-white hover:bg-[#f8f6f2] transition-colors">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <p className="text-sm font-semibold text-[#2a2318]">{item.title}</p>
-                <p className="text-xs text-[#6b5f52] mt-1 line-clamp-2">{item.description}</p>
+                <p className="text-sm font-semibold text-[#1a0f0a]">{item.title}</p>
+                <p className="text-xs text-[#1a0f0a] mt-1 line-clamp-2">{item.description}</p>
               </div>
               {item.href && (
                 <Link href={item.href} className="flex-shrink-0">
-                  <button className="text-xs font-semibold text-[#d4a574] hover:text-[#c09560] whitespace-nowrap">
+                  <button className="text-xs font-semibold text-[#d4a348] hover:text-[#c09560] whitespace-nowrap">
                     {item.action}
                   </button>
                 </Link>

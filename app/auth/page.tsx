@@ -125,7 +125,7 @@ function BetaAuthContent() {
                   }}
                   className={`px-4 py-2 rounded-lg font-medium transition-all ${
                     authMode === "password-signup"
-                      ? "bg-[#d4a574] text-white"
+                      ? "bg-[#d4a348] text-white"
                       : "bg-[#f3ede5] text-[#6b6460] hover:bg-[#e8ddd2]"
                   }`}
                 >
@@ -139,7 +139,7 @@ function BetaAuthContent() {
                   }}
                   className={`px-4 py-2 rounded-lg font-medium transition-all ${
                     authMode === "password-signin"
-                      ? "bg-[#d4a574] text-white"
+                      ? "bg-[#d4a348] text-white"
                       : "bg-[#f3ede5] text-[#6b6460] hover:bg-[#e8ddd2]"
                   }`}
                 >
@@ -153,7 +153,7 @@ function BetaAuthContent() {
             </div>
 
             {success && (
-              <div className="bg-[#e8f5e9] border border-[#8fa878] rounded-lg p-4">
+              <div className="bg-[#e8f5e9] border border-[#c97a2a] rounded-lg p-4">
                 <p className="text-sm text-[#2a5e2a]">
                   Check your email for a magic link to sign in!
                 </p>
@@ -163,18 +163,18 @@ function BetaAuthContent() {
             {error && (
               <div className={`rounded-lg p-4 ${
                 usingFallback
-                  ? "bg-[#fff3e0] border border-[#d4a574]"
-                  : "bg-[#ffebee] border border-[#b86a52]"
+                  ? "bg-[#fff3e0] border border-[#d4a348]"
+                  : "bg-[#ffebee] border border-[#a84a2a]"
               }`}>
                 <p className={`text-sm ${
                   usingFallback
-                    ? "text-[#6b5f52]"
+                    ? "text-[#1a0f0a]"
                     : "text-[#6b2c1f]"
                 }`}>
                   {usingFallback ? "⚠️ " : ""}{error}
                 </p>
                 {usingFallback && (
-                  <p className="text-xs text-[#8fa878] mt-2">
+                  <p className="text-xs text-[#c97a2a] mt-2">
                     You're in demo mode. Most features work normally.
                   </p>
                 )}

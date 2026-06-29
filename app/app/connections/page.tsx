@@ -178,31 +178,31 @@ export default function ConnectionsPage() {
       {/* Header */}
       <div className="space-y-4">
         <div>
-          <h1 className="text-4xl text-[#2a2318]">Connections</h1>
-          <p className="text-lg text-[#6b5f52] mt-2">
+          <h1 className="text-4xl text-[#1a0f0a]">Connections</h1>
+          <p className="text-lg text-[#1a0f0a] mt-2">
             Structured conversations with other members
           </p>
         </div>
 
         {/* What are Connections Section */}
-        <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-[#d4a574]">
+        <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-[#d4a348]">
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-[#2a2318]">What are Connections?</h3>
-            <p className="text-sm text-[#6b5f52] leading-relaxed">
+            <h3 className="text-lg font-semibold text-[#1a0f0a]">What are Connections?</h3>
+            <p className="text-sm text-[#1a0f0a] leading-relaxed">
               A connection is a one-on-one, 20-minute structured conversation with another member. You'll respond to a shared prompt and practice authentic relating in a safe, contained format. It's designed to deepen your understanding of how you connect.
             </p>
             <div className="grid sm:grid-cols-3 gap-3 pt-2">
               <div className="space-y-1">
-                <p className="text-xs font-medium text-[#8fa878] uppercase">Who</p>
-                <p className="text-sm text-[#2a2318]">Matched based on shared interests</p>
+                <p className="text-xs font-medium text-[#c97a2a] uppercase">Who</p>
+                <p className="text-sm text-[#1a0f0a]">Matched based on shared interests</p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs font-medium text-[#8fa878] uppercase">What</p>
-                <p className="text-sm text-[#2a2318]">20-minute guided conversation</p>
+                <p className="text-xs font-medium text-[#c97a2a] uppercase">What</p>
+                <p className="text-sm text-[#1a0f0a]">20-minute guided conversation</p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs font-medium text-[#8fa878] uppercase">Why</p>
-                <p className="text-sm text-[#2a2318]">Practice connection in real time</p>
+                <p className="text-xs font-medium text-[#c97a2a] uppercase">Why</p>
+                <p className="text-sm text-[#1a0f0a]">Practice connection in real time</p>
               </div>
             </div>
           </div>
@@ -210,12 +210,12 @@ export default function ConnectionsPage() {
       </div>
 
       {/* Demo Notice */}
-      <Card className="bg-[#fff3e0] border-2 border-[#d4a574]">
+      <Card className="bg-[#fff3e0] border-2 border-[#d4a348]">
         <div className="flex items-start gap-3">
           <span className="text-xl">📋</span>
           <div>
-            <p className="font-medium text-[#2a2318]">This is a demo experience</p>
-            <p className="text-sm text-[#6b5f52] mt-1">
+            <p className="font-medium text-[#1a0f0a]">This is a demo experience</p>
+            <p className="text-sm text-[#1a0f0a] mt-1">
               You can explore the preferences and see how connections work. Actual matching and messaging functionality will begin in Phase 2.
             </p>
           </div>
@@ -240,12 +240,12 @@ export default function ConnectionsPage() {
       {/* Suggested Connections (when no active connection) */}
       {!currentConnection && suggestedMatches.length > 0 && (
         <div className="space-y-4">
-          <div className="bg-[#f3ede5] rounded-lg p-4 border-l-4 border-[#d4a574]">
-            <h3 className="text-base font-semibold text-[#2a2318] mb-2">Your Suggested Connections</h3>
-            <p className="text-sm text-[#6b5f52] mb-3">
+          <div className="bg-[#f3ede5] rounded-lg p-4 border-l-4 border-[#d4a348]">
+            <h3 className="text-base font-semibold text-[#1a0f0a] mb-2">Your Suggested Connections</h3>
+            <p className="text-sm text-[#1a0f0a] mb-3">
               These matches are suggested based on shared interests and compatible connection styles. Click on any profile to learn more, then select someone to begin your conversation this week.
             </p>
-            <p className="text-xs text-[#8fa878]">
+            <p className="text-xs text-[#c97a2a]">
               💡 Tip: The match percentage shows how many interests you share. Higher percentages suggest more natural conversation starters.
             </p>
           </div>
@@ -261,9 +261,9 @@ export default function ConnectionsPage() {
 
       {/* Preferences Section */}
       <div className="space-y-4">
-        <div className="bg-[#f3ede5] rounded-lg p-4 border-l-4 border-[#8fa878]">
-          <h3 className="text-base font-semibold text-[#2a2318] mb-2">Set Your Connection Preferences</h3>
-          <p className="text-sm text-[#6b5f52]">
+        <div className="bg-[#f3ede5] rounded-lg p-4 border-l-4 border-[#c97a2a]">
+          <h3 className="text-base font-semibold text-[#1a0f0a] mb-2">Set Your Connection Preferences</h3>
+          <p className="text-sm text-[#1a0f0a]">
             Help us match you with people who share your connection style. Your preferences guide how often you want to connect and how you prefer to communicate.
           </p>
         </div>
@@ -272,7 +272,7 @@ export default function ConnectionsPage() {
           <CardHeader title="Your Preferences" icon={<IconForYou size={20} />} />
           <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[#2a2318] mb-3">
+            <label className="block text-sm font-medium text-[#1a0f0a] mb-3">
               How often would you like to connect?
             </label>
             <div className="space-y-2">
@@ -288,14 +288,14 @@ export default function ConnectionsPage() {
                     onChange={() => handleFrequencyChange(option.id)}
                     className="w-4 h-4"
                   />
-                  <span className="text-[#6b5f52]">{option.label}</span>
+                  <span className="text-[#1a0f0a]">{option.label}</span>
                 </label>
               ))}
             </div>
           </div>
 
           <div className="border-t border-[#e8ddd2] pt-4">
-            <label className="block text-sm font-medium text-[#2a2318] mb-3">
+            <label className="block text-sm font-medium text-[#1a0f0a] mb-3">
               Preferred contact method
             </label>
             <div className="space-y-2">
@@ -311,7 +311,7 @@ export default function ConnectionsPage() {
                     onChange={() => handleContactModeChange(option.id)}
                     className="w-4 h-4"
                   />
-                  <span className="text-[#6b5f52]">{option.label}</span>
+                  <span className="text-[#1a0f0a]">{option.label}</span>
                 </label>
               ))}
             </div>
@@ -322,7 +322,7 @@ export default function ConnectionsPage() {
 
       {/* Current Connection */}
       {currentConnection ? (
-        <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-2 border-[#d4a574]">
+        <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-2 border-[#d4a348]">
           <CardHeader title="Your Connection This Week" icon={<IconConnection size={20} />} />
           <div className="space-y-4">
             {/* Partner Info */}
@@ -330,7 +330,7 @@ export default function ConnectionsPage() {
               onClick={handleViewPartnerProfile}
               className="bg-white rounded-lg p-4 w-full text-left hover:bg-[#f8f6f2] transition-colors"
             >
-              <p className="text-sm text-[#a0968a] uppercase tracking-wide">Your partner</p>
+              <p className="text-sm text-[#a0704a] uppercase tracking-wide">Your partner</p>
               <div className="flex items-start gap-4 mt-3">
                 {currentConnection.partnerPhoto && (
                   <img
@@ -340,7 +340,7 @@ export default function ConnectionsPage() {
                   />
                 )}
                 <div>
-                  <p className="text-2xl font-medium text-[#2a2318]">
+                  <p className="text-2xl font-medium text-[#1a0f0a]">
                     {currentConnection.partnerName} {currentConnection.partnerPronouns && `(${currentConnection.partnerPronouns})`}
                   </p>
                 </div>
@@ -349,10 +349,10 @@ export default function ConnectionsPage() {
 
             {/* Shared Interests */}
             <div>
-              <p className="text-sm text-[#6b5f52] mb-2">Shared interests</p>
+              <p className="text-sm text-[#1a0f0a] mb-2">Shared interests</p>
               <div className="flex flex-wrap gap-2">
                 {currentConnection.partnerInterests.slice(0, 3).map((interest: string) => (
-                  <span key={interest} className="bg-[#e8ddd2] text-[#2a2318] px-3 py-1 rounded-full text-xs">
+                  <span key={interest} className="bg-[#e8ddd2] text-[#1a0f0a] px-3 py-1 rounded-full text-xs">
                     {interest}
                   </span>
                 ))}
@@ -360,31 +360,31 @@ export default function ConnectionsPage() {
             </div>
 
             {/* Suggested Prompt */}
-            <div className="bg-white rounded-lg p-4 italic text-[#6b5f52]">
+            <div className="bg-white rounded-lg p-4 italic text-[#1a0f0a]">
               "{currentConnection.sharedPrompt}"
             </div>
 
             {/* 20-Minute Structure */}
             <div className="bg-[#f3ede5] rounded-lg p-4 space-y-2 text-sm">
-              <p className="font-medium text-[#2a2318] mb-3">Suggested 20-Minute Structure</p>
+              <p className="font-medium text-[#1a0f0a] mb-3">Suggested 20-Minute Structure</p>
               <div className="space-y-2">
-                <p className="text-[#6b5f52]">
+                <p className="text-[#1a0f0a]">
                   <strong>2 min:</strong> Arrive, breathe, say hello
                 </p>
-                <p className="text-[#6b5f52]">
+                <p className="text-[#1a0f0a]">
                   <strong>5 min each:</strong> What brought you here & what connection you're practicing
                 </p>
-                <p className="text-[#6b5f52]">
+                <p className="text-[#1a0f0a]">
                   <strong>5 min:</strong> Respond to the prompt together
                 </p>
-                <p className="text-[#6b5f52]">
+                <p className="text-[#1a0f0a]">
                   <strong>3 min:</strong> Appreciation, reflection, close
                 </p>
               </div>
             </div>
 
             {/* Consent & Safety */}
-            <div className="space-y-2 text-sm text-[#6b5f52]">
+            <div className="space-y-2 text-sm text-[#1a0f0a]">
               <p className="flex items-start gap-2">
                 <span>✓</span>
                 <span>
@@ -416,7 +416,7 @@ export default function ConnectionsPage() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowReportForm(true)}
-                  className="text-[#b86a52]"
+                  className="text-[#a84a2a]"
                 >
                   Report a Concern
                 </Button>
@@ -427,7 +427,7 @@ export default function ConnectionsPage() {
                     onChange={(e) => setReportConcern(e.target.value)}
                     placeholder="Describe your concern (no judgment, all reports are reviewed)..."
                     rows={3}
-                    className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b86a52] text-sm"
+                    className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#a84a2a] text-sm"
                   />
                   <div className="flex gap-2">
                     <Button
@@ -435,7 +435,7 @@ export default function ConnectionsPage() {
                       size="sm"
                       onClick={handleReportConcern}
                       disabled={!reportConcern.trim()}
-                      className="flex-1 bg-[#b86a52] hover:bg-[#a85947]"
+                      className="flex-1 bg-[#a84a2a] hover:bg-[#a85947]"
                     >
                       Submit Report
                     </Button>
@@ -458,10 +458,10 @@ export default function ConnectionsPage() {
         </Card>
       ) : (
         <Card className="text-center py-8">
-          <p className="text-[#6b5f52] mb-4">No active connection right now.</p>
+          <p className="text-[#1a0f0a] mb-4">No active connection right now.</p>
           {preferences.frequency !== "pause" ? (
             <div className="space-y-3">
-              <p className="text-sm text-[#a0968a]">
+              <p className="text-sm text-[#a0704a]">
                 {suggestedMatches.length > 0
                   ? "Browse the suggested connections above or generate a random match."
                   : "Select a match from suggestions above or generate a random connection."}
@@ -471,7 +471,7 @@ export default function ConnectionsPage() {
               </Button>
             </div>
           ) : (
-            <p className="text-sm text-[#a0968a]">Connections are paused. Update your preferences to be paired.</p>
+            <p className="text-sm text-[#a0704a]">Connections are paused. Update your preferences to be paired.</p>
           )}
         </Card>
       )}
@@ -479,36 +479,36 @@ export default function ConnectionsPage() {
       {/* Info Section */}
       <Card className="bg-[#f3ede5]">
         <CardHeader title="How This Works" icon="📖" />
-        <ul className="space-y-3 text-[#6b5f52] text-sm">
+        <ul className="space-y-3 text-[#1a0f0a] text-sm">
           <li className="flex items-start gap-3">
-            <span className="text-[#d4a574]">✓</span>
+            <span className="text-[#d4a348]">✓</span>
             <span>Opt-in only—connections happen because you want them</span>
           </li>
           <li className="flex items-start gap-3">
-            <span className="text-[#d4a574]">✓</span>
+            <span className="text-[#d4a348]">✓</span>
             <span>Matched on shared interests and comfort level preferences</span>
           </li>
           <li className="flex items-start gap-3">
-            <span className="text-[#d4a574]">✓</span>
+            <span className="text-[#d4a348]">✓</span>
             <span>20-minute structured conversation with clear timing</span>
           </li>
           <li className="flex items-start gap-3">
-            <span className="text-[#d4a574]">✓</span>
+            <span className="text-[#d4a348]">✓</span>
             <span>
               Contact info only shared with mutual consent—you stay in control
             </span>
           </li>
           <li className="flex items-start gap-3">
-            <span className="text-[#d4a574]">✓</span>
+            <span className="text-[#d4a348]">✓</span>
             <span>Report concerns anytime, no retaliation, no judgment</span>
           </li>
         </ul>
       </Card>
 
       {/* Phase 2 Note */}
-      <Card className="bg-[#fffbf7] border-2 border-[#d4a574]">
+      <Card className="bg-[#fffbf7] border-2 border-[#d4a348]">
         <CardHeader title="Coming in Phase 2" icon="🚀" />
-        <ul className="space-y-2 text-sm text-[#6b5f52]">
+        <ul className="space-y-2 text-sm text-[#1a0f0a]">
           <li>✓ Mutual contact exchange (email, phone, Zoom link)</li>
           <li>✓ Couples connections (couples-to-couples, individual-to-couple options)</li>
           <li>✓ Connection history and notes</li>

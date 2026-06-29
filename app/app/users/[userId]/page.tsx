@@ -78,7 +78,7 @@ export default function UserProfilePage() {
   if (notFound || !profile) {
     return (
       <div className="text-center py-8 space-y-4">
-        <p className="text-[#6b5f52]">Profile not found</p>
+        <p className="text-[#1a0f0a]">Profile not found</p>
         <Link href="/app/spaces">
           <Button variant="outline" size="sm">
             ← Back to Spaces
@@ -109,12 +109,12 @@ export default function UserProfilePage() {
             />
           )}
           <div>
-            <h1 className="text-4xl font-bold text-[#2a2318]">{profile.displayName}</h1>
-            {profile.pronouns && <p className="text-[#6b5f52]">({profile.pronouns})</p>}
+            <h1 className="text-4xl font-bold text-[#1a0f0a]">{profile.displayName}</h1>
+            {profile.pronouns && <p className="text-[#1a0f0a]">({profile.pronouns})</p>}
           </div>
-          {profile.location && <p className="text-[#6b5f52]">📍 {profile.location}</p>}
+          {profile.location && <p className="text-[#1a0f0a]">📍 {profile.location}</p>}
           {profile.joinedAt && (
-            <p className="text-sm text-[#a0968a]">
+            <p className="text-sm text-[#a0704a]">
               Member since {profile.joinedAt.toLocaleDateString()}
             </p>
           )}
@@ -125,7 +125,7 @@ export default function UserProfilePage() {
       {profile.whatBroughtYouHere && (
         <Card>
           <CardHeader title="What Brought Them Here" />
-          <p className="text-[#6b5f52]">{profile.whatBroughtYouHere}</p>
+          <p className="text-[#1a0f0a]">{profile.whatBroughtYouHere}</p>
         </Card>
       )}
 
@@ -137,7 +137,7 @@ export default function UserProfilePage() {
             {profile.interests.map((interest) => (
               <span
                 key={interest}
-                className="px-3 py-1 bg-[#f3ede5] text-[#2a2318] rounded-full text-sm"
+                className="px-3 py-1 bg-[#f3ede5] text-[#1a0f0a] rounded-full text-sm"
               >
                 {interest}
               </span>
@@ -150,7 +150,7 @@ export default function UserProfilePage() {
       {profile.connectionComfortLevel && (
         <Card>
           <CardHeader title="Connection Comfort Level" />
-          <p className="text-[#6b5f52] capitalize">{profile.connectionComfortLevel.replace(/-/g, " ")}</p>
+          <p className="text-[#1a0f0a] capitalize">{profile.connectionComfortLevel.replace(/-/g, " ")}</p>
         </Card>
       )}
     </div>

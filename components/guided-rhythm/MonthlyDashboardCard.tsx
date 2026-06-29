@@ -41,25 +41,25 @@ export function MonthlyDashboardCard() {
         <div className="space-y-4">
           {/* Header */}
           <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-[#2a2318]">
+            <h3 className="text-lg font-semibold text-[#1a0f0a]">
               This Month in The Connection Room
             </h3>
-            <p className="text-xs text-[#d4a574] font-medium uppercase tracking-wide">
+            <p className="text-xs text-[#d4a348] font-medium uppercase tracking-wide">
               {currentMonth.title}
             </p>
           </div>
 
           {/* Theme Summary */}
-          <p className="text-sm text-[#6b5f52] leading-relaxed line-clamp-2">
+          <p className="text-sm text-[#1a0f0a] leading-relaxed line-clamp-2">
             {currentMonth.monthlyTheme}
           </p>
 
           {/* Current Week */}
-          <div className="bg-white rounded-lg p-3 border-l-4 border-[#d4a574]">
-            <p className="text-xs text-[#8fa878] font-medium uppercase tracking-wide mb-1">
+          <div className="bg-white rounded-lg p-3 border-l-4 border-[#d4a348]">
+            <p className="text-xs text-[#c97a2a] font-medium uppercase tracking-wide mb-1">
               This Week: {currentWeek.title}
             </p>
-            <p className="text-sm text-[#6b5f52] italic">
+            <p className="text-sm text-[#1a0f0a] italic">
               {currentWeek.dashboardPrompt}
             </p>
           </div>
@@ -80,7 +80,7 @@ export function MonthlyDashboardCard() {
           </div>
 
           {/* Microcopy */}
-          <p className="text-xs text-[#a0968a] italic">
+          <p className="text-xs text-[#a0704a] italic">
             This is a rhythm, not a requirement. Return when you can.
           </p>
         </div>

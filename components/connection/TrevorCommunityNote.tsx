@@ -14,7 +14,7 @@ export function TrevorCommunityNote({ variant = "dashboard" }: TrevorCommunityNo
     <Card
       className={`${
         variant === "commons"
-          ? "bg-gradient-to-br from-[#f3ede5] to-white border-l-4 border-[#d4a574]"
+          ? "bg-gradient-to-br from-[#f3ede5] to-white border-l-4 border-[#d4a348]"
           : "bg-white"
       }`}
     >
@@ -27,29 +27,29 @@ export function TrevorCommunityNote({ variant = "dashboard" }: TrevorCommunityNo
             className="w-20 h-20 rounded-full flex-shrink-0 object-cover"
             style={{ objectPosition: "center 20%" }}
           />
-          <h3 className="text-lg font-semibold text-[#2a2318]">A Note from Trevor</h3>
+          <h3 className="text-lg font-semibold text-[#1a0f0a]">A Note from Trevor</h3>
         </div>
 
         {/* Note Content */}
         <div className="bg-[#f8f6f2] rounded-lg p-4">
-          <p className="text-sm text-[#6b5f52] leading-relaxed italic">
+          <p className="text-sm text-[#1a0f0a] leading-relaxed italic">
             {trevorNote.note}
           </p>
         </div>
 
         {/* Community Invitation */}
         <div className="space-y-3">
-          <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide">
+          <p className="text-xs font-medium text-[#c97a2a] uppercase tracking-wide">
             This Week's Invitation
           </p>
-          <p className="text-sm text-[#6b5f52] leading-relaxed">
+          <p className="text-sm text-[#1a0f0a] leading-relaxed">
             {trevorNote.communityInvitation}
           </p>
 
           {/* CTA */}
           <a
             href="/app/spaces/commons"
-            className="inline-block px-4 py-2 bg-[#d4a574] text-[#ffffff] rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
+            className="inline-block px-4 py-2 bg-[#d4a348] text-[#ffffff] rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
           >
             Respond in The Commons
           </a>

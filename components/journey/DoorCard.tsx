@@ -52,7 +52,7 @@ export function DoorCard({
     <Card
       className={`relative overflow-hidden transition-all ${
         isCompleted ? "opacity-75 bg-[#f3ede5]" : "bg-white"
-      } ${isCurrentDoor ? "ring-2 ring-[#d4a574]" : ""}`}
+      } ${isCurrentDoor ? "ring-2 ring-[#d4a348]" : ""}`}
     >
       {/* Hero Image */}
       <div className="relative w-full h-64 -m-4 mb-4 overflow-hidden rounded-t-lg">
@@ -65,7 +65,7 @@ export function DoorCard({
       </div>
 
       {/* Visual door indicator */}
-      <div className="absolute top-0 right-0 w-1 h-full bg-gradient-to-b from-[#d4a574] to-[#8fa878] opacity-30" />
+      <div className="absolute top-0 right-0 w-1 h-full bg-gradient-to-b from-[#d4a348] to-[#c97a2a] opacity-30" />
 
       {/* Door Header with Status */}
       <div className="mb-4 flex items-start justify-between">
@@ -73,31 +73,31 @@ export function DoorCard({
           <div
             className={`flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg flex-shrink-0 ${
               isCompleted
-                ? "bg-[#8fa878] text-white"
+                ? "bg-[#c97a2a] text-white"
                 : isCurrentDoor
-                ? "bg-[#d4a574] text-white ring-2 ring-[#6b5f52] ring-offset-2"
-                : "bg-[#f3ede5] text-[#d4a574]"
+                ? "bg-[#d4a348] text-white ring-2 ring-[#1a0f0a] ring-offset-2"
+                : "bg-[#f3ede5] text-[#d4a348]"
             }`}
           >
             {isCompleted ? "✓" : door.doorNumber}
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-[#2a2318]">
+            <h3 className="text-xl font-semibold text-[#1a0f0a]">
               {door.title}
             </h3>
-            <p className="text-sm font-semibold text-[#d4a574] italic mt-1">
+            <p className="text-sm font-semibold text-[#d4a348] italic mt-1">
               {door.theme}
             </p>
           </div>
         </div>
         <div className="flex flex-col items-end gap-2 flex-shrink-0">
           {isCompleted && (
-            <span className="text-xs font-medium text-[#8fa878] px-2 py-1 bg-[#8fa878]/10 rounded">
+            <span className="text-xs font-medium text-[#c97a2a] px-2 py-1 bg-[#c97a2a]/10 rounded">
               ✓ Completed
             </span>
           )}
           {isCurrentDoor && (
-            <span className="text-xs font-medium text-[#d4a574] px-2 py-1 bg-[#d4a574]/10 rounded">
+            <span className="text-xs font-medium text-[#d4a348] px-2 py-1 bg-[#d4a348]/10 rounded">
               Current
             </span>
           )}
@@ -106,16 +106,16 @@ export function DoorCard({
 
       {/* Description with Purpose Context */}
       <div className="mb-4 space-y-2">
-        <p className="text-sm text-[#6b5f52] leading-relaxed">
+        <p className="text-sm text-[#1a0f0a] leading-relaxed">
           {door.description}
         </p>
-        <p className="text-xs text-[#8fa878] italic">
+        <p className="text-xs text-[#c97a2a] italic">
           Why this matters: {door.theme}
         </p>
       </div>
 
       {/* Invitation / Instruction */}
-      <p className="text-sm text-[#2a2318] mb-4 leading-relaxed">
+      <p className="text-sm text-[#1a0f0a] mb-4 leading-relaxed">
         {door.invitation}
       </p>
 
@@ -135,8 +135,8 @@ export function DoorCard({
               }}
               className={`text-left px-4 py-3 rounded-lg text-sm font-medium transition-all ${
                 action.type === "post"
-                  ? "bg-[#d4a574] text-white hover:bg-[#c09560]"
-                  : "border-2 border-[#d4a574] text-[#d4a574] hover:bg-[#f3ede5]"
+                  ? "bg-[#d4a348] text-white hover:bg-[#c09560]"
+                  : "border-2 border-[#d4a348] text-[#d4a348] hover:bg-[#f3ede5]"
               }`}
             >
               {action.label}
@@ -148,16 +148,16 @@ export function DoorCard({
         </div>
 
         {/* Reflection Prompt + Button + Textarea - Grouped Together */}
-        <div className="bg-[#f3ede5] rounded-lg p-4 space-y-3 border-l-4 border-[#d4a574]">
+        <div className="bg-[#f3ede5] rounded-lg p-4 space-y-3 border-l-4 border-[#d4a348]">
           <div>
-            <p className="text-xs font-medium text-[#8fa878] uppercase tracking-wide mb-1">
+            <p className="text-xs font-medium text-[#c97a2a] uppercase tracking-wide mb-1">
               Reflection
             </p>
-            <p className="text-sm text-[#6b5f52] italic">{door.reflection}</p>
+            <p className="text-sm text-[#1a0f0a] italic">{door.reflection}</p>
           </div>
           <button
             onClick={() => setShowReflection(true)}
-            className="bg-[#d4a574] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#c09560] transition-all"
+            className="bg-[#d4a348] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#c09560] transition-all"
           >
             Write Private Reflection
           </button>
@@ -167,26 +167,26 @@ export function DoorCard({
       {/* Private Reflection Box */}
       {showReflection && (
         <div className="mb-4 p-4 bg-[#f3ede5] rounded-lg">
-          <label className="text-xs font-medium text-[#8fa878] uppercase tracking-wide block mb-2">
+          <label className="text-xs font-medium text-[#c97a2a] uppercase tracking-wide block mb-2">
             Private Reflection - Only you can see this
           </label>
           <textarea
             value={reflectionText}
             onChange={(e) => setReflectionText(e.target.value)}
             placeholder="Write your private reflection here..."
-            className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm text-[#2a2318] bg-white"
+            className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm text-[#1a0f0a] bg-white"
             rows={3}
           />
           <div className="flex gap-2 mt-3">
             <button
               onClick={() => setShowReflection(false)}
-              className="px-3 py-1 text-sm text-[#6b5f52] hover:bg-[#e8ddd2] rounded"
+              className="px-3 py-1 text-sm text-[#1a0f0a] hover:bg-[#e8ddd2] rounded"
             >
               Cancel
             </button>
             <button
               onClick={handleSaveReflection}
-              className="px-3 py-1 text-sm bg-[#d4a574] text-white rounded hover:bg-[#c09560]"
+              className="px-3 py-1 text-sm bg-[#d4a348] text-white rounded hover:bg-[#c09560]"
             >
               Save
             </button>
@@ -208,10 +208,10 @@ export function DoorCard({
           <Card className="w-full max-w-2xl mx-4">
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold text-[#2a2318]">
+                <h3 className="text-lg font-semibold text-[#1a0f0a]">
                   {door.postTemplate?.title || "Share Your Thoughts"}
                 </h3>
-                <p className="text-sm text-[#6b5f52] mt-1">
+                <p className="text-sm text-[#1a0f0a] mt-1">
                   {door.postTemplate?.bodyStarter && "Use this as a starting point:"}
                 </p>
               </div>
@@ -220,23 +220,23 @@ export function DoorCard({
                 value={postContent}
                 onChange={(e) => setPostContent(e.target.value)}
                 placeholder={door.postTemplate?.bodyStarter || "Share your thoughts..."}
-                className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm text-[#2a2318] bg-white"
+                className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm text-[#1a0f0a] bg-white"
                 rows={6}
               />
 
-              <p className="text-xs text-[#8fa878]">A sentence or two is enough. No need to write a memoir unless the memoir insists.</p>
+              <p className="text-xs text-[#c97a2a]">A sentence or two is enough. No need to write a memoir unless the memoir insists.</p>
 
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowPostModal(false)}
-                  className="flex-1 px-4 py-2 text-sm text-[#6b5f52] hover:bg-[#f3ede5] rounded border border-[#e8ddd2]"
+                  className="flex-1 px-4 py-2 text-sm text-[#1a0f0a] hover:bg-[#f3ede5] rounded border border-[#e8ddd2]"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmitPost}
                   disabled={!postContent.trim()}
-                  className="flex-1 px-4 py-2 text-sm bg-[#d4a574] text-white rounded hover:bg-[#c09560] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 text-sm bg-[#d4a348] text-white rounded hover:bg-[#c09560] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Post to The Commons
                 </button>

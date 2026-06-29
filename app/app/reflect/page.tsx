@@ -102,38 +102,38 @@ export default function ReflectPage() {
       <Card>
         <div className="space-y-6">
           <div>
-            <h1 className="text-3xl text-[#2a2318] mb-2">Respond to Today's Prompt</h1>
-            <p className="text-[#6b5f52]">Share your thoughts on today's reflection.</p>
+            <h1 className="text-3xl text-[#1a0f0a] mb-2">Respond to Today's Prompt</h1>
+            <p className="text-[#1a0f0a]">Share your thoughts on today's reflection.</p>
           </div>
 
           <div className="bg-[#f3ede5] rounded-lg p-4">
-            <p className="text-[#6b5f52] italic text-lg">"{todaysPrompt}"</p>
-            <p className="text-sm text-[#8fa878] mt-3">A sentence or two is enough. No need to write a memoir unless the memoir insists.</p>
+            <p className="text-[#1a0f0a] italic text-lg">"{todaysPrompt}"</p>
+            <p className="text-sm text-[#c97a2a] mt-3">A sentence or two is enough. No need to write a memoir unless the memoir insists.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-[#2a2318] mb-2">
+              <label className="block text-sm font-medium text-[#1a0f0a] mb-2">
                 Your Response
               </label>
               <textarea
                 value={response}
                 onChange={(e) => setResponse(e.target.value)}
                 placeholder="Share your thoughts..."
-                className="w-full px-4 py-3 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-[#2a2318] bg-white"
+                className="w-full px-4 py-3 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a] bg-white"
                 rows={6}
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#2a2318] mb-2">
+              <label className="block text-sm font-medium text-[#1a0f0a] mb-2">
                 Share in Space
               </label>
               <select
                 value={selectedSpaceId}
                 onChange={(e) => setSelectedSpaceId(e.target.value)}
-                className="w-full px-4 py-3 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-[#2a2318] bg-white"
+                className="w-full px-4 py-3 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a] bg-white"
                 required
               >
                 {spaces.map((space) => (

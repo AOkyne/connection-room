@@ -12,22 +12,22 @@ export function TodayThemeCard({ theme }: TodayThemeCardProps) {
   if (!theme) return null;
 
   return (
-    <Card className="bg-gradient-to-br from-[#d4a574]/10 to-transparent border-l-4 border-[#d4a574]">
+    <Card className="bg-gradient-to-br from-[#d4a348]/10 to-transparent border-l-4 border-[#d4a348]">
       <div className="space-y-3">
         <div>
-          <p className="text-xs font-semibold text-[#8fa878] uppercase tracking-wide mb-1">
+          <p className="text-xs font-semibold text-[#c97a2a] uppercase tracking-wide mb-1">
             Today's Theme
           </p>
-          <h2 className="text-2xl font-semibold text-[#2a2318]">{theme.title}</h2>
+          <h2 className="text-2xl font-semibold text-[#1a0f0a]">{theme.title}</h2>
         </div>
-        <p className="text-sm text-[#6b5f52] leading-relaxed">
+        <p className="text-sm text-[#1a0f0a] leading-relaxed">
           {theme.category && (
             <span className="inline-block bg-[#f3ede5] px-2 py-1 rounded text-xs mr-2 mb-2">
               {theme.category}
             </span>
           )}
         </p>
-        <p className="text-sm text-[#6b5f52] leading-relaxed">
+        <p className="text-sm text-[#1a0f0a] leading-relaxed">
           {getThemeExplanation(theme.title)}
         </p>
       </div>

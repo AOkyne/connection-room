@@ -327,10 +327,10 @@ export default function SpaceDetailPage() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <SpaceIconSVG spaceId={space.id} size={40} />
-            <h1 className="text-4xl text-[#2a2318]">{space.name}</h1>
+            <h1 className="text-4xl text-[#1a0f0a]">{space.name}</h1>
           </div>
-          <p className="text-lg text-[#6b5f52]">{space.description}</p>
-          <p className="text-sm text-[#a0968a] mt-2">{demoMembers.filter(m => m.spacesJoined?.includes(spaceId)).length} members</p>
+          <p className="text-lg text-[#1a0f0a]">{space.description}</p>
+          <p className="text-sm text-[#a0704a] mt-2">{demoMembers.filter(m => m.spacesJoined?.includes(spaceId)).length} members</p>
         </div>
         <div className="flex flex-col gap-2 items-end">
           {/* Compact Search Bar */}
@@ -341,7 +341,7 @@ export default function SpaceDetailPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search posts..."
-                className="w-full px-3 py-1.5 text-sm border border-[#d4a574] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4a574] text-[#2a2318] placeholder-[#a0968a]"
+                className="w-full px-3 py-1.5 text-sm border border-[#d4a348] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4a348] text-[#1a0f0a] placeholder-[#a0704a]"
               />
             </div>
           )}
@@ -361,7 +361,7 @@ export default function SpaceDetailPage() {
         const spaceMembers = demoMembers.filter(m => memberIds.includes(m.id));
         return spaceMembers.length > 0 ? (
           <div className="flex flex-wrap gap-2 items-center bg-[#f3ede5] p-3 rounded-lg">
-            <span className="text-xs font-medium text-[#6b5f52] mr-2">People:</span>
+            <span className="text-xs font-medium text-[#1a0f0a] mr-2">People:</span>
             {spaceMembers.slice(0, 12).map((member) => (
               <button
                 key={member.id}
@@ -372,17 +372,17 @@ export default function SpaceDetailPage() {
                 <img
                   src={member.profilePhoto}
                   alt={member.displayName}
-                  className="w-6 h-6 rounded-full hover:ring-2 hover:ring-[#d4a574] transition-all"
+                  className="w-6 h-6 rounded-full hover:ring-2 hover:ring-[#d4a348] transition-all"
                 />
               </button>
             ))}
             {spaceMembers.length > 12 && (
               <Link href={`/app/spaces/${spaceId}/members`}>
-                <span className="text-xs text-[#d4a574] hover:underline font-medium">+{spaceMembers.length - 12}</span>
+                <span className="text-xs text-[#d4a348] hover:underline font-medium">+{spaceMembers.length - 12}</span>
               </Link>
             )}
             <Link href={`/app/spaces/${spaceId}/members`} className="ml-auto">
-              <span className="text-xs text-[#d4a574] hover:underline font-medium">See all</span>
+              <span className="text-xs text-[#d4a348] hover:underline font-medium">See all</span>
             </Link>
           </div>
         ) : null;
@@ -391,19 +391,19 @@ export default function SpaceDetailPage() {
       {/* Space Introduction */}
 
       {space.id === "commons" && (
-        <Card className="bg-[#f3ede5] border-l-4 border-[#d4a574]">
-          <div className="space-y-4 text-[#2a2318]">
+        <Card className="bg-[#f3ede5] border-l-4 border-[#d4a348]">
+          <div className="space-y-4 text-[#1a0f0a]">
             <h2 className="text-2xl font-bold">Welcome to The Commons.</h2>
 
-            <p className="text-[#6b5f52]">
+            <p className="text-[#1a0f0a]">
               This is the main gathering space for the community: a place for reflections, questions, introductions, check-ins, shared insights, and the small human moments that help a room feel alive.
             </p>
 
-            <p className="italic text-[#6b5f52]">Think of The Commons as the front room of The Connection Room — the warmer version where you can say hello, share what you are noticing, and connect with others.</p>
+            <p className="italic text-[#1a0f0a]">Think of The Commons as the front room of The Connection Room — the warmer version where you can say hello, share what you are noticing, and connect with others.</p>
 
-            <div className="pt-4 border-t border-[#d4a574]">
+            <div className="pt-4 border-t border-[#d4a348]">
               <h3 className="font-bold mb-3">What to post here:</h3>
-              <ul className="space-y-1 text-sm text-[#6b5f52]">
+              <ul className="space-y-1 text-sm text-[#1a0f0a]">
                 <li>• A short introduction or what brought you here</li>
                 <li>• What kind of connection you are craving more of</li>
                 <li>• Something you are learning about intimacy or vulnerability</li>
@@ -412,10 +412,10 @@ export default function SpaceDetailPage() {
               </ul>
             </div>
 
-            <div className="pt-4 border-t border-[#d4a574]">
+            <div className="pt-4 border-t border-[#d4a348]">
               <h3 className="font-bold mb-3">How to respond:</h3>
-              <p className="text-sm text-[#6b5f52] mb-2">Lead with presence. Helpful responses include:</p>
-              <ul className="space-y-1 text-sm text-[#6b5f52]">
+              <p className="text-sm text-[#1a0f0a] mb-2">Lead with presence. Helpful responses include:</p>
+              <ul className="space-y-1 text-sm text-[#1a0f0a]">
                 <li>• "I relate to this."</li>
                 <li>• "Thank you for sharing."</li>
                 <li>• "I appreciate how honestly you said this."</li>
@@ -427,15 +427,15 @@ export default function SpaceDetailPage() {
       )}
 
       {space.id === "start-here" && (
-        <Card className="bg-[#f3ede5] border-l-4 border-[#d4a574]">
-          <div className="space-y-4 text-[#2a2318]">
+        <Card className="bg-[#f3ede5] border-l-4 border-[#d4a348]">
+          <div className="space-y-4 text-[#1a0f0a]">
             <h2 className="text-2xl font-bold">Welcome to The Connection Room by Trevor James.</h2>
 
-            <p className="text-[#6b5f52]">
+            <p className="text-[#1a0f0a]">
               This is a private community for men and couples who want to practice more honest connection, embodied intimacy, emotional openness, spirituality, sexuality, and integration without shame, pressure, or performance.
             </p>
 
-            <div className="space-y-2 text-[#6b5f52]">
+            <div className="space-y-2 text-[#1a0f0a]">
               <p className="font-medium">This is not a hookup space.</p>
               <p>It is not a dating app.</p>
               <p>It is not a place where you have to perform vulnerability, say something profound, or arrive fully "healed" before you belong.</p>
@@ -443,29 +443,29 @@ export default function SpaceDetailPage() {
 
             <p className="italic">Think of this as a practice room. A place to slow down, notice what is true, explore what connection brings up in you, and participate at a pace that feels honest and respectful.</p>
 
-            <p className="text-[#6b5f52]">You are welcome here whether you are feeling open, guarded, curious, nervous, tender, skeptical, quietly hopeful, or all of the above before breakfast.</p>
+            <p className="text-[#1a0f0a]">You are welcome here whether you are feeling open, guarded, curious, nervous, tender, skeptical, quietly hopeful, or all of the above before breakfast.</p>
 
             <h3 className="font-bold pt-4">Our culture</h3>
-            <p className="text-sm text-[#6b5f52]">The culture here is built on consent, care, curiosity, and emotional honesty.</p>
+            <p className="text-sm text-[#1a0f0a]">The culture here is built on consent, care, curiosity, and emotional honesty.</p>
 
-            <ul className="space-y-2 text-sm text-[#6b5f52]">
+            <ul className="space-y-2 text-sm text-[#1a0f0a]">
               <li><strong>We speak from personal experience.</strong></li>
               <li><strong>We do not diagnose, fix, pressure, pursue, or perform.</strong></li>
               <li><strong>We respect different bodies, orientations, relationship structures, comfort levels, and life experiences.</strong></li>
               <li><strong>We do not use the community to cruise, solicit, or send unwanted sexual energy toward other members.</strong></li>
             </ul>
 
-            <p className="text-[#6b5f52] font-medium pt-2">Vulnerability is welcome here, but it is never demanded.</p>
+            <p className="text-[#1a0f0a] font-medium pt-2">Vulnerability is welcome here, but it is never demanded.</p>
 
-            <ul className="space-y-1 text-sm text-[#6b5f52]">
+            <ul className="space-y-1 text-sm text-[#1a0f0a]">
               <li>You can participate quietly at first.</li>
               <li>You can take your time.</li>
               <li>You can be thoughtful without being dramatic.</li>
               <li>You can be honest without oversharing.</li>
             </ul>
 
-            <p className="text-[#6b5f52] font-medium pt-4">The invitation is simple:</p>
-            <ul className="space-y-1 text-sm text-[#6b5f52]">
+            <p className="text-[#1a0f0a] font-medium pt-4">The invitation is simple:</p>
+            <ul className="space-y-1 text-sm text-[#1a0f0a]">
               <li>Come back to your body.</li>
               <li>Notice what is true.</li>
               <li>Practice connection with care.</li>
@@ -479,7 +479,7 @@ export default function SpaceDetailPage() {
       {space.featuredPrompt && (
         <Card className="bg-gradient-to-r from-[#f3ede5] to-[#fffbf7]">
           <CardHeader title="Today's Prompt" icon={<IconReflection size={20} />} />
-          <p className="text-[#6b5f52] italic text-lg mb-4">"{space.featuredPrompt}"</p>
+          <p className="text-[#1a0f0a] italic text-lg mb-4">"{space.featuredPrompt}"</p>
           <Button
             variant="secondary"
             size="md"
@@ -519,8 +519,8 @@ export default function SpaceDetailPage() {
         <CardHeader title="Share Your Thoughts" icon={<IconIntegration size={20} />} />
 
         {/* Template Hint */}
-        <div className="mb-3 p-3 rounded-lg bg-[#f3ede5] text-sm text-[#6b5f52]">
-          <p className="mb-2">Not sure where to start? <button onClick={() => setShowTemplateSelector(true)} className="text-[#d4a574] hover:underline font-medium">Choose a post template</button> to help you.</p>
+        <div className="mb-3 p-3 rounded-lg bg-[#f3ede5] text-sm text-[#1a0f0a]">
+          <p className="mb-2">Not sure where to start? <button onClick={() => setShowTemplateSelector(true)} className="text-[#d4a348] hover:underline font-medium">Choose a post template</button> to help you.</p>
         </div>
 
         <div className="space-y-2">
@@ -530,14 +530,14 @@ export default function SpaceDetailPage() {
             placeholder="What's on your mind? Share authentically..."
             rows={3}
             maxLength={MAX_POST_LENGTH}
-            className="w-full px-4 py-2.5 border border-[#ede6e0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#d4a574] focus:ring-offset-2 focus:border-transparent transition-all duration-150 text-[#2a2318] placeholder-[#a0968a] resize-none"
+            className="w-full px-4 py-2.5 border border-[#ede6e0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#d4a348] focus:ring-offset-2 focus:border-transparent transition-all duration-150 text-[#1a0f0a] placeholder-[#a0704a] resize-none"
           />
           <div className="flex justify-between items-center">
-            <p className="text-xs text-[#a0968a]">
+            <p className="text-xs text-[#a0704a]">
               {newPostContent.length} / {MAX_POST_LENGTH} characters
             </p>
             {newPostContent.length > MAX_POST_LENGTH * 0.9 && (
-              <p className="text-xs text-[#d4a574]">Getting close to limit</p>
+              <p className="text-xs text-[#d4a348]">Getting close to limit</p>
             )}
           </div>
         </div>
@@ -595,10 +595,10 @@ export default function SpaceDetailPage() {
           </div>
         ) : filteredPosts.length === 0 && searchQuery ? (
           <Card className="text-center py-8">
-            <p className="text-[#6b5f52]">No posts match your search.</p>
+            <p className="text-[#1a0f0a]">No posts match your search.</p>
             <button
               onClick={() => setSearchQuery("")}
-              className="text-sm text-[#d4a574] hover:underline mt-2"
+              className="text-sm text-[#d4a348] hover:underline mt-2"
             >
               Clear search
             </button>
@@ -629,10 +629,10 @@ export default function SpaceDetailPage() {
                     return <Avatar name={post.authorName} photo={author?.profilePhoto || post.authorPhoto} size={40} className="cursor-pointer" />;
                   })()}
                   <div className="cursor-pointer">
-                    <p className="font-medium text-[#2a2318]">
+                    <p className="font-medium text-[#1a0f0a]">
                       {post.authorName} {post.authorPronouns && `(${post.authorPronouns})`}
                     </p>
-                    <p className="text-xs text-[#a0968a]">
+                    <p className="text-xs text-[#a0704a]">
                       {new Date(post.createdAt).toLocaleDateString()} at{" "}
                       {new Date(post.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
@@ -640,7 +640,7 @@ export default function SpaceDetailPage() {
                 </button>
               </div>
 
-              <p className="text-[#6b5f52] mb-4">{post.content}</p>
+              <p className="text-[#1a0f0a] mb-4">{post.content}</p>
 
               {/* Reactions */}
               <ReactionBar
@@ -653,7 +653,7 @@ export default function SpaceDetailPage() {
               <div className="flex items-center justify-between mt-3">
                 <button
                   onClick={() => toggleExpandPost(post.id)}
-                  className="text-sm font-medium text-[#d4a574] hover:text-[#9d7f5c] hover:underline transition-colors"
+                  className="text-sm font-medium text-[#d4a348] hover:text-[#8b6f47] hover:underline transition-colors"
                 >
                   💬 Comment | {post.commentCount} {post.commentCount === 1 ? "comment" : "comments"}
                 </button>
@@ -686,10 +686,10 @@ export default function SpaceDetailPage() {
                             return <Avatar name={comment.authorName} photo={author?.profilePhoto || comment.authorPhoto} size={28} className="cursor-pointer" />;
                           })()}
                           <div className="flex-1 cursor-pointer">
-                            <p className="text-sm font-medium text-[#2a2318]">
+                            <p className="text-sm font-medium text-[#1a0f0a]">
                               {comment.authorName} {comment.authorPronouns && `(${comment.authorPronouns})`}
                             </p>
-                            <p className="text-sm text-[#6b5f52] mt-1">{comment.content}</p>
+                            <p className="text-sm text-[#1a0f0a] mt-1">{comment.content}</p>
                           </div>
                         </button>
                       </div>
@@ -722,10 +722,10 @@ export default function SpaceDetailPage() {
                       placeholder="Add your response..."
                       rows={2}
                       maxLength={MAX_COMMENT_LENGTH}
-                      className="w-full px-4 py-2.5 border border-[#ede6e0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#d4a574] focus:ring-offset-2 focus:border-transparent transition-all duration-150 text-sm text-[#2a2318] placeholder-[#a0968a] resize-none"
+                      className="w-full px-4 py-2.5 border border-[#ede6e0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#d4a348] focus:ring-offset-2 focus:border-transparent transition-all duration-150 text-sm text-[#1a0f0a] placeholder-[#a0704a] resize-none"
                     />
                     <div className="flex justify-between items-center">
-                      <p className="text-xs text-[#a0968a]">
+                      <p className="text-xs text-[#a0704a]">
                         {(newCommentContent[post.id] || "").length} / {MAX_COMMENT_LENGTH}
                       </p>
                     </div>

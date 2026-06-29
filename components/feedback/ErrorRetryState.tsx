@@ -27,8 +27,8 @@ export function ErrorRetryState({
       <div className="max-w-md w-full space-y-6">
         <div className="text-center space-y-4">
           <div className="text-5xl">⚠️</div>
-          <h1 className="text-2xl font-medium text-[#2a2318]">{title}</h1>
-          <p className="text-[#6b5f52] leading-relaxed">{message}</p>
+          <h1 className="text-2xl font-medium text-[#1a0f0a]">{title}</h1>
+          <p className="text-[#1a0f0a] leading-relaxed">{message}</p>
         </div>
 
         <div className="flex gap-3 flex-col">
@@ -61,7 +61,7 @@ export function ErrorRetryState({
           )}
         </div>
 
-        <p className="text-xs text-[#a0968a] text-center">
+        <p className="text-xs text-[#a0704a] text-center">
           If this keeps happening, try refreshing the page or signing in again.
         </p>
       </div>

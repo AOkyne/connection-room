@@ -48,8 +48,8 @@ export function ConnectionInterestButton({
         disabled={clicked}
         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
           clicked
-            ? "bg-[#8fa878] text-[#ffffff]"
-            : "border border-[#d4a574] text-[#d4a574] hover:bg-[#f3ede5]"
+            ? "bg-[#c97a2a] text-[#ffffff]"
+            : "border border-[#d4a348] text-[#d4a348] hover:bg-[#f3ede5]"
         }`}
       >
         {clicked ? "✓ Interest saved" : "Open to connection around this theme"}
@@ -58,16 +58,16 @@ export function ConnectionInterestButton({
       {/* Info Toggle */}
       <button
         onClick={() => setShowInfo(!showInfo)}
-        className="text-xs text-[#8fa878] hover:underline"
+        className="text-xs text-[#c97a2a] hover:underline"
       >
         {showInfo ? "Hide info" : "What does this mean?"}
       </button>
 
       {/* Info */}
       {showInfo && (
-        <div className="bg-[#f8f6f2] rounded-lg p-3 text-xs text-[#6b5f52] space-y-2">
+        <div className="bg-[#f8f6f2] rounded-lg p-3 text-xs text-[#1a0f0a] space-y-2">
           <p>{connectionInterestPrompt}</p>
-          <p className="italic text-[#a0968a]">
+          <p className="italic text-[#a0704a]">
             We'll use this to suggest meaningful connections once our connection system is ready.
           </p>
         </div>

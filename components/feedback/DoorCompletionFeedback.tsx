@@ -44,9 +44,9 @@ export function DoorCompletionFeedback({
       onClose={onClose}
     >
       {nextDoorNumber && nextDoorTitle && (
-        <div className="mt-2 p-3 bg-white rounded border border-[#d4a574]/30">
-          <p className="text-xs font-medium text-[#8fa878] mb-1">Next: Door {nextDoorNumber}</p>
-          <p className="text-sm font-semibold text-[#2a2318]">{nextDoorTitle}</p>
+        <div className="mt-2 p-3 bg-white rounded border border-[#d4a348]/30">
+          <p className="text-xs font-medium text-[#c97a2a] mb-1">Next: Door {nextDoorNumber}</p>
+          <p className="text-sm font-semibold text-[#1a0f0a]">{nextDoorTitle}</p>
         </div>
       )}
     </ActionFeedback>

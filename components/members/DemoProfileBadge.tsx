@@ -18,7 +18,7 @@ export function DemoProfileBadge({ member, size = "md" }: DemoProfileBadgeProps)
   };
 
   return (
-    <span className={`bg-[#e8ddd2] text-[#a0968a] font-normal rounded ${sizeClasses[size]}`}>
+    <span className={`bg-[#e8ddd2] text-[#a0704a] font-normal rounded ${sizeClasses[size]}`}>
       Sample
     </span>
   );

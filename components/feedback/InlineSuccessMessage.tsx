@@ -18,16 +18,16 @@ export function InlineSuccessMessage({
   onDismiss,
 }: InlineSuccessMessageProps) {
   return (
-    <div className="bg-[#f0f8f4] border-l-4 border-[#8fa878] p-4 rounded-lg flex items-start justify-between gap-4">
+    <div className="bg-[#f0f8f4] border-l-4 border-[#c97a2a] p-4 rounded-lg flex items-start justify-between gap-4">
       <div className="space-y-1 flex-1">
-        <p className="text-sm font-semibold text-[#8fa878]">{title}</p>
-        {message && <p className="text-sm text-[#6b5f52]">{message}</p>}
-        {children && <div className="text-sm text-[#6b5f52]">{children}</div>}
+        <p className="text-sm font-semibold text-[#c97a2a]">{title}</p>
+        {message && <p className="text-sm text-[#1a0f0a]">{message}</p>}
+        {children && <div className="text-sm text-[#1a0f0a]">{children}</div>}
       </div>
       {dismissible && onDismiss && (
         <button
           onClick={onDismiss}
-          className="text-[#a0968a] hover:text-[#6b5f52] transition-colors flex-shrink-0 mt-1"
+          className="text-[#a0704a] hover:text-[#1a0f0a] transition-colors flex-shrink-0 mt-1"
           aria-label="Dismiss"
         >
           ✕

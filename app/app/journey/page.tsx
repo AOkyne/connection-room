@@ -175,8 +175,8 @@ export default function JourneyPage() {
 
       {/* Header */}
       <div>
-        <h1 className="text-4xl text-[#2a2318]">My Journey</h1>
-        <p className="text-lg text-[#6b5f52] mt-2">
+        <h1 className="text-4xl text-[#1a0f0a]">My Journey</h1>
+        <p className="text-lg text-[#1a0f0a] mt-2">
           Your guided path through the community
         </p>
       </div>
@@ -206,24 +206,24 @@ export default function JourneyPage() {
           <CardHeader title="Who You Are" icon={<IconProfile size={20} />} />
           <div className="space-y-4">
             <div>
-              <p className="text-xs text-[#a0968a] uppercase tracking-wide">Display Name</p>
-              <p className="font-medium text-[#2a2318] text-lg mt-1">{profile.displayName}</p>
+              <p className="text-xs text-[#a0704a] uppercase tracking-wide">Display Name</p>
+              <p className="font-medium text-[#1a0f0a] text-lg mt-1">{profile.displayName}</p>
             </div>
             {profile.pronouns && (
               <div>
-                <p className="text-xs text-[#a0968a] uppercase tracking-wide">Pronouns</p>
-                <p className="font-medium text-[#2a2318]">{profile.pronouns}</p>
+                <p className="text-xs text-[#a0704a] uppercase tracking-wide">Pronouns</p>
+                <p className="font-medium text-[#1a0f0a]">{profile.pronouns}</p>
               </div>
             )}
             {profile.location && (
               <div>
-                <p className="text-xs text-[#a0968a] uppercase tracking-wide">Location</p>
-                <p className="font-medium text-[#2a2318]">{profile.location}</p>
+                <p className="text-xs text-[#a0704a] uppercase tracking-wide">Location</p>
+                <p className="font-medium text-[#1a0f0a]">{profile.location}</p>
                 </div>
             )}
             <div>
-              <p className="text-xs text-[#a0968a] uppercase tracking-wide">Member Type</p>
-              <p className="font-medium text-[#2a2318]">{memberTypeLabel}</p>
+              <p className="text-xs text-[#a0704a] uppercase tracking-wide">Member Type</p>
+              <p className="font-medium text-[#1a0f0a]">{memberTypeLabel}</p>
             </div>
             <Link href="/app/profile" className="pt-2">
               <Button variant="outline" size="sm" className="">
@@ -241,17 +241,17 @@ export default function JourneyPage() {
               {profile.interests.slice(0, 5).map((interest: string) => (
                 <span
                   key={interest}
-                  className="inline-block bg-[#e8ddd2] text-[#2a2318] px-3 py-1 rounded-full text-xs mb-1"
+                  className="inline-block bg-[#e8ddd2] text-[#1a0f0a] px-3 py-1 rounded-full text-xs mb-1"
                 >
                   {interest}
                 </span>
               ))}
               {profile.interests.length > 5 && (
-                <p className="text-xs text-[#a0968a] pt-2">+{profile.interests.length - 5} more</p>
+                <p className="text-xs text-[#a0704a] pt-2">+{profile.interests.length - 5} more</p>
               )}
             </div>
           ) : (
-            <p className="text-[#a0968a] text-sm">None selected yet</p>
+            <p className="text-[#a0704a] text-sm">None selected yet</p>
           )}
         </Card>
 
@@ -262,8 +262,8 @@ export default function JourneyPage() {
             <div className="space-y-3">
               {interestedEvents.slice(0, 3).map((event) => (
                 <div key={event.id} className="p-3 bg-[#f3ede5] rounded-lg">
-                  <p className="font-medium text-[#2a2318] text-sm">{event.title}</p>
-                  <div className="flex flex-wrap gap-2 mt-2 text-xs text-[#6b5f52]">
+                  <p className="font-medium text-[#1a0f0a] text-sm">{event.title}</p>
+                  <div className="flex flex-wrap gap-2 mt-2 text-xs text-[#1a0f0a]">
                     <span>{event.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
                     <span>•</span>
                     <span>{event.time}</span>
@@ -273,7 +273,7 @@ export default function JourneyPage() {
                 </div>
               ))}
               {interestedEvents.length > 3 && (
-                <p className="text-xs text-[#a0968a] pt-1">+{interestedEvents.length - 3} more</p>
+                <p className="text-xs text-[#a0704a] pt-1">+{interestedEvents.length - 3} more</p>
               )}
               <Link href="/app/events" className="pt-2 block">
                 <Button variant="outline" size="sm" className="">
@@ -283,7 +283,7 @@ export default function JourneyPage() {
             </div>
           ) : (
             <div>
-              <p className="text-[#a0968a] text-sm mb-3">No events marked yet</p>
+              <p className="text-[#a0704a] text-sm mb-3">No events marked yet</p>
               <Link href="/app/events">
                 <Button variant="secondary" size="sm" className="">
                   Browse Events
@@ -298,11 +298,11 @@ export default function JourneyPage() {
           <CardHeader title="Know Yourself Better" icon={<IconProfile size={20} />} />
           {hasQuizResult ? (
             <div className="space-y-3">
-              <div className="bg-[#f3ede5] rounded-lg p-3 border-l-4 border-[#8fa878]">
-                <p className="text-xs text-[#8fa878] font-medium uppercase tracking-wide mb-1">Your Pattern</p>
-                <p className="text-lg font-semibold text-[#2a2318]">{profile.quizResult}</p>
+              <div className="bg-[#f3ede5] rounded-lg p-3 border-l-4 border-[#c97a2a]">
+                <p className="text-xs text-[#c97a2a] font-medium uppercase tracking-wide mb-1">Your Pattern</p>
+                <p className="text-lg font-semibold text-[#1a0f0a]">{profile.quizResult}</p>
               </div>
-              <p className="text-sm text-[#6b5f52] leading-relaxed">
+              <p className="text-sm text-[#1a0f0a] leading-relaxed">
                 This insight shows how you tend to relate and connect. Understanding your pattern helps you navigate relationships with more awareness and authenticity.
               </p>
               <div className="flex gap-2 pt-1">
@@ -320,7 +320,7 @@ export default function JourneyPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              <p className="text-[#6b5f52] text-sm">Choose from our curated quizzes to discover your unique connection patterns and get personalized insights.</p>
+              <p className="text-[#1a0f0a] text-sm">Choose from our curated quizzes to discover your unique connection patterns and get personalized insights.</p>
               <Link href="/app/quizzes">
                 <Button variant="primary" size="sm" className="w-full">
                   Explore Quizzes →
@@ -338,11 +338,11 @@ export default function JourneyPage() {
               {joinedSpaces.slice(0, 4).map((space) => (
                 <div key={space.id} className="text-sm p-2 bg-[#f3ede5] rounded flex items-center gap-2">
                   <SpaceIconSVG spaceId={space.id} size={16} />
-                  <span className="text-[#2a2318]">{space.name}</span>
+                  <span className="text-[#1a0f0a]">{space.name}</span>
                 </div>
               ))}
               {joinedSpaces.length > 4 && (
-                <p className="text-xs text-[#a0968a] pt-1">+{joinedSpaces.length - 4} more</p>
+                <p className="text-xs text-[#a0704a] pt-1">+{joinedSpaces.length - 4} more</p>
               )}
               <Link href="/app/spaces" className="pt-2 block">
                 <Button variant="outline" size="sm" className="">
@@ -352,7 +352,7 @@ export default function JourneyPage() {
             </div>
           ) : (
             <div>
-              <p className="text-[#a0968a] text-sm mb-3">Haven't joined any spaces yet</p>
+              <p className="text-[#a0704a] text-sm mb-3">Haven't joined any spaces yet</p>
               <Link href="/app/spaces">
                 <Button variant="secondary" size="sm" className="">
                   Join a Space
@@ -371,18 +371,18 @@ export default function JourneyPage() {
                 const BadgeIcon = getBadgeIcon(badge.id);
                 return (
                   <div key={badge.id} className="flex items-center gap-2 p-2 bg-[#f3ede5] rounded">
-                    <BadgeIcon size={20} className="text-[#d4a574] flex-shrink-0" />
+                    <BadgeIcon size={20} className="text-[#d4a348] flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-[#2a2318]">{badge.name}</p>
-                      <p className="text-xs text-[#a0968a]">{badge.description}</p>
+                      <p className="text-sm font-medium text-[#1a0f0a]">{badge.name}</p>
+                      <p className="text-xs text-[#a0704a]">{badge.description}</p>
                     </div>
                   </div>
                 );
               })}
-              <p className="text-xs text-[#a0968a] pt-2">Earn more as you explore the community</p>
+              <p className="text-xs text-[#a0704a] pt-2">Earn more as you explore the community</p>
             </div>
           ) : (
-            <p className="text-xs text-[#a0968a]">Badges coming as you participate</p>
+            <p className="text-xs text-[#a0704a]">Badges coming as you participate</p>
           )}
         </Card>
 
@@ -391,7 +391,7 @@ export default function JourneyPage() {
           <CardHeader title="Connections" icon={<IconConnection size={20} />} />
           {profile.connectionComfortLevel && profile.connectionComfortLevel !== "pause" ? (
             <div>
-              <p className="text-sm text-[#6b5f52] mb-3">You're open to connections</p>
+              <p className="text-sm text-[#1a0f0a] mb-3">You're open to connections</p>
               <Link href="/app/connections">
                 <Button variant="secondary" size="sm" className="">
                   View Connection
@@ -400,7 +400,7 @@ export default function JourneyPage() {
             </div>
           ) : (
             <div>
-              <p className="text-sm text-[#a0968a] mb-3">Connections paused</p>
+              <p className="text-sm text-[#a0704a] mb-3">Connections paused</p>
               <Link href="/app/connections">
                 <Button variant="outline" size="sm" className="">
                   Manage Preferences
@@ -413,10 +413,10 @@ export default function JourneyPage() {
 
       {/* Recommended Next Step - Full Width */}
       {nextStep && (
-        <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-2 border-[#d4a574]">
+        <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-2 border-[#d4a348]">
           <CardHeader title={nextStep.title} icon={nextStep.icon ? <>{(() => { const Icon = getIconComponent(nextStep.icon); return <Icon size={20} />; })()} </> : undefined} />
           <div className="space-y-4">
-            <p className="text-[#6b5f52]">{nextStep.description}</p>
+            <p className="text-[#1a0f0a]">{nextStep.description}</p>
             <div className="flex gap-3">
               <Link href={nextStep.href} className="flex-1">
                 <Button
@@ -428,7 +428,7 @@ export default function JourneyPage() {
                 </Button>
               </Link>
               {nextStep.type === "external" && (
-                <p className="text-xs text-[#a0968a] pt-3">Opens in new tab</p>
+                <p className="text-xs text-[#a0704a] pt-3">Opens in new tab</p>
               )}
             </div>
           </div>
@@ -439,7 +439,7 @@ export default function JourneyPage() {
       <Card className="bg-[#f3ede5]">
         <CardHeader title="Explore Trevor James Services" icon={<IconIntegration size={20} />} />
         <div className="space-y-3 text-sm">
-          <p className="text-[#6b5f52]">
+          <p className="text-[#1a0f0a]">
             Deepen your practice with personalized coaching, workshops, and more.
           </p>
           <div className="flex flex-wrap gap-3">

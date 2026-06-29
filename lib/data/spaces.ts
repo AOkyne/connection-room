@@ -73,7 +73,7 @@ export async function getSpaces(): Promise<Space[]> {
         name: space.name,
         description: space.description || "",
         icon: space.icon || "",
-        color: "#d4a574",
+        color: "#d4a348",
         memberCount: 0,
         isJoined: joinedIds.has(space.id),
       }));

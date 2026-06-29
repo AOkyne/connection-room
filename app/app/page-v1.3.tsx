@@ -138,18 +138,18 @@ export default function AppHome() {
         <div className="text-center space-y-6">
           <div className="space-y-2">
             <div className="flex justify-center mb-4">
-              <div className="animate-spin h-16 w-16 border-4 border-[#d4a574] border-t-transparent rounded-full" />
+              <div className="animate-spin h-16 w-16 border-4 border-[#d4a348] border-t-transparent rounded-full" />
             </div>
-            <h2 className="text-3xl text-[#2a2318] font-semibold">Getting ready for the big reveal</h2>
-            <p className="text-lg text-[#6b5f52] max-w-md mx-auto">
+            <h2 className="text-3xl text-[#1a0f0a] font-semibold">Getting ready for the big reveal</h2>
+            <p className="text-lg text-[#1a0f0a] max-w-md mx-auto">
               We're gathering your personalized experience. Just a moment...
             </p>
           </div>
           <div className="pt-8">
             <div className="flex justify-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#d4a574] animate-pulse" />
-              <div className="w-2 h-2 rounded-full bg-[#d4a574] animate-pulse delay-100" />
-              <div className="w-2 h-2 rounded-full bg-[#d4a574] animate-pulse delay-200" />
+              <div className="w-2 h-2 rounded-full bg-[#d4a348] animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-[#d4a348] animate-pulse delay-100" />
+              <div className="w-2 h-2 rounded-full bg-[#d4a348] animate-pulse delay-200" />
             </div>
           </div>
         </div>
@@ -178,14 +178,14 @@ export default function AppHome() {
 
       {/* Journey Cards - moved up before Continue Where You Left Off */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-[#2a2318]">Your Journey</h3>
+        <h3 className="text-lg font-semibold text-[#1a0f0a]">Your Journey</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h4 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Seven Doors Journey</h4>
+            <h4 className="text-sm font-medium text-[#c97a2a] mb-3 uppercase tracking-wide">Seven Doors Journey</h4>
             <FirstWeekDashboardCard />
           </div>
           <div>
-            <h4 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Guided Rhythm</h4>
+            <h4 className="text-sm font-medium text-[#c97a2a] mb-3 uppercase tracking-wide">Guided Rhythm</h4>
             <MonthlyDashboardCard />
           </div>
         </div>
@@ -206,12 +206,12 @@ export default function AppHome() {
 
       {/* SECONDARY CONTENT - Below the fold */}
       <div className="space-y-6">
-        <h3 className="text-lg font-semibold text-[#2a2318]">Your Community</h3>
+        <h3 className="text-lg font-semibold text-[#1a0f0a]">Your Community</h3>
 
         {/* Your Spaces - if user has joined any */}
         {joinedSpacesCount > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">All Your Spaces</h4>
+            <h4 className="text-sm font-medium text-[#c97a2a] mb-3 uppercase tracking-wide">All Your Spaces</h4>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
               {spaces
                 .filter((s) => profile?.spacesJoined?.includes(s.id) && !s.hidden)
@@ -241,11 +241,11 @@ export default function AppHome() {
         {/* Connection and Reflection Scaffolding */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h4 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Ways to Connect</h4>
+            <h4 className="text-sm font-medium text-[#c97a2a] mb-3 uppercase tracking-wide">Ways to Connect</h4>
             <WaysToConnectCard />
           </div>
           <div>
-            <h4 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">From the Room</h4>
+            <h4 className="text-sm font-medium text-[#c97a2a] mb-3 uppercase tracking-wide">From the Room</h4>
             <ReflectionsFromRoomCard recentReflections={recentReflections} />
           </div>
         </div>
@@ -253,13 +253,13 @@ export default function AppHome() {
         {/* Events Section */}
         {upcomingEvents.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Upcoming Events</h4>
+            <h4 className="text-sm font-medium text-[#c97a2a] mb-3 uppercase tracking-wide">Upcoming Events</h4>
             <div className="space-y-3">
               {upcomingEvents.map((event) => (
                 <Card key={event.id} className="bg-white">
                   <div className="space-y-2">
-                    <p className="font-medium text-[#2a2318]">{event.title}</p>
-                    <p className="text-sm text-[#6b5f52]">
+                    <p className="font-medium text-[#1a0f0a]">{event.title}</p>
+                    <p className="text-sm text-[#1a0f0a]">
                       {event.date ? new Date(event.date).toLocaleDateString() : "TBA"}
                       {event.time && ` at ${event.time}`}
                     </p>
@@ -273,14 +273,14 @@ export default function AppHome() {
         {/* Badges Section */}
         {badges.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Your Badges</h4>
+            <h4 className="text-sm font-medium text-[#c97a2a] mb-3 uppercase tracking-wide">Your Badges</h4>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
               {badges.map((badge) => {
                 const BadgeIcon = getBadgeIcon(badge.id);
                 return (
                   <Card key={badge.id} className="flex flex-col items-center justify-center gap-2 p-3 text-center bg-[#f3ede5]">
                     <BadgeIcon className="text-2xl" />
-                    <p className="text-xs font-semibold text-[#2a2318] line-clamp-2">{badge.name}</p>
+                    <p className="text-xs font-semibold text-[#1a0f0a] line-clamp-2">{badge.name}</p>
                   </Card>
                 );
               })}

@@ -146,8 +146,8 @@ export default function AdminDailyCompanion() {
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div>
-        <h1 className="text-4xl font-bold text-[#2a2318]">Daily Companion Admin</h1>
-        <p className="text-[#6b5f52] mt-2">Manage daily content and weekly notes</p>
+        <h1 className="text-4xl font-bold text-[#1a0f0a]">Daily Companion Admin</h1>
+        <p className="text-[#1a0f0a] mt-2">Manage daily content and weekly notes</p>
       </div>
 
       {/* Tabs */}
@@ -156,8 +156,8 @@ export default function AdminDailyCompanion() {
           onClick={() => setActiveTab("overview")}
           className={`pb-4 px-4 font-medium border-b-2 transition-colors ${
             activeTab === "overview"
-              ? "border-[#d4a574] text-[#d4a574]"
-              : "border-transparent text-[#6b5f52] hover:text-[#2a2318]"
+              ? "border-[#d4a348] text-[#d4a348]"
+              : "border-transparent text-[#1a0f0a] hover:text-[#1a0f0a]"
           }`}
         >
           Overview
@@ -166,8 +166,8 @@ export default function AdminDailyCompanion() {
           onClick={() => setActiveTab("content")}
           className={`pb-4 px-4 font-medium border-b-2 transition-colors ${
             activeTab === "content"
-              ? "border-[#d4a574] text-[#d4a574]"
-              : "border-transparent text-[#6b5f52] hover:text-[#2a2318]"
+              ? "border-[#d4a348] text-[#d4a348]"
+              : "border-transparent text-[#1a0f0a] hover:text-[#1a0f0a]"
           }`}
         >
           Daily Content
@@ -176,8 +176,8 @@ export default function AdminDailyCompanion() {
           onClick={() => setActiveTab("notes")}
           className={`pb-4 px-4 font-medium border-b-2 transition-colors ${
             activeTab === "notes"
-              ? "border-[#d4a574] text-[#d4a574]"
-              : "border-transparent text-[#6b5f52] hover:text-[#2a2318]"
+              ? "border-[#d4a348] text-[#d4a348]"
+              : "border-transparent text-[#1a0f0a] hover:text-[#1a0f0a]"
           }`}
         >
           Weekly Notes
@@ -188,19 +188,19 @@ export default function AdminDailyCompanion() {
       {activeTab === "overview" && (
         <div className="space-y-6">
           <div className="grid md:grid-cols-2 gap-4">
-            <Card className="bg-gradient-to-br from-[#d4a574]/10 to-transparent">
+            <Card className="bg-gradient-to-br from-[#d4a348]/10 to-transparent">
               <div className="space-y-2">
-                <p className="text-sm text-[#8fa878] font-semibold">Total Daily Content</p>
-                <p className="text-4xl font-bold text-[#2a2318]">{contentStats.total}</p>
-                <p className="text-xs text-[#6b5f52]">{contentStats.active} active</p>
+                <p className="text-sm text-[#c97a2a] font-semibold">Total Daily Content</p>
+                <p className="text-4xl font-bold text-[#1a0f0a]">{contentStats.total}</p>
+                <p className="text-xs text-[#1a0f0a]">{contentStats.active} active</p>
               </div>
             </Card>
 
-            <Card className="bg-gradient-to-br from-[#8fa878]/10 to-transparent">
+            <Card className="bg-gradient-to-br from-[#c97a2a]/10 to-transparent">
               <div className="space-y-2">
-                <p className="text-sm text-[#8fa878] font-semibold">Weekly Notes</p>
-                <p className="text-4xl font-bold text-[#2a2318]">{weeklyNotes.length}</p>
-                <p className="text-xs text-[#6b5f52]">
+                <p className="text-sm text-[#c97a2a] font-semibold">Weekly Notes</p>
+                <p className="text-4xl font-bold text-[#1a0f0a]">{weeklyNotes.length}</p>
+                <p className="text-xs text-[#1a0f0a]">
                   {weeklyNotes.filter((n) => n.active).length} active
                 </p>
               </div>
@@ -213,8 +213,8 @@ export default function AdminDailyCompanion() {
             <div className="space-y-3">
               {Object.entries(contentStats.byType).map(([type, count]) => (
                 <div key={type} className="flex justify-between items-center">
-                  <span className="capitalize text-[#2a2318] font-medium">{type}</span>
-                  <span className="text-[#d4a574] font-bold text-lg">{count}</span>
+                  <span className="capitalize text-[#1a0f0a] font-medium">{type}</span>
+                  <span className="text-[#d4a348] font-bold text-lg">{count}</span>
                 </div>
               ))}
             </div>
@@ -223,7 +223,7 @@ export default function AdminDailyCompanion() {
           {/* Quick Actions */}
           <Card className="bg-[#f3ede5]">
             <div className="space-y-3">
-              <h3 className="font-semibold text-[#2a2318]">Quick Actions</h3>
+              <h3 className="font-semibold text-[#1a0f0a]">Quick Actions</h3>
               <div className="grid sm:grid-cols-2 gap-3">
                 <Link href="/admin/daily-companion/content/new">
                   <Button variant="primary" className="w-full">
@@ -245,7 +245,7 @@ export default function AdminDailyCompanion() {
       {activeTab === "content" && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-semibold text-[#2a2318]">Daily Content</h2>
+            <h2 className="text-2xl font-semibold text-[#1a0f0a]">Daily Content</h2>
             <Link href="/admin/daily-companion/content/new">
               <Button>Add Content</Button>
             </Link>
@@ -254,7 +254,7 @@ export default function AdminDailyCompanion() {
           <div className="space-y-3">
             {dailyContent.length === 0 ? (
               <Card className="text-center py-12">
-                <p className="text-[#6b5f52]">No daily content yet. Create some to get started.</p>
+                <p className="text-[#1a0f0a]">No daily content yet. Create some to get started.</p>
               </Card>
             ) : (
               dailyContent.map((content) => (
@@ -266,27 +266,27 @@ export default function AdminDailyCompanion() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold bg-[#d4a574]/20 text-[#d4a574] px-2 py-1 rounded">
+                          <span className="text-xs font-bold bg-[#d4a348]/20 text-[#d4a348] px-2 py-1 rounded">
                             {content.content_type}
                           </span>
-                          <span className="text-xs text-[#8fa878]">Index: {content.rotation_index}</span>
+                          <span className="text-xs text-[#c97a2a]">Index: {content.rotation_index}</span>
                         </div>
-                        <h3 className="font-semibold text-[#2a2318] mt-2">{content.title}</h3>
-                        <p className="text-sm text-[#6b5f52] line-clamp-2 mt-1">{content.body}</p>
+                        <h3 className="font-semibold text-[#1a0f0a] mt-2">{content.title}</h3>
+                        <p className="text-sm text-[#1a0f0a] line-clamp-2 mt-1">{content.body}</p>
                       </div>
                       <div className="flex flex-col gap-2 flex-shrink-0">
                         <button
                           onClick={() => toggleContentActive(content.id, content.active)}
                           className={`text-xs font-medium px-2 py-1 rounded transition-colors ${
                             content.active
-                              ? "bg-[#8fa878]/20 text-[#8fa878] hover:bg-[#8fa878]/30"
-                              : "bg-[#a0968a]/20 text-[#a0968a] hover:bg-[#a0968a]/30"
+                              ? "bg-[#c97a2a]/20 text-[#c97a2a] hover:bg-[#c97a2a]/30"
+                              : "bg-[#a0704a]/20 text-[#a0704a] hover:bg-[#a0704a]/30"
                           }`}
                         >
                           {content.active ? "Active" : "Inactive"}
                         </button>
                         <Link href={`/admin/daily-companion/content/${content.id}`}>
-                          <button className="text-xs text-[#d4a574] hover:text-[#c09560] font-medium">
+                          <button className="text-xs text-[#d4a348] hover:text-[#c09560] font-medium">
                             Edit
                           </button>
                         </Link>
@@ -310,7 +310,7 @@ export default function AdminDailyCompanion() {
       {activeTab === "notes" && (
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-semibold text-[#2a2318]">Weekly Notes</h2>
+            <h2 className="text-2xl font-semibold text-[#1a0f0a]">Weekly Notes</h2>
             <Link href="/admin/daily-companion/notes/new">
               <Button>Add Note</Button>
             </Link>
@@ -319,7 +319,7 @@ export default function AdminDailyCompanion() {
           <div className="space-y-3">
             {weeklyNotes.length === 0 ? (
               <Card className="text-center py-12">
-                <p className="text-[#6b5f52]">No weekly notes yet. Create some to get started.</p>
+                <p className="text-[#1a0f0a]">No weekly notes yet. Create some to get started.</p>
               </Card>
             ) : (
               weeklyNotes.map((note) => (
@@ -331,27 +331,27 @@ export default function AdminDailyCompanion() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold bg-[#d4a574]/20 text-[#d4a574] px-2 py-1 rounded">
+                          <span className="text-xs font-bold bg-[#d4a348]/20 text-[#d4a348] px-2 py-1 rounded">
                             Week {note.week_number}
                           </span>
-                          <span className="text-xs text-[#8fa878]">Rotation: {note.rotation_index}</span>
+                          <span className="text-xs text-[#c97a2a]">Rotation: {note.rotation_index}</span>
                         </div>
-                        <h3 className="font-semibold text-[#2a2318] mt-2">{note.title}</h3>
-                        <p className="text-sm text-[#6b5f52] line-clamp-2 mt-1">{note.body}</p>
+                        <h3 className="font-semibold text-[#1a0f0a] mt-2">{note.title}</h3>
+                        <p className="text-sm text-[#1a0f0a] line-clamp-2 mt-1">{note.body}</p>
                       </div>
                       <div className="flex flex-col gap-2 flex-shrink-0">
                         <button
                           onClick={() => toggleNoteActive(note.id, note.active)}
                           className={`text-xs font-medium px-2 py-1 rounded transition-colors ${
                             note.active
-                              ? "bg-[#8fa878]/20 text-[#8fa878] hover:bg-[#8fa878]/30"
-                              : "bg-[#a0968a]/20 text-[#a0968a] hover:bg-[#a0968a]/30"
+                              ? "bg-[#c97a2a]/20 text-[#c97a2a] hover:bg-[#c97a2a]/30"
+                              : "bg-[#a0704a]/20 text-[#a0704a] hover:bg-[#a0704a]/30"
                           }`}
                         >
                           {note.active ? "Active" : "Inactive"}
                         </button>
                         <Link href={`/admin/daily-companion/notes/${note.id}`}>
-                          <button className="text-xs text-[#d4a574] hover:text-[#c09560] font-medium">
+                          <button className="text-xs text-[#d4a348] hover:text-[#c09560] font-medium">
                             Edit
                           </button>
                         </Link>

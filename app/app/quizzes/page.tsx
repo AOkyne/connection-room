@@ -48,8 +48,8 @@ export default function QuizzesPage() {
           </Button>
         </Link>
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold text-[#2a2318]">Take A Quiz</h1>
-          <p className="text-lg text-[#6b5f52]">
+          <h1 className="text-4xl font-bold text-[#1a0f0a]">Take A Quiz</h1>
+          <p className="text-lg text-[#1a0f0a]">
             Discover insights about yourself and get personalized recommendations
           </p>
         </div>
@@ -57,11 +57,11 @@ export default function QuizzesPage() {
 
       {/* Show current result if available */}
       {mounted && hasQuizResult && (
-        <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-[#d4a574]">
+        <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-[#d4a348]">
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold text-[#2a2318]">Your Connection Profile</h3>
-            <p className="text-base font-medium text-[#d4a574]">{profile?.quizResult}</p>
-            <p className="text-sm text-[#6b5f52] leading-relaxed">
+            <h3 className="text-lg font-semibold text-[#1a0f0a]">Your Connection Profile</h3>
+            <p className="text-base font-medium text-[#d4a348]">{profile?.quizResult}</p>
+            <p className="text-sm text-[#1a0f0a] leading-relaxed">
               This insight reveals how you tend to connect with others. Use it to understand your patterns and explore ways to deepen your relationships.
             </p>
             <Link href="/app/journey">
@@ -83,22 +83,22 @@ export default function QuizzesPage() {
               <Card
                 className={`h-full transition-all ${
                   isCompleted
-                    ? "border-[#8fa878] hover:border-[#8fa878] hover:shadow-md"
-                    : "hover:border-[#d4a574] hover:shadow-md"
+                    ? "border-[#c97a2a] hover:border-[#c97a2a] hover:shadow-md"
+                    : "hover:border-[#d4a348] hover:shadow-md"
                 } cursor-pointer`}
               >
                 <div className="space-y-4">
                   <div className="flex items-start justify-between">
-                    <IconComponent size={40} className={isCompleted ? "text-[#8fa878]" : "text-[#d4a574]"} />
+                    <IconComponent size={40} className={isCompleted ? "text-[#c97a2a]" : "text-[#d4a348]"} />
                     {isCompleted && (
-                      <span className="text-xs font-medium text-[#8fa878] px-2 py-1 bg-[#8fa878]/10 rounded">
+                      <span className="text-xs font-medium text-[#c97a2a] px-2 py-1 bg-[#c97a2a]/10 rounded">
                         ✓ Completed
                       </span>
                     )}
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-[#2a2318]">{quiz.title}</h2>
-                    <p className="text-[#6b5f52] mt-2">{quiz.description}</p>
+                    <h2 className="text-2xl font-bold text-[#1a0f0a]">{quiz.title}</h2>
+                    <p className="text-[#1a0f0a] mt-2">{quiz.description}</p>
                   </div>
                   <Button variant={isCompleted ? "outline" : "primary"} size="sm" className="">
                     {isCompleted ? "Retake Quiz →" : "Take Quiz →"}

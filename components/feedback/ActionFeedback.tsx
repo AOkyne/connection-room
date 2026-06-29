@@ -30,15 +30,15 @@ export function ActionFeedback({
   onClose,
 }: ActionFeedbackProps) {
   const bgColor = {
-    success: "bg-[#f0f8f4] border-l-4 border-[#8fa878]",
+    success: "bg-[#f0f8f4] border-l-4 border-[#c97a2a]",
     error: "bg-[#fef0f0] border-l-4 border-[#d97706]",
-    info: "bg-[#f3ede5] border-l-4 border-[#d4a574]",
+    info: "bg-[#f3ede5] border-l-4 border-[#d4a348]",
   }[type];
 
   const titleColor = {
-    success: "text-[#8fa878]",
+    success: "text-[#c97a2a]",
     error: "text-[#d97706]",
-    info: "text-[#d4a574]",
+    info: "text-[#d4a348]",
   }[type];
 
   return (
@@ -48,10 +48,10 @@ export function ActionFeedback({
         <h3 className={`text-lg font-semibold ${titleColor}`}>{title}</h3>
 
         {/* Message */}
-        {message && <p className="text-[#6b5f52] text-sm">{message}</p>}
+        {message && <p className="text-[#1a0f0a] text-sm">{message}</p>}
 
         {/* Custom content */}
-        {children && <div className="text-[#6b5f52] text-sm">{children}</div>}
+        {children && <div className="text-[#1a0f0a] text-sm">{children}</div>}
 
         {/* Actions */}
         {actions && actions.length > 0 && (
@@ -85,7 +85,7 @@ export function ActionFeedback({
         {onClose && (!actions || actions.length === 0) && (
           <button
             onClick={onClose}
-            className="text-sm text-[#a0968a] hover:text-[#6b5f52] transition-colors"
+            className="text-sm text-[#a0704a] hover:text-[#1a0f0a] transition-colors"
           >
             Dismiss
           </button>

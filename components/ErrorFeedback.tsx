@@ -24,7 +24,7 @@ export function ErrorFeedback({
         <div className="text-2xl flex-shrink-0">✕</div>
         <div className="flex-1">
           <h3 className="font-semibold text-[#d97706] mb-1">{title}</h3>
-          <p className="text-sm text-[#6b5f52] mb-4">{message}</p>
+          <p className="text-sm text-[#1a0f0a] mb-4">{message}</p>
           <div className="flex gap-2">
             {onRetry && (
               <Button

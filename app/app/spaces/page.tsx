@@ -121,8 +121,8 @@ export default function SpacesPage() {
       )}
 
       <div>
-        <h1 className="text-4xl font-bold text-[#2a2318]">Community Spaces</h1>
-        <p className="text-lg text-[#6b5f52] mt-2">
+        <h1 className="text-4xl font-bold text-[#1a0f0a]">Community Spaces</h1>
+        <p className="text-lg text-[#1a0f0a] mt-2">
           Choose spaces that resonate with your practice
         </p>
       </div>
@@ -131,8 +131,8 @@ export default function SpacesPage() {
       {joinedSpaces.length > 0 && (
         <div className="space-y-4">
           <div>
-            <h2 className="text-2xl font-bold text-[#2a2318]">Your Spaces</h2>
-            <p className="text-sm text-[#a0968a] mt-1">Drag to reorder your spaces</p>
+            <h2 className="text-2xl font-bold text-[#1a0f0a]">Your Spaces</h2>
+            <p className="text-sm text-[#a0704a] mt-1">Drag to reorder your spaces</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {joinedSpaces.map((space) => {
@@ -162,21 +162,21 @@ export default function SpacesPage() {
                     </div>
 
                     {isRequired && (
-                      <div className="text-xs font-medium text-[#8fa878] mb-2 flex items-center gap-1">
+                      <div className="text-xs font-medium text-[#c97a2a] mb-2 flex items-center gap-1">
                         <span>✓ Required</span>
                         {space.id === "start-here" && (
-                          <span className="text-[#a0968a]">({visitsRemaining} visits left)</span>
+                          <span className="text-[#a0704a]">({visitsRemaining} visits left)</span>
                         )}
                       </div>
                     )}
                     {space.id === "start-here" && !isStartHereRequired && (
-                      <div className="text-xs font-medium text-[#8fa878] mb-2 flex items-center gap-1">
+                      <div className="text-xs font-medium text-[#c97a2a] mb-2 flex items-center gap-1">
                         <span>✓ Complete</span>
                       </div>
                     )}
                     <CardHeader title={space.name} icon={<SpaceIconSVG spaceId={space.id} size={32} />} />
-                    <p className="text-sm text-[#6b5f52] mb-4">{space.description}</p>
-                    <div className="text-xs text-[#a0968a] mb-4">{demoMembers.filter(m => m.spacesJoined?.includes(space.id)).length} members</div>
+                    <p className="text-sm text-[#1a0f0a] mb-4">{space.description}</p>
+                    <div className="text-xs text-[#a0704a] mb-4">{demoMembers.filter(m => m.spacesJoined?.includes(space.id)).length} members</div>
                     <div className="flex gap-2 mt-auto">
                       <Link href={`/app/spaces/${space.id}`} className="flex-1">
                         <Button variant="secondary" size="sm" className="">
@@ -204,7 +204,7 @@ export default function SpacesPage() {
       {/* Available Spaces */}
       {availableSpaces.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-[#2a2318]">Explore More Spaces</h2>
+          <h2 className="text-2xl font-bold text-[#1a0f0a]">Explore More Spaces</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {availableSpaces.map((space) => (
               <Card key={space.id} className="overflow-hidden flex flex-col h-full">
@@ -219,8 +219,8 @@ export default function SpacesPage() {
                 </div>
 
                 <CardHeader title={space.name} icon={<SpaceIconSVG spaceId={space.id} size={32} />} />
-                <p className="text-sm text-[#6b5f52] mb-4">{space.description}</p>
-                <div className="text-xs text-[#a0968a] mb-4">{demoMembers.filter(m => m.spacesJoined?.includes(space.id)).length} members</div>
+                <p className="text-sm text-[#1a0f0a] mb-4">{space.description}</p>
+                <div className="text-xs text-[#a0704a] mb-4">{demoMembers.filter(m => m.spacesJoined?.includes(space.id)).length} members</div>
                 <Button
                   variant="primary"
                   size="sm"

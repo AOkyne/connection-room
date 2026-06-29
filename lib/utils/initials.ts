@@ -11,12 +11,12 @@ export function getInitials(name: string): string {
 // Generate a consistent color from a name
 export function getInitialColor(name: string): string {
   const colors = [
-    '#d4a574', // Primary gold
-    '#9d7f5c', // Dark gold
-    '#8fa878', // Green
-    '#b86a52', // Rust
-    '#6b5f52', // Dark brown
-    '#a0968a', // Taupe
+    '#d4a348', // Primary gold
+    '#8b6f47', // Dark gold
+    '#c97a2a', // Green
+    '#a84a2a', // Rust
+    '#1a0f0a', // Dark brown
+    '#a0704a', // Taupe
   ];
 
   // Use string hash to consistently map names to colors

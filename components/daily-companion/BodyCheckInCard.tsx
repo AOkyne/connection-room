@@ -11,13 +11,13 @@ export function BodyCheckInCard({ checkin }: BodyCheckInCardProps) {
   if (!checkin) return null;
 
   return (
-    <Card className="border-l-4 border-[#d4a574] bg-white">
+    <Card className="border-l-4 border-[#d4a348] bg-white">
       <div className="space-y-3">
-        <p className="text-xs font-semibold text-[#d4a574] uppercase tracking-wide">
+        <p className="text-xs font-semibold text-[#d4a348] uppercase tracking-wide">
           Body Check-In
         </p>
-        <p className="text-sm text-[#2a2318] font-medium leading-relaxed">{checkin.body}</p>
-        <p className="text-xs text-[#6b5f52] italic">
+        <p className="text-sm text-[#1a0f0a] font-medium leading-relaxed">{checkin.body}</p>
+        <p className="text-xs text-[#1a0f0a] italic">
           Pause. Close your eyes if you want. Feel your answer from your body, not your mind.
         </p>
       </div>

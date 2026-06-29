@@ -24,17 +24,17 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
         return (
           <div key={index} className="flex items-center gap-2">
             {index > 0 && (
-              <span className="text-[#d4a574] text-xs">/</span>
+              <span className="text-[#d4a348] text-xs">/</span>
             )}
             {item.href && !isActive ? (
               <Link
                 href={item.href}
-                className="text-[#d4a574] hover:text-[#c09560] underline transition-colors"
+                className="text-[#d4a348] hover:text-[#c09560] underline transition-colors"
               >
                 {item.label}
               </Link>
             ) : (
-              <span className={isActive ? "text-[#2a2318] font-medium" : "text-[#6b5f52]"}>
+              <span className={isActive ? "text-[#1a0f0a] font-medium" : "text-[#1a0f0a]"}>
                 {item.label}
               </span>
             )}

@@ -76,10 +76,10 @@ export function ProfileFormModal({ isOpen, onClose }: ProfileFormModalProps) {
       >
         {/* Header with Close Button */}
         <div className="sticky top-0 bg-white border-b border-[#e8ddd2] p-4 flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-[#2a2318]">Complete Your Profile</h2>
+          <h2 className="text-xl font-semibold text-[#1a0f0a]">Complete Your Profile</h2>
           <button
             onClick={onClose}
-            className="text-2xl text-[#a0968a] hover:text-[#6b5f52] transition-colors"
+            className="text-2xl text-[#a0704a] hover:text-[#1a0f0a] transition-colors"
             aria-label="Close"
           >
             ✕
@@ -92,12 +92,12 @@ export function ProfileFormModal({ isOpen, onClose }: ProfileFormModalProps) {
           )}
 
           {loading ? (
-            <p className="text-center text-[#6b5f52]">Loading your profile...</p>
+            <p className="text-center text-[#1a0f0a]">Loading your profile...</p>
           ) : profile ? (
             <>
               {/* Basic Information */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-[#2a2318]">Basic Information</h3>
+                <h3 className="text-lg font-semibold text-[#1a0f0a]">Basic Information</h3>
                 <div>
                   <label className="block text-sm font-medium text-[#1a1714] mb-2">
                     Display Name
@@ -152,7 +152,7 @@ export function ProfileFormModal({ isOpen, onClose }: ProfileFormModalProps) {
 
               {/* Interests */}
               <div className="space-y-3">
-                <h3 className="text-lg font-semibold text-[#2a2318]">Interests</h3>
+                <h3 className="text-lg font-semibold text-[#1a0f0a]">Interests</h3>
                 <div className="space-y-2">
                   {appConfig.interests.map((interest) => (
                     <label key={interest} className="flex items-center gap-3 p-2 hover:bg-[#f8f6f2] rounded">
@@ -169,7 +169,7 @@ export function ProfileFormModal({ isOpen, onClose }: ProfileFormModalProps) {
 
               {/* Connection Preferences */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-[#2a2318]">Connection Preferences</h3>
+                <h3 className="text-lg font-semibold text-[#1a0f0a]">Connection Preferences</h3>
                 <div>
                   <label className="block text-sm font-medium text-[#1a1714] mb-2">
                     Comfort Level with Connections
@@ -203,7 +203,7 @@ export function ProfileFormModal({ isOpen, onClose }: ProfileFormModalProps) {
               <div className="flex gap-3 pt-4 border-t border-[#e8ddd2]">
                 <button
                   onClick={onClose}
-                  className="flex-1 px-4 py-2 text-sm text-[#6b5f52] hover:bg-[#f3ede5] rounded border border-[#e8ddd2] font-medium"
+                  className="flex-1 px-4 py-2 text-sm text-[#1a0f0a] hover:bg-[#f3ede5] rounded border border-[#e8ddd2] font-medium"
                 >
                   Cancel
                 </button>
@@ -217,7 +217,7 @@ export function ProfileFormModal({ isOpen, onClose }: ProfileFormModalProps) {
               </div>
             </>
           ) : (
-            <p className="text-center text-[#6b5f52]">Unable to load profile</p>
+            <p className="text-center text-[#1a0f0a]">Unable to load profile</p>
           )}
         </div>
       </div>

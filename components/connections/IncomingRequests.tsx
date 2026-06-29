@@ -48,19 +48,19 @@ export function IncomingRequests({
   };
 
   return (
-    <Card className="border-2 border-[#d4a574] bg-[#fffbf7]">
+    <Card className="border-2 border-[#d4a348] bg-[#fffbf7]">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium text-[#2a2318]">
+        <h3 className="text-lg font-medium text-[#1a0f0a]">
           Connection Requests
-          <span className="ml-2 inline-flex items-center justify-center w-6 h-6 bg-[#d4a574] text-white text-xs font-bold rounded-full">
+          <span className="ml-2 inline-flex items-center justify-center w-6 h-6 bg-[#d4a348] text-white text-xs font-bold rounded-full">
             {requests.length}
           </span>
         </h3>
       </div>
 
       {mutualRequests.length > 0 && (
-        <div className="mb-4 p-3 bg-[#8fa878]/10 border border-[#8fa878] rounded-lg">
-          <p className="text-sm text-[#2a2318]">
+        <div className="mb-4 p-3 bg-[#c97a2a]/10 border border-[#c97a2a] rounded-lg">
+          <p className="text-sm text-[#1a0f0a]">
             ✓ <strong>{mutualRequests.length}</strong> mutual match{mutualRequests.length !== 1 ? 'es' : ''} waiting! Accept to confirm your connection.
           </p>
         </div>
@@ -74,8 +74,8 @@ export function IncomingRequests({
               key={request.id}
               className={`flex flex-col rounded-lg overflow-hidden border-2 transition-colors ${
                 isMutual
-                  ? "border-[#8fa878] bg-[#8fa878]/5"
-                  : "border-[#e8ddd2] bg-white hover:border-[#d4a574]"
+                  ? "border-[#c97a2a] bg-[#c97a2a]/5"
+                  : "border-[#e8ddd2] bg-white hover:border-[#d4a348]"
               }`}
             >
               {/* Profile Photo */}
@@ -90,7 +90,7 @@ export function IncomingRequests({
                     className="w-full aspect-square object-cover"
                   />
                   {isMutual && (
-                    <div className="absolute top-2 right-2 bg-[#8fa878] text-white px-2 py-1 rounded-full text-xs font-bold">
+                    <div className="absolute top-2 right-2 bg-[#c97a2a] text-white px-2 py-1 rounded-full text-xs font-bold">
                       Mutual!
                     </div>
                   )}
@@ -101,7 +101,7 @@ export function IncomingRequests({
               <div className="p-3">
                 <button
                   onClick={() => handleViewProfile(request)}
-                  className="font-medium text-[#2a2318] text-sm line-clamp-2 text-center mb-3 w-full hover:text-[#d4a574] transition-colors"
+                  className="font-medium text-[#1a0f0a] text-sm line-clamp-2 text-center mb-3 w-full hover:text-[#d4a348] transition-colors"
                 >
                   {request.fromUserName}
                 </button>

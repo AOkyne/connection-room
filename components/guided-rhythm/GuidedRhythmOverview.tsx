@@ -104,7 +104,7 @@ export function GuidedRhythmOverview() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-[#6b5f52]">Loading your rhythm...</p>
+        <p className="text-[#1a0f0a]">Loading your rhythm...</p>
       </div>
     );
   }
@@ -112,7 +112,7 @@ export function GuidedRhythmOverview() {
   if (!currentMonth || !currentWeek || !progress) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-[#6b5f52]">Unable to load your rhythm</p>
+        <p className="text-[#1a0f0a]">Unable to load your rhythm</p>
       </div>
     );
   }
@@ -128,10 +128,10 @@ export function GuidedRhythmOverview() {
 
       {/* Header */}
       <div className="space-y-2">
-        <h2 className="text-3xl font-semibold text-[#2a2318]">
+        <h2 className="text-3xl font-semibold text-[#1a0f0a]">
           Your Guided Rhythm
         </h2>
-        <p className="text-[#6b5f52]">
+        <p className="text-[#1a0f0a]">
           This is a rhythm, not a requirement. Return when you can.
         </p>
       </div>
@@ -143,13 +143,13 @@ export function GuidedRhythmOverview() {
       />
 
       {/* Monthly Intention */}
-      <Card className="bg-gradient-to-br from-[#8fa878]/5 to-[#d4a574]/5">
+      <Card className="bg-gradient-to-br from-[#c97a2a]/5 to-[#d4a348]/5">
         <div className="space-y-4">
           <div>
-            <h3 className="text-lg font-semibold text-[#2a2318]">
+            <h3 className="text-lg font-semibold text-[#1a0f0a]">
               Your Monthly Intention
             </h3>
-            <p className="text-sm text-[#6b5f52] mt-2">
+            <p className="text-sm text-[#1a0f0a] mt-2">
               {selectedIntention
                 ? `Your intention: ${selectedIntention}`
                 : "Choose or write an intention for this month"}
@@ -207,7 +207,7 @@ export function GuidedRhythmOverview() {
         >
           <Card className="w-full max-w-md mx-4">
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-[#2a2318]">
+              <h3 className="text-lg font-semibold text-[#1a0f0a]">
                 What would you like to cultivate this month?
               </h3>
 
@@ -218,45 +218,45 @@ export function GuidedRhythmOverview() {
                       "Continue practicing small honesty"
                     )
                   }
-                  className="text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
+                  className="text-left px-3 py-2 rounded-lg text-sm text-[#1a0f0a] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
                 >
                   Continue practicing small honesty
                 </button>
                 <button
                   onClick={() => handleSetIntention("Notice my body more")}
-                  className="text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
+                  className="text-left px-3 py-2 rounded-lg text-sm text-[#1a0f0a] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
                 >
                   Notice my body more
                 </button>
                 <button
                   onClick={() => handleSetIntention("Practice asking for what I need")}
-                  className="text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
+                  className="text-left px-3 py-2 rounded-lg text-sm text-[#1a0f0a] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
                 >
                   Practice asking for what I need
                 </button>
                 <button
                   onClick={() => handleSetIntention("Show up for my community")}
-                  className="text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
+                  className="text-left px-3 py-2 rounded-lg text-sm text-[#1a0f0a] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
                 >
                   Show up for my community
                 </button>
                 <button
                   onClick={() => handleSetIntention("Be gentler with myself")}
-                  className="text-left px-3 py-2 rounded-lg text-sm text-[#6b5f52] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
+                  className="text-left px-3 py-2 rounded-lg text-sm text-[#1a0f0a] hover:bg-[#f3ede5] transition-colors border border-[#e8ddd2]"
                 >
                   Be gentler with myself
                 </button>
               </div>
 
               <div className="space-y-2 pt-2 border-t border-[#e8ddd2]">
-                <p className="text-xs text-[#8fa878] font-medium uppercase tracking-wide">
+                <p className="text-xs text-[#c97a2a] font-medium uppercase tracking-wide">
                   Or write your own
                 </p>
                 <textarea
                   value={customIntention}
                   onChange={(e) => setCustomIntention(e.target.value)}
                   placeholder="Your intention..."
-                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a574] text-sm text-[#2a2318] bg-white"
+                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm text-[#1a0f0a] bg-white"
                   rows={2}
                 />
                 <Button
@@ -272,7 +272,7 @@ export function GuidedRhythmOverview() {
 
               <button
                 onClick={() => setShowIntentionModal(false)}
-                className="px-3 py-2 text-sm text-[#6b5f52] hover:bg-[#f3ede5] rounded"
+                className="px-3 py-2 text-sm text-[#1a0f0a] hover:bg-[#f3ede5] rounded"
               >
                 Close
               </button>
