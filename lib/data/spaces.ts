@@ -17,6 +17,7 @@ export interface Space {
   memberCount: number;
   isJoined: boolean;
   featuredPrompt?: string;
+  hidden?: boolean;
 }
 
 const SPACES_STORAGE_KEY = "connection-room:spaces";
@@ -38,10 +39,15 @@ async function getCurrentUserId(): Promise<string | null> {
   }
 }
 
+// Filter out hidden spaces (for v.2)
+function filterVisibleSpaces(spaces: Space[]): Space[] {
+  return spaces.filter((s) => !s.hidden);
+}
+
 // Get all spaces with join status from Supabase or demo
 export async function getSpaces(): Promise<Space[]> {
   if (typeof window === "undefined") {
-    return demoSpaces;
+    return filterVisibleSpaces(demoSpaces);
   }
 
   const userId = await getCurrentUserId();
@@ -72,10 +78,10 @@ export async function getSpaces(): Promise<Space[]> {
       }));
 
       console.log("Returning spaces:", result.length);
-      return result;
+      return filterVisibleSpaces(result);
     } catch (err) {
       console.warn("Error getting Supabase spaces, using demo fallback:", err);
-      return demoSpaces;
+      return filterVisibleSpaces(demoSpaces);
     }
   }
 
@@ -84,11 +90,11 @@ export async function getSpaces(): Promise<Space[]> {
   // Fallback to demo/localStorage
   const stored = localStorage.getItem(SPACES_STORAGE_KEY);
   if (stored) {
-    return JSON.parse(stored);
+    return filterVisibleSpaces(JSON.parse(stored));
   }
 
   localStorage.setItem(SPACES_STORAGE_KEY, JSON.stringify(demoSpaces));
-  return demoSpaces;
+  return filterVisibleSpaces(demoSpaces);
 }
 
 // Get single space

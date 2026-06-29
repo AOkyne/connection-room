@@ -169,6 +169,7 @@ export const demoSpaces: Space[] = [
     color: "bg-green-50",
     memberCount: 167,
     isJoined: false,
+    hidden: true,
   },
   {
     id: "workshops",
@@ -178,6 +179,7 @@ export const demoSpaces: Space[] = [
     color: "bg-yellow-50",
     memberCount: 89,
     isJoined: false,
+    hidden: true,
   },
   {
     id: "masculinity-sex-sexuality",
@@ -197,6 +199,7 @@ export const demoSpaces: Space[] = [
     color: "bg-violet-50",
     memberCount: 78,
     isJoined: false,
+    hidden: true,
     featuredPrompt: "How do you experience the sacred in your sexuality?",
   },
 ];
