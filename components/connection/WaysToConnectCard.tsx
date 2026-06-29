@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@/components/Card";
-import { waysToConnect, waysToConnectHeader } from "@/lib/content/connection-practices";
+import { waysToConnect } from "@/lib/content/connection-practices";
 
 export function WaysToConnectCard() {
   return (
@@ -10,11 +10,8 @@ export function WaysToConnectCard() {
         {/* Header */}
         <div>
           <h3 className="text-lg font-semibold text-[#2a2318]">
-            Ways to Connect This Week
+            Ways to Connect
           </h3>
-          <p className="text-sm text-[#6b5f52] mt-2 leading-relaxed">
-            {waysToConnectHeader}
-          </p>
         </div>
 
         {/* Ways - vertical stack for mobile, grid for larger screens */}
