@@ -82,22 +82,22 @@ export function DailyCompanionDashboard({ displayName, userId }: DailyCompanionD
 
       {/* Main Daily Content Grid */}
       <div className="space-y-6">
-        {/* Theme */}
+        {/* Theme - Full Width */}
         <TodayThemeCard theme={dailyContent.theme} />
 
-        {/* Reflection */}
-        <ReflectionPromptCard prompt={dailyContent.reflection} userId={userId} onSave={handleReflectionSaved} />
+        {/* Reflection + Invitation - Two Columns */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <ReflectionPromptCard prompt={dailyContent.reflection} userId={userId} onSave={handleReflectionSaved} />
+          <ConversationInvitationCard invitation={dailyContent.invitation} />
+        </div>
 
-        {/* Two-column grid */}
+        {/* Practice + Check-in - Two Columns */}
         <div className="grid md:grid-cols-2 gap-6">
           <EmbodimentPracticeCard practice={dailyContent.practice} />
           <BodyCheckInCard checkin={dailyContent.checkin} />
         </div>
 
-        {/* Conversation Invitation */}
-        <ConversationInvitationCard invitation={dailyContent.invitation} />
-
-        {/* Quote */}
+        {/* Quote - Full Width */}
         <FeaturedQuoteCard quote={dailyContent.quote} />
       </div>
 

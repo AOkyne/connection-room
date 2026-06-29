@@ -50,7 +50,7 @@ export function ReflectionPromptCard({ prompt, userId, onSave }: ReflectionPromp
         </div>
 
         {!showForm ? (
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
             {!userId ? (
               <p className="text-sm text-[#6b5f52] italic">Sign in to save your reflections</p>
             ) : (
@@ -59,7 +59,6 @@ export function ReflectionPromptCard({ prompt, userId, onSave }: ReflectionPromp
                   onClick={() => setShowForm(true)}
                   variant="outline"
                   size="sm"
-                  className="flex-1"
                 >
                   Write Your Response
                 </Button>
