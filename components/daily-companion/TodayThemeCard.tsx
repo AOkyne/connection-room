@@ -1,6 +1,7 @@
 "use client";
 
 import { DailyContent } from "@/lib/data/daily-companion";
+import { getThemeExplanation } from "@/lib/theme-explanations";
 import { Card } from "@/components/Card";
 
 interface TodayThemeCardProps {
@@ -27,7 +28,7 @@ export function TodayThemeCard({ theme }: TodayThemeCardProps) {
           )}
         </p>
         <p className="text-sm text-[#6b5f52] leading-relaxed">
-          This is your theme for today. Let it be a gentle anchor—not something to achieve or fix, but an invitation to notice something true about yourself. Whatever else happens today, return to this whenever you need to come home to yourself.
+          {getThemeExplanation(theme.title)}
         </p>
       </div>
     </Card>
