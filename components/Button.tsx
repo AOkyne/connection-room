@@ -15,10 +15,10 @@ export function Button({
   const baseStyles = "font-medium rounded-xl transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[#d4a348] focus:ring-offset-2";
 
   const variants = {
-    primary: "bg-[#8b6f47] text-white hover:bg-[#8a6f52] active:bg-[#6a523a] shadow-sm hover:shadow-md",
-    secondary: "bg-[#d4a348] text-white hover:bg-[#c99563] active:bg-[#b0834d] shadow-sm hover:shadow-md",
-    outline: "border-2 border-[#d4a348] text-[#8b6f47] hover:bg-[#faf7f2] hover:border-[#c99563]",
-    ghost: "text-[#8b6f47] hover:bg-[#f3ede5] hover:text-[#7d6245]",
+    primary: "bg-[#6b5a45] text-white hover:bg-[#7d6b57] active:bg-[#5a483a] shadow-sm hover:shadow-md",
+    secondary: "bg-[#8b6f47] text-white hover:bg-[#9d7f59] active:bg-[#7a5f3f] shadow-sm hover:shadow-md",
+    outline: "border-2 border-[#8b6f47] text-[#8b6f47] hover:bg-[#f5f1eb] hover:border-[#6b5a45]",
+    ghost: "text-[#8b6f47] hover:bg-[#f3ede5] hover:text-[#6b5a45]",
   };
 
   const sizes = {
