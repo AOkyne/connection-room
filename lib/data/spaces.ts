@@ -25,6 +25,7 @@ const SPACE_ORDER_KEY = "connection-room:space-order";
 const APP_VISITS_KEY = "connection-room:app-visits";
 const START_HERE_COMPLETE_KEY = "connection-room:start-here-complete";
 const REQUIRED_SPACES = ["start-here", "commons"];
+const HIDDEN_SPACE_IDS = ["embodiment", "workshops", "sacred-sexuality"];
 
 // Get current authenticated user ID
 async function getCurrentUserId(): Promise<string | null> {
@@ -41,7 +42,7 @@ async function getCurrentUserId(): Promise<string | null> {
 
 // Filter out hidden spaces (for v.2)
 function filterVisibleSpaces(spaces: Space[]): Space[] {
-  return spaces.filter((s) => !s.hidden);
+  return spaces.filter((s) => !s.hidden && !HIDDEN_SPACE_IDS.includes(s.id));
 }
 
 // Get all spaces with join status from Supabase or demo
