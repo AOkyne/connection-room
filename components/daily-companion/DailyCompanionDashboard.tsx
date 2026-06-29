@@ -74,9 +74,13 @@ export function DailyCompanionDashboard({ displayName, userId }: DailyCompanionD
       <div className="space-y-2">
         <h1 className="text-3xl font-semibold text-[#2a2318]">Welcome back, {displayName}</h1>
         <p className="text-[#6b5f52]">
-          {getDaysSinceLaunch() % 120 === 0
-            ? "You're returning to the beginning of a new cycle. What will you notice this time?"
-            : "Today is day " + ((getDaysSinceLaunch() % 120) + 1) + " of this cycle."}
+          {new Date().toLocaleDateString("en-US", {
+            timeZone: "America/Los_Angeles",
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            year: "numeric"
+          })}
         </p>
       </div>
 
