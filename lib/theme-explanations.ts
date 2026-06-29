@@ -95,7 +95,6 @@ export const themeExplanations: Record<string, string> = {
   "Belonging to the Body": "Your body is not separate from you. Belonging to it is belonging to yourself.",
   "The Truth Your Touch Speaks": "Touch communicates what words cannot. It speaks in presence, in care, in wanting.",
   "Permission to Soften": "You can let your defenses down. The world won't fall apart.",
-  "What It Means to Be Held": "Being held means you don't have to hold everything alone.",
   "The Courage of Tenderness": "Tenderness is not soft. It's fiercely strong and deeply brave.",
   "Coming Home to Yourself": "All the seeking outside is pointing you back to yourself.",
   "The Wisdom of Your Body": "Your body is wise. It knows what you need before you understand it.",
