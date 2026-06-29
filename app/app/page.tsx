@@ -265,12 +265,15 @@ export default function AppHome() {
           <div>
             <h4 className="text-sm font-medium text-[#8fa878] mb-3 uppercase tracking-wide">Your Badges</h4>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-              {badges.map((badge) => (
-                <Card key={badge.id} className="flex flex-col items-center justify-center gap-2 p-3 text-center bg-[#f3ede5]">
-                  <span className="text-2xl">{getBadgeIcon(badge.id)}</span>
-                  <p className="text-xs font-semibold text-[#2a2318] line-clamp-2">{badge.name}</p>
-                </Card>
-              ))}
+              {badges.map((badge) => {
+                const BadgeIcon = getBadgeIcon(badge.id);
+                return (
+                  <Card key={badge.id} className="flex flex-col items-center justify-center gap-2 p-3 text-center bg-[#f3ede5]">
+                    <BadgeIcon className="text-2xl" />
+                    <p className="text-xs font-semibold text-[#2a2318] line-clamp-2">{badge.name}</p>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         )}
