@@ -15,21 +15,19 @@ export function WeeklyTrevorNoteCard({ note }: WeeklyTrevorNoteCardProps) {
 
   return (
     <Card className="bg-gradient-to-br from-[#f3ede5] to-white border-2 border-[#d4a348]">
-      <div className="space-y-6">
-        {/* Trevor's Photo - Large and Prominent */}
-        <div className="flex justify-center -mx-6 -mt-6 mb-2">
+      <div className="space-y-4">
+        <div className="flex items-start gap-6">
           <img
             src="/trevor-photo.png"
             alt="Trevor James"
-            className="w-48 h-48 rounded-full object-cover border-4 border-[#d4a348] shadow-lg"
+            className="w-48 h-48 rounded-full object-cover border-4 border-[#d4a348] shadow-lg flex-shrink-0"
           />
-        </div>
-
-        <div>
-          <p className="text-xs font-semibold text-[#c97a2a] uppercase tracking-wide mb-2 text-center">
-            This Week from Trevor
-          </p>
-          <h3 className="text-xl font-semibold text-[#1a0f0a] text-center">{note.title}</h3>
+          <div className="flex-1">
+            <p className="text-xs font-semibold text-[#c97a2a] uppercase tracking-wide mb-2">
+              This Week from Trevor
+            </p>
+            <h3 className="text-xl font-semibold text-[#1a0f0a]">{note.title}</h3>
+          </div>
         </div>
 
         <p className="text-sm text-[#1a0f0a] leading-relaxed">{note.body}</p>
