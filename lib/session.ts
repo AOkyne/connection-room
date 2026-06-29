@@ -57,6 +57,15 @@ export async function getSession(): Promise<AppSession | null> {
           console.debug("Could not fetch profile for session display name");
         }
 
+        // Generate profile photo from initials
+        const initials = displayName
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2);
+        const profilePhoto = generateAvatarUrl(initials);
+
         return {
           id: session.user.id,
           type: "member",
@@ -64,6 +73,7 @@ export async function getSession(): Promise<AppSession | null> {
           email: session.user.email,
           supabaseUserId: session.user.id,
           isBeta: true,
+          profilePhoto,
           createdAt: session.user.created_at ? new Date(session.user.created_at) : new Date(),
         };
       }
