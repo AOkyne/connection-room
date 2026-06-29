@@ -11,6 +11,7 @@ interface RecentReflection {
   title: string;
   excerpt: string;
   authorName: string;
+  authorPhoto?: string;
   createdAt: Date;
 }
 
@@ -62,9 +63,18 @@ export function ReflectionsFromRoomCard({
                     <p className="text-xs text-[#6b5f52] mt-1 line-clamp-2">
                       {reflection.excerpt}
                     </p>
-                    <p className="text-xs text-[#a0968a] mt-2">
-                      — {reflection.authorName}
-                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      {reflection.authorPhoto && (
+                        <img
+                          src={reflection.authorPhoto}
+                          alt={reflection.authorName}
+                          className="w-5 h-5 rounded-full object-cover border border-[#e8ddd2]"
+                        />
+                      )}
+                      <p className="text-xs text-[#a0968a]">
+                        — {reflection.authorName}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>

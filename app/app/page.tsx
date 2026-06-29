@@ -22,6 +22,7 @@ import { WaysToConnectCard } from "@/components/connection/WaysToConnectCard";
 import { ReflectionsFromRoomCard } from "@/components/connection/ReflectionsFromRoomCard";
 import { DailyCompanionDashboard } from "@/components/daily-companion/DailyCompanionDashboard";
 import { ContinueWhereYouLeftOff } from "@/components/daily-companion/ContinueWhereYouLeftOff";
+import { CommunityMembersGrid } from "@/components/community/CommunityMembersGrid";
 import { sortSpacesByPreference } from "@/lib/data/spaces";
 import { LoadingError } from "@/components/LoadingError";
 import { withTimeout } from "@/lib/utils/with-timeout";
@@ -206,6 +207,9 @@ export default function AppHome() {
       {/* SECONDARY CONTENT - Below the fold */}
       <div className="space-y-6">
         <h3 className="text-lg font-semibold text-[#2a2318]">Your Community</h3>
+
+        {/* Community Members Grid */}
+        <CommunityMembersGrid />
 
         {/* Your Spaces - if user has joined any */}
         {joinedSpacesCount > 0 && (

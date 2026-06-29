@@ -9,6 +9,7 @@ export interface RecentReflection {
   title: string;
   excerpt: string;
   authorName: string;
+  authorPhoto?: string;
   createdAt: Date;
 }
 
@@ -59,6 +60,7 @@ export async function getRecentReflections(limit: number = 5): Promise<RecentRef
         title,
         excerpt,
         authorName: post.authorName,
+        authorPhoto: post.authorPhoto,
         createdAt: post.createdAt instanceof Date ? post.createdAt : new Date(post.createdAt),
       };
     });

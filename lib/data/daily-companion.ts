@@ -57,6 +57,31 @@ export function getWeekSinceLaunch(): number {
   return Math.floor(getDaysSinceLaunch() / 7);
 }
 
+// Get hero image URL based on theme category
+export function getThemeHeroImage(category?: string): string {
+  const imageMap: Record<string, string> = {
+    connection: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200&h=500&fit=crop",
+    vulnerability: "https://images.unsplash.com/photo-1516321318423-f06a6b1ef650?w=1200&h=500&fit=crop",
+    communication: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=500&fit=crop",
+    embodiment: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&h=500&fit=crop",
+    sexuality: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=1200&h=500&fit=crop",
+    intimacy: "https://images.unsplash.com/photo-1516387938699-a93023642d9f?w=1200&h=500&fit=crop",
+    authenticity: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=1200&h=500&fit=crop",
+    desire: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=500&fit=crop",
+    presence: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&h=500&fit=crop",
+    emotion: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=1200&h=500&fit=crop",
+    spirituality: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&h=500&fit=crop",
+    awareness: "https://images.unsplash.com/photo-1516321318423-f06a6b1ef650?w=1200&h=500&fit=crop",
+    psychology: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=1200&h=500&fit=crop",
+    intuition: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&h=500&fit=crop",
+    courage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=500&fit=crop",
+    healing: "https://images.unsplash.com/photo-1516387938699-a93023642d9f?w=1200&h=500&fit=crop",
+    strength: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=1200&h=500&fit=crop",
+    default: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200&h=500&fit=crop",
+  };
+  return imageMap[category || "default"] || imageMap.default;
+}
+
 /**
  * Get today's daily companion content
  * Uses rotation_index based on days since launch

@@ -34,6 +34,7 @@ export interface Space {
   isJoined: boolean;
   featuredPrompt?: string;
   hidden?: boolean;
+  image?: string;
 }
 
 export interface Prompt {
@@ -103,6 +104,7 @@ export const demoSpaces: Space[] = [
     memberCount: 247,
     isJoined: true,
     featuredPrompt: "What brought you here, and what kind of connection are you hoping to practice?",
+    image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200&h=600&fit=crop",
   },
   {
     id: "start-here",
@@ -113,6 +115,7 @@ export const demoSpaces: Space[] = [
     memberCount: 156,
     isJoined: true,
     featuredPrompt: "What does authentic connection mean to you?",
+    image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=600&fit=crop",
   },
   {
     id: "intimacy-patterns",
@@ -123,6 +126,7 @@ export const demoSpaces: Space[] = [
     memberCount: 189,
     isJoined: false,
     featuredPrompt: "What patterns do you notice in how you approach intimacy or closeness?",
+    image: "https://images.unsplash.com/photo-1516387938699-a93023642d9f?w=1200&h=600&fit=crop",
   },
   {
     id: "touch-affection",
@@ -133,6 +137,7 @@ export const demoSpaces: Space[] = [
     memberCount: 134,
     isJoined: false,
     featuredPrompt: "What kind of non-sexual touch do you miss or crave?",
+    image: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=1200&h=600&fit=crop",
   },
   {
     id: "spirituality-sexuality",
@@ -143,6 +148,7 @@ export const demoSpaces: Space[] = [
     memberCount: 198,
     isJoined: false,
     featuredPrompt: "What would change if sexuality was something to listen to, not manage?",
+    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&h=600&fit=crop",
   },
   {
     id: "dating-desire",
@@ -152,6 +158,7 @@ export const demoSpaces: Space[] = [
     color: "bg-pink-50",
     memberCount: 112,
     isJoined: false,
+    image: "https://images.unsplash.com/photo-1516321318423-f06a6b1ef650?w=1200&h=600&fit=crop",
   },
   {
     id: "couples",
@@ -161,6 +168,7 @@ export const demoSpaces: Space[] = [
     color: "bg-teal-50",
     memberCount: 203,
     isJoined: false,
+    image: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=1200&h=600&fit=crop",
   },
   {
     id: "embodiment",
@@ -171,6 +179,7 @@ export const demoSpaces: Space[] = [
     memberCount: 167,
     isJoined: false,
     hidden: true,
+    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&h=600&fit=crop",
   },
   {
     id: "workshops",
@@ -181,6 +190,7 @@ export const demoSpaces: Space[] = [
     memberCount: 89,
     isJoined: false,
     hidden: true,
+    image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=600&fit=crop",
   },
   {
     id: "masculinity-sex-sexuality",
@@ -191,6 +201,7 @@ export const demoSpaces: Space[] = [
     memberCount: 145,
     isJoined: false,
     featuredPrompt: "What does it mean to you to be sexually authentic as a man?",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=600&fit=crop",
   },
   {
     id: "sacred-sexuality",
@@ -202,6 +213,7 @@ export const demoSpaces: Space[] = [
     isJoined: false,
     hidden: true,
     featuredPrompt: "How do you experience the sacred in your sexuality?",
+    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&h=600&fit=crop",
   },
 ];
 

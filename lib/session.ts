@@ -7,6 +7,7 @@ export interface AppSession {
   email?: string;
   supabaseUserId?: string;
   isBeta: boolean;
+  profilePhoto?: string;
   createdAt: Date;
 }
 
@@ -77,11 +78,12 @@ function trackSignup(session: AppSession): void {
 }
 
 // Create demo member session
-export function createMemberSession(name: string = "Demo Member"): AppSession {
+export function createMemberSession(name: string = "Demo Member", profilePhoto?: string): AppSession {
   const session: AppSession = {
     id: `session-${Date.now()}`,
     type: "member",
     name,
+    profilePhoto,
     isBeta: false,
     createdAt: new Date(),
   };
@@ -93,11 +95,12 @@ export function createMemberSession(name: string = "Demo Member"): AppSession {
 }
 
 // Create demo admin session
-export function createAdminSession(name: string = "Demo Admin"): AppSession {
+export function createAdminSession(name: string = "Demo Admin", profilePhoto?: string): AppSession {
   const session: AppSession = {
     id: `session-${Date.now()}`,
     type: "admin",
     name,
+    profilePhoto,
     isBeta: false,
     createdAt: new Date(),
   };

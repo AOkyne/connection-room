@@ -68,9 +68,17 @@ export default function AppLayout({ children }: AppLayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#fdfbf7] flex flex-col">
+    <div className="min-h-screen bg-[#fdfbf7] flex flex-col relative overflow-x-hidden">
+      {/* Warm subtle background texture */}
+      <div className="fixed inset-0 pointer-events-none opacity-50 z-0"
+        style={{
+          backgroundImage: `radial-gradient(circle at 20% 50%, rgba(212, 165, 116, 0.03) 0%, transparent 50%),
+                            radial-gradient(circle at 80% 80%, rgba(159, 127, 92, 0.03) 0%, transparent 50%)`,
+        }}
+      />
+
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-[#e8e3db]">
+      <header className="sticky top-0 z-50 bg-white border-b border-[#e8e3db]">
         <div className="px-4 py-2 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center">
             <Link href="/app" className="flex items-center">
@@ -82,7 +90,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </Link>
             {session && (
               <div className="flex items-center gap-4">
-                <span className="text-sm text-[#6b6460]">{session.name}</span>
+                <div className="flex items-center gap-2">
+                  {session.profilePhoto && (
+                    <img
+                      src={session.profilePhoto}
+                      alt={session.name}
+                      className="w-8 h-8 rounded-full object-cover border border-[#e8ddd2]"
+                    />
+                  )}
+                  <span className="text-sm text-[#6b6460]">{session.name}</span>
+                </div>
                 <Button variant="ghost" size="sm" onClick={handleLogout}>
                   Sign Out
                 </Button>
@@ -92,9 +109,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative z-10">
         {/* Desktop Sidebar - Fixed Navigation */}
-        <nav className="hidden md:flex fixed left-0 top-40 w-64 flex-col px-4 py-6 space-y-2 bg-white z-30 border-r border-[#e8e3db] h-[calc(100vh-160px)] overflow-y-auto">
+        <nav className="hidden md:flex fixed left-0 top-40 w-64 flex-col px-4 py-6 space-y-2 bg-white z-40 border-r border-[#e8e3db] h-[calc(100vh-160px)] overflow-y-auto">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -126,7 +143,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </main>
 
         {/* Mobile Bottom Navigation - Fixed to Bottom */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-[#e8e3db] bg-white z-40 px-0 py-2 flex gap-0 justify-around overflow-visible">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-[#e8e3db] bg-white z-50 px-0 py-2 flex gap-0 justify-around overflow-visible">
           {navItems.map((item) => (
             <Link
               key={item.href}

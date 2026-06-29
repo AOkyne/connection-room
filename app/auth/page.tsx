@@ -275,8 +275,8 @@ function DemoAuthContent() {
   const handleContinueAsMember = async () => {
     setLoading(true);
     const name = displayName || "Demo Member";
-    createMemberSession(name);
-    createDemoProfile(name, "individual");
+    const profile = createDemoProfile(name, "individual");
+    createMemberSession(name, profile.profilePhoto);
     setTimeout(() => {
       router.push("/onboarding");
     }, 100);
@@ -284,8 +284,8 @@ function DemoAuthContent() {
 
   const handleContinueAsAdmin = async () => {
     setLoading(true);
-    createAdminSession("Demo Admin");
-    createDemoProfile("Demo Admin", "individual");
+    const profile = createDemoProfile("Demo Admin", "individual");
+    createAdminSession("Demo Admin", profile.profilePhoto);
     setTimeout(() => {
       router.push("/app/admin");
     }, 100);

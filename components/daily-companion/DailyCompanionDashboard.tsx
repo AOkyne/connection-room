@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getTodaysDailyContent, getTrevorWeeklyNote, getDaysSinceLaunch } from "@/lib/data/daily-companion";
+import { getTodaysDailyContent, getTrevorWeeklyNote, getDaysSinceLaunch, getThemeHeroImage } from "@/lib/data/daily-companion";
 import { TodayThemeCard } from "./TodayThemeCard";
 import { ReflectionPromptCard } from "./ReflectionPromptCard";
 import { EmbodimentPracticeCard } from "./EmbodimentPracticeCard";
@@ -68,8 +68,20 @@ export function DailyCompanionDashboard({ displayName, userId }: DailyCompanionD
     );
   }
 
+  const heroImage = getThemeHeroImage(dailyContent.theme?.category);
+
   return (
     <div className="space-y-8">
+      {/* Hero Image */}
+      <div className="h-64 overflow-hidden rounded-xl shadow-md relative">
+        <img
+          src={heroImage}
+          alt="Today's theme"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/20" />
+      </div>
+
       {/* Greeting */}
       <div className="space-y-2">
         <h1 className="text-3xl font-semibold text-[#2a2318]">Welcome back, {displayName}</h1>
