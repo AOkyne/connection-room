@@ -32,14 +32,13 @@ export function WeeklyTrevorNoteCard({ note }: WeeklyTrevorNoteCardProps) {
         </div>
       </div>
 
-        {note.related_space_id && (
-          <Link href={`/app/spaces/${note.related_space_id}`}>
-            <Button variant="outline" size="sm">
-              Explore Related Space
-            </Button>
-          </Link>
-        )}
-      </div>
+      {note.related_space_id && (
+        <Link href={`/app/spaces/${note.related_space_id}`}>
+          <Button variant="outline" size="sm">
+            Explore Related Space
+          </Button>
+        </Link>
+      )}
     </Card>
   );
 }
