@@ -683,7 +683,7 @@ export default function SpaceDetailPage() {
                           {(() => {
                             const authorFirstName = comment.authorName.split(' ')[0];
                             const author = demoMembers.find(m => m.displayName === authorFirstName || m.firstName === authorFirstName);
-                            return <Avatar name={comment.authorName} photo={author?.profilePhoto || comment.authorPhoto} size={28} className="cursor-pointer" />;
+                            return <Avatar name={comment.authorName} photo={author?.profilePhoto || comment.authorPhoto} size="sm" />;
                           })()}
                           <div className="flex-1 cursor-pointer">
                             <p className="text-sm font-medium text-[#1a0f0a]">
