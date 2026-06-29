@@ -1,0 +1,126 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { getTodaysDailyContent, getTrevorWeeklyNote, getDaysSinceLaunch } from "@/lib/data/daily-companion";
+import { TodayThemeCard } from "./TodayThemeCard";
+import { ReflectionPromptCard } from "./ReflectionPromptCard";
+import { EmbodimentPracticeCard } from "./EmbodimentPracticeCard";
+import { BodyCheckInCard } from "./BodyCheckInCard";
+import { ConversationInvitationCard } from "./ConversationInvitationCard";
+import { FeaturedQuoteCard } from "./FeaturedQuoteCard";
+import { WeeklyTrevorNoteCard } from "./WeeklyTrevorNoteCard";
+import { MyReflectionsPanel } from "./MyReflectionsPanel";
+import { Card } from "@/components/Card";
+import type { DailyContent, WeeklyNote } from "@/lib/data/daily-companion";
+
+interface DailyCompanionDashboardProps {
+  displayName: string;
+  userId: string | null;
+}
+
+export function DailyCompanionDashboard({ displayName, userId }: DailyCompanionDashboardProps) {
+  const [dailyContent, setDailyContent] = useState<{
+    theme: DailyContent | null;
+    reflection: DailyContent | null;
+    practice: DailyContent | null;
+    checkin: DailyContent | null;
+    invitation: DailyContent | null;
+    quote: DailyContent | null;
+  }>({
+    theme: null,
+    reflection: null,
+    practice: null,
+    checkin: null,
+    invitation: null,
+    quote: null,
+  });
+
+  const [weeklyNote, setWeeklyNote] = useState<WeeklyNote | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [reflectionSaved, setReflectionSaved] = useState(false);
+
+  useEffect(() => {
+    const loadContent = async () => {
+      try {
+        const [daily, weekly] = await Promise.all([getTodaysDailyContent(), getTrevorWeeklyNote()]);
+        setDailyContent(daily);
+        setWeeklyNote(weekly);
+      } catch (error) {
+        console.warn("Error loading daily companion content:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadContent();
+  }, []);
+
+  const handleReflectionSaved = () => {
+    setReflectionSaved(true);
+    setTimeout(() => setReflectionSaved(false), 3000);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-[#6b5f52]">Loading your daily companion...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Greeting */}
+      <div className="space-y-2">
+        <h1 className="text-3xl font-semibold text-[#2a2318]">Welcome back, {displayName}</h1>
+        <p className="text-[#6b5f52]">
+          {getDaysSinceLaunch() % 120 === 0
+            ? "You're returning to the beginning of a new cycle. What will you notice this time?"
+            : "Today is day " + ((getDaysSinceLaunch() % 120) + 1) + " of this cycle."}
+        </p>
+      </div>
+
+      {/* Main Daily Content Grid */}
+      <div className="space-y-6">
+        {/* Theme */}
+        <TodayThemeCard theme={dailyContent.theme} />
+
+        {/* Reflection */}
+        <ReflectionPromptCard prompt={dailyContent.reflection} userId={userId} onSave={handleReflectionSaved} />
+
+        {/* Two-column grid */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <EmbodimentPracticeCard practice={dailyContent.practice} />
+          <BodyCheckInCard checkin={dailyContent.checkin} />
+        </div>
+
+        {/* Conversation Invitation */}
+        <ConversationInvitationCard invitation={dailyContent.invitation} />
+
+        {/* Quote */}
+        <FeaturedQuoteCard quote={dailyContent.quote} />
+      </div>
+
+      {/* Trevor Weekly Note */}
+      {weeklyNote && (
+        <div className="border-t border-[#e8ddd2] pt-8">
+          <WeeklyTrevorNoteCard note={weeklyNote} />
+        </div>
+      )}
+
+      {/* My Reflections Panel */}
+      {userId && (
+        <div className="border-t border-[#e8ddd2] pt-8">
+          <MyReflectionsPanel userId={userId} />
+        </div>
+      )}
+
+      {/* Context Message */}
+      <Card className="bg-[#f3ede5] text-center border-none">
+        <p className="text-sm text-[#6b5f52] leading-relaxed">
+          This daily companion is designed to help you return to yourself. There's no pressure to complete everything. Choose what calls to you today. Return tomorrow for something new.
+        </p>
+      </Card>
+    </div>
+  );
+}
