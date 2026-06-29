@@ -231,11 +231,13 @@ export default function AppHome() {
         )}
 
         {/* Explore All Spaces Button */}
-        <Link href="/app/spaces">
-          <Button variant="outline" className="w-full">
-            Explore All Spaces
-          </Button>
-        </Link>
+        <div className="flex justify-center">
+          <Link href="/app/spaces" className="w-full sm:w-auto">
+            <Button variant="outline">
+              Explore All Spaces
+            </Button>
+          </Link>
+        </div>
 
         {/* Connection and Reflection Scaffolding */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
