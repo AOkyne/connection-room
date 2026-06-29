@@ -171,45 +171,125 @@ export async function getTodaysDailyContent(): Promise<{
   const dayIndex = getDaysSinceLaunch() % 120;
 
   try {
-    const { data, error } = await supabase
-      .from("daily_companion_content")
-      .select("*")
-      .eq("active", true)
-      .eq("rotation_index", dayIndex)
-      .order("content_type");
+    // Add timeout - if Supabase doesn't respond in 3 seconds, use demo data
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-    if (error) {
-      console.warn("Error fetching daily content:", error);
-      // Fallback to seed data
-      return getTodaysDailyContent();
+    try {
+      const { data, error } = await supabase
+        .from("daily_companion_content")
+        .select("*")
+        .eq("active", true)
+        .eq("rotation_index", dayIndex)
+        .order("content_type");
+
+      clearTimeout(timeoutId);
+
+      if (error) {
+        console.warn("Error fetching daily content:", error);
+        // Fallback to seed data
+        throw error;
+      }
+
+      // Organize by content_type
+      const content: Record<string, DailyContent | null> = {
+        theme: null,
+        reflection: null,
+        practice: null,
+        checkin: null,
+        invitation: null,
+        quote: null,
+      };
+
+      data?.forEach((item) => {
+        content[item.content_type] = item;
+      });
+
+      return {
+        theme: content.theme as DailyContent,
+        reflection: content.reflection as DailyContent,
+        practice: content.practice as DailyContent,
+        checkin: content.checkin as DailyContent,
+        invitation: content.invitation as DailyContent,
+        quote: content.quote as DailyContent,
+      };
+    } catch (e) {
+      clearTimeout(timeoutId);
+      throw e;
     }
-
-    // Organize by content_type
-    const content: Record<string, DailyContent | null> = {
-      theme: null,
-      reflection: null,
-      practice: null,
-      checkin: null,
-      invitation: null,
-      quote: null,
-    };
-
-    data?.forEach((item) => {
-      content[item.content_type] = item;
-    });
-
-    return {
-      theme: content.theme as DailyContent,
-      reflection: content.reflection as DailyContent,
-      practice: content.practice as DailyContent,
-      checkin: content.checkin as DailyContent,
-      invitation: content.invitation as DailyContent,
-      quote: content.quote as DailyContent,
-    };
   } catch (error) {
-    console.warn("Error fetching daily content:", error);
-    // Fallback to seed data
-    return getTodaysDailyContent();
+    console.warn("Error fetching daily content, using demo data:", error);
+    // Return demo data directly - don't call recursively
+    const dayIndex = getDaysSinceLaunch() % 120;
+    return {
+      theme: dailyThemes[dayIndex]
+        ? {
+            id: `theme-${dayIndex}`,
+            content_type: "theme",
+            title: dailyThemes[dayIndex].title,
+            body: `Today's theme: ${dailyThemes[dayIndex].title}`,
+            category: dailyThemes[dayIndex].category,
+            rotation_index: dayIndex,
+            active: true,
+            created_at: new Date().toISOString(),
+          }
+        : null,
+      reflection: reflectionPrompts[dayIndex]
+        ? {
+            id: `reflection-${dayIndex}`,
+            content_type: "reflection",
+            title: "Today's Reflection",
+            body: reflectionPrompts[dayIndex].prompt,
+            rotation_index: dayIndex,
+            active: true,
+            created_at: new Date().toISOString(),
+          }
+        : null,
+      practice: embodimentPractices[dayIndex]
+        ? {
+            id: `practice-${dayIndex}`,
+            content_type: "practice",
+            title: "Today's Embodiment Practice",
+            body: embodimentPractices[dayIndex].practice,
+            rotation_index: dayIndex,
+            active: true,
+            created_at: new Date().toISOString(),
+          }
+        : null,
+      checkin: bodyCheckIns[dayIndex]
+        ? {
+            id: `checkin-${dayIndex}`,
+            content_type: "checkin",
+            title: "Body Check-In",
+            body: bodyCheckIns[dayIndex].prompt,
+            rotation_index: dayIndex,
+            active: true,
+            created_at: new Date().toISOString(),
+          }
+        : null,
+      invitation: conversationInvitations[dayIndex]
+        ? {
+            id: `invitation-${dayIndex}`,
+            content_type: "invitation",
+            title: "Today's Conversation Invitation",
+            body: conversationInvitations[dayIndex].invitation,
+            rotation_index: dayIndex,
+            active: true,
+            created_at: new Date().toISOString(),
+          }
+        : null,
+      quote: quotes[dayIndex]
+        ? {
+            id: `quote-${dayIndex}`,
+            content_type: "quote",
+            title: "Today's Quote",
+            body: quotes[dayIndex].quote,
+            rotation_index: dayIndex,
+            active: true,
+            created_at: new Date().toISOString(),
+          }
+        : null,
+    };
   }
 }
 
@@ -239,22 +319,48 @@ export async function getTrevorWeeklyNote(): Promise<WeeklyNote | null> {
   const weekIndex = getWeekSinceLaunch() % 16;
 
   try {
-    const { data, error } = await supabase
-      .from("weekly_notes")
-      .select("*")
-      .eq("active", true)
-      .eq("rotation_index", weekIndex)
-      .single();
+    // Add timeout - if Supabase doesn't respond in 3 seconds, use demo data
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-    if (error && error.code !== "PGRST116") {
-      // PGRST116 = no rows found
-      console.warn("Error fetching weekly note:", error);
+    try {
+      const { data, error } = await supabase
+        .from("weekly_notes")
+        .select("*")
+        .eq("active", true)
+        .eq("rotation_index", weekIndex)
+        .single();
+
+      clearTimeout(timeoutId);
+
+      if (error && error.code !== "PGRST116") {
+        // PGRST116 = no rows found
+        console.warn("Error fetching weekly note:", error);
+      }
+
+      return data || null;
+    } catch (e) {
+      clearTimeout(timeoutId);
+      throw e;
     }
-
-    return data || null;
   } catch (error) {
-    console.warn("Error fetching weekly note:", error);
-    return null;
+    console.warn("Error fetching weekly note, using fallback:", error);
+    // Fall back to demo data
+    const weekIndex = getWeekSinceLaunch() % 16;
+    const note = weeklyTrevorNotes[weekIndex];
+    if (!note) return null;
+
+    return {
+      id: `weekly-${weekIndex}`,
+      week_number: note.week,
+      title: note.title,
+      body: note.body,
+      related_prompt_id: note.prompt_snapshot ? `reflection-${weekIndex * 7}` : undefined,
+      related_space_id: note.space_suggestion,
+      rotation_index: weekIndex,
+      active: true,
+      created_at: new Date().toISOString(),
+    };
   }
 }
 
