@@ -7,7 +7,6 @@ import { ReflectionPromptCard } from "./ReflectionPromptCard";
 import { EmbodimentPracticeCard } from "./EmbodimentPracticeCard";
 import { BodyCheckInCard } from "./BodyCheckInCard";
 import { ConversationInvitationCard } from "./ConversationInvitationCard";
-import { FeaturedQuoteCard } from "./FeaturedQuoteCard";
 import { WeeklyTrevorNoteCard } from "./WeeklyTrevorNoteCard";
 import { MyReflectionsPanel } from "./MyReflectionsPanel";
 import { Card } from "@/components/Card";
@@ -100,9 +99,6 @@ export function DailyCompanionDashboard({ displayName, userId }: DailyCompanionD
           <EmbodimentPracticeCard practice={dailyContent.practice} />
           <BodyCheckInCard checkin={dailyContent.checkin} />
         </div>
-
-        {/* Quote - Full Width */}
-        <FeaturedQuoteCard quote={dailyContent.quote} />
       </div>
 
       {/* Trevor Weekly Note */}
