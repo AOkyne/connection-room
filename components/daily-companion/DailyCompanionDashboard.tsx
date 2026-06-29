@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getTodaysDailyContent, getTrevorWeeklyNote, getDaysSinceLaunch, getThemeHeroImage } from "@/lib/data/daily-companion";
+import { Avatar } from "@/components/Avatar";
 import { TodayThemeCard } from "./TodayThemeCard";
 import { ReflectionPromptCard } from "./ReflectionPromptCard";
 import { EmbodimentPracticeCard } from "./EmbodimentPracticeCard";
@@ -84,7 +85,10 @@ export function DailyCompanionDashboard({ displayName, userId }: DailyCompanionD
 
       {/* Greeting */}
       <div className="space-y-2">
-        <h1 className="text-3xl font-semibold text-[#1a0f0a]">Welcome back, {displayName}</h1>
+        <div className="flex items-center gap-4">
+          <Avatar name={displayName} size="lg" />
+          <h1 className="text-3xl font-semibold text-[#1a0f0a]">Welcome back, {displayName}</h1>
+        </div>
         <p className="text-[#1a0f0a]">
           {new Date().toLocaleDateString("en-US", {
             timeZone: "America/Los_Angeles",
