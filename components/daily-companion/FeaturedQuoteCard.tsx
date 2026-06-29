@@ -14,24 +14,27 @@ export function FeaturedQuoteCard({ quote }: FeaturedQuoteCardProps) {
   return (
     <div style={{
       backgroundColor: "#2a2318",
-      padding: "32px 24px",
+      padding: "48px 40px",
       borderRadius: "16px",
       marginTop: "24px"
     }}>
       <p style={{
-        fontSize: "20px",
+        fontSize: "28px",
+        fontFamily: "Georgia, serif",
         fontStyle: "italic",
         color: "#ffffff",
-        lineHeight: "1.6",
-        margin: "0 0 16px 0"
+        lineHeight: "1.7",
+        margin: "0 0 24px 0",
+        fontWeight: "400"
       }}>
         "{quote.body}"
       </p>
       <p style={{
-        fontSize: "14px",
+        fontSize: "16px",
         color: "#d4a574",
         margin: "0",
-        fontWeight: "500"
+        fontWeight: "500",
+        letterSpacing: "0.5px"
       }}>
         — Trevor James
       </p>
