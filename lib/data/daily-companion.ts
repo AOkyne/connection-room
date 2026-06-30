@@ -49,8 +49,12 @@ export interface UserReflection {
 // Get days since app launch (fallback for rotation)
 export function getDaysSinceLaunch(): number {
   const launchDate = new Date("2024-01-01"); // App launch date
+  // Get current date in Pacific Time
   const now = new Date();
-  const diff = now.getTime() - launchDate.getTime();
+  const pacificDate = new Date(now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+  const pacificToday = new Date(pacificDate.getFullYear(), pacificDate.getMonth(), pacificDate.getDate());
+  const launchDay = new Date(launchDate.getFullYear(), launchDate.getMonth(), launchDate.getDate());
+  const diff = pacificToday.getTime() - launchDay.getTime();
   return Math.floor(diff / (1000 * 60 * 60 * 24));
 }
 
