@@ -4,6 +4,8 @@ export interface AppSession {
   id: string;
   type: "member" | "admin";
   name: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
   supabaseUserId?: string;
   isBeta: boolean;
@@ -105,9 +107,11 @@ function trackSignup(session: AppSession): void {
   if (typeof window === "undefined") return;
   const recent = localStorage.getItem(RECENT_SIGNUPS_KEY);
   const signups = recent ? JSON.parse(recent) : [];
+  const names = session.name.split(" ");
   signups.unshift({
     id: session.id,
-    name: session.name,
+    firstName: session.firstName || names[0] || "",
+    lastName: session.lastName || names.slice(1).join(" ") || "",
     email: session.email || "No email",
     type: session.type,
     timestamp: new Date().toISOString(),

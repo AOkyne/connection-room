@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getAllBadges } from "@/lib/data/badges";
 import { getUpcomingEvents } from "@/lib/data/events";
 import { getAllOffers } from "@/lib/data/offers";
-import { getRecentSignups } from "@/lib/session";
+import { getRecentSignups, getSession } from "@/lib/session";
 import { getDemoProfiles } from "@/lib/data/profiles";
 import { Card, CardHeader } from "@/components/Card";
 import { IconConnection, IconDemo, IconSpaces, IconBadges, IconProgress, IconUpcoming, IconAlert, IconForYou, IconChat, IconProfileNav } from "@/components/Icons";
@@ -15,7 +16,9 @@ import { RhythmContentEditor } from "@/components/admin/RhythmContentEditor";
 import { LoadingScreen } from "@/components/LoadingScreen";
 
 export default function AdminPage() {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [badges, setBadges] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
   const [offers, setOffers] = useState<any[]>([]);
@@ -26,8 +29,13 @@ export default function AdminPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      // In development, allow access without auth check
-      // Production should verify session.type === "admin"
+      // Check if user is admin
+      const session = await getSession();
+      if (!session || session.type !== "admin") {
+        router.push("/app");
+        return;
+      }
+      setIsAdmin(true);
 
       setBadges(getAllBadges());
       setEvents(getUpcomingEvents());
@@ -47,7 +55,7 @@ export default function AdminPage() {
     };
 
     loadData();
-  }, []);
+  }, [router]);
 
   if (!mounted) {
     return <LoadingScreen message="Loading admin dashboard" subtitle="We're gathering the data. Just a moment..." />;
@@ -72,7 +80,7 @@ export default function AdminPage() {
             <div className="flex-1">
               <p className="font-semibold text-white text-lg">🎉 New Signup!</p>
               <p className="text-white text-sm mt-1">
-                {recentSignups[0].name} just joined the community
+                {recentSignups[0].firstName} {recentSignups[0].lastName} just joined the community
               </p>
               {recentSignups.length > 1 && (
                 <p className="text-white/90 text-xs mt-2">
@@ -120,7 +128,7 @@ export default function AdminPage() {
             recentSignups.slice(0, 10).map((signup: any, idx: number) => (
               <div key={idx} className="flex justify-between items-start p-3 bg-[#f3ede5] rounded text-sm">
                 <div className="flex-1">
-                  <p className="font-medium text-[#1a0f0a]">{signup.name}</p>
+                  <p className="font-medium text-[#1a0f0a]">{signup.firstName} {signup.lastName}</p>
                   <p className="text-xs text-[#a0704a]">{signup.email}</p>
                 </div>
                 <div className="text-right text-xs">
