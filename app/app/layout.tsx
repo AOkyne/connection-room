@@ -85,7 +85,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
               <img
                 src="/Connection-room-logo.png?v=4"
                 alt="The Connection Room"
-                className="h-32 w-auto"
+                className="h-16 sm:h-24 lg:h-32 w-auto"
               />
             </Link>
             {session && (
