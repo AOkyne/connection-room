@@ -25,11 +25,20 @@ export function ContinueWhereYouLeftOff({
     // Last reflection
     if (recentReflections && recentReflections.length > 0) {
       const lastReflection = recentReflections[0];
+      if (lastReflection?.response) {
+        continuationItems.push({
+          title: "Your Last Reflection",
+          description: `"${lastReflection.response.substring(0, 60)}..."`,
+          href: "#reflections",
+          action: "View",
+        });
+      }
+    } else if (!recentReflections || recentReflections.length === 0) {
       continuationItems.push({
         title: "Your Last Reflection",
-        description: `"${lastReflection.prompt_text?.substring(0, 60)}..."`,
+        description: "You haven't written any reflections yet. Start your first one.",
         href: "#reflections",
-        action: "View",
+        action: "Begin",
       });
     }
 
