@@ -15,11 +15,11 @@ export function WeeklyTrevorNoteCard({ note }: WeeklyTrevorNoteCardProps) {
 
   return (
     <Card className="bg-gradient-to-br from-[#f3ede5] to-white border-2 border-[#d4a348]">
-      <div className="flex items-start gap-6">
+      <div className="flex flex-col md:flex-row md:items-start md:gap-6">
         <img
           src="/trevor-photo.png"
           alt="Trevor James"
-          className="w-48 h-48 rounded-full object-cover border-4 border-[#d4a348] shadow-lg flex-shrink-0"
+          className="w-40 h-40 md:w-48 md:h-48 rounded-full object-cover border-4 border-[#d4a348] shadow-lg flex-shrink-0 mx-auto md:mx-0 mb-4 md:mb-0"
         />
         <div className="flex-1 space-y-3 flex flex-col">
           <div>

@@ -79,8 +79,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white border-b border-[#e8e3db]">
-        <div className="px-4 py-2 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
+        <div className="px-4 py-4 sm:px-6 sm:py-3 lg:px-8 lg:py-2">
+          <div className="flex justify-between items-center min-h-[80px] sm:min-h-[100px] lg:min-h-[140px]">
             <Link href="/app" className="flex items-center">
               <img
                 src="/Connection-room-logo.png?v=4"
