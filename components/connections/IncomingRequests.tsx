@@ -107,7 +107,7 @@ export function IncomingRequests({
                 </button>
 
                 {/* Buttons */}
-                <div className="flex gap-2 mt-auto">
+                <div className="flex flex-col sm:flex-row gap-2 mt-auto">
                   <Button
                     variant="primary"
                     size="sm"
