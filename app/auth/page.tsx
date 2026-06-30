@@ -270,7 +270,13 @@ function DemoAuthContent() {
   const router = useRouter();
 
   const [displayName, setDisplayName] = useState("");
+  const [adminName, setAdminName] = useState("");
+  const [adminSecret, setAdminSecret] = useState("");
+  const [showAdminForm, setShowAdminForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const ADMIN_SECRET = "connection2024"; // Admin secret key
 
   const handleContinueAsMember = async () => {
     setLoading(true);
@@ -279,6 +285,29 @@ function DemoAuthContent() {
     createMemberSession(name, profile.profilePhoto);
     setTimeout(() => {
       router.push("/onboarding");
+    }, 100);
+  };
+
+  const handleCreateAdmin = async () => {
+    setError("");
+    if (!adminSecret) {
+      setError("Please enter the admin secret key");
+      return;
+    }
+    if (adminSecret !== ADMIN_SECRET) {
+      setError("Incorrect admin secret key");
+      return;
+    }
+    if (!adminName.trim()) {
+      setError("Please enter your name");
+      return;
+    }
+
+    setLoading(true);
+    const profile = createDemoProfile(adminName, "individual");
+    createAdminSession(adminName, profile.profilePhoto);
+    setTimeout(() => {
+      router.push("/app/admin");
     }, 100);
   };
 
@@ -352,12 +381,71 @@ function DemoAuthContent() {
                 variant="secondary"
                 size="lg"
                 className="w-full"
-                onClick={handleContinueAsAdmin}
+                onClick={() => setShowAdminForm(true)}
                 disabled={loading}
               >
-                {loading ? "Entering..." : "Continue as Demo Admin"}
+                {loading ? "Entering..." : "Admin Account"}
               </Button>
             </div>
+
+            {showAdminForm && (
+              <div className="space-y-4 border-t border-[#e8e3db] pt-4">
+                <button
+                  onClick={() => setShowAdminForm(false)}
+                  className="text-sm text-[#d4a348] hover:text-[#c09560]"
+                >
+                  ← Back to Member Login
+                </button>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#1a1714] mb-2">
+                    Admin Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Your name"
+                    value={adminName}
+                    onChange={(e) => setAdminName(e.target.value)}
+                    className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#1a1714] mb-2">
+                    Admin Secret Key
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Enter admin secret key"
+                    value={adminSecret}
+                    onChange={(e) => setAdminSecret(e.target.value)}
+                    className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleCreateAdmin();
+                    }}
+                  />
+                  <p className="text-xs text-[#a0704a] mt-2">
+                    Contact Trevor for the admin secret key
+                  </p>
+                </div>
+
+                {error && (
+                  <div className="p-3 bg-red-100 border border-red-300 rounded-lg text-red-700 text-sm">
+                    {error}
+                  </div>
+                )}
+
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full"
+                  onClick={handleCreateAdmin}
+                  disabled={loading}
+                >
+                  {loading ? "Creating..." : "Create Admin Account"}
+                </Button>
+              </div>
+            )}
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
