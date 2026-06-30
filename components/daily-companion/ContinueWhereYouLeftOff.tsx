@@ -29,7 +29,7 @@ export function ContinueWhereYouLeftOff({
         continuationItems.push({
           title: "Your Last Reflection",
           description: `"${lastReflection.response.substring(0, 60)}..."`,
-          href: "#reflections",
+          href: "/app/journey",
           action: "View",
         });
       }
@@ -37,7 +37,7 @@ export function ContinueWhereYouLeftOff({
       continuationItems.push({
         title: "Your Last Reflection",
         description: "You haven't written any reflections yet. Start your first one.",
-        href: "#reflections",
+        href: "/app/journey",
         action: "Begin",
       });
     }
@@ -68,7 +68,7 @@ export function ContinueWhereYouLeftOff({
       continuationItems.push({
         title: `Upcoming: ${nextEvent.title}`,
         description: nextEvent.date ? new Date(nextEvent.date).toLocaleDateString() : "Check details",
-        href: "#events",
+        href: "/app/events",
         action: "RSVP",
       });
     }
