@@ -5,6 +5,7 @@ import { getAllBadges } from "@/lib/data/badges";
 import { getUpcomingEvents } from "@/lib/data/events";
 import { getAllOffers } from "@/lib/data/offers";
 import { getRecentSignups } from "@/lib/session";
+import { getDemoProfiles } from "@/lib/data/profiles";
 import { Card, CardHeader } from "@/components/Card";
 import { IconConnection, IconDemo, IconSpaces, IconBadges, IconProgress, IconUpcoming, IconAlert, IconForYou, IconChat, IconProfileNav } from "@/components/Icons";
 import { getBadgeIcon } from "@/lib/badge-icons";
@@ -20,6 +21,8 @@ export default function AdminPage() {
   const [offers, setOffers] = useState<any[]>([]);
   const [concerns, setConcerns] = useState<any[]>([]);
   const [recentSignups, setRecentSignups] = useState<any[]>([]);
+  const [allMembers, setAllMembers] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const loadData = async () => {
@@ -30,6 +33,7 @@ export default function AdminPage() {
       setEvents(getUpcomingEvents());
       setOffers(getAllOffers());
       setRecentSignups(getRecentSignups());
+      setAllMembers(getDemoProfiles());
 
       // Load reported concerns from localStorage
       if (typeof window !== "undefined") {
@@ -128,6 +132,57 @@ export default function AdminPage() {
           ) : (
             <p className="text-[#a0704a] text-sm">No recent signups yet</p>
           )}
+        </div>
+      </Card>
+
+      {/* All Members List */}
+      <Card>
+        <CardHeader title="All Members" icon={<IconProfileNav size={20} />} />
+        <div className="space-y-4">
+          <input
+            type="text"
+            placeholder="Search members by name or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a0f0a] placeholder-[#a0704a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
+          />
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-[#e8e3db]">
+                  <th className="text-left py-2 px-2 text-[#a0704a] font-medium">Name</th>
+                  <th className="text-left py-2 px-2 text-[#a0704a] font-medium">Email</th>
+                  <th className="text-left py-2 px-2 text-[#a0704a] font-medium">Type</th>
+                  <th className="text-left py-2 px-2 text-[#a0704a] font-medium">Joined</th>
+                </tr>
+              </thead>
+              <tbody>
+                {allMembers
+                  .filter((member) =>
+                    searchTerm === "" ||
+                    member.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    member.email?.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                  .map((member, idx) => (
+                    <tr key={idx} className="border-b border-[#f3ede5] hover:bg-[#f8f6f2] transition-colors">
+                      <td className="py-3 px-2 text-[#1a0f0a] font-medium">{member.displayName}</td>
+                      <td className="py-3 px-2 text-[#1a0f0a]">{member.email || "—"}</td>
+                      <td className="py-3 px-2 text-[#1a0f0a] capitalize">{member.memberType || "member"}</td>
+                      <td className="py-3 px-2 text-[#a0704a] text-xs">
+                        {member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : "—"}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-[#a0704a] mt-2">
+            Showing {allMembers.filter((m) =>
+              searchTerm === "" ||
+              m.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+              m.email?.toLowerCase().includes(searchTerm.toLowerCase())
+            ).length} of {allMembers.length} members
+          </p>
         </div>
       </Card>
 
