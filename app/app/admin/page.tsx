@@ -61,6 +61,28 @@ export default function AdminPage() {
       {/* Content Alerts */}
       <RhythmContentAlert />
 
+      {/* New Signup Notification */}
+      {recentSignups.length > 0 && (
+        <div className="p-4 bg-[#c97a2a] rounded-lg border-2 border-[#a84a2a]">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <p className="font-semibold text-white text-lg">🎉 New Signup!</p>
+              <p className="text-white text-sm mt-1">
+                {recentSignups[0].name} just joined the community
+              </p>
+              {recentSignups.length > 1 && (
+                <p className="text-white/90 text-xs mt-2">
+                  +{recentSignups.length - 1} more signup{recentSignups.length > 2 ? 's' : ''} today
+                </p>
+              )}
+            </div>
+            <div className="flex-shrink-0 text-white text-2xl font-bold bg-[#a84a2a] w-12 h-12 rounded-full flex items-center justify-center">
+              {recentSignups.length}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader title="Total Members" icon={<IconProfileNav size={20} />} />
