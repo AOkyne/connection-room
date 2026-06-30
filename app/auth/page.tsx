@@ -390,6 +390,32 @@ function DemoAuthContent() {
 
             {showAdminForm && (
               <div className="space-y-4 border-t border-[#e8e3db] pt-4">
+                <div className="text-center">
+                  <button
+                    onClick={() => {
+                      setLoading(true);
+                      const profile = createDemoProfile("Trevor Admin", "individual");
+                      createAdminSession("Trevor Admin", profile.profilePhoto);
+                      setTimeout(() => {
+                        router.push("/app/admin");
+                      }, 100);
+                    }}
+                    disabled={loading}
+                    className="text-sm font-medium text-[#c97a2a] hover:text-[#a84a2a] hover:underline"
+                  >
+                    Quick Login as Admin
+                  </button>
+                </div>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-[#e8e3db]"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-[#9d9490]">or</span>
+                  </div>
+                </div>
+
                 <button
                   onClick={() => setShowAdminForm(false)}
                   className="text-sm text-[#d4a348] hover:text-[#c09560]"
