@@ -20,11 +20,35 @@ function BetaAuthContent() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [authMode, setAuthMode] = useState<"password-signup" | "password-signin">("password-signup");
+  const [authMode, setAuthMode] = useState<"password-signup" | "password-signin" | "admin">("password-signup");
+  const [adminSecret, setAdminSecret] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [usingFallback, setUsingFallback] = useState(false);
+
+  const ADMIN_SECRET = "connection2024";
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (!adminSecret) {
+      setError("Please enter the admin secret key");
+      return;
+    }
+    if (adminSecret !== ADMIN_SECRET) {
+      setError("Incorrect admin secret key");
+      return;
+    }
+
+    setLoading(true);
+    const profile = createDemoProfile("Admin", "individual");
+    createAdminSession("Admin", profile.profilePhoto);
+    setTimeout(() => {
+      router.push("/app/admin");
+    }, 100);
+  };
 
   const handleBetaSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,10 +169,25 @@ function BetaAuthContent() {
                 >
                   Sign In
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode("admin");
+                    setError("");
+                  }}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    authMode === "admin"
+                      ? "bg-[#c97a2a] text-white"
+                      : "bg-[#f3ede5] text-[#6b6460] hover:bg-[#e8ddd2]"
+                  }`}
+                >
+                  Admin
+                </button>
               </div>
               <p className="text-[#6b6460]">
                 {authMode === "password-signup" && "Create a new account"}
                 {authMode === "password-signin" && "Log in with your existing account"}
+                {authMode === "admin" && "Admin access"}
               </p>
             </div>
 
@@ -181,47 +220,71 @@ function BetaAuthContent() {
               </div>
             )}
 
-            <form onSubmit={handleBetaSignIn} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-[#1a1714] mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
-                />
-              </div>
+            <form onSubmit={authMode === "admin" ? handleAdminLogin : handleBetaSignIn} className="space-y-4">
+              {authMode !== "admin" ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-[#1a1714] mb-2">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-[#1a1714] mb-2">
-                  Password {authMode === "password-signup" && "(min 8 characters)"}
-                </label>
-                <input
-                  type="password"
-                  placeholder={authMode === "password-signup" ? "Choose a password" : "Enter your password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={authMode === "password-signup" ? 8 : undefined}
-                  className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-[#1a1714] mb-2">
+                      Password {authMode === "password-signup" && "(min 8 characters)"}
+                    </label>
+                    <input
+                      type="password"
+                      placeholder={authMode === "password-signup" ? "Choose a password" : "Enter your password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={authMode === "password-signup" ? 8 : undefined}
+                      className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
+                    />
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-[#1a1714] mb-2">
+                    Admin Secret Key
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Enter admin secret key"
+                    value={adminSecret}
+                    onChange={(e) => setAdminSecret(e.target.value)}
+                    required
+                    className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleAdminLogin(e as any);
+                    }}
+                  />
+                  <p className="text-xs text-[#a0704a] mt-2">
+                    Contact Trevor for the admin secret key
+                  </p>
+                </div>
+              )}
 
               <Button
                 type="submit"
                 variant="primary"
                 size="lg"
                 className="w-full"
-                disabled={loading || !email || !password}
+                disabled={loading || (authMode !== "admin" ? (!email || !password) : !adminSecret)}
               >
                 {loading ? (
-                  authMode === "password-signup" ? "Creating account..." : "Signing in..."
+                  authMode === "admin" ? "Logging in..." : (authMode === "password-signup" ? "Creating account..." : "Signing in...")
                 ) : (
-                  authMode === "password-signup" ? "Create Account" : "Sign In"
+                  authMode === "admin" ? "Login as Admin" : (authMode === "password-signup" ? "Create Account" : "Sign In")
                 )}
               </Button>
             </form>
