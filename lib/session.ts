@@ -120,7 +120,7 @@ function trackSignup(session: AppSession): void {
   localStorage.setItem(RECENT_SIGNUPS_KEY, JSON.stringify(signups.slice(0, 20)));
 }
 
-// Create demo member session
+// Create demo member session (don't track as signup)
 export function createMemberSession(name: string = "Demo Member", profilePhoto?: string): AppSession {
   const session: AppSession = {
     id: `session-${Date.now()}`,
@@ -132,12 +132,11 @@ export function createMemberSession(name: string = "Demo Member", profilePhoto?:
   };
   if (typeof window !== "undefined") {
     localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
-    trackSignup(session);
   }
   return session;
 }
 
-// Create demo admin session
+// Create demo admin session (don't track as signup)
 export function createAdminSession(name: string = "Demo Admin", profilePhoto?: string): AppSession {
   const session: AppSession = {
     id: `session-${Date.now()}`,
@@ -149,7 +148,6 @@ export function createAdminSession(name: string = "Demo Admin", profilePhoto?: s
   };
   if (typeof window !== "undefined") {
     localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
-    trackSignup(session);
   }
   return session;
 }
