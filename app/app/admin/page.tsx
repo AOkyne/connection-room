@@ -6,7 +6,7 @@ import { getAllBadges } from "@/lib/data/badges";
 import { getUpcomingEvents } from "@/lib/data/events";
 import { getAllOffers } from "@/lib/data/offers";
 import { getRecentSignups, getSession } from "@/lib/session";
-import { getDemoProfiles } from "@/lib/data/profiles";
+import { demoMembers } from "@/lib/seed/demo-members";
 import { Card, CardHeader } from "@/components/Card";
 import { IconConnection, IconDemo, IconSpaces, IconBadges, IconProgress, IconUpcoming, IconAlert, IconForYou, IconChat, IconProfileNav } from "@/components/Icons";
 import { getBadgeIcon } from "@/lib/badge-icons";
@@ -41,7 +41,7 @@ export default function AdminPage() {
       setEvents(getUpcomingEvents());
       setOffers(getAllOffers());
       setRecentSignups(getRecentSignups());
-      setAllMembers(getDemoProfiles());
+      setAllMembers(demoMembers);
 
       // Load reported concerns from localStorage
       if (typeof window !== "undefined") {
