@@ -124,21 +124,24 @@ export default function AdminPage() {
       <Card>
         <CardHeader title="Recent Signups" icon={<IconProfileNav size={20} />} />
         <div className="space-y-3">
-          {recentSignups.length > 0 ? (
-            recentSignups.slice(0, 10).map((signup: any, idx: number) => (
-              <div key={idx} className="flex justify-between items-start p-3 bg-[#f3ede5] rounded text-sm">
-                <div className="flex-1">
-                  <p className="font-medium text-[#1a0f0a]">{signup.firstName} {signup.lastName}</p>
-                  <p className="text-xs text-[#a0704a]">{signup.email}</p>
+          {recentSignups.filter((s: any) => s.email && s.email !== "No email").length > 0 ? (
+            recentSignups
+              .filter((s: any) => s.email && s.email !== "No email")
+              .slice(0, 10)
+              .map((signup: any, idx: number) => (
+                <div key={idx} className="flex justify-between items-start p-3 bg-[#f3ede5] rounded text-sm">
+                  <div className="flex-1">
+                    <p className="font-medium text-[#1a0f0a]">{signup.firstName} {signup.lastName}</p>
+                    <p className="text-xs text-[#a0704a]">{signup.email}</p>
+                  </div>
+                  <div className="text-right text-xs">
+                    <p className="text-[#1a0f0a]">{new Date(signup.timestamp).toLocaleDateString()}</p>
+                    <p className="text-[#d4a348] font-medium capitalize">{signup.type}</p>
+                  </div>
                 </div>
-                <div className="text-right text-xs">
-                  <p className="text-[#1a0f0a]">{new Date(signup.timestamp).toLocaleDateString()}</p>
-                  <p className="text-[#d4a348] font-medium capitalize">{signup.type}</p>
-                </div>
-              </div>
-            ))
+              ))
           ) : (
-            <p className="text-[#a0704a] text-sm">No recent signups yet</p>
+            <p className="text-[#a0704a] text-sm">No real signups yet</p>
           )}
         </div>
       </Card>
@@ -168,12 +171,16 @@ export default function AdminPage() {
                 {allMembers
                   .filter((member) =>
                     searchTerm === "" ||
+                    member.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    member.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     member.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     member.email?.toLowerCase().includes(searchTerm.toLowerCase())
                   )
                   .map((member, idx) => (
                     <tr key={idx} className="border-b border-[#f3ede5] hover:bg-[#f8f6f2] transition-colors">
-                      <td className="py-3 px-2 text-[#1a0f0a] font-medium">{member.displayName}</td>
+                      <td className="py-3 px-2 text-[#1a0f0a] font-medium">
+                        {member.firstName} {member.lastName}
+                      </td>
                       <td className="py-3 px-2 text-[#1a0f0a]">{member.email || "—"}</td>
                       <td className="py-3 px-2 text-[#1a0f0a] capitalize">{member.memberType || "member"}</td>
                       <td className="py-3 px-2 text-[#a0704a] text-xs">
