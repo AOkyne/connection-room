@@ -7,6 +7,18 @@ export default function LandingPage() {
   return (
     <>
       <style>{`
+        /* Bug widget protection */
+        .bug-report-overlay {
+          padding: 20px !important;
+          background: rgba(0, 0, 0, 0.3) !important;
+        }
+        .bug-report-modal {
+          background: #FDFBF6 !important;
+          max-height: 85vh !important;
+          margin: 0 auto !important;
+        }
+      `}</style>
+      <style>{`
         :root {
           --cream: #F5EFE3;
           --cream-deep: #EAE0CC;
