@@ -1,6 +1,11 @@
 @import "tailwindcss";
 
 /* Bug Report Widget - Protect from page style overrides */
+[class*="bug-report"] {
+  position: relative !important;
+  z-index: 9999 !important;
+}
+
 [class*="BugReportWidget"] button,
 [class*="BugReportWidget"] input,
 [class*="BugReportWidget"] select,
