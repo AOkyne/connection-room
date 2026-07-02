@@ -87,7 +87,7 @@ export function DailyCompanionDashboard({ displayName, userId }: DailyCompanionD
       <div className="space-y-2">
         <div className="flex items-center gap-4">
           <Avatar name={displayName} size="lg" />
-          <h1 className="text-3xl font-semibold text-[#1a0f0a]">Welcome back, {displayName}</h1>
+          <h1 className="text-3xl font-semibold text-[#1a0f0a]">Welcome back, {displayName.split(' ')[0]}</h1>
         </div>
         <p className="text-[#1a0f0a]">
           {new Date().toLocaleDateString("en-US", {
