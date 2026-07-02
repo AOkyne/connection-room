@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BugReportWidget } from "@/components/BugReportWidget";
 
 export default function LandingPage() {
   return (
@@ -1074,6 +1075,8 @@ export default function LandingPage() {
           <p style={{marginTop: '8px'}}>© 2026 Trevor James LA. A private community. What happens in the room stays in the room.</p>
         </div>
       </footer>
+
+      <BugReportWidget />
     </>
   );
 }
