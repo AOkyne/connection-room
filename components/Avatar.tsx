@@ -1,3 +1,7 @@
+"use client";
+
+import { useState } from "react";
+
 interface AvatarProps {
   name: string;
   photo?: string;
@@ -5,6 +9,8 @@ interface AvatarProps {
 }
 
 export function Avatar({ name, photo, size = "md" }: AvatarProps) {
+  const [photoError, setPhotoError] = useState(false);
+
   const initials = name
     .split(" ")
     .map((n) => n[0])
@@ -27,12 +33,13 @@ export function Avatar({ name, photo, size = "md" }: AvatarProps) {
     lg: "w-12 h-12 text-base",
   };
 
-  // If photo exists, display it
-  if (photo) {
+  // If photo exists and hasn't failed to load, display it
+  if (photo && !photoError) {
     return (
       <img
         src={photo}
         alt={name}
+        onError={() => setPhotoError(true)}
         className={`${sizeClasses[size]} rounded-full object-cover border border-[#dcc4b3]`}
       />
     );
