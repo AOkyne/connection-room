@@ -84,7 +84,7 @@ export default function LandingPage() {
         }
 
         .brandmark img {
-          height: 42px;
+          height: 100%;
           width: auto;
           object-fit: contain;
         }
@@ -757,7 +757,7 @@ export default function LandingPage() {
       <header>
         <div className="wrap header-inner">
           <Link className="brandmark" href="/">
-            <img src="/connection-room-logo.svg" alt="The Connection Room logo" style={{ height: "60px", width: "auto" }} />
+            <img src="/connection-room-logo.svg" alt="The Connection Room logo" style={{ height: "100px", width: "auto" }} />
           </Link>
           <Link className="header-cta" href="/auth?mode=member">
             Enter the Community
