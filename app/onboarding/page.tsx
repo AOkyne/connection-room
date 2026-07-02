@@ -851,6 +851,13 @@ export default function OnboardingPage() {
                   </ul>
                 </div>
 
+                <div className="bg-[#fffbf7] border-l-4 border-[#d4a348] p-6 rounded-lg space-y-3">
+                  <p className="text-[#1a0f0a] italic text-lg leading-relaxed">
+                    "Welcome to the room. I'm here every day, and I'm genuinely glad you're here. What you're about to experience isn't therapy, and it isn't a hookup app—it's something real. A place where the guard comes down, where you can be seen, and where connection becomes possible. Take your time. Start wherever feels right. And remember: you don't have to arrive ready. You just have to arrive."
+                  </p>
+                  <p className="text-[#a0704a] text-sm">— Trevor James</p>
+                </div>
+
                 <div className="space-y-4">
                   <p className="text-[#1a0f0a] font-medium">Where would you like to start?</p>
 
