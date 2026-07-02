@@ -20,15 +20,15 @@ import { Button } from "@/components/Button";
 import { Avatar } from "@/components/Avatar";
 import { IconConnection, IconForYou } from "@/components/Icons";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { findMatches } from "@/lib/matching";
 import { SuggestedConnections } from "@/components/connections/SuggestedConnections";
-import { ConnectionProfileModal } from "@/components/connections/ConnectionProfileModal";
 import { IncomingRequests } from "@/components/connections/IncomingRequests";
-import { findBestMatches, type MatchScore } from "@/lib/utils/connectionMatching";
+import { ConnectionProfileModal } from "@/components/connections/ConnectionProfileModal";
 import {
   getIncomingRequests,
   acceptConnectionRequest,
   declineConnectionRequest,
-  createDemoIncomingRequests,
+  sendConnectionRequest,
   type ConnectionRequest,
 } from "@/lib/data/connectionRequests";
 
@@ -36,13 +36,14 @@ export default function ConnectionsPage() {
   const [profile, setProfile] = useState<any>(null);
   const [preferences, setPreferences] = useState<any>(null);
   const [currentConnection, setCurrentConnectionState] = useState<any>(null);
-  const [suggestedMatches, setSuggestedMatches] = useState<MatchScore[]>([]);
+  const [suggestedMatches, setSuggestedMatches] = useState<any[]>([]);
   const [showReportForm, setShowReportForm] = useState(false);
   const [reportConcern, setReportConcern] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [incomingRequests, setIncomingRequests] = useState<ConnectionRequest[]>([]);
+  const [loadingMatches, setLoadingMatches] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [incomingRequests, setIncomingRequests] = useState<ConnectionRequest[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -56,19 +57,44 @@ export default function ConnectionsPage() {
         const connection = getCurrentConnection(p.id);
         setCurrentConnectionState(connection);
 
-        // Load incoming requests (create demo requests if none exist)
-        let requests = getIncomingRequests(p.id);
-        if (requests.length === 0) {
-          createDemoIncomingRequests(p.id);
-          requests = getIncomingRequests(p.id);
-        }
+        // Load incoming requests
+        const requests = getIncomingRequests(p.id);
         setIncomingRequests(requests);
 
-        // Load suggested matches if no current connection
-        if (!connection) {
+        // Load suggested matches if no current connection and profile is complete
+        if (!connection && p.completedOnboarding && p.profilePhoto && p.interests?.length > 0) {
+          setLoadingMatches(true);
+          try {
+            const matches = await findMatches(p, 5);
+            setSuggestedMatches(matches);
+          } catch (err) {
+            console.error("Error loading matches:", err);
+            // Fall back to demo profiles if real matching fails
+            const allProfiles = getDemoProfiles();
+            const demoMatches = allProfiles
+              .filter(prof => prof.id !== p.id)
+              .slice(0, 5)
+              .map((profile) => ({
+                profile,
+                score: 50,
+                sharedInterests: [],
+              }));
+            setSuggestedMatches(demoMatches);
+          } finally {
+            setLoadingMatches(false);
+          }
+        } else if (!connection) {
+          // Use demo profiles if profile not complete
           const allProfiles = getDemoProfiles();
-          const matches = findBestMatches(p, allProfiles, 5);
-          setSuggestedMatches(matches);
+          const demoMatches = allProfiles
+            .filter(prof => prof.id !== p.id)
+            .slice(0, 5)
+            .map((profile) => ({
+              profile,
+              score: 50,
+              sharedInterests: [],
+            }));
+          setSuggestedMatches(demoMatches);
         }
       }
 
@@ -102,13 +128,55 @@ export default function ConnectionsPage() {
     }
   };
 
-  const handleSelectMatch = (matchId: string) => {
-    const match = suggestedMatches.find((m) => m.profile.id === matchId);
+  const handleRequestConnection = (partnerId: string) => {
+    const match = suggestedMatches.find((m) => m.profile.id === partnerId);
     if (match && profile) {
-      const connection = createConnectionFromMatch(profile, match.profile, match.sharedInterests);
-      setCurrentConnectionState(connection);
-      setCurrentConnection(profile.id, connection);
-      setSuggestedMatches([]); // Clear suggestions once matched
+      // Send connection request
+      sendConnectionRequest(
+        profile.id,
+        profile.displayName,
+        profile.profilePhoto,
+        partnerId
+      );
+
+      // Remove from suggested matches
+      setSuggestedMatches(suggestedMatches.filter(m => m.profile.id !== partnerId));
+    }
+  };
+
+  const handleAcceptRequest = (requestId: string) => {
+    const request = incomingRequests.find(r => r.id === requestId);
+    if (request && profile) {
+      // Accept the request
+      const accepted = acceptConnectionRequest(requestId, profile.id);
+      if (accepted) {
+        // Create confirmed connection
+        const connection: any = {
+          id: `connection-${Date.now()}`,
+          userId: profile.id,
+          partnerId: request.fromUserId,
+          partnerName: request.fromUserName,
+          partnerFirstName: request.fromUserName.split(' ')[0],
+          partnerLastName: request.fromUserName.split(' ')[1] || '',
+          partnerPhoto: request.fromUserPhoto,
+          partnerInterests: [],
+          status: "confirmed" as const,
+          createdAt: new Date(),
+          confirmedAt: new Date(),
+          sharedPrompt: "What brought you here and what kind of connection are you practicing?",
+          mutualContactOptIn: false,
+        };
+
+        setCurrentConnectionState(connection);
+        setCurrentConnection(profile.id, connection);
+        setIncomingRequests(incomingRequests.filter(r => r.id !== requestId));
+      }
+    }
+  };
+
+  const handleDeclineRequest = (requestId: string) => {
+    if (declineConnectionRequest(requestId, profile.id)) {
+      setIncomingRequests(incomingRequests.filter(r => r.id !== requestId));
     }
   };
 
@@ -129,8 +197,15 @@ export default function ConnectionsPage() {
       setCurrentConnectionState(null);
       // Reload suggested matches
       const allProfiles = getDemoProfiles();
-      const matches = findBestMatches(profile, allProfiles, 5);
-      setSuggestedMatches(matches);
+      const demoMatches = allProfiles
+        .filter(prof => prof.id !== profile.id)
+        .slice(0, 5)
+        .map((p) => ({
+          profile: p,
+          score: 50,
+          sharedInterests: [],
+        }));
+      setSuggestedMatches(demoMatches);
     }
   };
 
@@ -139,8 +214,15 @@ export default function ConnectionsPage() {
     setCurrentConnectionState(null);
     // Reload suggested matches
     const allProfiles = getDemoProfiles();
-    const matches = findBestMatches(profile, allProfiles, 5);
-    setSuggestedMatches(matches);
+    const demoMatches = allProfiles
+      .filter(prof => prof.id !== profile.id)
+      .slice(0, 5)
+      .map((p) => ({
+        profile: p,
+        score: 50,
+        sharedInterests: [],
+      }));
+    setSuggestedMatches(demoMatches);
   };
 
   const handleReportConcern = () => {
@@ -148,29 +230,6 @@ export default function ConnectionsPage() {
       reportConnectionConcern(profile.id, currentConnection.id, reportConcern);
       setReportConcern("");
       setShowReportForm(false);
-    }
-  };
-
-  const handleAcceptRequest = (requestId: string) => {
-    const accepted = acceptConnectionRequest(requestId, profile.id);
-    if (accepted && accepted.fromUserId) {
-      // Remove from incoming requests
-      setIncomingRequests((prev) => prev.filter((r) => r.id !== requestId));
-      // Create a new connection from the accepted request
-      const allProfiles = getDemoProfiles();
-      const requesterProfile = allProfiles.find((p) => p.id === accepted.fromUserId);
-      if (requesterProfile) {
-        const connection = createConnectionFromMatch(profile, requesterProfile, []);
-        setCurrentConnectionState(connection);
-        setCurrentConnection(profile.id, connection);
-      }
-    }
-  };
-
-  const handleDeclineRequest = (requestId: string) => {
-    const declined = declineConnectionRequest(requestId, profile.id);
-    if (declined) {
-      setIncomingRequests((prev) => prev.filter((r) => r.id !== requestId));
     }
   };
 
@@ -252,7 +311,8 @@ export default function ConnectionsPage() {
           </div>
           <SuggestedConnections
             matches={suggestedMatches}
-            onSelectMatch={handleSelectMatch}
+            onSelectMatch={handleRequestConnection}
+            loading={loadingMatches}
             currentUserId={profile.id}
             currentUserName={profile.displayName}
             currentUserPhoto={profile.profilePhoto}
