@@ -224,20 +224,58 @@ export function skipConnection(userId: string): void {
 }
 
 // Report concern with connection
-export function reportConnectionConcern(userId: string, connectionId: string, concern: string): void {
+export function reportConnectionConcern(
+  userId: string,
+  connectionId: string,
+  concern: string,
+  severity: "low" | "medium" | "high" = "medium"
+): void {
   if (typeof window === "undefined") return;
 
   const reports = JSON.parse(localStorage.getItem("connection-room:connection-reports") || "[]");
-  reports.push({
+  const report = {
     id: `report-${Date.now()}`,
     userId,
     connectionId,
     concern,
-    createdAt: new Date(),
-    status: "pending",
-  });
+    severity,
+    createdAt: new Date().toISOString(),
+    status: "pending" as const,
+    reviewed: false,
+  };
 
+  reports.push(report);
   localStorage.setItem("connection-room:connection-reports", JSON.stringify(reports));
+}
+
+// Get reported connections for a user (safety)
+export function getSafetyReports(userId: string): any[] {
+  if (typeof window === "undefined") return [];
+
+  const all = JSON.parse(localStorage.getItem("connection-room:connection-reports") || "[]");
+  return all.filter((r: any) => r.userId === userId);
+}
+
+// Block a user
+export function blockUser(userId: string, blockedUserId: string): void {
+  if (typeof window === "undefined") return;
+
+  const blockedKey = `connection-room:blocked-users:${userId}`;
+  const blocked = JSON.parse(localStorage.getItem(blockedKey) || "[]");
+
+  if (!blocked.includes(blockedUserId)) {
+    blocked.push(blockedUserId);
+    localStorage.setItem(blockedKey, JSON.stringify(blocked));
+  }
+}
+
+// Get blocked users
+export function getBlockedUsers(userId: string): Set<string> {
+  if (typeof window === "undefined") return new Set();
+
+  const blockedKey = `connection-room:blocked-users:${userId}`;
+  const blocked = JSON.parse(localStorage.getItem(blockedKey) || "[]");
+  return new Set(blocked);
 }
 
 // Create connection from matched profile

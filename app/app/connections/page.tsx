@@ -18,6 +18,7 @@ import {
   addToConnectionHistory,
   addToDeclinedUsers,
   getDeclinedUsers,
+  getBlockedUsers,
 } from "@/lib/data/connections";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -75,7 +76,8 @@ export default function ConnectionsPage() {
           setLoadingMatches(true);
           try {
             const declined = Array.from(getDeclinedUsers(p.id));
-            const matches = await findMatches(p, prefs, history, declined, 5);
+            const blocked = Array.from(getBlockedUsers(p.id));
+            const matches = await findMatches(p, prefs, history, declined, blocked, 5);
             setSuggestedMatches(matches);
           } catch (err) {
             console.error("Error loading matches:", err);
@@ -220,7 +222,8 @@ export default function ConnectionsPage() {
       // Try to load real matches, fallback to demo
       try {
         const declined = Array.from(getDeclinedUsers(profile.id));
-        const realMatches = await findMatches(profile, preferences, updatedHistory, declined, 5);
+        const blocked = Array.from(getBlockedUsers(profile.id));
+        const realMatches = await findMatches(profile, preferences, updatedHistory, declined, blocked, 5);
         setSuggestedMatches(realMatches);
       } catch (err) {
         const allProfiles = getDemoProfiles();

@@ -12,6 +12,7 @@ export async function findMatches(
   userPreferences: any,
   connectionHistory: any[] = [],
   declinedUserIds: string[] = [],
+  blockedUserIds: string[] = [],
   limit: number = 5
 ): Promise<MatchScore[]> {
   if (!supabase) return [];
@@ -43,6 +44,9 @@ export async function findMatches(
     // Get IDs of users they've declined
     const declinedSet = new Set(declinedUserIds);
 
+    // Get IDs of users they've blocked
+    const blockedSet = new Set(blockedUserIds);
+
     // Filter and score profiles
     const candidates = (profiles as any[])
       .filter((p) => {
@@ -64,6 +68,11 @@ export async function findMatches(
 
         // Don't match with people they've declined
         if (declinedSet.has(p.id)) {
+          return false;
+        }
+
+        // Don't match with people they've blocked
+        if (blockedSet.has(p.id)) {
           return false;
         }
 
