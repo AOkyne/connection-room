@@ -6,6 +6,7 @@ import { getSession, clearSession, type AppSession } from "@/lib/session";
 import { recordAppVisit } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
 import { IconHome, IconJourney, IconConnectionsNav, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming } from "@/components/Icons";
+import { BugReportWidget } from "@/components/BugReportWidget";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -156,6 +157,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           )}
         </nav>
       </div>
+      <BugReportWidget />
     </div>
   );
 }
