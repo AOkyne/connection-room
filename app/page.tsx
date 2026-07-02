@@ -872,8 +872,7 @@ export default function LandingPage() {
             </div>
           </div>
           <p className="isnt-note">
-            Your profile is yours to shape. Use the name you&apos;re comfortable with,
-            share the photo you choose, and nothing here appears in a search engine.
+            Your profile is yours to shape. Share the photo you choose, and nothing here appears in a search engine.
           </p>
         </div>
       </section>
