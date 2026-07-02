@@ -5,7 +5,7 @@ import { useState } from "react";
 interface AvatarProps {
   name: string;
   photo?: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl";
 }
 
 export function Avatar({ name, photo, size = "md" }: AvatarProps) {
@@ -31,6 +31,8 @@ export function Avatar({ name, photo, size = "md" }: AvatarProps) {
     sm: "w-6 h-6 text-xs",
     md: "w-8 h-8 text-sm",
     lg: "w-12 h-12 text-base",
+    xl: "w-20 h-20 text-lg",
+    "2xl": "w-28 h-28 text-2xl",
   };
 
   // If photo exists and hasn't failed to load, display it

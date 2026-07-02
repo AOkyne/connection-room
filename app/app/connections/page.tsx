@@ -336,7 +336,7 @@ export default function ConnectionsPage() {
                 <Avatar
                   name={`${currentConnection.partnerFirstName || currentConnection.partnerName} ${currentConnection.partnerLastName || ''}`}
                   photo={currentConnection.partnerPhoto}
-                  size="lg"
+                  size="2xl"
                 />
                 <div>
                   <p className="text-2xl font-medium text-[#1a0f0a]">
