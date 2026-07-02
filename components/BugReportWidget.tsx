@@ -118,9 +118,9 @@ export function BugReportWidget() {
         >
           {/* Modal */}
           <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto mx-auto"
             onClick={(e) => e.stopPropagation()}
-            style={{ background: "#FDFBF6" }}
+            style={{ background: "#FDFBF6", marginLeft: "16px", marginRight: "16px" }}
           >
             {/* Header */}
             <div
