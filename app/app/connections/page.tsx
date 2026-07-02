@@ -17,6 +17,7 @@ import {
 } from "@/lib/data/connections";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { Avatar } from "@/components/Avatar";
 import { IconConnection, IconForYou } from "@/components/Icons";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { SuggestedConnections } from "@/components/connections/SuggestedConnections";
@@ -332,16 +333,14 @@ export default function ConnectionsPage() {
             >
               <p className="text-sm text-[#a0704a] uppercase tracking-wide">Your partner</p>
               <div className="flex items-start gap-4 mt-3">
-                {currentConnection.partnerPhoto && (
-                  <img
-                    src={currentConnection.partnerPhoto}
-                    alt={currentConnection.partnerName}
-                    className="w-20 h-20 rounded-lg object-cover"
-                  />
-                )}
+                <Avatar
+                  name={`${currentConnection.partnerFirstName || currentConnection.partnerName} ${currentConnection.partnerLastName || ''}`}
+                  photo={currentConnection.partnerPhoto}
+                  size="lg"
+                />
                 <div>
                   <p className="text-2xl font-medium text-[#1a0f0a]">
-                    {currentConnection.partnerName} {currentConnection.partnerPronouns && `(${currentConnection.partnerPronouns})`}
+                    {currentConnection.partnerFirstName} {currentConnection.partnerLastName} {currentConnection.partnerPronouns && `(${currentConnection.partnerPronouns})`}
                   </p>
                 </div>
               </div>

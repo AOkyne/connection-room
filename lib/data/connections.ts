@@ -13,6 +13,8 @@ export interface Connection {
   userId: string;
   partnerId: string;
   partnerName: string;
+  partnerFirstName?: string;
+  partnerLastName?: string;
   partnerPronouns?: string;
   partnerPhoto: string;
   partnerInterests: string[];
@@ -105,6 +107,8 @@ export function generateDemoConnection(userProfile: Profile): Connection | null 
     userId: userProfile.id,
     partnerId: `demo-${partner.name.toLowerCase()}`,
     partnerName: partner.name,
+    partnerFirstName: partner.name,
+    partnerLastName: "",
     partnerPronouns: partner.pronouns,
     partnerPhoto: partner.photo,
     partnerInterests: partner.interests,
@@ -203,6 +207,8 @@ export function createConnectionFromMatch(userProfile: Profile, partnerProfile: 
     userId: userProfile.id,
     partnerId: partnerProfile.id,
     partnerName: partnerProfile.displayName,
+    partnerFirstName: partnerProfile.firstName,
+    partnerLastName: partnerProfile.lastName,
     partnerPronouns: partnerProfile.pronouns,
     partnerPhoto: partnerProfile.profilePhoto,
     partnerInterests: partnerProfile.interests || [],
