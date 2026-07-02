@@ -112,17 +112,30 @@ export function BugReportWidget() {
 
       {/* Modal Overlay */}
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/30 z-50 flex items-end md:items-center justify-center"
-          style={{ padding: "20px" }}
-          onClick={() => !isSubmitting && setIsOpen(false)}
-        >
-          {/* Modal */}
+        <>
+          <style>{`
+            .bug-report-overlay {
+              padding: 20px !important;
+              position: fixed !important;
+              inset: 0 !important;
+              z-index: 9999 !important;
+            }
+            .bug-report-modal {
+              background: #FDFBF6 !important;
+              max-height: 85vh !important;
+              border-radius: 18px !important;
+              margin: 0 auto !important;
+            }
+          `}</style>
           <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-            style={{ background: "#FDFBF6", maxHeight: "85vh" }}
+            className="bug-report-overlay fixed inset-0 bg-black/30 flex items-end md:items-center justify-center"
+            onClick={() => !isSubmitting && setIsOpen(false)}
           >
+            {/* Modal */}
+            <div
+              className="bug-report-modal bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
             {/* Header */}
             <div
               className="sticky top-0 px-6 py-4 border-b flex items-center justify-between"
@@ -373,7 +386,8 @@ export function BugReportWidget() {
               </button>
             </form>
           </div>
-        </div>
+          </div>
+        </>
       )}
     </>
   );
