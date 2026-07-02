@@ -50,7 +50,7 @@ export function updateConnectionPreferences(userId: string, preferences: Connect
 }
 
 // Generate demo connection (simple matching based on interests)
-export function generateDemoConnection(userProfile: Profile): Connection | null {
+export function generateDemoConnection(userProfile: Profile, randomize = true): Connection | null {
   // Demo partners with different interest profiles
   const demoPartners = [
     {
@@ -90,18 +90,6 @@ export function generateDemoConnection(userProfile: Profile): Connection | null 
     },
   ];
 
-  // Rotate through partners using a combination of user ID and week number
-  // This ensures different partners each week, not the same one all week
-  const weekNumber = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
-  const userIdNum = userProfile.id.charCodeAt(0) || 0;
-  const partnerIndex = (weekNumber + userIdNum) % demoPartners.length;
-  const partner = demoPartners[partnerIndex];
-
-  // Find shared interests (or use empty array if user has no interests)
-  const sharedInterests = (userProfile.interests || []).length > 0
-    ? partner.interests.filter((i) => userProfile.interests?.includes(i))
-    : [];
-
   const prompts = [
     "What brought you here and what kind of connection are you practicing?",
     "What has been challenging about intimacy or connection in your life?",
@@ -109,6 +97,24 @@ export function generateDemoConnection(userProfile: Profile): Connection | null 
     "Where do you feel yourself in your body right now?",
     "What would it take to feel more safe in vulnerability?",
   ];
+
+  // Select partner: random if button clicked, or week-based if initial load
+  let partner;
+  let promptIndex;
+
+  if (randomize) {
+    // True random selection for each button click
+    const randomIndex = Math.floor(Math.random() * demoPartners.length);
+    partner = demoPartners[randomIndex];
+    promptIndex = Math.floor(Math.random() * prompts.length);
+  } else {
+    // Deterministic week-based selection for initial load
+    const weekNumber = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+    const userIdNum = userProfile.id.charCodeAt(0) || 0;
+    const partnerIndex = (weekNumber + userIdNum) % demoPartners.length;
+    partner = demoPartners[partnerIndex];
+    promptIndex = weekNumber % prompts.length;
+  }
 
   const connection: Connection = {
     id: `connection-${Date.now()}`,
@@ -122,7 +128,7 @@ export function generateDemoConnection(userProfile: Profile): Connection | null 
     partnerInterests: partner.interests,
     status: "active",
     createdAt: new Date(),
-    sharedPrompt: prompts[weekNumber % prompts.length],
+    sharedPrompt: prompts[promptIndex],
     mutualContactOptIn: false,
   };
 
