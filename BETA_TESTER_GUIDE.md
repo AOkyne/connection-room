@@ -20,7 +20,7 @@ This is a **private beta**, which means:
 We need your help finding bugs and improving the experience. When you encounter something that doesn't work as expected, please report it using the template below.
 
 ### Quick Report (Preferred)
-**Email:** [support email to be added]  
+**Email:** support@trevorjamesla.com  
 **Subject Line Example:** "Bug: Profile photo doesn't save on mobile"
 
 ### Full Bug Report Template
@@ -184,10 +184,10 @@ Here are the main flows to test during beta:
 → Check the community guides in The Commons space
 
 **Found a bug?**  
-→ Use the bug report template above
+→ Email support@trevorjamesla.com with the bug report template
 
 **Can't access beta?**  
-→ Contact Trevor: [email/contact to be added]
+→ Contact support@trevorjamesla.com
 
 **Technical issue?**  
 → Try: Hard refresh browser or restart app, then try again
