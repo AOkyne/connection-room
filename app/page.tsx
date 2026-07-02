@@ -7,15 +7,14 @@ export default function LandingPage() {
       <header>
         <div className="wrap header-inner">
           <Link href="/" className="logo-mark">
-            <img
-              src="/connection-room-logo.png"
-              alt="The Connection Room"
-              style={{
-                height: "clamp(60px, 20vw, 140px)",
-                width: "auto",
-                display: "block"
-              }}
-            />
+            <div style={{
+              fontSize: "clamp(20px, 5vw, 28px)",
+              fontWeight: "600",
+              color: "#c9a876",
+              fontFamily: "'Cormorant Garamond', serif"
+            }}>
+              The Connection Room
+            </div>
           </Link>
           <Link href="/auth" className="signin-link">
             Sign In
