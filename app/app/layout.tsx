@@ -90,7 +90,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </Link>
             {session && (
               <div className="flex items-center gap-4">
-                <span className="text-sm text-[#1a0f0a]">{session.name}</span>
+                <span className="text-sm text-[#1a0f0a]">{session.name.split(' ')[0]}</span>
                 <Button variant="ghost" size="sm" onClick={handleLogout}>
                   Sign Out
                 </Button>
