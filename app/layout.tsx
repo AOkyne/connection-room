@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import { appConfig } from "@/lib/config";
+import { BugReportWidget } from "@/components/BugReportWidget";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -49,6 +50,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-[#fdfbf7] text-[#1a1714]">
         {children}
+        <BugReportWidget />
       </body>
     </html>
   );
