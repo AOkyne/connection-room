@@ -2,6 +2,7 @@
 export function getBadgeImage(badgeId: string): string {
   const imageMap: Record<string, string> = {
     "first-step": "/badges/first_step.png",
+    "first-response": "/badges/first_response.png",
     "first-share": "/badges/first_share.png",
     "first-witness": "/badges/first_witness.png",
     "thoughtful-witness": "/badges/thoughtful_witness.png",
@@ -36,6 +37,7 @@ import {
 export function getBadgeIcon(badgeId: string) {
   const iconMap: Record<string, any> = {
     "first-step": IconEmbodiment,
+    "first-response": IconChat,
     "first-share": IconChat,
     "first-witness": IconEmbodiment,
     "thoughtful-witness": IconConnection,
