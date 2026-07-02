@@ -291,22 +291,22 @@ export default function AppHome() {
           <Card className="bg-gradient-to-br from-[#f3ede5] to-[#e8ddd2] border-2 border-[#d4a348] hidden md:block">
             <div className="space-y-6">
               <div>
-                <h3 className="text-xl font-bold text-[#d4a348] mb-1">🏆 Your Achievements</h3>
-                <p className="text-sm text-[#a0704a]">{badges.length} badge{badges.length !== 1 ? 's' : ''} earned</p>
+                <h3 className="text-lg font-bold text-[#d4a348] mb-1">🏆 Your Achievements</h3>
+                <p className="text-xs text-[#a0704a]">{badges.length} badge{badges.length !== 1 ? 's' : ''} earned</p>
               </div>
-              <div className="grid grid-cols-3 lg:grid-cols-4 gap-8 justify-items-center">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
                 {badges.map((badge) => (
                   <div
                     key={badge.id}
-                    className="flex flex-col items-center justify-center gap-2 hover:scale-110 transition-transform duration-200 cursor-pointer group"
+                    className="flex flex-col items-center justify-center gap-1 hover:scale-110 transition-transform duration-200 cursor-pointer group"
                     title={`${badge.name}: ${badge.description}`}
                   >
                     <img
                       src={getBadgeImage(badge.id)}
                       alt={badge.name}
-                      className="w-32 h-32 object-contain drop-shadow-lg group-hover:drop-shadow-xl transition-shadow"
+                      className="w-48 h-48 object-contain drop-shadow-lg group-hover:drop-shadow-xl transition-shadow"
                     />
-                    <p className="text-xs font-semibold text-[#1a0f0a] text-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">{badge.name}</p>
+                    <p className="text-[10px] font-semibold text-[#1a0f0a] text-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-1">{badge.name}</p>
                   </div>
                 ))}
               </div>
