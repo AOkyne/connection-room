@@ -11,7 +11,7 @@ export default function LandingPage() {
               src="/connection-room-logo.svg"
               alt="The Connection Room"
               style={{
-                height: "clamp(50px, 8vw, 80px)",
+                height: "clamp(90px, 15vw, 160px)",
                 width: "auto",
                 display: "block"
               }}
