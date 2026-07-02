@@ -867,7 +867,7 @@ export default function LandingPage() {
             </p>
           </div>
           <div className="feeling-image">
-            <img src="/imagery/image10.png" alt="Two men in easy, genuine conversation" />
+            <img src="/two-men-in-conversation.png" alt="Two men in easy, genuine conversation" />
           </div>
         </div>
       </section>
