@@ -43,6 +43,7 @@ export interface Connection {
 const PREFERENCES_STORAGE_KEY = "connection-room:connection-preferences";
 const CONNECTIONS_STORAGE_KEY = "connection-room:connections";
 const CURRENT_CONNECTION_KEY = "connection-room:current-connection";
+const HISTORY_STORAGE_KEY = "connection-room:connection-history";
 
 // Get connection preferences
 export function getConnectionPreferences(userId: string): ConnectionPreferences {
@@ -271,12 +272,45 @@ export function createConnectionFromMatch(userProfile: Profile, partnerProfile: 
   return connection;
 }
 
-// Get connection history
+// Get completed connection history
 export function getConnectionHistory(userId: string): Connection[] {
   if (typeof window === "undefined") return [];
 
-  const stored = localStorage.getItem(`${CONNECTIONS_STORAGE_KEY}:${userId}`);
+  const stored = localStorage.getItem(`${HISTORY_STORAGE_KEY}:${userId}`);
   return stored ? JSON.parse(stored) : [];
+}
+
+// Add connection to history when completed
+export function addToConnectionHistory(userId: string, connection: Connection): void {
+  if (typeof window === "undefined") return;
+
+  const history = getConnectionHistory(userId);
+  history.push({
+    ...connection,
+    status: "completed" as const,
+  });
+
+  localStorage.setItem(`${HISTORY_STORAGE_KEY}:${userId}`, JSON.stringify(history));
+}
+
+// Get all declined user IDs to avoid re-matching
+export function getDeclinedUsers(userId: string): Set<string> {
+  if (typeof window === "undefined") return new Set();
+
+  const stored = localStorage.getItem(`connection-room:declined-users:${userId}`);
+  const declined = stored ? JSON.parse(stored) : [];
+  return new Set(declined);
+}
+
+// Add user to declined list
+export function addToDeclinedUsers(userId: string, declinedUserId: string): void {
+  if (typeof window === "undefined") return;
+
+  const declined = Array.from(getDeclinedUsers(userId));
+  if (!declined.includes(declinedUserId)) {
+    declined.push(declinedUserId);
+    localStorage.setItem(`connection-room:declined-users:${userId}`, JSON.stringify(declined));
+  }
 }
 
 // Connection Request Management (localStorage)

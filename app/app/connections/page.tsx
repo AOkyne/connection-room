@@ -14,6 +14,10 @@ import {
   skipConnection,
   reportConnectionConcern,
   createConnectionFromMatch,
+  getConnectionHistory,
+  addToConnectionHistory,
+  addToDeclinedUsers,
+  getDeclinedUsers,
 } from "@/lib/data/connections";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -44,6 +48,7 @@ export default function ConnectionsPage() {
   const [loadingMatches, setLoadingMatches] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [connectionHistory, setConnectionHistory] = useState<any[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -61,11 +66,16 @@ export default function ConnectionsPage() {
         const requests = getIncomingRequests(p.id);
         setIncomingRequests(requests);
 
+        // Load connection history
+        const history = getConnectionHistory(p.id);
+        setConnectionHistory(history);
+
         // Load suggested matches if no current connection and profile is complete
         if (!connection && p.completedOnboarding && p.profilePhoto && p.interests?.length > 0) {
           setLoadingMatches(true);
           try {
-            const matches = await findMatches(p, 5);
+            const declined = Array.from(getDeclinedUsers(p.id));
+            const matches = await findMatches(p, prefs, history, declined, 5);
             setSuggestedMatches(matches);
           } catch (err) {
             console.error("Error loading matches:", err);
@@ -175,7 +185,12 @@ export default function ConnectionsPage() {
   };
 
   const handleDeclineRequest = (requestId: string) => {
+    const request = incomingRequests.find(r => r.id === requestId);
     if (declineConnectionRequest(requestId, profile.id)) {
+      // Add to declined users so we don't match again
+      if (request) {
+        addToDeclinedUsers(profile.id, request.fromUserId);
+      }
       setIncomingRequests(incomingRequests.filter(r => r.id !== requestId));
     }
   };
@@ -191,21 +206,34 @@ export default function ConnectionsPage() {
     }
   };
 
-  const handleMarkComplete = () => {
+  const handleMarkComplete = async () => {
     if (currentConnection) {
       completeConnection(profile.id, currentConnection.id);
+      // Add to connection history
+      addToConnectionHistory(profile.id, currentConnection);
       setCurrentConnectionState(null);
-      // Reload suggested matches
-      const allProfiles = getDemoProfiles();
-      const demoMatches = allProfiles
-        .filter(prof => prof.id !== profile.id)
-        .slice(0, 5)
-        .map((p) => ({
-          profile: p,
-          score: 50,
-          sharedInterests: [],
-        }));
-      setSuggestedMatches(demoMatches);
+
+      // Reload suggested matches with updated history
+      const updatedHistory = getConnectionHistory(profile.id);
+      setConnectionHistory(updatedHistory);
+
+      // Try to load real matches, fallback to demo
+      try {
+        const declined = Array.from(getDeclinedUsers(profile.id));
+        const realMatches = await findMatches(profile, preferences, updatedHistory, declined, 5);
+        setSuggestedMatches(realMatches);
+      } catch (err) {
+        const allProfiles = getDemoProfiles();
+        const demoMatches = allProfiles
+          .filter(prof => prof.id !== profile.id)
+          .slice(0, 5)
+          .map((p) => ({
+            profile: p,
+            score: 50,
+            sharedInterests: [],
+          }));
+        setSuggestedMatches(demoMatches);
+      }
     }
   };
 

@@ -9,11 +9,19 @@ interface MatchScore {
 
 export async function findMatches(
   userProfile: Profile,
+  userPreferences: any,
+  connectionHistory: any[] = [],
+  declinedUserIds: string[] = [],
   limit: number = 5
 ): Promise<MatchScore[]> {
   if (!supabase) return [];
 
   try {
+    // Don't match if user has paused connections
+    if (userPreferences?.frequency === "pause") {
+      return [];
+    }
+
     // Get all profiles except the current user
     const { data: profiles, error } = await supabase
       .from("profiles")
@@ -25,17 +33,50 @@ export async function findMatches(
       return [];
     }
 
+    // Get IDs of users they've already connected with
+    const connectedUserIds = new Set(
+      connectionHistory
+        .filter((conn) => conn.status === "completed" || conn.status === "active")
+        .map((conn) => conn.partnerId)
+    );
+
+    // Get IDs of users they've declined
+    const declinedSet = new Set(declinedUserIds);
+
     // Filter and score profiles
     const candidates = (profiles as any[])
       .filter((p) => {
         // Must have completed onboarding, have a photo, and have interests
-        return (
-          p.completed_onboarding &&
-          p.profile_photo &&
-          p.interests &&
-          Array.isArray(p.interests) &&
-          p.interests.length > 0
-        );
+        if (
+          !p.completed_onboarding ||
+          !p.profile_photo ||
+          !p.interests ||
+          !Array.isArray(p.interests) ||
+          p.interests.length === 0
+        ) {
+          return false;
+        }
+
+        // Don't match with people they've already connected with
+        if (connectedUserIds.has(p.id)) {
+          return false;
+        }
+
+        // Don't match with people they've declined
+        if (declinedSet.has(p.id)) {
+          return false;
+        }
+
+        // Match based on connection frequency compatibility
+        // Only match if both users want connections
+        if (
+          userPreferences?.frequency === "pause" ||
+          p.connection_frequency === "pause"
+        ) {
+          return false;
+        }
+
+        return true;
       })
       .map((p) => {
         const sharedInterests = calculateSharedInterests(
