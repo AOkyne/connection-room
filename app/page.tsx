@@ -83,24 +83,17 @@ export default function LandingPage() {
         }
 
         .brandmark img {
-          width: 42px;
-          height: 42px;
+          width: 120px;
+          height: auto;
           object-fit: contain;
         }
 
         .brandmark .name {
-          font-family: 'Cormorant Garamond', serif;
-          font-size: 1.35rem;
-          letter-spacing: 0.02em;
+          display: none;
         }
 
         .brandmark .by {
-          display: block;
-          font-family: 'DM Sans', sans-serif;
-          font-size: 0.68rem;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: var(--ink-faint);
+          display: none;
         }
 
         .header-cta {
