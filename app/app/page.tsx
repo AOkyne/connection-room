@@ -13,7 +13,7 @@ import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { IconReflection, IconProgress, IconUpcoming, IconBadges, IconForYou, IconDemo } from "@/components/Icons";
 import { SpaceIconSVG } from "@/components/SpaceIconSVG";
-import { getBadgeIcon } from "@/lib/badge-icons";
+import { getBadgeImage } from "@/lib/badge-icons";
 import { getOfferIcon } from "@/lib/offer-icons";
 import { getIconComponent } from "@/lib/icon-lookup";
 import { FirstWeekDashboardCard } from "@/components/journey/FirstWeekDashboardCard";
@@ -97,18 +97,25 @@ export default function AppHome() {
 
         // SECONDARY: Load non-critical data in background (don't block page render)
         // These will update the page as they arrive
-        if (p) {
+        if (p && s) {
           Promise.allSettled([
-            getUserBadges(p.id),
+            getUserBadges(p.id, p, s),
             getRecentReflections(5),
             Promise.resolve(getRelevantOffers(p)),
             Promise.resolve(getSuggestedSpace()),
           ]).then((results) => {
-            if (results[0].status === "fulfilled") setBadges(results[0].value);
+            if (results[0].status === "fulfilled") {
+              setBadges(results[0].value);
+              console.log("Badges loaded:", results[0].value);
+            } else {
+              console.log("Badge loading failed:", results[0]);
+            }
             if (results[1].status === "fulfilled") setRecentReflections(results[1].value);
             if (results[2].status === "fulfilled") setOffers(results[2].value);
             if (results[3].status === "fulfilled") setSuggestedSpace(results[3].value);
           });
+        } else {
+          console.log("Skipping badge load - missing profile or spaces data");
         }
       } catch (error) {
         console.error("Error loading dashboard data:", error);
@@ -273,22 +280,41 @@ export default function AppHome() {
           </div>
         )}
 
-        {/* Badges Section */}
+        {/* Badges Section - Desktop Only */}
         {badges.length > 0 && (
-          <div>
-            <h4 className="text-sm font-medium text-[#c97a2a] mb-3 uppercase tracking-wide">Your Badges</h4>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-              {badges.map((badge) => {
-                const BadgeIcon = getBadgeIcon(badge.id);
-                return (
-                  <Card key={badge.id} className="flex flex-col items-center justify-center gap-2 p-3 text-center bg-[#f3ede5]">
-                    <BadgeIcon className="text-2xl" />
-                    <p className="text-xs font-semibold text-[#1a0f0a] line-clamp-2">{badge.name}</p>
-                  </Card>
-                );
-              })}
-            </div>
+          <div style={{ display: "none" }}>
+            {/* Temporarily hiding mobile badges - use display:none instead of CSS classes */}
           </div>
+        )}
+
+        {badges.length > 0 && (
+          <Card className="bg-gradient-to-br from-[#f3ede5] to-[#e8ddd2] border-2 border-[#d4a348] hidden md:block">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-bold text-[#d4a348] mb-1">🏆 Your Achievements</h3>
+                <p className="text-sm text-[#a0704a]">{badges.length} badge{badges.length !== 1 ? 's' : ''} earned</p>
+              </div>
+              <div className="grid grid-cols-4 lg:grid-cols-5 gap-4">
+                {badges.map((badge) => (
+                  <div
+                    key={badge.id}
+                    className="flex flex-col items-center justify-center gap-3 p-4 bg-white rounded-lg hover:shadow-lg transition-shadow border border-[#d4a348]"
+                    title={badge.description}
+                  >
+                    <img
+                      src={getBadgeImage(badge.id)}
+                      alt={badge.name}
+                      className="w-16 h-16 object-contain"
+                    />
+                    <div className="text-center">
+                      <p className="text-sm font-bold text-[#1a0f0a] line-clamp-2">{badge.name}</p>
+                      <p className="text-xs text-[#a0704a] mt-1">{badge.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
         )}
       </div>
     </div>

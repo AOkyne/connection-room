@@ -9,10 +9,11 @@ import { getRecentSignups, getSession } from "@/lib/session";
 import { demoMembers } from "@/lib/seed/demo-members";
 import { Card, CardHeader } from "@/components/Card";
 import { IconConnection, IconDemo, IconSpaces, IconBadges, IconProgress, IconUpcoming, IconAlert, IconForYou, IconChat, IconProfileNav } from "@/components/Icons";
-import { getBadgeIcon } from "@/lib/badge-icons";
+import { getBadgeImage } from "@/lib/badge-icons";
 import { getOfferIcon } from "@/lib/offer-icons";
 import { RhythmContentAlert } from "@/components/admin/RhythmContentAlert";
 import { RhythmContentEditor } from "@/components/admin/RhythmContentEditor";
+import { DailyCompanionEditor } from "@/components/admin/DailyCompanionEditor";
 import { LoadingScreen } from "@/components/LoadingScreen";
 
 export default function AdminPage() {
@@ -274,16 +275,17 @@ export default function AdminPage() {
       <Card>
         <CardHeader title="Available Badges" icon={<IconBadges size={20} />} />
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {badges.map((badge) => {
-            const BadgeIcon = getBadgeIcon(badge.id);
-            return (
-              <div key={badge.id} className="text-center p-3 bg-[#f3ede5] rounded">
-                <BadgeIcon size={28} className="mx-auto mb-2 text-[#d4a348]" />
-                <p className="font-medium text-[#1a0f0a] text-sm">{badge.name}</p>
-                <p className="text-xs text-[#a0704a] mt-1">{badge.description}</p>
-              </div>
-            );
-          })}
+          {badges.map((badge) => (
+            <div key={badge.id} className="text-center p-3 bg-[#f3ede5] rounded">
+              <img
+                src={getBadgeImage(badge.id)}
+                alt={badge.name}
+                className="mx-auto mb-2 w-10 h-10 object-contain"
+              />
+              <p className="font-medium text-[#1a0f0a] text-sm">{badge.name}</p>
+              <p className="text-xs text-[#a0704a] mt-1">{badge.description}</p>
+            </div>
+          ))}
         </div>
       </Card>
 
@@ -326,9 +328,17 @@ export default function AdminPage() {
         </div>
       </Card>
 
-      {/* Content Editor */}
-      <div className="border-t border-[#e8ddd2] pt-8">
-        <RhythmContentEditor />
+      {/* Content Editors */}
+      <div className="border-t border-[#e8ddd2] pt-8 space-y-8">
+        {/* Daily Companion Editor */}
+        <div>
+          <DailyCompanionEditor />
+        </div>
+
+        {/* Guided Rhythm Editor */}
+        <div className="border-t border-[#e8ddd2] pt-8">
+          <RhythmContentEditor />
+        </div>
       </div>
 
       <Card className="bg-[#f3ede5]">

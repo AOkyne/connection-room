@@ -1,4 +1,25 @@
-// Map badge IDs to icon components
+// Map badge IDs to image paths
+export function getBadgeImage(badgeId: string): string {
+  const imageMap: Record<string, string> = {
+    "first-step": "/badges/first_step.png",
+    "first-share": "/badges/first_share.png",
+    "first-witness": "/badges/first_witness.png",
+    "thoughtful-witness": "/badges/thoughtful_witness.png",
+    "community-builder": "/badges/community_builder.png",
+    "consent-champion": "/badges/consent_champion.png",
+    "explorer": "/badges/explorer.png",
+    "connection-seeker": "/badges/connection_seeker.png",
+    "embodied": "/badges/embodied.png",
+    "truth-teller": "/badges/truth_teller.png",
+    "self-aware": "/badges/self_aware.png",
+    "vulnerability-warrior": "/badges/vulnerability_warrior.png",
+    "bridge-builder": "/badges/bridge_builder.png",
+  };
+
+  return imageMap[badgeId] || "/badges/badge-default.png";
+}
+
+// Legacy function for backwards compatibility - returns icon components
 import {
   IconEmbodiment,
   IconConnection,

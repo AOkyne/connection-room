@@ -121,7 +121,7 @@ export default function OnboardingPage() {
           <div className="flex justify-between items-center mb-4">
             <Link href="/" className="flex items-center">
               <img
-                src="/Connection-room-logo.png?v=4"
+                src="/connection-room-logo.png"
                 alt="The Connection Room"
                 className="h-20 w-auto"
               />
