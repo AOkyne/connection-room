@@ -9,16 +9,16 @@ export default function LandingPage() {
       <style>{`
         :root {
           --cream: #FAF6EE;
-          --cream-deep: #F3ECDD;
+          --cream-deep: #F1E8D8;
           --card: #FFFDF8;
           --ink: #2C2417;
           --ink-soft: #5C5142;
           --ink-faint: #8B7F6C;
-          --gold: #C09A4A;
-          --gold-deep: #8C6B2F;
-          --bronze: #A3763A;
+          --gold: #D4A550;
+          --gold-deep: #9B7A3E;
+          --bronze: #B8844A;
           --line: #E4D9C4;
-          --shadow: 0 18px 50px rgba(60, 45, 20, 0.1);
+          --shadow: 0 18px 50px rgba(60, 45, 20, 0.15);
           --radius: 18px;
         }
 
@@ -125,8 +125,18 @@ export default function LandingPage() {
         .hero {
           padding: 96px 0 84px;
           text-align: center;
-          background: radial-gradient(60% 50% at 50% 0%, rgba(192, 154, 74, 0.1), transparent 70%),
-                      var(--cream);
+          background: linear-gradient(180deg, var(--cream) 0%, rgba(241, 232, 216, 0.8) 50%, var(--cream) 100%),
+                      radial-gradient(60% 50% at 50% 0%, rgba(212, 165, 80, 0.15), transparent 70%);
+          position: relative;
+        }
+
+        .hero::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(circle at 20% 50%, rgba(212, 165, 80, 0.04) 0%, transparent 50%),
+                      radial-gradient(circle at 80% 50%, rgba(184, 132, 74, 0.04) 0%, transparent 50%);
+          pointer-events: none;
         }
 
         .hero .eyebrow {
@@ -274,7 +284,7 @@ export default function LandingPage() {
 
         /* the feeling */
         .feeling {
-          background: var(--cream);
+          background: linear-gradient(135deg, var(--cream) 0%, rgba(241, 232, 216, 0.6) 100%);
         }
 
         .feeling-grid {
@@ -312,9 +322,9 @@ export default function LandingPage() {
 
         /* is / isn't */
         .isnt {
-          background: var(--cream-deep);
-          border-top: 1px solid var(--line);
-          border-bottom: 1px solid var(--line);
+          background: linear-gradient(180deg, rgba(241, 232, 216, 0.5) 0%, var(--cream-deep) 100%);
+          border-top: 1px solid rgba(212, 165, 80, 0.3);
+          border-bottom: 1px solid rgba(212, 165, 80, 0.3);
         }
 
         .isnt-header {
@@ -334,11 +344,11 @@ export default function LandingPage() {
         }
 
         .isnt-card {
-          background: var(--card);
+          background: linear-gradient(135deg, var(--card) 0%, rgba(255, 253, 248, 0.7) 100%);
           border: 1px solid var(--line);
           border-radius: var(--radius);
           padding: 36px 34px;
-          box-shadow: 0 8px 30px rgba(60, 45, 20, 0.06);
+          box-shadow: 0 12px 40px rgba(60, 45, 20, 0.12);
         }
 
         .isnt-card h3 {
@@ -586,9 +596,9 @@ export default function LandingPage() {
 
         /* eros */
         .eros {
-          background: var(--cream-deep);
-          border-top: 1px solid var(--line);
-          border-bottom: 1px solid var(--line);
+          background: linear-gradient(180deg, var(--cream-deep) 0%, rgba(241, 232, 216, 0.7) 100%);
+          border-top: 1px solid rgba(212, 165, 80, 0.3);
+          border-bottom: 1px solid rgba(212, 165, 80, 0.3);
           text-align: center;
         }
 
@@ -605,10 +615,11 @@ export default function LandingPage() {
         }
 
         .eros-card {
-          background: var(--card);
+          background: linear-gradient(135deg, var(--card) 0%, rgba(255, 253, 248, 0.7) 100%);
           border: 1px solid var(--line);
           border-radius: var(--radius);
           padding: 32px 24px;
+          box-shadow: 0 8px 24px rgba(60, 45, 20, 0.1);
         }
 
         .eros-card .letter {
@@ -658,10 +669,10 @@ export default function LandingPage() {
         }
 
         .founding-card {
-          background: var(--card);
-          border: 1px solid var(--line);
+          background: linear-gradient(135deg, var(--card) 0%, rgba(255, 253, 248, 0.8) 100%);
+          border: 2px solid rgba(212, 165, 80, 0.4);
           border-radius: var(--radius);
-          box-shadow: var(--shadow);
+          box-shadow: 0 20px 60px rgba(60, 45, 20, 0.15);
           padding: 42px 40px;
           text-align: center;
         }
