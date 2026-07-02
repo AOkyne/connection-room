@@ -113,14 +113,15 @@ export function BugReportWidget() {
       {/* Modal Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-50 flex items-end md:items-center justify-center p-4"
+          className="fixed inset-0 bg-black/30 z-50 flex items-end md:items-center justify-center"
+          style={{ padding: "20px" }}
           onClick={() => !isSubmitting && setIsOpen(false)}
         >
           {/* Modal */}
           <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto mx-auto"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
-            style={{ background: "#FDFBF6", marginLeft: "16px", marginRight: "16px" }}
+            style={{ background: "#FDFBF6", maxHeight: "85vh" }}
           >
             {/* Header */}
             <div
