@@ -8,6 +8,19 @@ export interface ConnectionPreferences {
   optInToExchangeContact: boolean;
 }
 
+export interface ConnectionRequest {
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  fromUserName: string;
+  fromUserPhoto: string;
+  fromUserInterests: string[];
+  status: "pending" | "accepted" | "declined";
+  sharedPrompt: string;
+  createdAt: Date;
+  respondedAt?: Date;
+}
+
 export interface Connection {
   id: string;
   userId: string;
@@ -18,8 +31,10 @@ export interface Connection {
   partnerPronouns?: string;
   partnerPhoto: string;
   partnerInterests: string[];
-  status: "active" | "completed" | "skipped";
+  partnerContactMode?: "text" | "voice-video" | "local";
+  status: "pending_their_acceptance" | "confirmed" | "active" | "completed" | "declined";
   createdAt: Date;
+  confirmedAt?: Date;
   completedAt?: Date;
   sharedPrompt: string;
   mutualContactOptIn: boolean;
@@ -145,8 +160,9 @@ export function generateDemoConnection(userProfile: Profile, randomize = true): 
     partnerPronouns: partner.pronouns,
     partnerPhoto: partner.photo,
     partnerInterests: partner.interests,
-    status: "active",
+    status: "confirmed",
     createdAt: new Date(),
+    confirmedAt: new Date(),
     sharedPrompt: prompts[promptIndex],
     mutualContactOptIn: false,
   };
@@ -245,8 +261,9 @@ export function createConnectionFromMatch(userProfile: Profile, partnerProfile: 
     partnerPronouns: partnerProfile.pronouns,
     partnerPhoto: partnerProfile.profilePhoto,
     partnerInterests: partnerProfile.interests || [],
-    status: "active",
+    status: "confirmed",
     createdAt: new Date(),
+    confirmedAt: new Date(),
     sharedPrompt: prompts[Math.floor(Math.random() * prompts.length)],
     mutualContactOptIn: false,
   };
@@ -260,4 +277,117 @@ export function getConnectionHistory(userId: string): Connection[] {
 
   const stored = localStorage.getItem(`${CONNECTIONS_STORAGE_KEY}:${userId}`);
   return stored ? JSON.parse(stored) : [];
+}
+
+// Connection Request Management (localStorage)
+const REQUEST_STORAGE_KEY = "connection-room:connection-requests";
+const OUTGOING_REQUEST_KEY = "connection-room:outgoing-requests";
+
+export function createConnectionRequest(
+  fromUserId: string,
+  fromUserName: string,
+  fromUserPhoto: string,
+  fromUserInterests: string[],
+  toUserId: string,
+  sharedPrompt: string
+): ConnectionRequest {
+  const request: ConnectionRequest = {
+    id: `request-${Date.now()}`,
+    fromUserId,
+    toUserId,
+    fromUserName,
+    fromUserPhoto,
+    fromUserInterests,
+    status: "pending",
+    sharedPrompt,
+    createdAt: new Date(),
+  };
+
+  if (typeof window === "undefined") return request;
+
+  // Save to recipient's incoming requests
+  const incomingKey = `${REQUEST_STORAGE_KEY}:${toUserId}`;
+  const incoming = JSON.parse(localStorage.getItem(incomingKey) || "[]");
+  incoming.push(request);
+  localStorage.setItem(incomingKey, JSON.stringify(incoming));
+
+  // Save to sender's outgoing requests
+  const outgoingKey = `${OUTGOING_REQUEST_KEY}:${fromUserId}`;
+  const outgoing = JSON.parse(localStorage.getItem(outgoingKey) || "[]");
+  outgoing.push(request);
+  localStorage.setItem(outgoingKey, JSON.stringify(outgoing));
+
+  return request;
+}
+
+export function getIncomingRequests(userId: string): ConnectionRequest[] {
+  if (typeof window === "undefined") return [];
+
+  const stored = localStorage.getItem(`${REQUEST_STORAGE_KEY}:${userId}`);
+  const requests = stored ? JSON.parse(stored) : [];
+  return requests.filter((r: ConnectionRequest) => r.status === "pending");
+}
+
+export function getOutgoingRequests(userId: string): ConnectionRequest[] {
+  if (typeof window === "undefined") return [];
+
+  const stored = localStorage.getItem(`${OUTGOING_REQUEST_KEY}:${userId}`);
+  const requests = stored ? JSON.parse(stored) : [];
+  return requests.filter((r: ConnectionRequest) => r.status === "pending");
+}
+
+export function acceptConnectionRequest(
+  requestId: string,
+  userId: string,
+  partnerProfile: Profile,
+  sharedPrompt: string
+): Connection | null {
+  if (typeof window === "undefined") return null;
+
+  const incomingKey = `${REQUEST_STORAGE_KEY}:${userId}`;
+  const requests = JSON.parse(localStorage.getItem(incomingKey) || "[]");
+  const request = requests.find((r: ConnectionRequest) => r.id === requestId);
+
+  if (!request) return null;
+
+  // Mark request as accepted
+  request.status = "accepted";
+  request.respondedAt = new Date();
+  localStorage.setItem(incomingKey, JSON.stringify(requests));
+
+  // Create connection
+  const connection: Connection = {
+    id: `connection-${Date.now()}`,
+    userId,
+    partnerId: request.fromUserId,
+    partnerName: request.fromUserName,
+    partnerFirstName: request.fromUserName.split(" ")[0],
+    partnerLastName: request.fromUserName.split(" ")[1] || "",
+    partnerPhoto: request.fromUserPhoto,
+    partnerInterests: request.fromUserInterests,
+    status: "confirmed",
+    createdAt: new Date(),
+    confirmedAt: new Date(),
+    sharedPrompt,
+    mutualContactOptIn: false,
+  };
+
+  setCurrentConnection(userId, connection);
+  return connection;
+}
+
+export function declineConnectionRequest(requestId: string, userId: string): boolean {
+  if (typeof window === "undefined") return false;
+
+  const incomingKey = `${REQUEST_STORAGE_KEY}:${userId}`;
+  const requests = JSON.parse(localStorage.getItem(incomingKey) || "[]");
+  const request = requests.find((r: ConnectionRequest) => r.id === requestId);
+
+  if (!request) return false;
+
+  // Just remove the request (silent decline)
+  const updated = requests.filter((r: ConnectionRequest) => r.id !== requestId);
+  localStorage.setItem(incomingKey, JSON.stringify(updated));
+
+  return true;
 }
