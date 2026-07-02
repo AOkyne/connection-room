@@ -7,17 +7,17 @@ export default function LandingPage() {
     <>
       <style>{`
         :root {
-          --cream: #FAF6EE;
-          --cream-deep: #F3ECDD;
-          --card: #FFFDF8;
+          --cream: #F5EFE3;
+          --cream-deep: #EAE0CC;
+          --card: #FDFBF6;
           --ink: #2C2417;
-          --ink-soft: #5C5142;
-          --ink-faint: #8B7F6C;
-          --gold: #C09A4A;
-          --gold-deep: #8C6B2F;
-          --bronze: #A3763A;
-          --line: #E4D9C4;
-          --shadow: 0 18px 50px rgba(60, 45, 20, 0.1);
+          --ink-soft: #4A3E33;
+          --ink-faint: #7A6F62;
+          --gold: #D4A040;
+          --gold-deep: #A67C2A;
+          --bronze: #C48A3A;
+          --line: #D9CDB8;
+          --shadow: 0 18px 50px rgba(60, 45, 20, 0.15);
           --radius: 18px;
         }
 
@@ -822,7 +822,7 @@ export default function LandingPage() {
       <header>
         <div className="wrap header-inner">
           <Link className="brandmark" href="/">
-            <img src="/Connection-room-logo.png" alt="The Connection Room" />
+            <img src="/connection-room-logo.svg" alt="The Connection Room" />
             <span className="name">The Connection Room<span className="by">by Trevor James</span></span>
           </Link>
           <Link className="header-cta" href="/auth?mode=member">Enter the Community</Link>
@@ -927,8 +927,7 @@ export default function LandingPage() {
             </div>
           </div>
           <p className="isnt-note">
-            Your profile is yours to shape. Use the name you're comfortable with,
-            share the photo you choose, and nothing here appears in a search engine.
+            Your profile is yours to shape. Share the photo you choose, and nothing here appears in a search engine.
           </p>
         </div>
       </section>
