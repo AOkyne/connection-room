@@ -757,11 +757,7 @@ export default function LandingPage() {
       <header>
         <div className="wrap header-inner">
           <Link className="brandmark" href="/">
-            <img src="/connection-room-logo.svg" alt="The Connection Room logo" />
-            <span className="name">
-              The Connection Room
-              <span className="by">by Trevor James</span>
-            </span>
+            <img src="/connection-room-logo.svg" alt="The Connection Room logo" style={{ height: "60px", width: "auto" }} />
           </Link>
           <Link className="header-cta" href="/auth?mode=member">
             Enter the Community
