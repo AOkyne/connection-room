@@ -54,40 +54,48 @@ export function generateDemoConnection(userProfile: Profile): Connection | null 
   // Demo partners with different interest profiles
   const demoPartners = [
     {
-      name: "Alex",
+      firstName: "Alex",
+      lastName: "Chen",
       pronouns: "he/him",
-      photo: generateDemoAvatar("A"),
+      photo: "/demo-members/seed-man-04.png",
       interests: ["Embodiment", "Authentic connection", "Touch and affection"],
     },
     {
-      name: "Jordan",
-      pronouns: "he/him",
-      photo: generateDemoAvatar("J"),
+      firstName: "Jordan",
+      lastName: "Williams",
+      pronouns: "they/them",
+      photo: "/demo-members/seed-man-08.png",
       interests: ["Spirituality", "Sexuality", "Relationships"],
     },
     {
-      name: "Marcus",
+      firstName: "Marcus",
+      lastName: "Johnson",
       pronouns: "he/him",
-      photo: generateDemoAvatar("M"),
+      photo: "/demo-members/seed-man-12.png",
       interests: ["Communication and repair", "Couples intimacy", "Shame and self-acceptance"],
     },
     {
-      name: "Sam",
+      firstName: "Sam",
+      lastName: "Martinez",
       pronouns: "he/him",
-      photo: generateDemoAvatar("S"),
+      photo: "/demo-members/seed-man-16.png",
       interests: ["Authentic connection", "Dating and desire", "Embodiment"],
     },
     {
-      name: "David",
+      firstName: "David",
+      lastName: "Lee",
       pronouns: "he/him",
-      photo: generateDemoAvatar("D"),
+      photo: "/demo-members/seed-man-20.png",
       interests: ["Spirituality", "Touch and affection", "Authentic connection"],
     },
   ];
 
-  // Simple deterministic matching based on day of week
-  const dayOfWeek = new Date().getDay();
-  const partner = demoPartners[dayOfWeek % demoPartners.length];
+  // Rotate through partners using a combination of user ID and week number
+  // This ensures different partners each week, not the same one all week
+  const weekNumber = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+  const userIdNum = userProfile.id.charCodeAt(0) || 0;
+  const partnerIndex = (weekNumber + userIdNum) % demoPartners.length;
+  const partner = demoPartners[partnerIndex];
 
   // Find shared interests (or use empty array if user has no interests)
   const sharedInterests = (userProfile.interests || []).length > 0
@@ -105,16 +113,16 @@ export function generateDemoConnection(userProfile: Profile): Connection | null 
   const connection: Connection = {
     id: `connection-${Date.now()}`,
     userId: userProfile.id,
-    partnerId: `demo-${partner.name.toLowerCase()}`,
-    partnerName: partner.name,
-    partnerFirstName: partner.name,
-    partnerLastName: "",
+    partnerId: `demo-${partner.firstName.toLowerCase()}`,
+    partnerName: `${partner.firstName} ${partner.lastName}`,
+    partnerFirstName: partner.firstName,
+    partnerLastName: partner.lastName,
     partnerPronouns: partner.pronouns,
     partnerPhoto: partner.photo,
     partnerInterests: partner.interests,
     status: "active",
     createdAt: new Date(),
-    sharedPrompt: prompts[dayOfWeek % prompts.length],
+    sharedPrompt: prompts[weekNumber % prompts.length],
     mutualContactOptIn: false,
   };
 
