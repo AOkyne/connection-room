@@ -126,7 +126,7 @@ function BetaAuthContent() {
         <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center">
             <img
-              src="/connection-room-logo.png"
+              src="/connection-room-logo.svg"
               alt="The Connection Room"
               className="h-16 sm:h-24 lg:h-32 w-auto"
             />
@@ -397,7 +397,7 @@ function DemoAuthContent() {
         <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center">
             <img
-              src="/connection-room-logo.png"
+              src="/connection-room-logo.svg"
               alt="The Connection Room"
               className="h-16 sm:h-24 lg:h-32 w-auto"
             />
