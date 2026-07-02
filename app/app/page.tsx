@@ -289,27 +289,24 @@ export default function AppHome() {
 
         {badges.length > 0 && (
           <Card className="bg-gradient-to-br from-[#f3ede5] to-[#e8ddd2] border-2 border-[#d4a348] hidden md:block">
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-bold text-[#d4a348] mb-1">🏆 Your Achievements</h3>
+                <h3 className="text-xl font-bold text-[#d4a348] mb-1">🏆 Your Achievements</h3>
                 <p className="text-sm text-[#a0704a]">{badges.length} badge{badges.length !== 1 ? 's' : ''} earned</p>
               </div>
-              <div className="grid grid-cols-4 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-3 lg:grid-cols-4 gap-8 justify-items-center">
                 {badges.map((badge) => (
                   <div
                     key={badge.id}
-                    className="flex flex-col items-center justify-center gap-3 p-4 bg-white rounded-lg hover:shadow-lg transition-shadow border border-[#d4a348]"
-                    title={badge.description}
+                    className="flex flex-col items-center justify-center gap-2 hover:scale-110 transition-transform duration-200 cursor-pointer group"
+                    title={`${badge.name}: ${badge.description}`}
                   >
                     <img
                       src={getBadgeImage(badge.id)}
                       alt={badge.name}
-                      className="w-16 h-16 object-contain"
+                      className="w-32 h-32 object-contain drop-shadow-lg group-hover:drop-shadow-xl transition-shadow"
                     />
-                    <div className="text-center">
-                      <p className="text-sm font-bold text-[#1a0f0a] line-clamp-2">{badge.name}</p>
-                      <p className="text-xs text-[#a0704a] mt-1">{badge.description}</p>
-                    </div>
+                    <p className="text-xs font-semibold text-[#1a0f0a] text-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">{badge.name}</p>
                   </div>
                 ))}
               </div>
