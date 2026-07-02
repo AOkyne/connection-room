@@ -83,7 +83,7 @@ export default function LandingPage() {
         }
 
         .brandmark img {
-          width: 120px;
+          width: clamp(160px, 20vw, 300px);
           height: auto;
           object-fit: contain;
         }
