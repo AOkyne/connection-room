@@ -60,7 +60,7 @@ header {
   gap: 10px;
 }
 
-.logo-mark img { height: 48px; }
+.logo-mark img { height: auto; max-width: 100%; }
 
 .signin-link {
   font-size: 15px;
