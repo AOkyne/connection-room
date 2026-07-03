@@ -365,7 +365,7 @@ export default function JourneyPage() {
         {badges.length > 0 && (
           <div className="md:col-span-3">
             <h3 className="text-lg font-bold text-[#d4a348] mb-4">🏆 Your Achievements</h3>
-            <div className="grid grid-cols-4 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-4 lg:grid-cols-5 gap-1">
               {badges.map((badge) => (
                 <img
                   key={badge.id}
