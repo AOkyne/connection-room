@@ -22,10 +22,15 @@ export async function waitForAuthReady(maxWaitMs: number = 3000): Promise<boolea
       resolve(authStateInitialized);
     }, maxWaitMs);
 
-    const unsubscribe = supabase.auth.onAuthStateChange(() => {
+    if (!supabase) {
+      resolve(false);
+      return;
+    }
+
+    const subscription = supabase.auth.onAuthStateChange(() => {
       authStateInitialized = true;
       clearTimeout(timeout);
-      unsubscribe?.();
+      subscription?.data?.subscription?.unsubscribe();
       resolve(true);
     });
   });
