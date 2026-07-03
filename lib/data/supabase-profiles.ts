@@ -12,8 +12,6 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
     .upsert(
       {
         user_id: profile.id,
-        first_name: profile.firstName || "",
-        last_name: profile.lastName || "",
         display_name: profile.displayName,
         pronouns: profile.pronouns,
         location: profile.location,
@@ -25,14 +23,15 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
         what_brought_you_here: profile.whatBroughtYouHere,
         connection_hoping: profile.connectionHoping,
         interests: profile.interests,
-        connection_comfort_level: profile.connectionComfortLevel,
-        connection_boundaries: profile.connectionBoundaries,
+        pairing_comfort_level: profile.connectionComfortLevel,
+        pairing_boundaries: profile.connectionBoundaries,
         quiz_result: profile.quizResult,
         first_prompt_response: profile.firstPromptResponse,
         first_prompt_is_public: profile.firstPromptIsPublic,
         completed_onboarding: profile.completedOnboarding,
         spaces_joined: profile.spacesJoined,
-        joined_at: profile.joinedAt,
+        created_at: profile.joinedAt,
+        updated_at: new Date(),
       },
       { onConflict: "user_id" }
     )
