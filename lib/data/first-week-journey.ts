@@ -53,23 +53,23 @@ export async function getJourneyProgress(): Promise<JourneyProgress | null> {
       const { data, error } = await supabase
         .from("first_week_journey_progress")
         .select("*")
-        .eq("user_id", userId)
-        .single();
+        .eq("user_id", userId);
 
-      if (error && error.code !== "PGRST116") {
+      if (error) {
         console.warn("Error fetching journey progress from Supabase:", error);
       }
 
-      if (data) {
+      if (data && data.length > 0) {
+        const journeyData = data[0];
         return {
-          userId: data.user_id,
-          currentDoor: data.current_door || 1,
-          completedDoors: data.completed_doors || [],
-          privateReflections: data.private_reflections || {},
-          selectedIntention: data.selected_intention,
-          startedAt: new Date(data.started_at),
-          completedAt: data.completed_at ? new Date(data.completed_at) : undefined,
-          updatedAt: new Date(data.updated_at),
+          userId: journeyData.user_id,
+          currentDoor: journeyData.current_door || 1,
+          completedDoors: journeyData.completed_doors || [],
+          privateReflections: journeyData.private_reflections || {},
+          selectedIntention: journeyData.selected_intention,
+          startedAt: new Date(journeyData.started_at),
+          completedAt: journeyData.completed_at ? new Date(journeyData.completed_at) : undefined,
+          updatedAt: new Date(journeyData.updated_at),
         };
       }
     } catch (err) {

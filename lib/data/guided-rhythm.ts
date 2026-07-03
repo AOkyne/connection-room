@@ -57,23 +57,23 @@ export async function getGuidedRhythmProgress(): Promise<GuidedRhythmProgress | 
       const { data, error } = await supabase
         .from("guided_rhythm_progress")
         .select("*")
-        .eq("user_id", userId)
-        .single();
+        .eq("user_id", userId);
 
-      if (error && error.code !== "PGRST116") {
+      if (error) {
         console.warn("Error fetching guided rhythm from Supabase:", error);
       }
 
-      if (data) {
+      if (data && data.length > 0) {
+        const rhythmData = data[0];
         return {
-          userId: data.user_id,
+          userId: rhythmData.user_id,
           currentMonth: month,
           currentWeek: week,
-          privateReflections: data.private_reflections || {},
-          monthlyIntegrations: data.monthly_integrations || {},
-          monthlyIntentions: data.monthly_intentions || {},
-          startedAt: new Date(data.started_at),
-          updatedAt: new Date(data.updated_at),
+          privateReflections: rhythmData.private_reflections || {},
+          monthlyIntegrations: rhythmData.monthly_integrations || {},
+          monthlyIntentions: rhythmData.monthly_intentions || {},
+          startedAt: new Date(rhythmData.started_at),
+          updatedAt: new Date(rhythmData.updated_at),
         };
       }
     } catch (err) {

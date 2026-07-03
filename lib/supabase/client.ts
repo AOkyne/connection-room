@@ -22,6 +22,16 @@ if (isSupabaseConfigured) {
       storage: isBrowser ? window.localStorage : undefined,
     },
   });
+
+  // On first client initialization, restore session from localStorage
+  if (isBrowser) {
+    supabase.auth
+      .refreshSession()
+      .catch((err) => {
+        // Ignore errors - session might not exist yet
+        console.debug("Initial session refresh attempted");
+      });
+  }
 }
 
 export { supabase };
