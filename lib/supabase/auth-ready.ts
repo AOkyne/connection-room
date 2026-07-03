@@ -1,27 +1,32 @@
 import { supabase } from "./client";
 
+let authStateInitialized = false;
+
+// Initialize auth state listener on module load
+if (typeof window !== "undefined" && supabase) {
+  supabase.auth.onAuthStateChange((event, session) => {
+    authStateInitialized = true;
+  });
+}
+
 /**
- * Wait for Supabase session to be initialized from localStorage
- * This ensures auth tokens are available for protected queries
+ * Wait for Supabase auth state to be initialized
+ * Listens for the first auth state change event (which fires on app init)
  */
 export async function waitForAuthReady(maxWaitMs: number = 3000): Promise<boolean> {
   if (!supabase) return false;
+  if (authStateInitialized) return true;
 
-  const startTime = Date.now();
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+      resolve(authStateInitialized);
+    }, maxWaitMs);
 
-  while (Date.now() - startTime < maxWaitMs) {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        return true; // Session is ready
-      }
-    } catch (err) {
-      // Ignore errors during initialization
-    }
-
-    // Wait a bit before retrying
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-
-  return false;
+    const unsubscribe = supabase.auth.onAuthStateChange(() => {
+      authStateInitialized = true;
+      clearTimeout(timeout);
+      unsubscribe?.();
+      resolve(true);
+    });
+  });
 }
