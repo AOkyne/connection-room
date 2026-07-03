@@ -11,7 +11,7 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
     .from("profiles")
     .upsert(
       {
-        id: profile.id,
+        user_id: profile.id,
         first_name: profile.firstName || "",
         last_name: profile.lastName || "",
         display_name: profile.displayName,
@@ -34,7 +34,7 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
         spaces_joined: profile.spacesJoined,
         joined_at: profile.joinedAt,
       },
-      { onConflict: "id" }
+      { onConflict: "user_id" }
     )
     .select()
     .single();
