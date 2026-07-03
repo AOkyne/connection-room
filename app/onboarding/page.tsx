@@ -435,10 +435,10 @@ export default function OnboardingPage() {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          // Validate file size (max 500KB to prevent large base64 strings)
-                          const maxSizeKB = 500;
-                          if (file.size > maxSizeKB * 1024) {
-                            alert(`Image is too large. Max size is ${maxSizeKB}KB. Please use a smaller image.`);
+                          // Validate file size (max 2MB for Monday launch, will migrate to Storage later)
+                          const maxSizeMB = 2;
+                          if (file.size > maxSizeMB * 1024 * 1024) {
+                            alert(`Image is too large. Max size is ${maxSizeMB}MB.`);
                             return;
                           }
                           const reader = new FileReader();
