@@ -300,11 +300,11 @@ export default function ProfilePage() {
               )}
             </div>
             {badges.length > 0 ? (
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-4 gap-2">
                 {badges.map((badge) => (
                   <div
                     key={badge.id}
-                    className="flex flex-col items-center justify-center gap-3 p-4 bg-white rounded-lg hover:shadow-lg transition-shadow border border-[#d4a348]"
+                    className="flex flex-col items-center justify-center gap-2 p-3 bg-white rounded-lg hover:shadow-lg transition-shadow border border-[#d4a348]"
                     title={badge.description}
                   >
                     <img
@@ -313,8 +313,8 @@ export default function ProfilePage() {
                       className="w-16 h-16 object-contain"
                     />
                     <div className="text-center">
-                      <p className="text-sm font-bold text-[#1a0f0a] line-clamp-2">{badge.name}</p>
-                      <p className="text-xs text-[#a0704a] mt-1">{badge.description}</p>
+                      <p className="text-xs font-bold text-[#1a0f0a] line-clamp-2">{badge.name}</p>
+                      <p className="text-xs text-[#a0704a] mt-0.5">{badge.description}</p>
                     </div>
                   </div>
                 ))}
