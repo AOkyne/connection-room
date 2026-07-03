@@ -28,6 +28,7 @@ import { LoadingError } from "@/components/LoadingError";
 import { withTimeout } from "@/lib/utils/with-timeout";
 import { ToastContainer } from "@/components/Toast";
 import { useToast } from "@/lib/hooks/useToast";
+import { waitForAuthReady } from "@/lib/supabase/auth-ready";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
@@ -97,16 +98,19 @@ export default function AppHome() {
 
         // SECONDARY: Load non-critical data in background (don't block page render)
         if (p && s) {
-          Promise.allSettled([
-            withTimeout(getUserBadges(p.id, p, s), 5000, []),
-            withTimeout(getRecentReflections(5), 3000, []),
-            Promise.resolve(getRelevantOffers(p)),
-            Promise.resolve(getSuggestedSpace()),
-          ]).then((results) => {
-            if (results[0].status === "fulfilled") setBadges(results[0].value);
-            if (results[1].status === "fulfilled") setRecentReflections(results[1].value);
-            if (results[2].status === "fulfilled") setOffers(results[2].value);
-            if (results[3].status === "fulfilled") setSuggestedSpace(results[3].value);
+          // Wait for auth session to be initialized before querying protected tables
+          waitForAuthReady(2000).then(() => {
+            Promise.allSettled([
+              withTimeout(getUserBadges(p.id, p, s), 5000, []),
+              withTimeout(getRecentReflections(5), 3000, []),
+              Promise.resolve(getRelevantOffers(p)),
+              Promise.resolve(getSuggestedSpace()),
+            ]).then((results) => {
+              if (results[0].status === "fulfilled") setBadges(results[0].value);
+              if (results[1].status === "fulfilled") setRecentReflections(results[1].value);
+              if (results[2].status === "fulfilled") setOffers(results[2].value);
+              if (results[3].status === "fulfilled") setSuggestedSpace(results[3].value);
+            });
           });
         }
       } catch (error) {

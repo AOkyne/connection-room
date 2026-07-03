@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { getProfile, updateProfile, type Profile } from "@/lib/data/profiles";
 import { getUserBadges } from "@/lib/data/badges";
+import { waitForAuthReady } from "@/lib/supabase/auth-ready";
 import { getBadgeImage } from "@/lib/badge-icons";
 import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
@@ -41,8 +42,9 @@ export default function ProfilePage() {
 
         setProfile(p);
 
-        // Load user badges with timeout
+        // Load user badges with auth ready check
         if (p?.id) {
+          await waitForAuthReady(2000);
           try {
             const badgesPromise = getUserBadges(p.id, p);
             const timeoutPromise = new Promise((_, reject) =>
