@@ -69,7 +69,49 @@ async function getCurrentSupabaseUserId(): Promise<string | null> {
 export async function getProfile(): Promise<Profile | null> {
   if (typeof window === "undefined") return null;
 
-  // Skip Supabase entirely - use localStorage only for now
+  // Try to get from Supabase first (for authenticated users)
+  const userId = await getCurrentSupabaseUserId();
+  if (userId && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .single();
+
+      if (!error && data) {
+        // Map Supabase profile to Profile interface
+        return {
+          id: data.user_id || data.id,
+          firstName: data.display_name?.split(" ")[0] || "",
+          lastName: data.display_name?.split(" ").slice(1).join(" ") || "",
+          displayName: data.display_name || "",
+          pronouns: data.pronouns,
+          location: data.location,
+          ageRange: data.age_range,
+          relationshipStatus: data.relationship_status,
+          orientation: data.orientation,
+          profilePhoto: data.profile_photo || "",
+          memberType: data.member_type || "individual",
+          whatBroughtYouHere: data.what_brought_you_here,
+          connectionHoping: data.connection_hoping,
+          interests: Array.isArray(data.interests) ? data.interests : [],
+          connectionComfortLevel: data.pairing_comfort_level,
+          connectionBoundaries: data.pairing_boundaries,
+          quizResult: data.quiz_result,
+          firstPromptResponse: data.first_prompt_response,
+          firstPromptIsPublic: data.first_prompt_is_public,
+          completedOnboarding: data.completed_onboarding || false,
+          spacesJoined: Array.isArray(data.spaces_joined) ? data.spaces_joined : [],
+          joinedAt: new Date(data.created_at),
+        };
+      }
+    } catch (err) {
+      console.warn("Error fetching profile from Supabase:", err);
+    }
+  }
+
+  // Fall back to localStorage for demo mode
   const stored = localStorage.getItem(PROFILE_STORAGE_KEY);
   return stored ? JSON.parse(stored) : null;
 }
