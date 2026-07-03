@@ -39,7 +39,13 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
     .select();
 
   if (error) {
-    console.error("Error saving profile to Supabase:", error);
+    console.error("Error saving profile to Supabase:", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      full: error
+    });
     return null;
   }
 
