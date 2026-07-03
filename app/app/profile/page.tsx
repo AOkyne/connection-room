@@ -293,14 +293,14 @@ export default function ProfilePage() {
       {badges.length > 0 && (
         <div className="hidden md:block">
           <h3 className="text-lg font-bold text-[#d4a348] mb-3">🏆 Your Achievements</h3>
-          <div className="grid grid-cols-4 lg:grid-cols-5 gap-2">
+          <div className="grid grid-cols-4 lg:grid-cols-5 gap-0">
             {badges.map((badge) => (
               <img
                 key={badge.id}
                 src={getBadgeImage(badge.id)}
                 alt={badge.name}
                 title={`${badge.name}: ${badge.description}`}
-                className="w-40 h-40 object-contain cursor-pointer hover:scale-110 transition-transform drop-shadow"
+                className="w-48 h-48 object-contain cursor-pointer hover:scale-110 transition-transform drop-shadow -m-2"
               />
             ))}
           </div>
