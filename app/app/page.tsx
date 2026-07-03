@@ -279,7 +279,7 @@ export default function AppHome() {
         {badges.length > 0 && (
           <div className="hidden md:block">
             <h3 className="text-lg font-bold text-[#d4a348] mb-3">🏆 Your Achievements</h3>
-            <div className="grid grid-cols-4 lg:grid-cols-5 gap-1">
+            <div className="grid grid-cols-4 lg:grid-cols-5 gap-0">
               {badges.map((badge) => (
                 <img
                   key={badge.id}
