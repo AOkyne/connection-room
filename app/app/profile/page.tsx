@@ -289,45 +289,23 @@ export default function ProfilePage() {
         </Card>
       </div>
 
-      {/* Desktop: Grid */}
-      <div className="hidden md:block">
-        <Card className="bg-gradient-to-br from-[#f3ede5] to-[#e8ddd2] border-2 border-[#d4a348]">
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-bold text-[#d4a348] mb-1">🏆 Your Achievements</h3>
-              {badges.length > 0 && (
-                <p className="text-sm text-[#a0704a]">{badges.length} badge{badges.length !== 1 ? 's' : ''} earned</p>
-              )}
-            </div>
-            {badges.length > 0 ? (
-              <div className="grid grid-cols-4 gap-2">
-                {badges.map((badge) => (
-                  <div
-                    key={badge.id}
-                    className="flex flex-col items-center justify-center gap-2 p-3 bg-white rounded-lg hover:shadow-lg transition-shadow border border-[#d4a348]"
-                    title={badge.description}
-                  >
-                    <img
-                      src={getBadgeImage(badge.id)}
-                      alt={badge.name}
-                      className="w-16 h-16 object-contain"
-                    />
-                    <div className="text-center">
-                      <p className="text-xs font-bold text-[#1a0f0a] line-clamp-2">{badge.name}</p>
-                      <p className="text-xs text-[#a0704a] mt-0.5">{badge.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-6 bg-white rounded-lg border border-[#e8ddd2] text-center">
-                <p className="text-[#a0704a] mb-2">No badges earned yet</p>
-                <p className="text-xs text-[#a0704a]">Start participating to earn achievements!</p>
-              </div>
-            )}
+      {/* Desktop: Grid - matches home page style */}
+      {badges.length > 0 && (
+        <div className="hidden md:block">
+          <h3 className="text-lg font-bold text-[#d4a348] mb-3">🏆 Your Achievements</h3>
+          <div className="grid grid-cols-4 lg:grid-cols-5 gap-2">
+            {badges.map((badge) => (
+              <img
+                key={badge.id}
+                src={getBadgeImage(badge.id)}
+                alt={badge.name}
+                title={`${badge.name}: ${badge.description}`}
+                className="w-40 h-40 object-contain cursor-pointer hover:scale-110 transition-transform drop-shadow"
+              />
+            ))}
           </div>
-        </Card>
-      </div>
+        </div>
+      )}
 
       <Button variant="primary" size="lg" onClick={handleSave}>
         Save Profile
