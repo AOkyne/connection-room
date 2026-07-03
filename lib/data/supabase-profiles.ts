@@ -80,57 +80,85 @@ export async function getProfileFromSupabase(
     return null;
   }
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .single();
+  try {
+    // 3-second timeout for profile query
+    const profilePromise = supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
 
-  if (error || !data) return null;
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Timeout")), 3000)
+    );
 
-  // Fetch joined spaces from space_memberships table
-  let spacesJoined: string[] = [];
-  const { data: memberships, error: membershipsError } = await supabase
-    .from("space_memberships")
-    .select("space_id")
-    .eq("user_id", userId);
+    const { data, error } = (await Promise.race([
+      profilePromise,
+      timeoutPromise,
+    ])) as any;
 
-  if (!membershipsError && memberships && Array.isArray(memberships)) {
-    spacesJoined = memberships.map((m: any) => m.space_id);
+    if (error || !data) return null;
+
+    // Fetch joined spaces from space_memberships table (2-second timeout)
+    let spacesJoined: string[] = [];
+    try {
+      const membershipsPromise = supabase
+        .from("space_memberships")
+        .select("space_id")
+        .eq("user_id", userId);
+
+      const membershipsTimeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Timeout")), 2000)
+      );
+
+      const { data: memberships } = (await Promise.race([
+        membershipsPromise,
+        membershipsTimeoutPromise,
+      ])) as any;
+
+      if (memberships && Array.isArray(memberships)) {
+        spacesJoined = memberships.map((m: any) => m.space_id);
+      }
+    } catch {
+      // Membership fetch failed/timed out - continue without spaces
+    }
+
+    // Extract firstName and lastName from database or displayName fallback
+    let firstName = data.first_name || "";
+    let lastName = data.last_name || "";
+
+    if (!firstName && !lastName && data.display_name) {
+      const nameParts = data.display_name.trim().split(/\s+/);
+      firstName = nameParts[0] || "";
+      lastName = nameParts.slice(1).join(" ") || "";
+    }
+
+    return {
+      id: data.id,
+      firstName,
+      lastName,
+      displayName: data.display_name,
+      pronouns: data.pronouns,
+      location: data.location,
+      ageRange: data.age_range,
+      relationshipStatus: data.relationship_status,
+      orientation: data.orientation,
+      profilePhoto: data.profile_photo,
+      memberType: data.member_type,
+      whatBroughtYouHere: data.what_brought_you_here,
+      connectionHoping: data.connection_hoping,
+      interests: data.interests || [],
+      connectionComfortLevel: data.connection_comfort_level,
+      connectionBoundaries: data.connection_boundaries,
+      quizResult: data.quiz_result,
+      firstPromptResponse: data.first_prompt_response,
+      firstPromptIsPublic: data.first_prompt_is_public,
+      completedOnboarding: data.completed_onboarding,
+      spacesJoined: spacesJoined,
+      joinedAt: new Date(data.joined_at),
+    };
+  } catch {
+    // Profile fetch timed out or errored - fall back to null
+    return null;
   }
-
-  // Extract firstName and lastName from database or displayName fallback
-  let firstName = data.first_name || "";
-  let lastName = data.last_name || "";
-
-  if (!firstName && !lastName && data.display_name) {
-    const nameParts = data.display_name.trim().split(/\s+/);
-    firstName = nameParts[0] || "";
-    lastName = nameParts.slice(1).join(" ") || "";
-  }
-
-  return {
-    id: data.id,
-    firstName,
-    lastName,
-    displayName: data.display_name,
-    pronouns: data.pronouns,
-    location: data.location,
-    ageRange: data.age_range,
-    relationshipStatus: data.relationship_status,
-    orientation: data.orientation,
-    profilePhoto: data.profile_photo,
-    memberType: data.member_type,
-    whatBroughtYouHere: data.what_brought_you_here,
-    connectionHoping: data.connection_hoping,
-    interests: data.interests || [],
-    connectionComfortLevel: data.connection_comfort_level,
-    connectionBoundaries: data.connection_boundaries,
-    quizResult: data.quiz_result,
-    firstPromptResponse: data.first_prompt_response,
-    firstPromptIsPublic: data.first_prompt_is_public,
-    completedOnboarding: data.completed_onboarding,
-    spacesJoined: spacesJoined,
-    joinedAt: new Date(data.joined_at),
-  };
 }

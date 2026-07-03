@@ -69,12 +69,7 @@ async function getCurrentSupabaseUserId(): Promise<string | null> {
 export async function getProfile(): Promise<Profile | null> {
   if (typeof window === "undefined") return null;
 
-  const userId = await getCurrentSupabaseUserId();
-  if (userId && supabase) {
-    const profile = await getProfileFromSupabase(userId);
-    if (profile) return profile;
-  }
-
+  // Skip Supabase entirely - use localStorage only for now
   const stored = localStorage.getItem(PROFILE_STORAGE_KEY);
   return stored ? JSON.parse(stored) : null;
 }

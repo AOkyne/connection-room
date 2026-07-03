@@ -76,7 +76,6 @@ export default function JourneyPage() {
         setLoadTimeout(false);
 
         // SECONDARY: Load non-critical data in background (don't block page render)
-        // These will update the page as they arrive
         if (p) {
           Promise.all([
             getUserBadges(p.id, p, s).catch(err => {
@@ -363,67 +362,22 @@ export default function JourneyPage() {
         </Card>
 
         {/* Badges Section */}
-        {/* Mobile: Simple List */}
-        <div className="md:hidden">
-          <Card className="border-2 border-[#d4a348]">
-            <h3 className="text-lg font-bold text-[#d4a348] mb-4">🏆 Achievements {badges.length > 0 && `(${badges.length})`}</h3>
-            {badges.length > 0 ? (
-              <div className="space-y-2">
-                {badges.map((badge) => (
-                  <div key={badge.id} className="flex items-center gap-3 p-3 bg-[#f3ede5] rounded">
-                    <img src={getBadgeImage(badge.id)} alt={badge.name} className="w-10 h-10 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#1a0f0a]">{badge.name}</p>
-                      <p className="text-xs text-[#a0704a]">{badge.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-[#a0704a]">No badges yet. Earn them as you participate!</p>
-            )}
-          </Card>
-        </div>
-
-        {/* Desktop: Grid */}
-        <div className="hidden md:block md:col-span-3">
-          <Card className="bg-gradient-to-br from-[#f3ede5] to-[#e8ddd2] border-2 border-[#d4a348]">
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-bold text-[#d4a348] mb-1">🏆 Your Achievements</h3>
-                {badges.length > 0 && (
-                  <p className="text-sm text-[#a0704a]">{badges.length} badge{badges.length !== 1 ? 's' : ''} earned</p>
-                )}
-              </div>
-              {badges.length > 0 ? (
-                <div className="grid grid-cols-4 lg:grid-cols-5 gap-4">
-                  {badges.map((badge) => (
-                    <div
-                      key={badge.id}
-                      className="flex flex-col items-center justify-center gap-3 p-4 bg-white rounded-lg hover:shadow-lg transition-shadow border border-[#d4a348]"
-                      title={badge.description}
-                    >
-                      <img
-                        src={getBadgeImage(badge.id)}
-                        alt={badge.name}
-                        className="w-16 h-16 object-contain"
-                      />
-                      <div className="text-center">
-                        <p className="text-sm font-bold text-[#1a0f0a] line-clamp-2">{badge.name}</p>
-                        <p className="text-xs text-[#a0704a] mt-1">{badge.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-6 bg-white rounded-lg border border-[#e8ddd2] text-center">
-                  <p className="text-[#a0704a] mb-2">No badges yet!</p>
-                  <p className="text-xs text-[#a0704a]">Earn badges as you participate in the community.</p>
-                </div>
-              )}
+        {badges.length > 0 && (
+          <div className="md:col-span-3">
+            <h3 className="text-lg font-bold text-[#d4a348] mb-4">🏆 Your Achievements</h3>
+            <div className="grid grid-cols-4 lg:grid-cols-5 gap-4">
+              {badges.map((badge) => (
+                <img
+                  key={badge.id}
+                  src={getBadgeImage(badge.id)}
+                  alt={badge.name}
+                  title={`${badge.name}: ${badge.description}`}
+                  className="w-48 h-48 object-contain cursor-pointer hover:scale-110 transition-transform drop-shadow"
+                />
+              ))}
             </div>
-          </Card>
-        </div>
+          </div>
+        )}
 
         {/* Connections */}
         <Card className="md:col-span-2 lg:col-span-1">

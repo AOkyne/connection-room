@@ -19,13 +19,58 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const loadProfile = async () => {
-      const p = await getProfile();
-      setProfile(p);
+      try {
+        let p = await getProfile();
 
-      // Load user badges
-      if (p?.id) {
-        const userBadges = await getUserBadges(p.id, p);
-        setBadges(userBadges);
+        // If no profile in localStorage, create a demo one
+        if (!p) {
+          p = {
+            id: "demo-profile",
+            firstName: "Demo",
+            lastName: "User",
+            displayName: "Demo User",
+            pronouns: "they/them",
+            profilePhoto: "",
+            memberType: "individual",
+            interests: ["Connection", "Growth", "Community"],
+            completedOnboarding: true,
+            spacesJoined: [],
+            joinedAt: new Date(),
+          };
+        }
+
+        setProfile(p);
+
+        // Load user badges with timeout
+        if (p?.id) {
+          try {
+            const badgesPromise = getUserBadges(p.id, p);
+            const timeoutPromise = new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("Timeout")), 3000)
+            );
+            const userBadges = await Promise.race([badgesPromise, timeoutPromise]);
+            setBadges(userBadges as any[]);
+          } catch (err) {
+            console.warn("Badge loading timed out or failed");
+            setBadges([]);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading profile:", err);
+        // Fallback to demo profile
+        setProfile({
+          id: "demo-profile",
+          firstName: "Demo",
+          lastName: "User",
+          displayName: "Demo User",
+          pronouns: "they/them",
+          profilePhoto: "",
+          memberType: "individual",
+          interests: ["Connection", "Growth", "Community"],
+          completedOnboarding: true,
+          spacesJoined: [],
+          joinedAt: new Date(),
+        });
       }
     };
 

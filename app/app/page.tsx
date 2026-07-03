@@ -96,26 +96,18 @@ export default function AppHome() {
         setLoadTimeout(false);
 
         // SECONDARY: Load non-critical data in background (don't block page render)
-        // These will update the page as they arrive
         if (p && s) {
           Promise.allSettled([
-            getUserBadges(p.id, p, s),
-            getRecentReflections(5),
+            withTimeout(getUserBadges(p.id, p, s), 5000, []),
+            withTimeout(getRecentReflections(5), 3000, []),
             Promise.resolve(getRelevantOffers(p)),
             Promise.resolve(getSuggestedSpace()),
           ]).then((results) => {
-            if (results[0].status === "fulfilled") {
-              setBadges(results[0].value);
-              console.log("Badges loaded:", results[0].value);
-            } else {
-              console.log("Badge loading failed:", results[0]);
-            }
+            if (results[0].status === "fulfilled") setBadges(results[0].value);
             if (results[1].status === "fulfilled") setRecentReflections(results[1].value);
             if (results[2].status === "fulfilled") setOffers(results[2].value);
             if (results[3].status === "fulfilled") setSuggestedSpace(results[3].value);
           });
-        } else {
-          console.log("Skipping badge load - missing profile or spaces data");
         }
       } catch (error) {
         console.error("Error loading dashboard data:", error);
@@ -280,39 +272,24 @@ export default function AppHome() {
           </div>
         )}
 
-        {/* Badges Section - Desktop Only */}
         {badges.length > 0 && (
-          <div style={{ display: "none" }}>
-            {/* Temporarily hiding mobile badges - use display:none instead of CSS classes */}
+          <div className="hidden md:block">
+            <h3 className="text-lg font-bold text-[#d4a348] mb-4">🏆 Your Achievements</h3>
+            <div className="grid grid-cols-4 lg:grid-cols-5 gap-4">
+              {badges.map((badge) => (
+                <img
+                  key={badge.id}
+                  src={getBadgeImage(badge.id)}
+                  alt={badge.name}
+                  title={`${badge.name}: ${badge.description}`}
+                  className="w-48 h-48 object-contain cursor-pointer hover:scale-110 transition-transform drop-shadow"
+                />
+              ))}
+            </div>
           </div>
         )}
 
-        {badges.length > 0 && (
-          <Card className="bg-gradient-to-br from-[#f3ede5] to-[#e8ddd2] border-2 border-[#d4a348] hidden md:block">
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-bold text-[#d4a348] mb-1">🏆 Your Achievements</h3>
-                <p className="text-xs text-[#a0704a]">{badges.length} badge{badges.length !== 1 ? 's' : ''} earned</p>
-              </div>
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
-                {badges.map((badge) => (
-                  <div
-                    key={badge.id}
-                    className="flex flex-col items-center justify-center gap-1 hover:scale-110 transition-transform duration-200 cursor-pointer group"
-                    title={`${badge.name}: ${badge.description}`}
-                  >
-                    <img
-                      src={getBadgeImage(badge.id)}
-                      alt={badge.name}
-                      className="w-48 h-48 object-contain drop-shadow-lg group-hover:drop-shadow-xl transition-shadow"
-                    />
-                    <p className="text-[10px] font-semibold text-[#1a0f0a] text-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-1">{badge.name}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Card>
-        )}
+
       </div>
     </div>
   );

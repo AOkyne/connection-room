@@ -115,7 +115,7 @@ export async function signUpWithPassword(
     if (signUpData.user) {
       console.log("Creating profile for user:", signUpData.user.id);
       const { error: profileError } = await supabase.from("profiles").insert({
-        id: signUpData.user.id,
+        user_id: signUpData.user.id,
         display_name: displayName || email.split("@")[0],
         member_type: "individual",
         completed_onboarding: false,
@@ -126,13 +126,30 @@ export async function signUpWithPassword(
         console.log("Profile created successfully");
       }
 
-      // Auto-join user to default spaces
-      const defaultSpaces = ["start-here", "commons"];
-      for (const spaceId of defaultSpaces) {
-        await supabase.from("space_memberships").insert({
-          user_id: signUpData.user.id,
-          space_id: spaceId,
-        });
+      // Auto-join user to default spaces by slug
+      const defaultSpaceSlugs = ["start-here", "commons"];
+      for (const slug of defaultSpaceSlugs) {
+        // Find space by slug
+        const { data: spaceData, error: spaceError } = await supabase
+          .from("spaces")
+          .select("id")
+          .eq("slug", slug)
+          .single();
+
+        if (spaceError) {
+          console.warn("Could not find space with slug:", slug, spaceError);
+          continue;
+        }
+
+        if (spaceData) {
+          const { error: joinError } = await supabase.from("space_memberships").insert({
+            user_id: signUpData.user.id,
+            space_id: spaceData.id,
+          });
+          if (joinError) {
+            console.warn("Failed to join space:", slug, joinError);
+          }
+        }
       }
     }
 
