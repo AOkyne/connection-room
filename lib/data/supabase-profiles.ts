@@ -36,38 +36,40 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
       },
       { onConflict: "user_id" }
     )
-    .select()
-    .single();
+    .select();
 
   if (error) {
     console.error("Error saving profile to Supabase:", error);
     return null;
   }
 
-  return data
+  // Handle array response from select()
+  const profileData = Array.isArray(data) ? data[0] : data;
+
+  return profileData
     ? {
-        id: data.id,
-        firstName: data.first_name || profile.firstName,
-        lastName: data.last_name || profile.lastName,
-        displayName: data.display_name,
-        pronouns: data.pronouns,
-        location: data.location,
-        ageRange: data.age_range,
-        relationshipStatus: data.relationship_status,
-        orientation: data.orientation,
-        profilePhoto: data.profile_photo,
-        memberType: data.member_type,
-        whatBroughtYouHere: data.what_brought_you_here,
-        connectionHoping: data.connection_hoping,
-        interests: data.interests || [],
-        connectionComfortLevel: data.connection_comfort_level,
-        connectionBoundaries: data.connection_boundaries,
-        quizResult: data.quiz_result,
-        firstPromptResponse: data.first_prompt_response,
-        firstPromptIsPublic: data.first_prompt_is_public,
-        completedOnboarding: data.completed_onboarding,
-        spacesJoined: data.spaces_joined || [],
-        joinedAt: new Date(data.joined_at),
+        id: profileData.user_id || profileData.id,
+        firstName: profileData.first_name || profile.firstName,
+        lastName: profileData.last_name || profile.lastName,
+        displayName: profileData.display_name,
+        pronouns: profileData.pronouns,
+        location: profileData.location,
+        ageRange: profileData.age_range,
+        relationshipStatus: profileData.relationship_status,
+        orientation: profileData.orientation,
+        profilePhoto: profileData.profile_photo,
+        memberType: profileData.member_type,
+        whatBroughtYouHere: profileData.what_brought_you_here,
+        connectionHoping: profileData.connection_hoping,
+        interests: profileData.interests || [],
+        connectionComfortLevel: profileData.connection_comfort_level,
+        connectionBoundaries: profileData.connection_boundaries,
+        quizResult: profileData.quiz_result,
+        firstPromptResponse: profileData.first_prompt_response,
+        firstPromptIsPublic: profileData.first_prompt_is_public,
+        completedOnboarding: profileData.completed_onboarding,
+        spacesJoined: profileData.spaces_joined || [],
+        joinedAt: new Date(profileData.joined_at),
       }
     : null;
 }
