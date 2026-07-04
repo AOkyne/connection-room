@@ -12,9 +12,11 @@ CREATE TABLE IF NOT EXISTS connection_requests (
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   responded_at TIMESTAMP WITH TIME ZONE,
-  CONSTRAINT different_users CHECK (from_user_id != to_user_id),
-  CONSTRAINT unique_pending_request UNIQUE (from_user_id, to_user_id) WHERE status = 'pending'
+  CONSTRAINT different_users CHECK (from_user_id != to_user_id)
 );
+
+-- Partial unique index for pending requests
+CREATE UNIQUE INDEX idx_unique_pending_request ON connection_requests(from_user_id, to_user_id) WHERE status = 'pending';
 
 -- Connections table (confirmed/active connections)
 CREATE TABLE IF NOT EXISTS connections (
@@ -46,8 +48,7 @@ CREATE TABLE IF NOT EXISTS connection_messages (
   from_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   from_user_name TEXT NOT NULL,
   text TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  INDEX idx_connection_messages_connection_id (connection_id, created_at)
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Connection Preferences table
