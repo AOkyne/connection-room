@@ -8,8 +8,6 @@ import {
   getCurrentMonthAndWeek,
   savePrivateReflection,
   getPrivateReflection,
-  saveMonthlyIntegration,
-  getMonthlyIntegration,
   setMonthlyIntention,
   getMonthlyIntention,
   getRhythmContent,
@@ -20,7 +18,6 @@ import { Button } from "@/components/Button";
 import { MonthlyThemeCard } from "./MonthlyThemeCard";
 import { WeeklyPromptCard } from "./WeeklyPromptCard";
 import { PrivateReflectionBox } from "./PrivateReflectionBox";
-import { MonthlyIntegrationCard } from "./MonthlyIntegrationCard";
 import { CommunityInvitationCard } from "./CommunityInvitationCard";
 import { PrivateReflectionFeedback } from "@/components/feedback";
 
@@ -29,7 +26,6 @@ export function GuidedRhythmOverview() {
   const [rhythmContent, setRhythmContent] = useState<Month[]>([]);
   const [loading, setLoading] = useState(true);
   const [weeklyReflection, setWeeklyReflection] = useState("");
-  const [monthlyIntegrationText, setMonthlyIntegrationText] = useState("");
   const [selectedIntention, setSelectedIntention] = useState("");
   const [showIntentionModal, setShowIntentionModal] = useState(false);
   const [customIntention, setCustomIntention] = useState("");
@@ -56,17 +52,15 @@ export function GuidedRhythmOverview() {
       setRhythmContent(content);
       setLoading(false); // Show page immediately with current month/week
 
-      // BACKGROUND: Load reflections, integration, intention (non-blocking)
+      // BACKGROUND: Load reflections and intention (non-blocking)
       const currentMon = content.find((m) => m.monthNumber === month);
       if (currentMon) {
-        const [reflection, integration, intention] = await Promise.all([
+        const [reflection, intention] = await Promise.all([
           withTimeout(getPrivateReflection(month, week), 3000, null),
-          withTimeout(getMonthlyIntegration(month), 3000, null),
           withTimeout(getMonthlyIntention(month), 3000, null),
         ]);
 
         setWeeklyReflection(reflection || "");
-        setMonthlyIntegrationText(integration || "");
         setSelectedIntention(intention || "");
       }
     } catch (error) {
@@ -82,16 +76,6 @@ export function GuidedRhythmOverview() {
       setReflectionSavedFeedback(true);
     } catch (error) {
       console.warn("Error saving weekly reflection:", error);
-    }
-  }
-
-  async function handleSaveMonthlyIntegration(text: string) {
-    try {
-      await saveMonthlyIntegration(month, text);
-      setMonthlyIntegrationText(text);
-      setReflectionSavedFeedback(true);
-    } catch (error) {
-      console.warn("Error saving monthly integration:", error);
     }
   }
 
@@ -184,14 +168,6 @@ export function GuidedRhythmOverview() {
           // This will be handled by the parent component or through navigation
           window.location.href = "/app/spaces/commons";
         }}
-      />
-
-      {/* Monthly Integration */}
-      <MonthlyIntegrationCard
-        integration={currentMonth.integration}
-        monthNumber={month}
-        savedIntegration={monthlyIntegrationText}
-        onSave={handleSaveMonthlyIntegration}
       />
 
       {/* Intention Modal */}

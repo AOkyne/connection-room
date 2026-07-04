@@ -15,11 +15,14 @@ export interface Recommendation {
 export function getRecommendedNextStep(profile: Profile | null): Recommendation | null {
   if (!profile) return null;
 
-  // No spaces joined
-  if (!profile.spacesJoined || profile.spacesJoined.length === 0) {
+  // Spaces - shown for all users
+  const spacesJoinedCount = profile.spacesJoined?.length ?? 0;
+  if (spacesJoinedCount < 3) {
     return {
-      title: "Choose Your First Space",
-      description: "Find a community that resonates with you",
+      title: "Your Spaces",
+      description: spacesJoinedCount === 0
+        ? "Find a community that resonates with you"
+        : "Explore more communities to deepen your practice",
       action: "Browse Spaces",
       href: "/app/spaces",
       icon: "🏛️",
