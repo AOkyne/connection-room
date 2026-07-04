@@ -409,7 +409,7 @@ export default function ConnectionsPage() {
       </div>
 
       {/* Preferences and Current Connection Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
         {/* Preferences Card */}
         <Card>
           <CardHeader title="Your Preferences" icon={<IconForYou size={20} />} />
