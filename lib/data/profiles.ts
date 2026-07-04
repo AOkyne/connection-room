@@ -69,15 +69,32 @@ async function getCurrentSupabaseUserId(): Promise<string | null> {
 export async function getProfile(): Promise<Profile | null> {
   if (typeof window === "undefined") return null;
 
-  // Try to get from Supabase first (for authenticated users)
-  const userId = await getCurrentSupabaseUserId();
+  // Try to get from Supabase first (for authenticated users) with 5-second timeout
+  let userId: string | null = null;
+  try {
+    const userIdPromise = getCurrentSupabaseUserId();
+    const timeoutPromise = new Promise<null>((resolve) =>
+      setTimeout(() => resolve(null), 2000)
+    );
+    userId = await Promise.race([userIdPromise, timeoutPromise]);
+  } catch (err) {
+    console.warn("Error getting user ID:", err);
+  }
+
   if (userId && supabase) {
     try {
-      const { data, error } = await supabase
+      const queryPromise = supabase
         .from("profiles")
         .select("*")
         .eq("user_id", userId)
         .single();
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Profile query timeout")), 3000)
+      );
+
+      const result = await Promise.race([queryPromise, timeoutPromise]);
+      const { data, error } = result as any;
 
       if (!error && data) {
         // Map Supabase profile to Profile interface
