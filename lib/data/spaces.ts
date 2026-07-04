@@ -27,14 +27,16 @@ const START_HERE_COMPLETE_KEY = "connection-room:start-here-complete";
 const REQUIRED_SPACES = ["start-here", "commons"];
 const HIDDEN_SPACE_IDS = ["embodiment", "workshops", "sacred-sexuality"];
 
-// Get current authenticated user ID
+// Get current authenticated user ID with timeout
 async function getCurrentUserId(): Promise<string | null> {
   if (typeof window === "undefined" || !supabase) return null;
   try {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    return session?.user?.id || null;
+    const sessionPromise = supabase.auth.getSession();
+    const timeoutPromise = new Promise((resolve) =>
+      setTimeout(() => resolve({ data: { session: null } }), 1500)
+    );
+    const result = (await Promise.race([sessionPromise, timeoutPromise])) as any;
+    return result?.data?.session?.user?.id || null;
   } catch (err) {
     return null;
   }
@@ -55,16 +57,31 @@ export async function getSpaces(): Promise<Space[]> {
   if (userId && supabase) {
     try {
       console.log("Getting Supabase spaces for user:", userId);
-      const supabaseSpaces = await getSupabaseSpaces().catch(err => {
+
+      // Get spaces with 2-second timeout
+      let supabaseSpaces = demoSpaces;
+      try {
+        const spacesPromise = getSupabaseSpaces();
+        const timeoutPromise = new Promise((resolve) =>
+          setTimeout(() => resolve(demoSpaces), 2000)
+        );
+        supabaseSpaces = (await Promise.race([spacesPromise, timeoutPromise])) as any;
+      } catch (err) {
         console.warn("Could not get Supabase spaces, using demo fallback");
-        return demoSpaces;
-      });
+      }
       console.log("Supabase spaces:", supabaseSpaces.length);
 
-      const joinedSpaces = await getUserJoinedSpaces(userId).catch(err => {
+      // Get joined spaces with 2-second timeout
+      let joinedSpaces: any[] = [];
+      try {
+        const joinedPromise = getUserJoinedSpaces(userId);
+        const timeoutPromise = new Promise((resolve) =>
+          setTimeout(() => resolve([]), 2000)
+        );
+        joinedSpaces = (await Promise.race([joinedPromise, timeoutPromise])) as any;
+      } catch (err) {
         console.warn("Could not get user joined spaces, defaulting to empty");
-        return [];
-      });
+      }
       console.log("User joined spaces:", joinedSpaces.length);
       const joinedIds = new Set(joinedSpaces.map((s: any) => s.id));
 
