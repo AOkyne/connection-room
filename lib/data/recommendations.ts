@@ -15,18 +15,6 @@ export interface Recommendation {
 export function getRecommendedNextStep(profile: Profile | null): Recommendation | null {
   if (!profile) return null;
 
-  // Not completed onboarding
-  if (!profile.completedOnboarding) {
-    return {
-      title: "Complete Your Profile",
-      description: "Help the community get to know you",
-      action: "Finish Onboarding",
-      href: "/onboarding",
-      icon: "✨",
-      type: "action",
-    };
-  }
-
   // No spaces joined
   if (!profile.spacesJoined || profile.spacesJoined.length === 0) {
     return {
