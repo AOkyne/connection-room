@@ -430,34 +430,34 @@ export default function JourneyPage() {
           {/* Services */}
           <div className="space-y-3">
             <p className="text-xs font-medium text-[#c97a2a] uppercase tracking-wide">Services</p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-wrap gap-2">
               <a href="https://www.trevorjamesla.com" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm">
                   Intimacy Coaching
                 </Button>
               </a>
               <a href="https://www.mensbodyworkla.com" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm">
                   Massage
                 </Button>
               </a>
               <a href="https://www.drcuddlesla.com" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm">
                   Cuddling
                 </Button>
               </a>
               <a href="https://www.erosandessence.com" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm">
                   Sacred Intimacy
                 </Button>
               </a>
               <a href="https://www.menstravelretreats.com" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm">
                   Retreats
                 </Button>
               </a>
               <a href="https://trevorjamesla.substack.com" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm">
                   Substack
                 </Button>
               </a>
@@ -467,29 +467,29 @@ export default function JourneyPage() {
           {/* Social Media */}
           <div className="space-y-3">
             <p className="text-xs font-medium text-[#c97a2a] uppercase tracking-wide">Follow Trevor</p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-wrap gap-2">
               <a href="https://www.facebook.com/trevorjamesla" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm">
                   Facebook
                 </Button>
               </a>
               <a href="https://www.instagram.com/trevorjames_la" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm">
                   Instagram
                 </Button>
               </a>
               <a href="https://bsky.app/profile/trevorjamesla.bsky.social" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm">
                   Bluesky
                 </Button>
               </a>
               <a href="https://x.com/trevorjamesla" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm">
                   X
                 </Button>
               </a>
               <a href="https://www.tiktok.com/@trevorjameslax" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm">
                   TikTok
                 </Button>
               </a>
