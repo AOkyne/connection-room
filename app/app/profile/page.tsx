@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { getProfile, updateProfile, type Profile } from "@/lib/data/profiles";
 import { getUserBadges } from "@/lib/data/badges";
+import { getSpaces } from "@/lib/data/spaces";
 import { waitForAuthReady } from "@/lib/supabase/auth-ready";
 import { getBadgeImage } from "@/lib/badge-icons";
 import { appConfig } from "@/lib/config";
@@ -46,7 +47,15 @@ export default function ProfilePage() {
         if (p?.id) {
           await waitForAuthReady(2000);
           try {
-            const badgesPromise = getUserBadges(p.id, p);
+            // Load spaces to pass to getUserBadges (same as home/journey pages)
+            let spaces: any[] = [];
+            try {
+              spaces = await getSpaces();
+            } catch (err) {
+              console.warn("Could not load spaces for badges");
+            }
+
+            const badgesPromise = getUserBadges(p.id, p, spaces);
             const timeoutPromise = new Promise((_, reject) =>
               setTimeout(() => reject(new Error("Timeout")), 3000)
             );
