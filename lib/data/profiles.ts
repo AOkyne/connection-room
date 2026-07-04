@@ -130,7 +130,22 @@ export async function getProfile(): Promise<Profile | null> {
 
   // Fall back to localStorage for demo mode
   const stored = localStorage.getItem(PROFILE_STORAGE_KEY);
-  return stored ? JSON.parse(stored) : null;
+  if (stored) {
+    return JSON.parse(stored);
+  }
+
+  // Final fallback: return a minimal demo profile so pages don't hang
+  return {
+    id: "demo-user-" + Date.now(),
+    firstName: "Guest",
+    lastName: "",
+    displayName: "Guest User",
+    memberType: "individual",
+    interests: [],
+    profilePhoto: "",
+    completedOnboarding: false,
+    joinedAt: new Date(),
+  };
 }
 
 // Save profile to Supabase (if authenticated) or localStorage
