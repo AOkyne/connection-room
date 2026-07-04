@@ -413,7 +413,7 @@ export default function ConnectionsPage() {
         {/* Preferences Card */}
         <Card>
           <CardHeader title="Your Preferences" icon={<IconForYou size={20} />} />
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-[#1a0f0a] mb-3">
                 How often would you like to connect?
@@ -437,7 +437,7 @@ export default function ConnectionsPage() {
               </div>
             </div>
 
-            <div className="border-t border-[#e8ddd2] pt-4">
+            <div>
               <label className="block text-sm font-medium text-[#1a0f0a] mb-3">
                 Preferred contact method
               </label>
