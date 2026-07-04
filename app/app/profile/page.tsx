@@ -245,79 +245,85 @@ export default function ProfilePage() {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader title="Connection Preferences" icon={<IconConnection size={20} />} />
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-[#1a1714] mb-2">
-              Comfort Level with Connections
-            </label>
-            <select
-              value={profile.connectionComfortLevel || "text-based"}
-              onChange={(e) => setProfile({ ...profile, connectionComfortLevel: e.target.value })}
-              className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
-            >
-              <option value="text-based">Text-based only</option>
-              <option value="voice-video">Voice/video okay</option>
-              <option value="local">Open to local/in-person if appropriate</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[#1a1714] mb-2">
-              Any boundaries or preferences?
-            </label>
-            <textarea
-              placeholder="Share any important preferences..."
-              value={profile.connectionBoundaries || ""}
-              onChange={(e) => setProfile({ ...profile, connectionBoundaries: e.target.value })}
-              rows={2}
-              className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
-            />
-          </div>
-        </div>
-      </Card>
-
-      {/* Badges Section */}
-      {/* Mobile: Simple List */}
-      <div className="md:hidden">
-        <Card className="border-2 border-[#d4a348]">
-          <h3 className="text-lg font-bold text-[#d4a348] mb-4">🏆 Achievements {badges.length > 0 && `(${badges.length})`}</h3>
-          {badges.length > 0 ? (
-            <div className="space-y-2">
-              {badges.map((badge) => (
-                <div key={badge.id} className="flex items-center gap-3 p-3 bg-[#f3ede5] rounded">
-                  <img src={getBadgeImage(badge.id)} alt={badge.name} className="w-10 h-10 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#1a0f0a]">{badge.name}</p>
-                    <p className="text-xs text-[#a0704a]">{badge.description}</p>
-                  </div>
-                </div>
-              ))}
+      {/* Connection Preferences and Achievements Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Connection Preferences - 1/3 width */}
+        <Card>
+          <CardHeader title="Connection Preferences" icon={<IconConnection size={20} />} />
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-[#1a1714] mb-2">
+                Comfort Level with Connections
+              </label>
+              <select
+                value={profile.connectionComfortLevel || "text-based"}
+                onChange={(e) => setProfile({ ...profile, connectionComfortLevel: e.target.value })}
+                className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
+              >
+                <option value="text-based">Text-based only</option>
+                <option value="voice-video">Voice/video okay</option>
+                <option value="local">Open to local/in-person if appropriate</option>
+              </select>
             </div>
-          ) : (
-            <p className="text-sm text-[#a0704a]">No badges earned yet. Start participating!</p>
-          )}
-        </Card>
-      </div>
 
-      {/* Desktop: Grid - matches home page style */}
-      {badges.length > 0 && (
-        <div className="hidden md:block">
-          <h3 className="text-lg font-bold text-[#d4a348] mb-3">🏆 Your Achievements</h3>
-          <div className="grid grid-cols-4 lg:grid-cols-5 gap-0">
-            {badges.map((badge) => (
-              <img
-                key={badge.id}
-                src={getBadgeImage(badge.id)}
-                alt={badge.name}
-                title={`${badge.name}: ${badge.description}`}
-                className="w-48 h-48 object-contain cursor-pointer hover:scale-110 transition-transform drop-shadow -m-6"
+            <div>
+              <label className="block text-sm font-medium text-[#1a1714] mb-2">
+                Any boundaries or preferences?
+              </label>
+              <textarea
+                placeholder="Share any important preferences..."
+                value={profile.connectionBoundaries || ""}
+                onChange={(e) => setProfile({ ...profile, connectionBoundaries: e.target.value })}
+                rows={2}
+                className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
               />
-            ))}
+            </div>
           </div>
+        </Card>
+
+        {/* Achievements - 2/3 width */}
+        <div className="md:col-span-2">
+          {/* Mobile: Simple List */}
+          <div className="md:hidden">
+            <Card className="border-2 border-[#d4a348]">
+              <h3 className="text-lg font-bold text-[#d4a348] mb-4">🏆 Achievements {badges.length > 0 && `(${badges.length})`}</h3>
+              {badges.length > 0 ? (
+                <div className="space-y-2">
+                  {badges.map((badge) => (
+                    <div key={badge.id} className="flex items-center gap-3 p-3 bg-[#f3ede5] rounded">
+                      <img src={getBadgeImage(badge.id)} alt={badge.name} className="w-10 h-10 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[#1a0f0a]">{badge.name}</p>
+                        <p className="text-xs text-[#a0704a]">{badge.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-[#a0704a]">No badges earned yet. Start participating!</p>
+              )}
+            </Card>
+          </div>
+
+          {/* Desktop: Grid - matches home page style */}
+          {badges.length > 0 && (
+            <div className="hidden md:block">
+              <h3 className="text-lg font-bold text-[#d4a348] mb-3">🏆 Your Achievements</h3>
+              <div className="grid grid-cols-4 lg:grid-cols-5 gap-0">
+                {badges.map((badge) => (
+                  <img
+                    key={badge.id}
+                    src={getBadgeImage(badge.id)}
+                    alt={badge.name}
+                    title={`${badge.name}: ${badge.description}`}
+                    className="w-48 h-48 object-contain cursor-pointer hover:scale-110 transition-transform drop-shadow -m-6"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       <Button variant="primary" size="lg" onClick={handleSave}>
         Save Profile
