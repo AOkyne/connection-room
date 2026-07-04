@@ -462,8 +462,8 @@ export default function ConnectionsPage() {
           </div>
         </Card>
 
-        {/* Current Connection */}
-        {currentConnection && (
+        {/* Current Connection or Random Connection Card */}
+        {currentConnection ? (
         <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-2 border-[#d4a348]">
           <CardHeader title="Your Connection This Week" icon={<IconConnection size={20} />} />
           <div className="space-y-4">
@@ -596,11 +596,7 @@ export default function ConnectionsPage() {
             </div>
           </div>
         </Card>
-        )}
-      </div>
-
-      {/* When no current connection */}
-      {!currentConnection && (
+        ) : (
         <Card className="text-center py-8">
           <p className="text-[#1a0f0a] mb-4">No active connection right now.</p>
           {preferences.frequency !== "pause" ? (
@@ -618,7 +614,8 @@ export default function ConnectionsPage() {
             <p className="text-sm text-[#a0704a]">Connections are paused. Update your preferences to be paired.</p>
           )}
         </Card>
-      )}
+        )}
+      </div>
 
       {/* Info Section */}
       <Card className="bg-[#f3ede5]">
