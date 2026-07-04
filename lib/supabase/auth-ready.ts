@@ -1,37 +1,44 @@
 import { supabase } from "./client";
 
-let authStateInitialized = false;
+let authSessionReady = false;
 
 // Initialize auth state listener on module load
 if (typeof window !== "undefined" && supabase) {
+  // Wait for initial session to load from localStorage
+  supabase.auth.getSession().then(() => {
+    authSessionReady = true;
+  });
+
   supabase.auth.onAuthStateChange((event, session) => {
-    authStateInitialized = true;
+    authSessionReady = true;
   });
 }
 
 /**
- * Wait for Supabase auth state to be initialized
- * Listens for the first auth state change event (which fires on app init)
+ * Wait for Supabase auth session to be ready
+ * Ensures session has been loaded from localStorage before making queries
  */
 export async function waitForAuthReady(maxWaitMs: number = 3000): Promise<boolean> {
   if (!supabase) return false;
-  if (authStateInitialized) return true;
+  if (authSessionReady) return true;
 
   return new Promise((resolve) => {
-    const timeout = setTimeout(() => {
-      resolve(authStateInitialized);
-    }, maxWaitMs);
+    const startTime = Date.now();
+    const checkReady = () => {
+      if (authSessionReady) {
+        resolve(true);
+        return;
+      }
 
-    if (!supabase) {
-      resolve(false);
-      return;
-    }
+      if (Date.now() - startTime > maxWaitMs) {
+        resolve(authSessionReady);
+        return;
+      }
 
-    const subscription = supabase.auth.onAuthStateChange(() => {
-      authStateInitialized = true;
-      clearTimeout(timeout);
-      subscription?.data?.subscription?.unsubscribe();
-      resolve(true);
-    });
+      // Check again in 50ms
+      setTimeout(checkReady, 50);
+    };
+
+    checkReady();
   });
 }
