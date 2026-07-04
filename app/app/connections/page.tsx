@@ -286,6 +286,11 @@ export default function ConnectionsPage() {
         <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-[#d4a348]">
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-[#1a0f0a]">What are Connections?</h3>
+            <div className="bg-[#c97a2a]/10 border border-[#c97a2a] rounded-lg p-3">
+              <p className="text-sm font-medium text-[#c97a2a]">
+                This is not a dating platform. Connections are structured conversations focused on authentic relating, deeper self-understanding, and practicing vulnerability in a safe space.
+              </p>
+            </div>
             <p className="text-sm text-[#1a0f0a] leading-relaxed">
               A connection is a one-on-one, 20-minute structured conversation with another member. You'll respond to a shared prompt and practice authentic relating in a safe, contained format. It's designed to deepen your understanding of how you connect.
             </p>
@@ -300,7 +305,7 @@ export default function ConnectionsPage() {
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-medium text-[#c97a2a] uppercase">Why</p>
-                <p className="text-sm text-[#1a0f0a]">Practice connection in real time</p>
+                <p className="text-sm text-[#1a0f0a]">Practice authentic connection in real time</p>
               </div>
             </div>
           </div>
