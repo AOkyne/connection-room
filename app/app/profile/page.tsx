@@ -43,25 +43,19 @@ export default function ProfilePage() {
         setProfile(p);
 
         // Load user badges with auth ready check
-        await waitForAuthReady(2000);
-        try {
-          // Get the actual authenticated user ID instead of using profile ID
-          const { data: { session } } = await supabase.auth.getSession();
-          const authUserId = session?.user?.id;
-
-          if (authUserId) {
-            const badgesPromise = getUserBadges(authUserId, p);
+        if (p?.id) {
+          await waitForAuthReady(2000);
+          try {
+            const badgesPromise = getUserBadges(p.id, p);
             const timeoutPromise = new Promise((_, reject) =>
               setTimeout(() => reject(new Error("Timeout")), 3000)
             );
             const userBadges = await Promise.race([badgesPromise, timeoutPromise]);
             setBadges(userBadges as any[]);
-          } else {
+          } catch (err) {
+            console.warn("Badge loading timed out or failed");
             setBadges([]);
           }
-        } catch (err) {
-          console.warn("Badge loading timed out or failed:", err);
-          setBadges([]);
         }
       } catch (err) {
         console.error("Error loading profile:", err);
