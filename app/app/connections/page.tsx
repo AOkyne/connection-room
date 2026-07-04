@@ -29,6 +29,7 @@ import { findMatches } from "@/lib/matching";
 import { SuggestedConnections } from "@/components/connections/SuggestedConnections";
 import { IncomingRequests } from "@/components/connections/IncomingRequests";
 import { ConnectionProfileModal } from "@/components/connections/ConnectionProfileModal";
+import { ConnectionChat } from "@/components/connections/ConnectionChat";
 import {
   getIncomingRequests,
   acceptConnectionRequest,
@@ -50,6 +51,8 @@ export default function ConnectionsPage() {
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [connectionHistory, setConnectionHistory] = useState<any[]>([]);
+  const [acceptedConnections, setAcceptedConnections] = useState<ConnectionRequest[]>([]);
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -162,6 +165,10 @@ export default function ConnectionsPage() {
       // Accept the request
       const accepted = acceptConnectionRequest(requestId, profile.id);
       if (accepted) {
+        // Add to accepted connections for chat
+        setAcceptedConnections([...acceptedConnections, { ...request, status: "accepted" }]);
+        setSelectedChatId(requestId); // Open chat immediately
+
         // Create confirmed connection
         const connection: any = {
           id: `connection-${Date.now()}`,
@@ -326,6 +333,51 @@ export default function ConnectionsPage() {
               .map((p) => [p.id, p])
           )}
         />
+      )}
+
+      {/* Active Conversations */}
+      {acceptedConnections.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold text-[#1a0f0a]">Active Conversations</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {acceptedConnections.map((connection) => (
+              <div key={connection.id} className="space-y-3">
+                {selectedChatId === connection.id ? (
+                  <ConnectionChat
+                    connectionId={connection.id}
+                    partnerId={connection.fromUserId}
+                    partnerName={connection.fromUserName}
+                    userId={profile.id}
+                    userName={profile.displayName}
+                  />
+                ) : (
+                  <Card className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      {connection.fromUserPhoto && (
+                        <img
+                          src={connection.fromUserPhoto}
+                          alt={connection.fromUserName}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-[#1a0f0a]">{connection.fromUserName}</h3>
+                        <p className="text-xs text-[#a0704a]">Accepted • Ready to chat</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="primary"
+                      onClick={() => setSelectedChatId(connection.id)}
+                      className="w-full"
+                    >
+                      Open Chat
+                    </Button>
+                  </Card>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Suggested Connections (when no active connection) */}

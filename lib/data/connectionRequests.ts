@@ -8,6 +8,8 @@ export interface ConnectionRequest {
   toUserId: string;
   createdAt: Date;
   status: "pending" | "accepted" | "declined";
+  fromUserInterests?: string[];
+  sharedPrompt?: string;
 }
 
 const REQUESTS_STORAGE_KEY = "connection-room:connection-requests";
