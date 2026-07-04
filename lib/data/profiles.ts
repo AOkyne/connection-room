@@ -143,7 +143,7 @@ export async function getProfile(): Promise<Profile | null> {
     memberType: "individual",
     interests: [],
     profilePhoto: "",
-    completedOnboarding: false,
+    completedOnboarding: true,
     joinedAt: new Date(),
   };
 }
