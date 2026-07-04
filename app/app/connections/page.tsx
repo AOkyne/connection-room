@@ -35,6 +35,7 @@ import {
   acceptConnectionRequest,
   declineConnectionRequest,
   sendConnectionRequest,
+  getAcceptedConnections,
   type ConnectionRequest,
 } from "@/lib/data/connectionRequests";
 
@@ -69,6 +70,10 @@ export default function ConnectionsPage() {
         // Load incoming requests
         const requests = getIncomingRequests(p.id);
         setIncomingRequests(requests);
+
+        // Load accepted connections (active chats)
+        const accepted = getAcceptedConnections(p.id);
+        setAcceptedConnections(accepted);
 
         // Load connection history
         const history = getConnectionHistory(p.id);

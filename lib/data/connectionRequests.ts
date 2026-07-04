@@ -59,6 +59,15 @@ export function getSentRequests(fromUserId: string): ConnectionRequest[] {
   );
 }
 
+export function getAcceptedConnections(userId: string): ConnectionRequest[] {
+  if (typeof window === "undefined") return [];
+
+  const allRequests = getAllRequests();
+  return allRequests.filter(
+    (r) => (r.toUserId === userId || r.fromUserId === userId) && r.status === "accepted"
+  );
+}
+
 export function acceptConnectionRequest(
   requestId: string,
   userId: string
