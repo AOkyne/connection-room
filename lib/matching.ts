@@ -23,14 +23,27 @@ export async function findMatches(
       return [];
     }
 
-    // Get all profiles except the current user
-    const { data: profiles, error } = await supabase
+    // Get all profiles except the current user with 3-second timeout
+    const profilesPromise = supabase
       .from("profiles")
       .select("*")
       .neq("id", userProfile.id);
 
-    if (error || !profiles) {
-      console.error("Error fetching profiles:", error);
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("Profile fetch timeout")), 3000)
+    );
+
+    let profiles;
+    try {
+      const result = await Promise.race([profilesPromise, timeoutPromise]);
+      const { data, error } = result as any;
+      if (error || !data) {
+        console.error("Error fetching profiles:", error);
+        return [];
+      }
+      profiles = data;
+    } catch (timeoutErr) {
+      console.warn("Profile fetch timed out, using empty matches");
       return [];
     }
 
