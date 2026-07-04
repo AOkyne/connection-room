@@ -406,53 +406,53 @@ export default function ConnectionsPage() {
 
         <Card>
           <CardHeader title="Your Preferences" icon={<IconForYou size={20} />} />
-          <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-[#1a0f0a] mb-3">
-              How often would you like to connect?
-            </label>
-            <div className="space-y-2">
-              {[
-                { id: "weekly", label: "connect me this week" },
-                { id: "monthly", label: "connect me monthly" },
-                { id: "pause", label: "Not at this time" },
-              ].map((option) => (
-                <label key={option.id} className="flex items-center gap-3 p-3 hover:bg-[#f3ede5] rounded cursor-pointer">
-                  <input
-                    type="radio"
-                    checked={preferences.frequency === option.id}
-                    onChange={() => handleFrequencyChange(option.id)}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-[#1a0f0a]">{option.label}</span>
-                </label>
-              ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-[#1a0f0a] mb-3">
+                How often would you like to connect?
+              </label>
+              <div className="space-y-2">
+                {[
+                  { id: "weekly", label: "connect me this week" },
+                  { id: "monthly", label: "connect me monthly" },
+                  { id: "pause", label: "Not at this time" },
+                ].map((option) => (
+                  <label key={option.id} className="flex items-center gap-3 p-3 hover:bg-[#f3ede5] rounded cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={preferences.frequency === option.id}
+                      onChange={() => handleFrequencyChange(option.id)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-[#1a0f0a]">{option.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="border-t border-[#e8ddd2] pt-4">
-            <label className="block text-sm font-medium text-[#1a0f0a] mb-3">
-              Preferred contact method
-            </label>
-            <div className="space-y-2">
-              {[
-                { id: "text", label: "Text-based only" },
-                { id: "voice-video", label: "Voice or video call" },
-                { id: "local", label: "Open to local/in-person if appropriate" },
-              ].map((option) => (
-                <label key={option.id} className="flex items-center gap-3 p-3 hover:bg-[#f3ede5] rounded cursor-pointer">
-                  <input
-                    type="radio"
-                    checked={preferences.contactMode === option.id}
-                    onChange={() => handleContactModeChange(option.id)}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-[#1a0f0a]">{option.label}</span>
-                </label>
-              ))}
+            <div>
+              <label className="block text-sm font-medium text-[#1a0f0a] mb-3">
+                Preferred contact method
+              </label>
+              <div className="space-y-2">
+                {[
+                  { id: "text", label: "Text-based only" },
+                  { id: "voice-video", label: "Voice or video call" },
+                  { id: "local", label: "Open to local/in-person if appropriate" },
+                ].map((option) => (
+                  <label key={option.id} className="flex items-center gap-3 p-3 hover:bg-[#f3ede5] rounded cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={preferences.contactMode === option.id}
+                      onChange={() => handleContactModeChange(option.id)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-[#1a0f0a]">{option.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
       </Card>
       </div>
 
