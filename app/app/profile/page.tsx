@@ -312,7 +312,7 @@ export default function ProfilePage() {
                 src={getBadgeImage(badge.id)}
                 alt={badge.name}
                 title={`${badge.name}: ${badge.description}`}
-                className="w-48 h-48 object-contain cursor-pointer hover:scale-110 transition-transform drop-shadow -m-2"
+                className="w-48 h-48 object-contain cursor-pointer hover:scale-110 transition-transform drop-shadow -m-6"
               />
             ))}
           </div>
