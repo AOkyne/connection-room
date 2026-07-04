@@ -23,6 +23,7 @@ import { LoadingError } from "@/components/LoadingError";
 import { SkeletonCard, SkeletonGrid } from "@/components/Skeleton";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { withTimeout } from "@/lib/utils/with-timeout";
+import { waitForAuthReady } from "@/lib/supabase/auth-ready";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -77,30 +78,24 @@ export default function JourneyPage() {
 
         // SECONDARY: Load non-critical data in background (don't block page render)
         if (p) {
-          Promise.all([
-            getUserBadges(p.id, p, s).catch(err => {
-              console.warn("Warning: Could not load badges (using fallback)");
-              return [];
-            }),
-            Promise.resolve(getUserEventInterestsList(p.id)).catch(err => {
-              console.warn("Warning: Could not load events (using fallback)");
-              return [];
-            }),
-            getUserEngagementStats(p.id).catch(err => {
-              console.warn("Warning: Could not load engagement stats (using fallback)");
-              return { postsShared: 0, responsesReceived: 0, commentsOffered: 0 };
-            })
-          ]).then(([b, events, engagement]) => {
-            setBadges(b || []);
-            setInterestedEvents(events || []);
-            setEngagementStats(engagement || { postsShared: 0, responsesReceived: 0, commentsOffered: 0 });
-            setStatsLoading(false); // Stats loaded - show real data instead of skeleton
-          }).catch(err => {
-            console.warn("Warning: Error loading profile-dependent data (using fallbacks)");
-            setBadges([]);
-            setInterestedEvents([]);
-            setEngagementStats({ postsShared: 0, responsesReceived: 0, commentsOffered: 0 });
-            setStatsLoading(false); // Even on error, stop showing skeleton
+          // Wait for auth session to be initialized before querying protected tables
+          waitForAuthReady(2000).then(() => {
+            Promise.allSettled([
+              withTimeout(getUserBadges(p.id, p, s), 5000, []),
+              Promise.resolve(getUserEventInterestsList(p.id)).catch(err => {
+                console.warn("Warning: Could not load events (using fallback)");
+                return [];
+              }),
+              getUserEngagementStats(p.id).catch(err => {
+                console.warn("Warning: Could not load engagement stats (using fallback)");
+                return { postsShared: 0, responsesReceived: 0, commentsOffered: 0 };
+              })
+            ]).then((results) => {
+              if (results[0].status === "fulfilled") setBadges(results[0].value);
+              if (results[1].status === "fulfilled") setInterestedEvents(results[1].value);
+              if (results[2].status === "fulfilled") setEngagementStats(results[2].value);
+              setStatsLoading(false);
+            });
           });
         }
       } catch (err) {
