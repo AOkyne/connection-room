@@ -426,28 +426,40 @@ export default function JourneyPage() {
       {/* Ecosystem Section */}
       <Card className="bg-[#f3ede5]">
         <CardHeader title="Explore the Trevor James Ecosystem" icon={<IconIntegration size={20} />} />
-        <div className="space-y-6 text-sm">
+        <div className="space-y-6">
           {/* Services */}
           <div className="space-y-3">
             <p className="text-xs font-medium text-[#c97a2a] uppercase tracking-wide">Services</p>
-            <div className="space-y-2">
-              <a href="https://www.trevorjamesla.com" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
-                💼 Intimacy Coaching
+            <div className="grid grid-cols-2 gap-3">
+              <a href="https://www.trevorjamesla.com" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm" className="w-full">
+                  Intimacy Coaching
+                </Button>
               </a>
-              <a href="https://www.mensbodyworkla.com" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
-                🤲 Massage
+              <a href="https://www.mensbodyworkla.com" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm" className="w-full">
+                  Massage
+                </Button>
               </a>
-              <a href="https://www.drcuddlesla.com" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
-                🤗 Cuddling
+              <a href="https://www.drcuddlesla.com" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm" className="w-full">
+                  Cuddling
+                </Button>
               </a>
-              <a href="https://www.erosandessence.com" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
-                ✨ Sacred Intimacy
+              <a href="https://www.erosandessence.com" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm" className="w-full">
+                  Sacred Intimacy
+                </Button>
               </a>
-              <a href="https://www.menstravelretreats.com" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
-                🏔️ Retreats
+              <a href="https://www.menstravelretreats.com" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm" className="w-full">
+                  Retreats
+                </Button>
               </a>
-              <a href="https://trevorjamesla.substack.com" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
-                📝 Substack
+              <a href="https://trevorjamesla.substack.com" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm" className="w-full">
+                  Substack
+                </Button>
               </a>
             </div>
           </div>
@@ -455,21 +467,31 @@ export default function JourneyPage() {
           {/* Social Media */}
           <div className="space-y-3">
             <p className="text-xs font-medium text-[#c97a2a] uppercase tracking-wide">Follow Trevor</p>
-            <div className="space-y-2">
-              <a href="https://www.facebook.com/trevorjamesla" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
-                f Facebook
+            <div className="grid grid-cols-2 gap-3">
+              <a href="https://www.facebook.com/trevorjamesla" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm" className="w-full">
+                  Facebook
+                </Button>
               </a>
-              <a href="https://www.instagram.com/trevorjames_la" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
-                📷 Instagram
+              <a href="https://www.instagram.com/trevorjames_la" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm" className="w-full">
+                  Instagram
+                </Button>
               </a>
-              <a href="https://bsky.app/profile/trevorjamesla.bsky.social" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
-                🦋 Bluesky
+              <a href="https://bsky.app/profile/trevorjamesla.bsky.social" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm" className="w-full">
+                  Bluesky
+                </Button>
               </a>
-              <a href="https://x.com/trevorjamesla" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
-                𝕏 X
+              <a href="https://x.com/trevorjamesla" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm" className="w-full">
+                  X
+                </Button>
               </a>
-              <a href="https://www.tiktok.com/@trevorjameslax" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
-                🎵 TikTok
+              <a href="https://www.tiktok.com/@trevorjameslax" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm" className="w-full">
+                  TikTok
+                </Button>
               </a>
             </div>
           </div>
