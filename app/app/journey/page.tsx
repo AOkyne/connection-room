@@ -81,7 +81,10 @@ export default function JourneyPage() {
           // Wait for auth session to be initialized before querying protected tables
           waitForAuthReady(2000).then(() => {
             Promise.allSettled([
-              withTimeout(getUserBadges(p.id, p, s), 5000, []),
+              withTimeout(getUserBadges(p.id, p, s), 5000, []).catch(err => {
+                console.warn("Warning: Could not load badges (using fallback)", err);
+                return [];
+              }),
               Promise.resolve(getUserEventInterestsList(p.id)).catch(err => {
                 console.warn("Warning: Could not load events (using fallback)");
                 return [];
@@ -90,6 +93,24 @@ export default function JourneyPage() {
                 console.warn("Warning: Could not load engagement stats (using fallback)");
                 return { postsShared: 0, responsesReceived: 0, commentsOffered: 0 };
               })
+            ]).then((results) => {
+              if (results[0].status === "fulfilled") {
+                console.log("Badges loaded:", results[0].value);
+                setBadges(results[0].value);
+              } else {
+                console.warn("Badge load failed:", results[0].reason);
+              }
+              if (results[1].status === "fulfilled") setInterestedEvents(results[1].value);
+              if (results[2].status === "fulfilled") setEngagementStats(results[2].value);
+              setStatsLoading(false);
+            });
+          }).catch(err => {
+            console.warn("Auth ready check failed, loading badges anyway", err);
+            // If auth ready fails, still try to load badges
+            Promise.allSettled([
+              withTimeout(getUserBadges(p.id, p, s), 5000, []),
+              Promise.resolve(getUserEventInterestsList(p.id)).catch(() => []),
+              getUserEngagementStats(p.id).catch(() => ({ postsShared: 0, responsesReceived: 0, commentsOffered: 0 }))
             ]).then((results) => {
               if (results[0].status === "fulfilled") setBadges(results[0].value);
               if (results[1].status === "fulfilled") setInterestedEvents(results[1].value);

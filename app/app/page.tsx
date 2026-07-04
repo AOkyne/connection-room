@@ -101,6 +101,31 @@ export default function AppHome() {
           // Wait for auth session to be initialized before querying protected tables
           waitForAuthReady(2000).then(() => {
             Promise.allSettled([
+              withTimeout(getUserBadges(p.id, p, s), 5000, []).catch(err => {
+                console.warn("Warning: Could not load badges (using fallback)", err);
+                return [];
+              }),
+              withTimeout(getRecentReflections(5), 3000, []).catch(err => {
+                console.warn("Warning: Could not load reflections (using fallback)", err);
+                return [];
+              }),
+              Promise.resolve(getRelevantOffers(p)),
+              Promise.resolve(getSuggestedSpace()),
+            ]).then((results) => {
+              if (results[0].status === "fulfilled") {
+                console.log("Badges loaded:", results[0].value);
+                setBadges(results[0].value);
+              } else {
+                console.warn("Badge load failed:", results[0].reason);
+              }
+              if (results[1].status === "fulfilled") setRecentReflections(results[1].value);
+              if (results[2].status === "fulfilled") setOffers(results[2].value);
+              if (results[3].status === "fulfilled") setSuggestedSpace(results[3].value);
+            });
+          }).catch(err => {
+            console.warn("Auth ready check failed, loading badges anyway", err);
+            // If auth ready fails, still try to load badges
+            Promise.allSettled([
               withTimeout(getUserBadges(p.id, p, s), 5000, []),
               withTimeout(getRecentReflections(5), 3000, []),
               Promise.resolve(getRelevantOffers(p)),
