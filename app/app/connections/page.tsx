@@ -307,19 +307,6 @@ export default function ConnectionsPage() {
         </Card>
       </div>
 
-      {/* Demo Notice */}
-      <Card className="bg-[#fff3e0] border-2 border-[#d4a348]">
-        <div className="flex items-start gap-3">
-          <span className="text-xl">📋</span>
-          <div>
-            <p className="font-medium text-[#1a0f0a]">This is a demo experience</p>
-            <p className="text-sm text-[#1a0f0a] mt-1">
-              You can explore the preferences and see how connections work. Actual matching and messaging functionality will begin in Phase 2.
-            </p>
-          </div>
-        </div>
-      </Card>
-
       {/* Incoming Requests */}
       {incomingRequests.length > 0 && (
         <IncomingRequests
@@ -380,8 +367,8 @@ export default function ConnectionsPage() {
         </div>
       )}
 
-      {/* Suggested Connections (when no active connection) */}
-      {!currentConnection && suggestedMatches.length > 0 && (
+      {/* Suggested Connections */}
+      {suggestedMatches.length > 0 && (
         <div className="space-y-4">
           <div className="bg-[#f3ede5] rounded-lg p-4 border-l-4 border-[#d4a348]">
             <h3 className="text-base font-semibold text-[#1a0f0a] mb-2">Your Suggested Connections</h3>
