@@ -396,17 +396,19 @@ export default function ConnectionsPage() {
       )}
 
       {/* Preferences Section */}
-      <div className="space-y-4">
-        <div className="bg-[#f3ede5] rounded-lg p-4 border-l-4 border-[#c97a2a]">
-          <h3 className="text-base font-semibold text-[#1a0f0a] mb-2">Set Your Connection Preferences</h3>
-          <p className="text-sm text-[#1a0f0a]">
-            Help us match you with people who share your connection style. Your preferences guide how often you want to connect and how you prefer to communicate.
-          </p>
-        </div>
+      <div className="bg-[#f3ede5] rounded-lg p-4 border-l-4 border-[#c97a2a] mb-6">
+        <h3 className="text-base font-semibold text-[#1a0f0a] mb-2">Set Your Connection Preferences</h3>
+        <p className="text-sm text-[#1a0f0a]">
+          Help us match you with people who share your connection style. Your preferences guide how often you want to connect and how you prefer to communicate.
+        </p>
+      </div>
 
+      {/* Preferences and Current Connection Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {/* Preferences Card */}
         <Card>
           <CardHeader title="Your Preferences" icon={<IconForYou size={20} />} />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-[#1a0f0a] mb-3">
                 How often would you like to connect?
@@ -430,7 +432,7 @@ export default function ConnectionsPage() {
               </div>
             </div>
 
-            <div>
+            <div className="border-t border-[#e8ddd2] pt-4">
               <label className="block text-sm font-medium text-[#1a0f0a] mb-3">
                 Preferred contact method
               </label>
@@ -453,11 +455,10 @@ export default function ConnectionsPage() {
               </div>
             </div>
           </div>
-      </Card>
-      </div>
+        </Card>
 
-      {/* Current Connection */}
-      {currentConnection ? (
+        {/* Current Connection */}
+        {currentConnection && (
         <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-2 border-[#d4a348]">
           <CardHeader title="Your Connection This Week" icon={<IconConnection size={20} />} />
           <div className="space-y-4">
@@ -590,7 +591,11 @@ export default function ConnectionsPage() {
             </div>
           </div>
         </Card>
-      ) : (
+        )}
+      </div>
+
+      {/* When no current connection */}
+      {!currentConnection && (
         <Card className="text-center py-8">
           <p className="text-[#1a0f0a] mb-4">No active connection right now.</p>
           {preferences.frequency !== "pause" ? (
