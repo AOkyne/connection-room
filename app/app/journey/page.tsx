@@ -423,29 +423,55 @@ export default function JourneyPage() {
         </Card>
       )}
 
-      {/* Services Section */}
+      {/* Ecosystem Section */}
       <Card className="bg-[#f3ede5]">
-        <CardHeader title="Explore Trevor James Services" icon={<IconIntegration size={20} />} />
-        <div className="space-y-3 text-sm">
-          <p className="text-[#1a0f0a]">
-            Deepen your practice with personalized coaching, workshops, and more.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <Link href={appConfig.urls.freeConsult}>
-              <Button variant="secondary" size="sm">
-                Free Consultation
-              </Button>
-            </Link>
-            <Link href={appConfig.urls.couplesDiscoveryCall}>
-              <Button variant="outline" size="sm">
-                Couples Discovery Call
-              </Button>
-            </Link>
-            <Link href={appConfig.urls.mainWebsite}>
-              <Button variant="outline" size="sm">
-                Learn More
-              </Button>
-            </Link>
+        <CardHeader title="Explore the Trevor James Ecosystem" icon={<IconIntegration size={20} />} />
+        <div className="space-y-6 text-sm">
+          {/* Services */}
+          <div className="space-y-3">
+            <p className="text-xs font-medium text-[#c97a2a] uppercase tracking-wide">Services</p>
+            <div className="space-y-2">
+              <a href="https://www.trevorjamesla.com" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
+                💼 Intimacy Coaching
+              </a>
+              <a href="https://www.mensbodyworkla.com" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
+                🤲 Massage
+              </a>
+              <a href="https://www.drcuddlesla.com" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
+                🤗 Cuddling
+              </a>
+              <a href="https://www.erosandessence.com" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
+                ✨ Sacred Intimacy
+              </a>
+              <a href="https://www.menstravelretreats.com" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
+                🏔️ Retreats
+              </a>
+              <a href="https://trevorjamesla.substack.com" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
+                📝 Substack
+              </a>
+            </div>
+          </div>
+
+          {/* Social Media */}
+          <div className="space-y-3">
+            <p className="text-xs font-medium text-[#c97a2a] uppercase tracking-wide">Follow Trevor</p>
+            <div className="space-y-2">
+              <a href="https://www.facebook.com/trevorjamesla" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
+                f Facebook
+              </a>
+              <a href="https://www.instagram.com/trevorjames_la" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
+                📷 Instagram
+              </a>
+              <a href="https://bsky.app/profile/trevorjamesla.bsky.social" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
+                🦋 Bluesky
+              </a>
+              <a href="https://x.com/trevorjamesla" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
+                𝕏 X
+              </a>
+              <a href="https://www.tiktok.com/@trevorjameslax" target="_blank" rel="noopener noreferrer" className="block text-[#1a0f0a] hover:text-[#c97a2a] transition-colors">
+                🎵 TikTok
+              </a>
+            </div>
           </div>
         </div>
       </Card>
