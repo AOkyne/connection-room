@@ -24,6 +24,7 @@ export function InvitePanel({ isOpen, onClose }: InvitePanelProps) {
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [copied, setCopied] = useState<"link" | "message" | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -84,7 +85,8 @@ export function InvitePanel({ isOpen, onClose }: InvitePanelProps) {
   };
 
   const handleNativeShare = async () => {
-    if (!inviteLink || !navigator.share) return;
+    if (!inviteLink || !navigator.share || sharing) return;
+    setSharing(true);
     try {
       await navigator.share({
         title: "The Connection Room",
@@ -95,6 +97,8 @@ export function InvitePanel({ isOpen, onClose }: InvitePanelProps) {
       if ((err as Error).name !== "AbortError") {
         console.error("Share failed:", err);
       }
+    } finally {
+      setSharing(false);
     }
   };
 
@@ -211,14 +215,15 @@ export function InvitePanel({ isOpen, onClose }: InvitePanelProps) {
                   {typeof navigator !== "undefined" && "share" in navigator && (
                     <button
                       onClick={handleNativeShare}
-                      className="w-full px-4 py-2 rounded-lg font-medium"
+                      disabled={sharing}
+                      className="w-full px-4 py-2 rounded-lg font-medium disabled:opacity-50"
                       style={{
                         border: "1px solid #D9CDB8",
                         color: "#2C2417",
                         background: "#FDFBF6",
                       }}
                     >
-                      Share
+                      {sharing ? "Sharing..." : "Share"}
                     </button>
                   )}
 
