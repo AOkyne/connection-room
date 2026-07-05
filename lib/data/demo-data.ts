@@ -1408,6 +1408,13 @@ export const demoBadges: Badge[] = [
     icon: "🌉",
     color: "text-orange-600",
   },
+  {
+    id: "community-builder",
+    name: "Community Builder",
+    description: "You invited someone who joined The Connection Room",
+    icon: "🌱",
+    color: "text-green-600",
+  },
 ];
 
 export const demoEvents: Event[] = [

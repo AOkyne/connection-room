@@ -2,6 +2,7 @@
 // Supports magic link login and email/password fallback
 
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import { createInviteRelationship, getStoredInviteCode, clearStoredInviteCode } from "@/lib/data/invites";
 
 export interface AuthUser {
   id: string;
@@ -124,6 +125,18 @@ export async function signUpWithPassword(
         console.error("Profile insert error:", profileError);
       } else {
         console.log("Profile created successfully");
+
+        // Handle invite attribution if user came from an invite link
+        const inviteCode = typeof window !== "undefined" ? getStoredInviteCode() : null;
+        if (inviteCode) {
+          console.log("Creating invite relationship with code:", inviteCode);
+          try {
+            await createInviteRelationship(signUpData.user.id, inviteCode);
+            clearStoredInviteCode();
+          } catch (err) {
+            console.warn("Could not create invite relationship:", err);
+          }
+        }
       }
 
       // Auto-join user to default spaces by slug

@@ -7,6 +7,8 @@ import { getProfile } from "./profiles";
 import { getSpaces } from "./spaces";
 import { getPosts, getUserEngagementStats } from "./posts";
 import { getRecentReflections } from "./reflections";
+import { getInvitedFriendsCount } from "./invites";
+import { supabase } from "@/lib/supabase/client";
 
 // Milestone-based badges (earned through connection practice)
 const MILESTONE_BADGES: Record<string, Badge> = {
@@ -169,6 +171,23 @@ async function checkActivityBasedBadges(
       if (coupleSpaces.length > 0 && singleSpaces.length > 0) {
         const bridgeBuilder = demoBadges.find((b) => b.id === "bridge-builder");
         if (bridgeBuilder) earned.push(bridgeBuilder);
+      }
+    }
+
+    // Community Builder (Invite-based): invited someone who joined
+    if (supabase) {
+      try {
+        const invitedCount = await getInvitedFriendsCount();
+        if (invitedCount >= 1) {
+          // Only add if not already added from engagement stats
+          const alreadyHasBadge = earned.some((b) => b.id === "community-builder");
+          if (!alreadyHasBadge) {
+            const communityBuilder = demoBadges.find((b) => b.id === "community-builder");
+            if (communityBuilder) earned.push(communityBuilder);
+          }
+        }
+      } catch (err) {
+        console.warn("Error checking invite-based community builder badge:", err);
       }
     }
 

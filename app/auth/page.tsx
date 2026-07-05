@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
@@ -14,10 +14,12 @@ import {
   fallbackSignInWithPassword,
   fallbackSignUpWithPassword,
 } from "@/lib/auth/fallback";
+import { storeInviteCodeLocally, extractInviteCodeFromUrl } from "@/lib/utils/invite-code";
 import Link from "next/link";
 
 function BetaAuthContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authMode, setAuthMode] = useState<"password-signup" | "password-signin" | "admin">("password-signup");
@@ -28,6 +30,14 @@ function BetaAuthContent() {
   const [usingFallback, setUsingFallback] = useState(false);
 
   const ADMIN_SECRET = "connection2024";
+
+  // Capture invite code from URL
+  useEffect(() => {
+    const inviteCode = searchParams?.get("ref");
+    if (inviteCode) {
+      storeInviteCodeLocally(inviteCode);
+    }
+  }, [searchParams]);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();

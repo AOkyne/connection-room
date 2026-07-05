@@ -32,6 +32,8 @@ export interface Profile {
   show_general_location?: boolean;
   show_recent_posts?: boolean;
   is_demo_profile?: boolean;
+  inviteCode?: string;
+  invitedByProfileId?: string;
 }
 
 export interface CoupleProfile {

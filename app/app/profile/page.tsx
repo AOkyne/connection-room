@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getProfile, updateProfile, type Profile } from "@/lib/data/profiles";
+import { ensureInviteCode } from "@/lib/data/invites";
 import { getUserBadges } from "@/lib/data/badges";
 import { getSpaces } from "@/lib/data/spaces";
 import { waitForAuthReady } from "@/lib/supabase/auth-ready";
@@ -13,11 +14,14 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { IconIntegration, IconConnection, IconProfileNav, IconProfile, IconBadges } from "@/components/Icons";
 import { ProfileSavedFeedback } from "@/components/feedback";
+import { InvitePanel } from "@/components/invites/InvitePanel";
+import { FriendsInvited } from "@/components/invites/FriendsInvited";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileSavedFeedback, setProfileSavedFeedback] = useState(false);
   const [badges, setBadges] = useState<any[]>([]);
+  const [invitePanelOpen, setInvitePanelOpen] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -42,6 +46,15 @@ export default function ProfilePage() {
         }
 
         setProfile(p);
+
+        // Ensure invite code is generated
+        if (p?.id && p?.displayName) {
+          try {
+            await ensureInviteCode(p);
+          } catch (err) {
+            console.warn("Could not generate invite code:", err);
+          }
+        }
 
         // Load user badges with auth ready check
         if (p?.id) {
@@ -324,6 +337,33 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
+
+      {/* Invite Your Friends Section */}
+      <Card className="p-6 space-y-4" style={{ borderTop: "3px solid #D4A040" }}>
+        <h3 className="text-lg font-semibold" style={{ color: "#2C2417" }}>
+          Invite Your Friends
+        </h3>
+        <p style={{ color: "#4A3E33" }}>
+          Know someone who is tired of the apps, surface conversations, and the
+          usual pressure to perform? Invite people who would bring curiosity,
+          care, and a real desire for connection.
+        </p>
+        <Button
+          onClick={() => setInvitePanelOpen(true)}
+          style={{
+            background: "linear-gradient(135deg, #D4A040 0%, #A67C2A 100%)",
+            color: "#FFFDF8",
+          }}
+        >
+          Invite Your Friends
+        </Button>
+      </Card>
+
+      {/* Friends I've Invited Section */}
+      <FriendsInvited onOpenInvite={() => setInvitePanelOpen(true)} />
+
+      {/* Invite Panel Modal */}
+      <InvitePanel isOpen={invitePanelOpen} onClose={() => setInvitePanelOpen(false)} />
 
       <Button variant="primary" size="lg" onClick={handleSave}>
         Save Profile
