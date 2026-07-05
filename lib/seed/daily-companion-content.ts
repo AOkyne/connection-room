@@ -253,7 +253,7 @@ export const reflectionPrompts = [
 ];
 
 export const embodimentPractices = [
-  { index: 0, content: "Place one hand on your chest and say quietly, \"This is where I begin.\" Breathe slowly for one minute." },
+  { index: 0, practice: "Place one hand on your chest and say quietly, \"This is where I begin.\" Breathe slowly for one minute." },
   { index: 1, content: "Look around and name five things you see, four you feel, three you hear, two you smell, one you taste." },
   { index: 2, content: "Stand with feet hip-width apart and imagine a warm circle of space around you." },
   { index: 3, content: "Put one hand on your throat and hum softly for five breaths." },
