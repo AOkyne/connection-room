@@ -133,7 +133,10 @@ export function BugReportWidget() {
           >
             {/* Modal */}
             <div
-              className="bug-report-modal bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-y-auto mb-20 md:mb-0"
+              className="bug-report-modal bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-y-auto"
+              style={{
+                transform: 'translateY(-100px)',
+              }}
               onClick={(e) => e.stopPropagation()}
             >
             {/* Header */}
