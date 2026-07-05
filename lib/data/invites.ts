@@ -46,21 +46,44 @@ export async function ensureInviteCode(profile: Profile): Promise<string | null>
  * Get invite code for current user
  */
 export async function getMyInviteCode(): Promise<string | null> {
-  if (!supabase) return null;
-
   try {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session?.user?.id) return null;
+    // Try Supabase first
+    if (supabase) {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        try {
+          const { data } = await supabase
+            .from("profiles")
+            .select("invite_code")
+            .eq("user_id", session.user.id)
+            .single();
 
-    const { data } = await supabase
-      .from("profiles")
-      .select("invite_code")
-      .eq("user_id", session.user.id)
-      .single();
+          if (data?.invite_code) {
+            return data.invite_code;
+          }
+        } catch (err) {
+          console.warn("Supabase invite code query failed, trying fallback:", err);
+          // Fall through to demo mode
+        }
+      }
+    }
 
-    return data?.invite_code || null;
+    // Demo/fallback mode: generate and store in localStorage
+    if (typeof window !== "undefined") {
+      const storedCode = localStorage.getItem("connection-room:demo-invite-code");
+      if (storedCode) {
+        return storedCode;
+      }
+
+      // Generate a demo code
+      const demoCode = generateInviteCode("Demo User");
+      localStorage.setItem("connection-room:demo-invite-code", demoCode);
+      return demoCode;
+    }
+
+    return null;
   } catch (err) {
     console.warn("Error getting invite code:", err);
     return null;
