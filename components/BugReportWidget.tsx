@@ -128,7 +128,7 @@ export function BugReportWidget() {
             }
           `}</style>
           <div
-            className="bug-report-overlay fixed inset-0 bg-black/30 flex items-end md:items-center justify-center"
+            className="bug-report-overlay fixed inset-0 bg-black/30 flex items-end md:items-center justify-center pb-20 md:pb-0"
             onClick={() => !isSubmitting && setIsOpen(false)}
           >
             {/* Modal */}
