@@ -23,6 +23,7 @@ import { ReflectionsFromRoomCard } from "@/components/connection/ReflectionsFrom
 import { DailyCompanionDashboard } from "@/components/daily-companion/DailyCompanionDashboard";
 import { ContinueWhereYouLeftOff } from "@/components/daily-companion/ContinueWhereYouLeftOff";
 import { CommunityMembersGrid } from "@/components/community/CommunityMembersGrid";
+import { InvitePanel } from "@/components/invites/InvitePanel";
 import { sortSpacesByPreference } from "@/lib/data/spaces";
 import { LoadingError } from "@/components/LoadingError";
 import { withTimeout } from "@/lib/utils/with-timeout";
@@ -50,6 +51,7 @@ export default function AppHome() {
   const [submitting, setSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadTimeout, setLoadTimeout] = useState(false);
+  const [invitePanelOpen, setInvitePanelOpen] = useState(false);
 
   useEffect(() => {
     // Initialize daily companion content on first mount
@@ -236,8 +238,34 @@ export default function AppHome() {
       <div className="space-y-6">
         <h3 className="text-lg font-semibold text-[#1a0f0a]">Your Community</h3>
 
-        {/* Community Members Grid */}
-        <CommunityMembersGrid />
+        {/* Community Members Grid + Invite Card Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Community Members - Left Column */}
+          <div>
+            <CommunityMembersGrid />
+          </div>
+
+          {/* Know Someone Who Belongs Here - Right Column */}
+          <Card className="flex flex-col justify-center">
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-[#1a0f0a]">
+                Know someone who belongs here?
+              </h4>
+              <p className="text-sm text-[#4A3E33]">
+                Invite a friend who is looking for more honest connection, community, and real conversation.
+              </p>
+              <Button
+                onClick={() => setInvitePanelOpen(true)}
+                style={{
+                  background: "linear-gradient(135deg, #D4A040 0%, #A67C2A 100%)",
+                  color: "#FFFDF8",
+                }}
+              >
+                Invite a Friend
+              </Button>
+            </div>
+          </Card>
+        </div>
 
         {/* Your Spaces - if user has joined any */}
         {joinedSpacesCount > 0 && (
@@ -320,6 +348,9 @@ export default function AppHome() {
 
 
       </div>
+
+      {/* Invite Panel Modal */}
+      <InvitePanel isOpen={invitePanelOpen} onClose={() => setInvitePanelOpen(false)} />
     </div>
   );
 }
