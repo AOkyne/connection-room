@@ -99,7 +99,7 @@ export function BugReportWidget() {
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
+        className="fixed bottom-24 md:bottom-6 right-6 z-40 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
         style={{
           background: "linear-gradient(135deg, #D4A040 0%, #A67C2A 100%)",
           color: "#FFFDF8",
