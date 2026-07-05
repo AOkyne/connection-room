@@ -22,6 +22,10 @@ export default function ProfilePage() {
   const [profileSavedFeedback, setProfileSavedFeedback] = useState(false);
   const [badges, setBadges] = useState<any[]>([]);
   const [invitePanelOpen, setInvitePanelOpen] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+
+  const MAX_PHOTO_SIZE_MB = 5;
+  const MAX_PHOTO_SIZE_BYTES = MAX_PHOTO_SIZE_MB * 1024 * 1024;
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -125,6 +129,19 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file || !profile) return;
 
+    // Validate file size
+    if (file.size > MAX_PHOTO_SIZE_BYTES) {
+      setPhotoError(`Photo is too large. Max size is ${MAX_PHOTO_SIZE_MB}MB (your file is ${(file.size / 1024 / 1024).toFixed(1)}MB)`);
+      return;
+    }
+
+    // Validate file type
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+      setPhotoError('Photo must be JPG, PNG, or GIF');
+      return;
+    }
+
+    setPhotoError(null);
     const reader = new FileReader();
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
@@ -184,6 +201,11 @@ export default function ProfilePage() {
                   <p className="text-xs text-[#8b6f47] mt-2">
                     Choose a JPG, PNG, or GIF (max 5MB)
                   </p>
+                  {photoError && (
+                    <p className="text-xs text-red-600 mt-2 font-medium">
+                      ❌ {photoError}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

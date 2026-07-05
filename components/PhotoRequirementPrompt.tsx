@@ -15,12 +15,29 @@ export function PhotoRequirementPrompt({
 }: PhotoRequirementPromptProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+
+  const MAX_PHOTO_SIZE_MB = 5;
+  const MAX_PHOTO_SIZE_BYTES = MAX_PHOTO_SIZE_MB * 1024 * 1024;
 
   if (profile.profilePhoto || profile.photo_confirmed || !isOpen) {
     return null;
   }
 
   const handlePhotoUpload = async (file: File) => {
+    // Validate file size
+    if (file.size > MAX_PHOTO_SIZE_BYTES) {
+      setPhotoError(`Photo is too large. Max size is ${MAX_PHOTO_SIZE_MB}MB (your file is ${(file.size / 1024 / 1024).toFixed(1)}MB)`);
+      return;
+    }
+
+    // Validate file type
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+      setPhotoError('Photo must be JPG, PNG, or GIF');
+      return;
+    }
+
+    setPhotoError(null);
     setUploading(true);
     try {
       const reader = new FileReader();
@@ -82,6 +99,11 @@ export function PhotoRequirementPrompt({
                 </p>
               </label>
             </div>
+            {photoError && (
+              <p className="text-xs text-red-600 mt-2 font-medium text-center">
+                ❌ {photoError}
+              </p>
+            )}
           </label>
         </div>
 
