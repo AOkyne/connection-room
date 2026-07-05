@@ -119,20 +119,26 @@ export async function getInvitedFriends(): Promise<Profile[]> {
     if (!profiles) return [];
 
     // Transform to Profile interface
-    return profiles.map((p: any) => ({
-      id: p.user_id,
-      displayName: p.display_name,
-      pronouns: p.pronouns,
-      profilePhoto: p.profile_photo,
-      profile_tagline: p.profile_tagline,
-      memberType: "individual",
-      interests: [],
-      completedOnboarding: true,
-      spacesJoined: [],
-      joinedAt: new Date(p.created_at),
-      profile_visibility: p.profile_visibility,
-      show_in_member_lists: p.show_in_member_lists,
-    }));
+    return profiles.map((p: any) => {
+      const displayName = p.display_name || "";
+      const nameParts = displayName.split(" ");
+      return {
+        id: p.user_id,
+        firstName: nameParts[0] || "",
+        lastName: nameParts.slice(1).join(" ") || "",
+        displayName: p.display_name,
+        pronouns: p.pronouns,
+        profilePhoto: p.profile_photo,
+        profile_tagline: p.profile_tagline,
+        memberType: "individual",
+        interests: [],
+        completedOnboarding: true,
+        spacesJoined: [],
+        joinedAt: new Date(p.created_at),
+        profile_visibility: p.profile_visibility,
+        show_in_member_lists: p.show_in_member_lists,
+      };
+    });
   } catch (err) {
     console.warn("Error getting invited friends:", err);
     return [];

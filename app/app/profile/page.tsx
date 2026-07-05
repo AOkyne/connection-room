@@ -339,7 +339,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Invite Your Friends Section */}
-      <Card className="p-6 space-y-4" style={{ borderTop: "3px solid #D4A040" }}>
+      <div className="bg-[#fffbf7] rounded-2xl p-6 shadow-sm border border-[#ede6e0] space-y-4" style={{ borderTop: "3px solid #D4A040" }}>
         <h3 className="text-lg font-semibold" style={{ color: "#2C2417" }}>
           Invite Your Friends
         </h3>
@@ -357,7 +357,7 @@ export default function ProfilePage() {
         >
           Invite Your Friends
         </Button>
-      </Card>
+      </div>
 
       {/* Friends I've Invited Section */}
       <FriendsInvited onOpenInvite={() => setInvitePanelOpen(true)} />

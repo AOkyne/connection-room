@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import { getMyInviteCode } from "@/lib/data/invites";
 import { buildInviteLink } from "@/lib/utils/invite-code";
-import { Card } from "@/components/Card";
-import { Button } from "@/components/Button";
 
 const INVITE_MESSAGE = `I've joined a new private community called The Connection Room by Trevor James. It's for men and couples who are tired of the apps, surface conversations, and the pressure to perform, and who are looking for something more honest: real conversation, embodied intimacy, self-understanding, community, and connection without shame.
 
@@ -112,10 +110,9 @@ export function InvitePanel({ isOpen, onClose }: InvitePanelProps) {
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4">
-        <Card
-          className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl"
+        <div
+          className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-[#FDFBF6]"
           style={{
-            background: "#FDFBF6",
             boxShadow: "0 20px 60px rgba(60, 45, 20, 0.2)",
           }}
         >
@@ -211,7 +208,7 @@ export function InvitePanel({ isOpen, onClose }: InvitePanelProps) {
                     Share via email
                   </button>
 
-                  {typeof navigator !== "undefined" && navigator.share && (
+                  {typeof navigator !== "undefined" && "share" in navigator && (
                     <button
                       onClick={handleNativeShare}
                       className="w-full px-4 py-2 rounded-lg font-medium"
@@ -244,7 +241,7 @@ export function InvitePanel({ isOpen, onClose }: InvitePanelProps) {
               </div>
             )}
           </div>
-        </Card>
+        </div>
       </div>
     </>
   );

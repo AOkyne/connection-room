@@ -14,7 +14,7 @@ import {
   fallbackSignInWithPassword,
   fallbackSignUpWithPassword,
 } from "@/lib/auth/fallback";
-import { storeInviteCodeLocally, extractInviteCodeFromUrl } from "@/lib/utils/invite-code";
+import { storeInviteCodeLocally } from "@/lib/data/invites";
 import Link from "next/link";
 
 function BetaAuthContent() {
