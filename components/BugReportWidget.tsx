@@ -128,15 +128,12 @@ export function BugReportWidget() {
             }
           `}</style>
           <div
-            className="bug-report-overlay fixed inset-0 bg-black/30 flex items-end md:items-center justify-center"
+            className="bug-report-overlay fixed inset-0 bg-black/30 flex items-center justify-center pt-12 md:pt-0"
             onClick={() => !isSubmitting && setIsOpen(false)}
           >
             {/* Modal */}
             <div
               className="bug-report-modal bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-y-auto"
-              style={{
-                transform: 'translateY(-100px)',
-              }}
               onClick={(e) => e.stopPropagation()}
             >
             {/* Header */}
