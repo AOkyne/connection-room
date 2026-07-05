@@ -121,26 +121,26 @@ export const conversationInvitations = [
 ];
 
 export const quotes = [
-  { index: 0, text: "Your truth does not need a costume. Let it arrive in regular clothes.", author: "Trevor James" },
-  { index: 1, text: "Awareness is not a repair shop. Sometimes the most honest medicine is simply turning the lights on.", author: "Trevor James" },
-  { index: 2, text: "A boundary is not a wall against connection. It is the doorway that tells love how to enter respectfully.", author: "Trevor James" },
-  { index: 3, text: "The first sentence does not have to be perfect. It only has to open the room where truth can breathe.", author: "Trevor James" },
-  { index: 4, text: "Belonging is not fitting into a room by shrinking. It is finding the rooms where your full breath is welcome.", author: "Trevor James" },
-  { index: 5, text: "Connection is often built from tiny bridges. The small reach counts, even when it does not come with fireworks.", author: "Trevor James" },
-  { index: 6, text: "Courage usually arrives in inches, not cinematic speeches. Take the inch and let it count.", author: "Trevor James" },
-  { index: 7, text: "Desire is not a problem just because it has a pulse. Sometimes wanting is the body remembering it is alive.", author: "Trevor James" },
-  { index: 8, text: "The body is always happening now. That is why it is such a useful place to return.", author: "Trevor James" },
-  { index: 9, text: "Feelings are visitors with information. They do not need to move in and redecorate the entire house.", author: "Trevor James" },
-  { index: 10, text: "Healing is not a productivity sprint with incense nearby. It moves at the speed of safety.", author: "Trevor James" },
-  { index: 11, text: "Intimacy is not fusion. The most beautiful closeness still leaves room for two nervous systems.", author: "Trevor James" },
-  { index: 12, text: "Intuition is rarely the loudest voice in the room. It is often the one still speaking after the noise leaves.", author: "Trevor James" },
-  { index: 13, text: "Presence is not a personality trait. It is a repeated return to the life actually happening.", author: "Trevor James" },
-  { index: 14, text: "Every defense has a biography. Before you fire it, learn what job it thought it was doing.", author: "Trevor James" },
-  { index: 15, text: "Sexuality is not an audition. The body does not need applause to deserve tenderness.", author: "Trevor James" },
-  { index: 16, text: "Spirituality does not always arrive wearing robes. Sometimes it is the quiet sense that you are not carrying everything alone.", author: "Trevor James" },
-  { index: 17, text: "Real strength does not always clench. Sometimes it exhales, listens, and stays.", author: "Trevor James" },
-  { index: 18, text: "Vulnerability is not spilling everything. It is letting one true thing breathe where it can be respected.", author: "Trevor James" },
-  { index: 19, text: "Performance can get applause, but it rarely gets held. The self underneath is the one connection can actually meet.", author: "Trevor James" }
+  { index: 0, quote: "Your truth does not need a costume. Let it arrive in regular clothes.", author: "Trevor James" },
+  { index: 1, quote: "Awareness is not a repair shop. Sometimes the most honest medicine is simply turning the lights on.", author: "Trevor James" },
+  { index: 2, quote: "A boundary is not a wall against connection. It is the doorway that tells love how to enter respectfully.", author: "Trevor James" },
+  { index: 3, quote: "The first sentence does not have to be perfect. It only has to open the room where truth can breathe.", author: "Trevor James" },
+  { index: 4, quote: "Belonging is not fitting into a room by shrinking. It is finding the rooms where your full breath is welcome.", author: "Trevor James" },
+  { index: 5, quote: "Connection is often built from tiny bridges. The small reach counts, even when it does not come with fireworks.", author: "Trevor James" },
+  { index: 6, quote: "Courage usually arrives in inches, not cinematic speeches. Take the inch and let it count.", author: "Trevor James" },
+  { index: 7, quote: "Desire is not a problem just because it has a pulse. Sometimes wanting is the body remembering it is alive.", author: "Trevor James" },
+  { index: 8, quote: "The body is always happening now. That is why it is such a useful place to return.", author: "Trevor James" },
+  { index: 9, quote: "Feelings are visitors with information. They do not need to move in and redecorate the entire house.", author: "Trevor James" },
+  { index: 10, quote: "Healing is not a productivity sprint with incense nearby. It moves at the speed of safety.", author: "Trevor James" },
+  { index: 11, quote: "Intimacy is not fusion. The most beautiful closeness still leaves room for two nervous systems.", author: "Trevor James" },
+  { index: 12, quote: "Intuition is rarely the loudest voice in the room. It is often the one still speaking after the noise leaves.", author: "Trevor James" },
+  { index: 13, quote: "Presence is not a personality trait. It is a repeated return to the life actually happening.", author: "Trevor James" },
+  { index: 14, quote: "Every defense has a biography. Before you fire it, learn what job it thought it was doing.", author: "Trevor James" },
+  { index: 15, quote: "Sexuality is not an audition. The body does not need applause to deserve tenderness.", author: "Trevor James" },
+  { index: 16, quote: "Spirituality does not always arrive wearing robes. Sometimes it is the quiet sense that you are not carrying everything alone.", author: "Trevor James" },
+  { index: 17, quote: "Real strength does not always clench. Sometimes it exhales, listens, and stays.", author: "Trevor James" },
+  { index: 18, quote: "Vulnerability is not spilling everything. It is letting one true thing breathe where it can be respected.", author: "Trevor James" },
+  { index: 19, quote: "Performance can get applause, but it rarely gets held. The self underneath is the one connection can actually meet.", author: "Trevor James" }
 ];
 
 export const weeklyTrevorNotes = [
