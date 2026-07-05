@@ -52,26 +52,26 @@ export const reflectionPrompts = [
 ];
 
 export const embodimentPractices = [
-  { index: 0, content: "Place one hand on your chest and say quietly, \"This is where I begin.\" Breathe slowly for one minute." },
-  { index: 1, content: "Look around and name five things you see, four you feel, three you hear, two you smell, one you taste." },
-  { index: 2, content: "Stand with feet hip-width apart and imagine a warm circle of space around you." },
-  { index: 3, content: "Put one hand on your throat and hum softly for five breaths." },
-  { index: 4, content: "Take three breaths while imagining a circle of people who do not need you to perform." },
-  { index: 5, content: "Extend one hand slowly, then bring it back to your heart. Feel both reaching and returning." },
-  { index: 6, content: "Step forward slowly and say, \"This much is enough for today.\"" },
-  { index: 7, content: "Place a hand on your lower belly and breathe into the word \"want.\"" },
-  { index: 8, content: "Scan your body for one sensation, then describe it with texture, temperature, and movement." },
-  { index: 9, content: "Name the feeling, locate it in your body, and breathe around it for one minute." },
-  { index: 10, content: "Place one hand over the area of your body that feels most protective and breathe gently." },
-  { index: 11, content: "Imagine leaning toward someone while keeping your feet grounded and your breath steady." },
-  { index: 12, content: "Sit quietly with one hand on your belly and ask, \"What do I already know?\"" },
-  { index: 13, content: "Name three things in the room and feel one point of contact with your body." },
-  { index: 14, content: "Place a hand where you feel guarded and thank that part for trying to help." },
-  { index: 15, content: "Place one hand on your heart and one on your lower belly, breathing with respect for both." },
-  { index: 16, content: "Look up, soften your chest, and take five slow breaths into a sense of spaciousness." },
-  { index: 17, content: "Stand tall, relax your shoulders, and breathe into a grounded spine." },
-  { index: 18, content: "Relax your belly and exhale before speaking something true." },
-  { index: 19, content: "Sit with your feet grounded and relax your face, jaw, and belly. Let your body stop auditioning for thirty seconds." }
+  { index: 0, practice: "Place one hand on your chest and say quietly, \"This is where I begin.\" Breathe slowly for one minute." },
+  { index: 1, practice: "Look around and name five things you see, four you feel, three you hear, two you smell, one you taste." },
+  { index: 2, practice: "Stand with feet hip-width apart and imagine a warm circle of space around you." },
+  { index: 3, practice: "Put one hand on your throat and hum softly for five breaths." },
+  { index: 4, practice: "Take three breaths while imagining a circle of people who do not need you to perform." },
+  { index: 5, practice: "Extend one hand slowly, then bring it back to your heart. Feel both reaching and returning." },
+  { index: 6, practice: "Step forward slowly and say, \"This much is enough for today.\"" },
+  { index: 7, practice: "Place a hand on your lower belly and breathe into the word \"want.\"" },
+  { index: 8, practice: "Scan your body for one sensation, then describe it with texture, temperature, and movement." },
+  { index: 9, practice: "Name the feeling, locate it in your body, and breathe around it for one minute." },
+  { index: 10, practice: "Place one hand over the area of your body that feels most protective and breathe gently." },
+  { index: 11, practice: "Imagine leaning toward someone while keeping your feet grounded and your breath steady." },
+  { index: 12, practice: "Sit quietly with one hand on your belly and ask, \"What do I already know?\"" },
+  { index: 13, practice: "Name three things in the room and feel one point of contact with your body." },
+  { index: 14, practice: "Place a hand where you feel guarded and thank that part for trying to help." },
+  { index: 15, practice: "Place one hand on your heart and one on your lower belly, breathing with respect for both." },
+  { index: 16, practice: "Look up, soften your chest, and take five slow breaths into a sense of spaciousness." },
+  { index: 17, practice: "Stand tall, relax your shoulders, and breathe into a grounded spine." },
+  { index: 18, practice: "Relax your belly and exhale before speaking something true." },
+  { index: 19, practice: "Sit with your feet grounded and relax your face, jaw, and belly. Let your body stop auditioning for thirty seconds." }
 ];
 
 export const bodyCheckIns = [
