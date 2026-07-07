@@ -434,39 +434,60 @@ export default function SpaceDetailPage() {
       {/* Space Introduction */}
 
       {space.id === "commons" && (
-        <Card className="bg-[#f3ede5] border-l-4 border-[#d4a348]">
-          <div className="space-y-4 text-[#1a0f0a]">
-            <h2 className="text-2xl font-bold">Welcome to The Commons.</h2>
+        <>
+          <Card className="bg-[#f3ede5] border-l-4 border-[#d4a348]">
+            <div className="space-y-4 text-[#1a0f0a]">
+              <h2 className="text-2xl font-bold">Welcome to The Commons.</h2>
 
-            <p className="text-[#1a0f0a]">
-              This is the main gathering space for the community: a place for reflections, questions, introductions, check-ins, shared insights, and the small human moments that help a room feel alive.
-            </p>
+              <p className="text-[#1a0f0a]">
+                This is the main gathering space for the community: a place for reflections, questions, introductions, check-ins, shared insights, and the small human moments that help a room feel alive.
+              </p>
 
-            <p className="italic text-[#1a0f0a]">Think of The Commons as the front room of The Connection Room — the warmer version where you can say hello, share what you are noticing, and connect with others.</p>
+              <p className="italic text-[#1a0f0a]">Think of The Commons as the front room of The Connection Room — the warmer version where you can say hello, share what you are noticing, and connect with others.</p>
 
-            <div className="pt-4 border-t border-[#d4a348]">
-              <h3 className="font-bold mb-3">What to post here:</h3>
-              <ul className="space-y-1 text-sm text-[#1a0f0a]">
-                <li>• A short introduction or what brought you here</li>
-                <li>• What kind of connection you are craving more of</li>
-                <li>• Something you are learning about intimacy or vulnerability</li>
-                <li>• A reflection from a prompt or question you are sitting with</li>
-                <li>• A small win, moment of insight, or something tender/funny</li>
-              </ul>
+              <div className="pt-4 border-t border-[#d4a348]">
+                <h3 className="font-bold mb-3">What to post here:</h3>
+                <ul className="space-y-1 text-sm text-[#1a0f0a]">
+                  <li>• A short introduction or what brought you here</li>
+                  <li>• What kind of connection you are craving more of</li>
+                  <li>• Something you are learning about intimacy or vulnerability</li>
+                  <li>• A reflection from a prompt or question you are sitting with</li>
+                  <li>• A small win, moment of insight, or something tender/funny</li>
+                </ul>
+              </div>
+
+              <div className="pt-4 border-t border-[#d4a348]">
+                <h3 className="font-bold mb-3">How to respond:</h3>
+                <p className="text-sm text-[#1a0f0a] mb-2">Lead with presence. Helpful responses include:</p>
+                <ul className="space-y-1 text-sm text-[#1a0f0a]">
+                  <li>• "I relate to this."</li>
+                  <li>• "Thank you for sharing."</li>
+                  <li>• "I appreciate how honestly you said this."</li>
+                  <li>• "Would you like reflection, or mostly to be witnessed?"</li>
+                </ul>
+              </div>
             </div>
+          </Card>
 
-            <div className="pt-4 border-t border-[#d4a348]">
-              <h3 className="font-bold mb-3">How to respond:</h3>
-              <p className="text-sm text-[#1a0f0a] mb-2">Lead with presence. Helpful responses include:</p>
-              <ul className="space-y-1 text-sm text-[#1a0f0a]">
-                <li>• "I relate to this."</li>
-                <li>• "Thank you for sharing."</li>
-                <li>• "I appreciate how honestly you said this."</li>
-                <li>• "Would you like reflection, or mostly to be witnessed?"</li>
-              </ul>
-            </div>
-          </div>
-        </Card>
+          {posts.length === 0 && (
+            <EmptySpaceInvitation
+              spaceId={spaceId}
+              onStartPost={() => {
+                // Scroll to post creation and focus textarea
+                const createPostSection = document.getElementById("create-post-section");
+                if (createPostSection) {
+                  createPostSection.scrollIntoView({ behavior: "smooth", block: "start" });
+                  setTimeout(() => {
+                    const textarea = createPostSection.querySelector("textarea");
+                    if (textarea) {
+                      textarea.focus();
+                    }
+                  }, 500);
+                }
+              }}
+            />
+          )}
+        </>
       )}
 
       {space.id === "start-here" && (
@@ -646,22 +667,9 @@ export default function SpaceDetailPage() {
             </button>
           </Card>
         ) : posts.length === 0 ? (
-          <EmptySpaceInvitation
-            spaceId={spaceId}
-            onStartPost={() => {
-              // Scroll to post creation and focus textarea
-              const createPostSection = document.getElementById("create-post-section");
-              if (createPostSection) {
-                createPostSection.scrollIntoView({ behavior: "smooth", block: "start" });
-                setTimeout(() => {
-                  const textarea = createPostSection.querySelector("textarea");
-                  if (textarea) {
-                    textarea.focus();
-                  }
-                }, 500);
-              }
-            }}
-          />
+          <Card className="text-center py-8">
+            <p className="text-[#1a0f0a]">No posts yet. Be the first to share!</p>
+          </Card>
         ) : (
           filteredPosts.map((post) => (
             <Card key={post.id}>
