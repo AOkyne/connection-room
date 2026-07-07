@@ -178,8 +178,8 @@ export default function SpacesPage() {
                     <p className="text-sm text-[#1a0f0a] mb-4">{space.description}</p>
                     <div className="text-xs text-[#a0704a] mb-4">{demoMembers.filter(m => m.spacesJoined?.includes(space.id)).length} members</div>
                     <div className="flex gap-2 mt-auto">
-                      <Link href={`/app/spaces/${space.id}`} className="flex-1">
-                        <Button variant="secondary" size="sm" className="">
+                      <Link href={`/app/spaces/${space.id}`}>
+                        <Button variant="secondary" size="sm">
                           Enter Space
                         </Button>
                       </Link>
@@ -221,11 +221,10 @@ export default function SpacesPage() {
                 <CardHeader title={space.name} icon={<SpaceIconSVG spaceId={space.id} size={32} />} />
                 <p className="text-sm text-[#1a0f0a] mb-4">{space.description}</p>
                 <div className="text-xs text-[#a0704a] mb-4">{demoMembers.filter(m => m.spacesJoined?.includes(space.id)).length} members</div>
-                <div className="flex gap-2 mt-auto">
+                <div className="mt-auto">
                   <Button
                     variant="primary"
                     size="sm"
-                    className="flex-1"
                     onClick={() => handleJoinSpace(space.id)}
                   >
                     Join Space
