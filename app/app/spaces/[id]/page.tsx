@@ -649,8 +649,17 @@ export default function SpaceDetailPage() {
           <EmptySpaceInvitation
             spaceId={spaceId}
             onStartPost={() => {
-              // Scroll to post creation
-              document.getElementById("create-post-section")?.scrollIntoView({ behavior: "smooth" });
+              // Scroll to post creation and focus textarea
+              const createPostSection = document.getElementById("create-post-section");
+              if (createPostSection) {
+                createPostSection.scrollIntoView({ behavior: "smooth", block: "start" });
+                setTimeout(() => {
+                  const textarea = createPostSection.querySelector("textarea");
+                  if (textarea) {
+                    textarea.focus();
+                  }
+                }, 500);
+              }
             }}
           />
         ) : (
