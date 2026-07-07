@@ -221,14 +221,16 @@ export default function SpacesPage() {
                 <CardHeader title={space.name} icon={<SpaceIconSVG spaceId={space.id} size={32} />} />
                 <p className="text-sm text-[#1a0f0a] mb-4">{space.description}</p>
                 <div className="text-xs text-[#a0704a] mb-4">{demoMembers.filter(m => m.spacesJoined?.includes(space.id)).length} members</div>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  className="mt-auto"
-                  onClick={() => handleJoinSpace(space.id)}
-                >
-                  Join Space
-                </Button>
+                <div className="flex gap-2 mt-auto">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => handleJoinSpace(space.id)}
+                  >
+                    Join Space
+                  </Button>
+                </div>
               </Card>
             ))}
           </div>
