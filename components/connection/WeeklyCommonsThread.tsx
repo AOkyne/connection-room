@@ -40,7 +40,7 @@ export function WeeklyCommonsThread({ weekNumber }: WeeklyCommonsThreadProps) {
         {/* Instructions */}
         <div className="space-y-2">
           <p className="text-sm text-[#1a0f0a]">
-            Share lightly. A sentence or two is enough.
+            Share as little or as much as you like.
           </p>
           <p className="text-xs text-[#a0704a]">
             After you post, consider reading one other reflection and leaving a thoughtful comment.

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -117,15 +118,22 @@ export default function EditWeeklyNote() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold text-[#1a0f0a]">
-          {isNew ? "Create New Weekly Note" : "Edit Weekly Note"}
-        </h1>
-        <p className="text-[#1a0f0a] mt-2">
-          {isNew
-            ? "Add a new weekly Trevor note"
-            : "Update this weekly note"}
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-4xl font-bold text-[#1a0f0a]">
+            {isNew ? "Create New Weekly Note" : "Edit Weekly Note"}
+          </h1>
+          <p className="text-[#1a0f0a] mt-2">
+            {isNew
+              ? "Add a new weekly Trevor note"
+              : "Update this weekly note"}
+          </p>
+        </div>
+        <Link href="/admin/daily-companion">
+          <Button variant="ghost" size="sm">
+            ← Back
+          </Button>
+        </Link>
       </div>
 
       <Card className="space-y-6">

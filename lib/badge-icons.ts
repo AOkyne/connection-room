@@ -7,6 +7,7 @@ export function getBadgeImage(badgeId: string): string {
     "first-witness": "/badges/first_witness.png",
     "thoughtful-witness": "/badges/thoughtful_witness.png",
     "community-builder": "/badges/community_builder.png",
+    "community-ambassador": "/badges/community_ambassador.png",
     "consent-champion": "/badges/consent_champion.png",
     "explorer": "/badges/explorer.png",
     "connection-seeker": "/badges/connection_seeker.png",

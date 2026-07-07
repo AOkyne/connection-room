@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { Profile, updateProfile } from "@/lib/data/profiles";
+import { uploadProfilePhoto } from "@/lib/utils/storage";
+import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/Button";
 
 interface PhotoRequirementPromptProps {
@@ -40,18 +42,34 @@ export function PhotoRequirementPrompt({
     setPhotoError(null);
     setUploading(true);
     try {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const dataUrl = event.target?.result as string;
-        await updateProfile({
-          profilePhoto: dataUrl,
-          photo_confirmed: true,
-          photo_confirmed_at: new Date(),
+      let photoUrl: string | null = null;
+
+      // Try Supabase Storage first
+      if (supabase) {
+        const userId = profile.id;
+        photoUrl = await uploadProfilePhoto(file, userId);
+      }
+
+      // Fall back to base64 if Supabase upload failed or unavailable
+      if (!photoUrl) {
+        photoUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            resolve(event.target?.result as string);
+          };
+          reader.readAsDataURL(file);
         });
-        setIsOpen(false);
-        onPhotoAdded?.();
-      };
-      reader.readAsDataURL(file);
+      }
+
+      await updateProfile({
+        profilePhoto: photoUrl,
+        photo_confirmed: true,
+        photo_confirmed_at: new Date(),
+      });
+      setIsOpen(false);
+      onPhotoAdded?.();
+    } catch (err) {
+      setPhotoError(err instanceof Error ? err.message : 'Failed to upload photo');
     } finally {
       setUploading(false);
     }

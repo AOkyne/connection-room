@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { getProfile, updateProfile, type Profile } from "@/lib/data/profiles";
 import { ensureInviteCode } from "@/lib/data/invites";
+import { uploadProfilePhoto } from "@/lib/utils/storage";
+import { supabase } from "@/lib/supabase/client";
 import { getUserBadges } from "@/lib/data/badges";
 import { getSpaces } from "@/lib/data/spaces";
 import { waitForAuthReady } from "@/lib/supabase/auth-ready";
@@ -125,7 +127,7 @@ export default function ProfilePage() {
     setProfile({ ...profile, interests: updated });
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !profile) return;
 
@@ -142,12 +144,29 @@ export default function ProfilePage() {
     }
 
     setPhotoError(null);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      setProfile({ ...profile, profilePhoto: dataUrl });
-    };
-    reader.readAsDataURL(file);
+    try {
+      let photoUrl: string | null = null;
+
+      // Try Supabase Storage first
+      if (supabase) {
+        photoUrl = await uploadProfilePhoto(file, profile.id);
+      }
+
+      // Fall back to base64 if Supabase upload failed or unavailable
+      if (!photoUrl) {
+        photoUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            resolve(event.target?.result as string);
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      setProfile({ ...profile, profilePhoto: photoUrl });
+    } catch (err) {
+      setPhotoError(err instanceof Error ? err.message : 'Failed to upload photo');
+    }
   };
 
   if (!profile) return <LoadingScreen message="Loading your profile" subtitle="We're gathering your information. Just a moment..." />;

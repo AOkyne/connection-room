@@ -80,6 +80,8 @@ export default function SpaceDetailPage() {
     return (localStorage.getItem("connection-room:post-filter") as "all" | "recent" | "popular") || "all";
   });
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editingPostContent, setEditingPostContent] = useState("");
 
   // Filter and search posts
   const filteredPosts = posts.filter((post) => {
@@ -305,6 +307,47 @@ export default function SpaceDetailPage() {
         const postComments = await getComments(postId);
         setComments({ ...comments, [postId]: postComments });
       }
+    }
+  };
+
+  const handleEditPost = (postId: string, currentContent: string) => {
+    setEditingPostId(postId);
+    setEditingPostContent(currentContent);
+  };
+
+  const handleSaveEdit = async (postId: string) => {
+    const trimmedContent = editingPostContent.trim();
+
+    if (!trimmedContent) {
+      showToast("Please write something before saving", "warning");
+      return;
+    }
+
+    if (trimmedContent.length < MIN_POST_LENGTH) {
+      showToast(`Please write at least ${MIN_POST_LENGTH} characters`, "info");
+      return;
+    }
+
+    if (trimmedContent.length > MAX_POST_LENGTH) {
+      showToast(`Your post is too long (max ${MAX_POST_LENGTH} characters)`, "error");
+      return;
+    }
+
+    // Update post content in the state
+    const updatedPosts = posts.map(p =>
+      p.id === postId ? { ...p, content: trimmedContent } : p
+    );
+    setPosts(updatedPosts);
+    setEditingPostId(null);
+    setEditingPostContent("");
+    showToast("Post updated", "success", 2000);
+  };
+
+  const handleDeletePost = (postId: string) => {
+    if (confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
+      const updatedPosts = posts.filter(p => p.id !== postId);
+      setPosts(updatedPosts);
+      showToast("Post deleted", "success", 2000);
     }
   };
 
@@ -547,7 +590,6 @@ export default function SpaceDetailPage() {
             size="md"
             onClick={handleCreatePost}
             disabled={!newPostContent.trim() || isSubmitting}
-            className="flex-1"
           >
             {isSubmitting ? "Posting..." : "Post"}
           </Button>
@@ -638,9 +680,59 @@ export default function SpaceDetailPage() {
                     </p>
                   </div>
                 </button>
+                {profile?.displayName === post.authorName && (
+                  <div className="flex gap-2 ml-4">
+                    <button
+                      onClick={() => handleEditPost(post.id, post.content)}
+                      className="text-xs text-[#d4a348] hover:text-[#8b6f47] font-medium transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeletePost(post.id)}
+                      className="text-xs text-red-600 hover:text-red-700 font-medium transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
               </div>
 
-              <p className="text-[#1a0f0a] mb-4">{post.content}</p>
+              {editingPostId === post.id ? (
+                <div className="space-y-2 mb-4">
+                  <textarea
+                    value={editingPostContent}
+                    onChange={(e) => setEditingPostContent(e.target.value)}
+                    maxLength={MAX_POST_LENGTH}
+                    rows={3}
+                    className="w-full px-4 py-2.5 border border-[#ede6e0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#d4a348] focus:ring-offset-2 focus:border-transparent transition-all duration-150 text-[#1a0f0a] placeholder-[#a0704a] resize-none"
+                  />
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="text-xs text-[#a0704a]">
+                      {editingPostContent.length} / {MAX_POST_LENGTH} characters
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => handleSaveEdit(post.id)}
+                      disabled={!editingPostContent.trim()}
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setEditingPostId(null)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-[#1a0f0a] mb-4">{post.content}</p>
+              )}
 
               {/* Reactions */}
               <ReactionBar

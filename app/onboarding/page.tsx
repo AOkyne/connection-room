@@ -435,8 +435,7 @@ export default function OnboardingPage() {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          // Validate file size (max 2MB for Monday launch, will migrate to Storage later)
-                          const maxSizeMB = 2;
+                          const maxSizeMB = 5;
                           if (file.size > maxSizeMB * 1024 * 1024) {
                             alert(`Image is too large. Max size is ${maxSizeMB}MB.`);
                             return;

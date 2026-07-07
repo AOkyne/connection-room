@@ -145,9 +145,16 @@ export default function AdminDailyCompanion() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold text-[#1a0f0a]">Daily Companion Admin</h1>
-        <p className="text-[#1a0f0a] mt-2">Manage daily content and weekly notes</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-4xl font-bold text-[#1a0f0a]">Daily Companion Admin</h1>
+          <p className="text-[#1a0f0a] mt-2">Manage daily content and weekly notes</p>
+        </div>
+        <Link href="/app/admin">
+          <Button variant="ghost" size="sm">
+            ← Back
+          </Button>
+        </Link>
       </div>
 
       {/* Tabs */}

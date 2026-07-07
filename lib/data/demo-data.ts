@@ -1344,14 +1344,6 @@ export const demoBadges: Badge[] = [
     earnedAt: new Date(Date.now() - 86400000),
   },
   {
-    id: "first-share",
-    name: "First Share",
-    description: "Made first post or prompt response",
-    icon: "💬",
-    color: "text-rose-600",
-    earnedAt: new Date(Date.now() - 43200000),
-  },
-  {
     id: "consent-champion",
     name: "Consent Champion",
     description: "Acknowledged community agreements",
@@ -1409,8 +1401,8 @@ export const demoBadges: Badge[] = [
     color: "text-orange-600",
   },
   {
-    id: "community-builder",
-    name: "Community Builder",
+    id: "community-ambassador",
+    name: "Community Ambassador",
     description: "You invited someone who joined The Connection Room",
     icon: "🌱",
     color: "text-green-600",

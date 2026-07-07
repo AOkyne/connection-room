@@ -318,11 +318,6 @@ function BetaAuthContent() {
                   <li>• You'll be logged in immediately</li>
                   <li>• Return to your dashboard</li>
                   <li>• Continue exploring</li>
-                  <li className="pt-2 border-t border-[#ddd7d0]">
-                    <strong>Demo Accounts:</strong>
-                    <br />demo@connection.room / Demo123!
-                    <br />test@connection.room / Test123!
-                  </li>
                 </ul>
               )}
             </div>

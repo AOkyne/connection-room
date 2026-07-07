@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getAllBadges } from "@/lib/data/badges";
 import { getUpcomingEvents } from "@/lib/data/events";
 import { getAllOffers } from "@/lib/data/offers";
 import { getRecentSignups, getSession } from "@/lib/session";
 import { demoMembers } from "@/lib/seed/demo-members";
 import { Card, CardHeader } from "@/components/Card";
+import { Button } from "@/components/Button";
 import { IconConnection, IconDemo, IconSpaces, IconBadges, IconProgress, IconUpcoming, IconAlert, IconForYou, IconChat, IconProfileNav } from "@/components/Icons";
 import { getBadgeImage } from "@/lib/badge-icons";
 import { getOfferIcon } from "@/lib/offer-icons";
@@ -69,6 +71,25 @@ export default function AdminPage() {
         <p className="text-lg text-[#1a0f0a] mt-2">
           Community overview and management
         </p>
+      </div>
+
+      {/* Quick Links */}
+      <div className="flex flex-wrap gap-3">
+        <Link href="/app/admin/invites">
+          <Button variant="outline" size="sm">
+            📊 Invite Relationships
+          </Button>
+        </Link>
+        <Link href="/app/admin/events">
+          <Button variant="outline" size="sm">
+            📅 Manage Events
+          </Button>
+        </Link>
+        <Link href="/admin/daily-companion">
+          <Button variant="outline" size="sm">
+            ✨ Daily Content
+          </Button>
+        </Link>
       </div>
 
       {/* Content Alerts */}
@@ -166,6 +187,7 @@ export default function AdminPage() {
                   <th className="text-left py-2 px-2 text-[#a0704a] font-medium">Email</th>
                   <th className="text-left py-2 px-2 text-[#a0704a] font-medium">Type</th>
                   <th className="text-left py-2 px-2 text-[#a0704a] font-medium">Joined</th>
+                  <th className="text-left py-2 px-2 text-[#a0704a] font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -186,6 +208,15 @@ export default function AdminPage() {
                       <td className="py-3 px-2 text-[#1a0f0a] capitalize">{member.memberType || "member"}</td>
                       <td className="py-3 px-2 text-[#a0704a] text-xs">
                         {member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : "—"}
+                      </td>
+                      <td className="py-3 px-2">
+                        {member.id && (
+                          <Link href={`/app/admin/members/${member.id}`}>
+                            <button className="text-xs px-2 py-1 text-[#d4a348] hover:bg-[#fef8e8] rounded transition-colors">
+                              View
+                            </button>
+                          </Link>
+                        )}
                       </td>
                     </tr>
                   ))}
