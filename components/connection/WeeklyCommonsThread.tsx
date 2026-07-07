@@ -46,32 +46,6 @@ export function WeeklyCommonsThread({ weekNumber }: WeeklyCommonsThreadProps) {
             After you post, consider reading one other reflection and leaving a thoughtful comment.
           </p>
         </div>
-
-        {/* Call to Action */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => {
-              const createPostSection = document.getElementById("create-post-section");
-              if (createPostSection) {
-                createPostSection.scrollIntoView({ behavior: "smooth", block: "start" });
-              }
-            }}
-            className="flex-1 px-4 py-2 bg-[#d4a348] text-[#ffffff] rounded-lg text-sm font-medium hover:bg-[#c09560] transition-colors"
-          >
-            Join This Week's Thread
-          </button>
-          <button
-            onClick={() => {
-              const postsFeed = document.getElementById("posts-feed");
-              if (postsFeed) {
-                postsFeed.scrollIntoView({ behavior: "smooth", block: "start" });
-              }
-            }}
-            className="flex-1 px-4 py-2 border border-[#d4a348] text-[#d4a348] rounded-lg text-sm font-medium hover:bg-[#f3ede5] transition-colors"
-          >
-            Witness Others
-          </button>
-        </div>
       </div>
     </Card>
   );
