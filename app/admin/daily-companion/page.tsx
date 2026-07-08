@@ -233,12 +233,12 @@ export default function AdminDailyCompanion() {
               <h3 className="font-semibold text-[#1a0f0a]">Quick Actions</h3>
               <div className="grid sm:grid-cols-2 gap-3">
                 <Link href="/admin/daily-companion/content/new">
-                  <Button variant="primary" className="w-full">
+                  <Button variant="primary">
                     Create New Content
                   </Button>
                 </Link>
                 <Link href="/admin/daily-companion/notes/new">
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline">
                     Create New Note
                   </Button>
                 </Link>

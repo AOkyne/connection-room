@@ -764,7 +764,7 @@ export default function SpaceDetailPage() {
                   onClick={() => toggleExpandPost(post.id)}
                   className="text-sm font-medium text-[#d4a348] hover:text-[#8b6f47] hover:underline transition-colors"
                 >
-                  💬 Comment | {post.commentCount} {post.commentCount === 1 ? "comment" : "comments"}
+                  💬 Comment | {comments[post.id] !== undefined ? comments[post.id].length : post.commentCount} {(comments[post.id] !== undefined ? comments[post.id].length : post.commentCount) === 1 ? "comment" : "comments"}
                 </button>
                 <PostAnalytics
                   commentCount={post.commentCount}
@@ -843,7 +843,6 @@ export default function SpaceDetailPage() {
                       size="sm"
                       onClick={() => handleAddComment(post.id)}
                       disabled={!newCommentContent[post.id]?.trim() || isSubmitting}
-                      className="w-full"
                     >
                       Reply
                     </Button>

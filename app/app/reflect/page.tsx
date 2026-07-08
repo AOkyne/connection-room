@@ -22,6 +22,7 @@ export default function ReflectPage() {
   const [submitting, setSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [reflectionShared, setReflectionShared] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -61,6 +62,7 @@ export default function ReflectPage() {
     if (!response.trim() || !selectedSpaceId) return;
 
     setSubmitting(true);
+    setError(null);
     try {
       await createPost(
         selectedSpaceId,
@@ -74,6 +76,7 @@ export default function ReflectPage() {
       setReflectionShared(true);
     } catch (error) {
       console.warn("Error creating post:", error);
+      setError("Failed to post your response. Please try again.");
       setSubmitting(false);
     }
   };
@@ -98,6 +101,12 @@ export default function ReflectPage() {
           { label: "Respond to Prompt", isActive: true },
         ]}
       />
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-800">{error}</p>
+        </div>
+      )}
 
       <Card>
         <div className="space-y-6">

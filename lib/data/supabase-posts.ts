@@ -100,6 +100,9 @@ export async function createSupabasePost(
         user_id: userId,
         space_id: spaceId,
         author_name: authorName,
+        author_pronouns: authorPronouns,
+        author_photo: authorPhoto,
+        prompt_id: promptId,
         content: content,
         is_prompt_response: isPromptResponse || false,
       })
@@ -232,6 +235,8 @@ export async function createSupabaseComment(
         user_id: userId,
         post_id: postId,
         author_name: authorName,
+        author_pronouns: authorPronouns,
+        author_photo: authorPhoto,
         content: content,
       })
       .select("*, profiles(display_name, pronouns, profile_photo)")

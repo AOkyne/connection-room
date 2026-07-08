@@ -139,7 +139,7 @@ export default function SpacesPage() {
               const isCommons = space.id === "commons";
               const isStartHereStillRequired = space.id === "start-here" && isStartHereRequired();
               const isRequired = isCommons || isStartHereStillRequired;
-              const visitsRemaining = space.id === "start-here" ? Math.max(0, 3 - getAppVisits()) : null;
+              const visitsRemaining = space.id === "start-here" ? Math.max(0, 5 - getAppVisits()) : null;
 
               return (
                 <div

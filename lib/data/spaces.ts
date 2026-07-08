@@ -221,9 +221,9 @@ export function isStartHereRequired(): boolean {
   const isComplete = localStorage.getItem(START_HERE_COMPLETE_KEY);
   if (isComplete) return false;
 
-  // Check app visit count (3 or more app visits = no longer required)
+  // Check app visit count (5 or more app visits = no longer required)
   const visits = getAppVisits();
-  if (visits >= 3) return false;
+  if (visits >= 5) return false;
 
   return true;
 }
@@ -272,7 +272,17 @@ export function sortSpacesByPreference(spaces: Space[]): Space[] {
     .map(id => spaces.find(s => s.id === id))
     .filter((s): s is Space => s !== undefined);
 
-  const optionalSpaces = spaces.filter(s => !required.includes(s.id));
+  // Filter out Start Here if it's no longer required and user has completed it
+  const optionalSpaces = spaces.filter(s => {
+    if (!required.includes(s.id)) {
+      // Hide Start Here if it's no longer required
+      if (s.id === "start-here" && !isStartHereRequired()) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  });
 
   // Sort optional spaces by saved order if available
   if (saved.length > 0) {

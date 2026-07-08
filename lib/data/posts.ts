@@ -94,15 +94,21 @@ export async function getPosts(spaceId?: string): Promise<Post[]> {
 
   const userId = await getCurrentUserId();
   if (userId && supabase) {
-    const posts = await getSupabasePosts(spaceId);
-    // Migrate old reactions in Supabase posts
-    return posts.map((p) => ({
-      ...p,
-      reactions: migrateReactions(p.reactions),
-    }));
+    try {
+      const posts = await getSupabasePosts(spaceId);
+      // If we got posts, return them
+      if (posts && posts.length > 0) {
+        return posts.map((p) => ({
+          ...p,
+          reactions: migrateReactions(p.reactions),
+        }));
+      }
+    } catch (err) {
+      console.warn("Error fetching from Supabase, falling back to demo data:", err);
+    }
   }
 
-  // Demo mode fallback
+  // Demo mode fallback (when Supabase is not available or returned no posts)
   const stored = localStorage.getItem(POSTS_STORAGE_KEY);
   let posts = stored ? JSON.parse(stored) : demoPosts;
 
@@ -231,7 +237,15 @@ export async function getComments(postId: string): Promise<Comment[]> {
 
   const userId = await getCurrentUserId();
   if (userId && supabase) {
-    return await getSupabaseComments(postId);
+    try {
+      const comments = await getSupabaseComments(postId);
+      // If we got comments, return them
+      if (comments && comments.length > 0) {
+        return comments;
+      }
+    } catch (err) {
+      console.warn("Error fetching from Supabase, falling back to demo data:", err);
+    }
   }
 
   // Demo mode fallback - combine stored comments with demo comments
@@ -239,7 +253,14 @@ export async function getComments(postId: string): Promise<Comment[]> {
   const storedComments = stored ? JSON.parse(stored) : [];
   const allComments = [...demoComments, ...storedComments];
 
-  return allComments.filter((c: Comment) => c.postId === postId);
+  // Deduplicate by ID (stored comments take precedence)
+  const commentMap = new Map<string, Comment>();
+  allComments.forEach(comment => {
+    commentMap.set(comment.id, comment);
+  });
+
+  const deduplicatedComments = Array.from(commentMap.values());
+  return deduplicatedComments.filter((c: Comment) => c.postId === postId);
 }
 
 // Create comment

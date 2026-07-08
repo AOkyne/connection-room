@@ -165,7 +165,7 @@ export function ProfileModal({
           )}
 
           {/* Close Button */}
-          <Button variant="outline" size="md" onClick={onClose} className="w-full">
+          <Button variant="outline" size="md" onClick={onClose}>
             Close
           </Button>
         </div>

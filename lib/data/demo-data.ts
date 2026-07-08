@@ -321,7 +321,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 54000000),
     reactions: { now_im_thinking: 6, feel_this: 4 },
-    commentCount: 0,
+    commentCount: 3,
   },
   {
     id: "commons-004",
@@ -353,7 +353,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 21600000),
     reactions: { feel_this: 9, glad_you_shared: 6, sending_warmth: 4 },
-    commentCount: 1,
+    commentCount: 2,
   },
 
   // Start Here
@@ -387,7 +387,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 57600000),
     reactions: { cheering_you_on: 4, feel_this: 3 },
-    commentCount: 1,
+    commentCount: 2,
   },
   {
     id: "start-003",
@@ -403,7 +403,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 43200000),
     reactions: { glad_you_shared: 5, feel_this: 2 },
-    commentCount: 0,
+    commentCount: 2,
   },
 
   // Embodiment
@@ -453,7 +453,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 43200000),
     reactions: { feel_this: 8, shifted_something: 5, cheering_you_on: 2 },
-    commentCount: 3,
+    commentCount: 4,
   },
 
   // Couples (example)
@@ -500,7 +500,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 32400000),
     reactions: { now_im_thinking: 5, feel_this: 6, glad_you_shared: 4 },
-    commentCount: 1,
+    commentCount: 2,
   },
 
   // Touch & Affection
@@ -518,7 +518,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 72000000),
     reactions: { feel_this: 7, sending_warmth: 5, shifted_something: 3 },
-    commentCount: 0,
+    commentCount: 3,
   },
   {
     id: "touch-002",
@@ -534,7 +534,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 57600000),
     reactions: { feel_this: 9, now_im_thinking: 4, glad_you_shared: 5 },
-    commentCount: 1,
+    commentCount: 2,
   },
   {
     id: "touch-003",
@@ -550,7 +550,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 43200000),
     reactions: { shifted_something: 6, feel_this: 5, cheering_you_on: 4 },
-    commentCount: 1,
+    commentCount: 2,
   },
 
   // Spirituality, Sexuality & Integration
@@ -568,7 +568,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 68400000),
     reactions: { shifted_something: 8, feel_this: 6, now_im_thinking: 5 },
-    commentCount: 1,
+    commentCount: 2,
   },
   {
     id: "spirituality-002",
@@ -584,7 +584,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 54000000),
     reactions: { feel_this: 7, now_im_thinking: 6, shifted_something: 4 },
-    commentCount: 1,
+    commentCount: 3,
   },
   {
     id: "spirituality-003",
@@ -600,7 +600,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 39600000),
     reactions: { sending_warmth: 5, feel_this: 6, glad_you_shared: 5 },
-    commentCount: 0,
+    commentCount: 2,
   },
 
   // Intimacy Patterns
@@ -618,7 +618,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 75600000),
     reactions: { feel_this: 8, now_im_thinking: 6, shifted_something: 4 },
-    commentCount: 0,
+    commentCount: 2,
   },
   {
     id: "intimacy-002",
@@ -634,7 +634,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 61200000),
     reactions: { feel_this: 9, sending_warmth: 5, shifted_something: 5 },
-    commentCount: 0,
+    commentCount: 2,
   },
   {
     id: "intimacy-003",
@@ -646,11 +646,11 @@ export const demoPosts: Post[] = [
     spaceId: "intimacy-patterns",
     promptId: undefined,
     content:
-      "I just realized my avoidance isn't a flaw I need to beat myself up about – it's a survival skill I learned. My body learned that closeness wasn't safe. And that means I can unlearn it. That's actually hope.",
+      "I'm noticing how I push people away when things start getting real. We'll be having a good moment and suddenly I find an excuse to leave or start a fight. I don't fully understand why I do it, but I'm starting to see it's definitely a pattern. Is that something other people experience? I'm still trying to figure this out.",
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 46800000),
-    reactions: { cheering_you_on: 6, feel_this: 7, shifted_something: 5 },
-    commentCount: 0,
+    reactions: { feel_this: 7, now_im_thinking: 5 },
+    commentCount: 3,
   },
 
   // Workshops & Retreats
@@ -718,7 +718,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 82800000),
     reactions: { feel_this: 8, shifted_something: 5, now_im_thinking: 6 },
-    commentCount: 1,
+    commentCount: 2,
   },
   {
     id: "dating-002",
@@ -734,7 +734,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 64800000),
     reactions: { feel_this: 7, sending_warmth: 5, cheering_you_on: 4 },
-    commentCount: 1,
+    commentCount: 3,
   },
   {
     id: "dating-003",
@@ -750,7 +750,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 50400000),
     reactions: { shifted_something: 6, feel_this: 8, now_im_thinking: 5 },
-    commentCount: 1,
+    commentCount: 3,
   },
 
   // Masculinity, Sex & Sexuality
@@ -768,7 +768,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 86400000),
     reactions: { shifted_something: 7, feel_this: 8, now_im_thinking: 6 },
-    commentCount: 1,
+    commentCount: 3,
   },
   {
     id: "masculinity-002",
@@ -784,7 +784,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 72000000),
     reactions: { feel_this: 9, shifted_something: 6, cheering_you_on: 5 },
-    commentCount: 1,
+    commentCount: 3,
   },
   {
     id: "masculinity-003",
@@ -800,7 +800,7 @@ export const demoPosts: Post[] = [
     isPromptResponse: false,
     createdAt: new Date(Date.now() - 57600000),
     reactions: { sending_warmth: 6, feel_this: 7, shifted_something: 5 },
-    commentCount: 0,
+    commentCount: 2,
   },
 
   // Sacred Sexuality Practices
@@ -851,6 +851,86 @@ export const demoPosts: Post[] = [
     createdAt: new Date(Date.now() - 50400000),
     reactions: { cheering_you_on: 6, feel_this: 8, sending_warmth: 7 },
     commentCount: 1,
+  },
+
+  // Start Here (adding 4th post)
+  {
+    id: "start-004",
+    userId: "user-aaron-vance",
+    authorName: "Aaron Vance",
+    authorPronouns: "he/him",
+    spaceId: "start-here",
+    promptId: undefined,
+    content:
+      "I'm 52 and realized I've been numb for decades. I thought that was maturity – just pushing through, not feeling too much. But my body knows I'm missing something real. I don't know how to wake up, but I'm here trying.",
+    isPromptResponse: false,
+    createdAt: new Date(Date.now() - 28800000),
+    reactions: { feel_this: 7, sending_warmth: 4, shifted_something: 3 },
+    commentCount: 2,
+  },
+
+  // Intimacy Patterns (adding 4th post)
+  {
+    id: "intimacy-004",
+    userId: "user-jason-cooper",
+    authorName: "Jason Cooper",
+    authorPronouns: "he/him",
+    spaceId: "intimacy-patterns",
+    promptId: undefined,
+    content:
+      "I notice I only feel worthy when I'm useful to someone else. So intimacy feels dangerous because it means receiving, not giving. I'm slowly learning that being vulnerable isn't weak – it's the strongest thing I can do.",
+    isPromptResponse: false,
+    createdAt: new Date(Date.now() - 36000000),
+    reactions: { feel_this: 8, shifted_something: 5, cheering_you_on: 4 },
+    commentCount: 2,
+  },
+
+  // Touch & Affection (adding 4th post)
+  {
+    id: "touch-004",
+    userId: "user-garrett-torres",
+    authorName: "Garrett Torres",
+    authorPronouns: "he/him",
+    spaceId: "touch-affection",
+    promptId: undefined,
+    content:
+      "After my divorce, I went three years without another person touching me on purpose. Then my son hugged me and I held him longer than usual. That one hug cracked something open. I realized I'm starving for this.",
+    isPromptResponse: false,
+    createdAt: new Date(Date.now() - 32400000),
+    reactions: { feel_this: 10, sending_warmth: 6, cheering_you_on: 5 },
+    commentCount: 2,
+  },
+
+  // Dating, Desire & Vulnerability (adding 4th post)
+  {
+    id: "dating-004",
+    userId: "user-henry-wright",
+    authorName: "Henry Wright",
+    authorPronouns: "he/him",
+    spaceId: "dating-desire",
+    promptId: undefined,
+    content:
+      "I used to think being desirable meant being impressive. Perfect body, perfect job, perfect game. But dating someone who actually wants to know me – not impress me – changed everything. I can't go back to performing.",
+    isPromptResponse: false,
+    createdAt: new Date(Date.now() - 25200000),
+    reactions: { feel_this: 7, shifted_something: 6, now_im_thinking: 5 },
+    commentCount: 2,
+  },
+
+  // Masculinity, Sex & Sexuality (adding 4th post)
+  {
+    id: "masculinity-004",
+    userId: "user-ivan-moreno",
+    authorName: "Ivan Moreno",
+    authorPronouns: "he/him",
+    spaceId: "masculinity-sex-sexuality",
+    promptId: undefined,
+    content:
+      "I'm learning that being a man doesn't mean having all the answers. It means asking for help, admitting fear, saying 'I don't know how to do this.' That's actually the bravest thing I've ever done.",
+    isPromptResponse: false,
+    createdAt: new Date(Date.now() - 19200000),
+    reactions: { feel_this: 8, cheering_you_on: 6, sending_warmth: 4 },
+    commentCount: 2,
   },
 ];
 
@@ -1193,20 +1273,6 @@ export const demoComments: Comment[] = [
     reactions: { feel_this: 4, sending_warmth: 2 },
   },
 
-  // Comments on spirituality-001 (Andrew - separated sexuality and spirituality)
-  {
-    id: "comment-spirituality-001-a",
-    postId: "spirituality-001",
-    userId: "user-samuel-wright",
-    authorName: "Samuel Wright",
-    // authorPhoto removed - Avatar component will generate initials instead
-    // authorPhoto: generateAvatarUrl("SW"),
-    content:
-      "That question your wife asked you – it's the question that broke me open too. Realizing that separation was never true. Just something we were taught.",
-    createdAt: new Date(Date.now() - 62000000),
-    reactions: { feel_this: 3, shifted_something: 2 },
-  },
-
   // Comments on spirituality-002 (Samuel - meditation but panic with sex)
   {
     id: "comment-spirituality-002-a",
@@ -1331,6 +1397,552 @@ export const demoComments: Comment[] = [
       "Really meeting someone – that's what I'm learning it means. Not just bodies touching but beings connecting. That's sacred for sure.",
     createdAt: new Date(Date.now() - 45000000),
     reactions: { feel_this: 3, glad_you_shared: 2 },
+  },
+
+  // Comments on start-004 (Aaron - 52, numb, wanting to wake up)
+  {
+    id: "comment-start-004-a",
+    postId: "start-004",
+    userId: "user-oliver-schmidt",
+    authorName: "Oliver Schmidt",
+    content:
+      "Thank you for saying this. Numbness has felt safer than feeling. But I'm realizing safety without connection is just loneliness wearing a disguise. Your willingness to wake up is inspiring.",
+    createdAt: new Date(Date.now() - 26000000),
+    reactions: { feel_this: 5, cheering_you_on: 4, glad_you_shared: 2 },
+  },
+  {
+    id: "comment-start-004-b",
+    postId: "start-004",
+    userId: "user-michael-brown",
+    authorName: "Michael Brown",
+    content:
+      "I get that maturity story. Turns out, feeling isn't weakness – not feeling is the real cost. Sounds like you're on the right path.",
+    createdAt: new Date(Date.now() - 23000000),
+    reactions: { feel_this: 4, sending_warmth: 3 },
+  },
+
+  // Comments on intimacy-004 (Jason - only worthy when useful)
+  {
+    id: "comment-intimacy-004-a",
+    postId: "intimacy-004",
+    userId: "user-liam-parker",
+    authorName: "Liam Parker",
+    content:
+      "The worthiness piece – that's what I'm working through too. Learning that I don't have to earn the right to be held. That was a hard belief to question.",
+    createdAt: new Date(Date.now() - 34000000),
+    reactions: { feel_this: 6, shifted_something: 2 },
+  },
+  {
+    id: "comment-intimacy-004-b",
+    postId: "intimacy-004",
+    userId: "user-daniel-kim",
+    authorName: "Daniel Kim",
+    content:
+      "Receiving is way harder than giving, isn't it? You're showing real courage by even naming this pattern. That's the first step to changing it.",
+    createdAt: new Date(Date.now() - 30000000),
+    reactions: { feel_this: 5, cheering_you_on: 3 },
+  },
+
+  // Comments on touch-004 (Garrett - three years without touch, son's hug)
+  {
+    id: "comment-touch-004-a",
+    postId: "touch-004",
+    userId: "user-ethan-martin",
+    authorName: "Ethan Martin",
+    content:
+      "Three years is such a long time to be without that. And a child's hug – that's pure and honest. It makes sense that it cracked something open. You deserve to have that in your life.",
+    createdAt: new Date(Date.now() - 30000000),
+    reactions: { feel_this: 8, sending_warmth: 5, cheering_you_on: 4 },
+  },
+  {
+    id: "comment-touch-004-b",
+    postId: "touch-004",
+    userId: "user-noah-brooks",
+    authorName: "Noah Brooks",
+    content:
+      "That starvation – I relate to that word. I didn't realize it until I started paying attention. You naming it helps me see it too.",
+    createdAt: new Date(Date.now() - 27000000),
+    reactions: { feel_this: 7, glad_you_shared: 2 },
+  },
+
+  // Comments on dating-004 (Henry - performing vs being known)
+  {
+    id: "comment-dating-004-a",
+    postId: "dating-004",
+    userId: "user-tyler-ross",
+    authorName: "Tyler Ross",
+    content:
+      "This is what I'm learning too. Authenticity is way more attractive than perfection. When someone actually wants to know you, the relief is unreal.",
+    createdAt: new Date(Date.now() - 23000000),
+    reactions: { feel_this: 7, shifted_something: 4 },
+  },
+  {
+    id: "comment-dating-004-b",
+    postId: "dating-004",
+    userId: "user-victor-austin",
+    authorName: "Victor Austin",
+    content:
+      "Can't go back to performing – exactly. Once you taste real connection, the performance feels like a prison. You're onto something real.",
+    createdAt: new Date(Date.now() - 20000000),
+    reactions: { feel_this: 6, now_im_thinking: 3 },
+  },
+
+  // Comments on masculinity-004 (Ivan - asking for help, admitting fear)
+  {
+    id: "comment-masculinity-004-a",
+    postId: "masculinity-004",
+    userId: "user-xavier-murray",
+    authorName: "Xavier Murray",
+    content:
+      "That's exactly what cost me my marriage – thinking I had to have all the answers. Your shift is the real deal. That's what being a man actually means.",
+    createdAt: new Date(Date.now() - 17000000),
+    reactions: { feel_this: 7, cheering_you_on: 5, shifted_something: 2 },
+  },
+  {
+    id: "comment-masculinity-004-b",
+    postId: "masculinity-004",
+    userId: "user-yannick-gray",
+    authorName: "Yannick Gray",
+    content:
+      "Asking for help was one of the scariest things I've done. But the freedom that came with it – that's what I wish every man could experience.",
+    createdAt: new Date(Date.now() - 14000000),
+    reactions: { feel_this: 6, cheering_you_on: 4, sending_warmth: 3 },
+  },
+
+  // Additional comment on intimacy-003 (Peter - avoidance as survival skill)
+  {
+    id: "comment-intimacy-003-a",
+    postId: "intimacy-003",
+    userId: "user-jason-cooper",
+    authorName: "Jason Cooper",
+    content:
+      "Survival skill – that reframe is everything. I spent so long hating myself for pushing people away. Realizing my body was protecting me... it changes the whole conversation.",
+    createdAt: new Date(Date.now() - 40000000),
+    reactions: { feel_this: 7, shifted_something: 5 },
+  },
+
+  // Additional comment on touch-002 (Liam - two years without being held)
+  {
+    id: "comment-touch-002-a2",
+    postId: "touch-002",
+    userId: "user-garrett-torres",
+    authorName: "Garrett Torres",
+    content:
+      "Two years feels like an ocean. And I believe you that it's affecting your mental health. Touch starvation is real. You deserve to have that in your life again.",
+    createdAt: new Date(Date.now() - 55000000),
+    reactions: { feel_this: 8, sending_warmth: 6 },
+  },
+
+  // Additional comment on dating-001 (Tyler - honesty on a date)
+  {
+    id: "comment-dating-001-a2",
+    postId: "dating-001",
+    userId: "user-henry-wright",
+    authorName: "Henry Wright",
+    content:
+      "This gives me hope. I'm terrified that being real will scare people away. Hearing that it actually drew someone closer – that changes how I want to show up.",
+    createdAt: new Date(Date.now() - 78000000),
+    reactions: { feel_this: 6, glad_you_shared: 3, shifted_something: 2 },
+  },
+
+  // Additional comment on couples-003 (Mark & David - talking instead of fighting)
+  {
+    id: "comment-couples-003-a",
+    postId: "couples-003",
+    userId: "user-james-marcus",
+    authorName: "James & Marcus",
+    content:
+      "This is the shift we're trying to make. Talking about fear instead of blame. It's harder but it feels like we're actually connecting for the first time in years.",
+    createdAt: new Date(Date.now() - 42000000),
+    reactions: { feel_this: 6, shifted_something: 4, glad_you_shared: 3 },
+  },
+
+  // Additional comment on embodiment-003 (James - holding stress in chest/throat)
+  {
+    id: "comment-embodiment-003-a2",
+    postId: "embodiment-003",
+    userId: "user-chris-martinez",
+    authorName: "Chris Martinez",
+    content:
+      "I hold mine in my chest and shoulders. And you're right – my body's been screaming that I'm not speaking my truth. This is making so much sense now.",
+    createdAt: new Date(Date.now() - 39000000),
+    reactions: { feel_this: 7, shifted_something: 3 },
+  },
+
+  // Comments on commons-003 (Jordan - asking myself what I want)
+  {
+    id: "comment-commons-003-a",
+    postId: "commons-003",
+    userId: "user-alex-rivera",
+    authorName: "Alex Rivera",
+    content:
+      "This resonates. I'm so used to doing what looks good that I don't even know what I actually want anymore. How do you even start figuring that out?",
+    createdAt: new Date(Date.now() - 50000000),
+    reactions: { feel_this: 4, now_im_thinking: 3 },
+  },
+  {
+    id: "comment-commons-003-b",
+    postId: "commons-003",
+    userId: "user-kevin-patel",
+    authorName: "Kevin Patel",
+    content:
+      "That's a brave question to ask yourself. I think asking it is already part of the answer.",
+    createdAt: new Date(Date.now() - 48000000),
+    reactions: { feel_this: 3, glad_you_shared: 2 },
+  },
+  {
+    id: "comment-commons-003-c",
+    postId: "commons-003",
+    userId: "user-michael-brown",
+    authorName: "Michael Brown",
+    content:
+      "Yeah, we're taught to fit in, not to know ourselves. Takes guts to unlearn that.",
+    createdAt: new Date(Date.now() - 45000000),
+    reactions: { feel_this: 2 },
+  },
+
+  // Additional comment on commons-005 (Chris - not alone in shame)
+  {
+    id: "comment-commons-005-b",
+    postId: "commons-005",
+    userId: "user-ethan-martin",
+    authorName: "Ethan Martin",
+    content:
+      "You're definitely not alone. Reading this right now helped me feel less broken too.",
+    createdAt: new Date(Date.now() - 12000000),
+    reactions: { feel_this: 3, sending_warmth: 2 },
+  },
+
+  // Additional comments on start-002 (Michael - putting off help)
+  {
+    id: "comment-start-002-a2",
+    postId: "start-002",
+    userId: "user-david-chen",
+    authorName: "David Chen",
+    content:
+      "It takes courage to ask for help. The fact that you're here says a lot.",
+    createdAt: new Date(Date.now() - 55000000),
+    reactions: { cheering_you_on: 3, feel_this: 2 },
+  },
+
+  // Comments on start-003 (Kevin - no fixing or diagnosing)
+  {
+    id: "comment-start-003-a",
+    postId: "start-003",
+    userId: "user-marcus-johnson",
+    authorName: "Marcus Johnson",
+    content:
+      "That's what got me too. I've spent so much energy trying to fix everything. The idea of just... being is actually appealing.",
+    createdAt: new Date(Date.now() - 40000000),
+    reactions: { feel_this: 5, now_im_thinking: 2 },
+  },
+  {
+    id: "comment-start-003-b",
+    postId: "start-003",
+    userId: "user-ryan-anderson",
+    authorName: "Ryan Anderson",
+    content:
+      "Impossible but really appealing – that's exactly how I feel about it too.",
+    createdAt: new Date(Date.now() - 38000000),
+    reactions: { feel_this: 3, glad_you_shared: 1 },
+  },
+
+  // Comments on intimacy-003 (Peter - pushing away pattern)
+  {
+    id: "comment-intimacy-003-b",
+    postId: "intimacy-003",
+    userId: "user-oliver-schmidt",
+    authorName: "Oliver Schmidt",
+    content:
+      "I do the exact same thing. I'll sabotage a good moment without really knowing why. Wondering if it's fear?",
+    createdAt: new Date(Date.now() - 44000000),
+    reactions: { feel_this: 6, now_im_thinking: 2 },
+  },
+  {
+    id: "comment-intimacy-003-c",
+    postId: "intimacy-003",
+    userId: "user-luke-morris",
+    authorName: "Luke Morris",
+    content:
+      "Yeah, I experience this too. Sometimes I think I'm just not built for closeness, but then I read something like this and wonder if I'm just scared.",
+    createdAt: new Date(Date.now() - 41000000),
+    reactions: { feel_this: 5, shifted_something: 1 },
+  },
+
+  // Comments on touch-001 (Ethan - terrified of being held)
+  {
+    id: "comment-touch-001-a",
+    postId: "touch-001",
+    userId: "user-noah-brooks",
+    authorName: "Noah Brooks",
+    content:
+      "I relate to this so much. There's something scary about letting someone just... hold you. Without it meaning anything else.",
+    createdAt: new Date(Date.now() - 70000000),
+    reactions: { feel_this: 6, sending_warmth: 3 },
+  },
+  {
+    id: "comment-touch-001-b",
+    postId: "touch-001",
+    userId: "user-ryan-anderson",
+    authorName: "Ryan Anderson",
+    content:
+      "Why is it so hard to just receive? I never thought about it that way before.",
+    createdAt: new Date(Date.now() - 68000000),
+    reactions: { feel_this: 4, now_im_thinking: 2 },
+  },
+  {
+    id: "comment-touch-001-c",
+    postId: "touch-001",
+    userId: "user-james-taylor",
+    authorName: "James Taylor",
+    content:
+      "The independence thing is real. But you're right – it's lonely. Learning to let people in is hard work.",
+    createdAt: new Date(Date.now() - 65000000),
+    reactions: { feel_this: 3, shifted_something: 1 },
+  },
+
+  // Additional comment on touch-003 (Noah - flinching at touch)
+  {
+    id: "comment-touch-003-a2",
+    postId: "touch-003",
+    userId: "user-chris-martinez",
+    authorName: "Chris Martinez",
+    content:
+      "That's a big realization. Being afraid of comfort because of what feeling it might open up... yeah, I get that.",
+    createdAt: new Date(Date.now() - 41000000),
+    reactions: { feel_this: 4, shifted_something: 2 },
+  },
+
+  // Additional comments on spirituality-001 (Andrew - sexuality and spirituality)
+  {
+    id: "comment-spirituality-001-a2",
+    postId: "spirituality-001",
+    userId: "user-samuel-wright",
+    authorName: "Samuel Wright",
+    content:
+      "That's the split I'm living in right now. Never thought they could be the same thing. Your husband's question is making me think.",
+    createdAt: new Date(Date.now() - 66000000),
+    reactions: { feel_this: 5, now_im_thinking: 3 },
+  },
+  {
+    id: "comment-spirituality-001-b",
+    postId: "spirituality-001",
+    userId: "user-benjamin-king",
+    authorName: "Benjamin King",
+    content:
+      "This is the question I'm wrestling with too. How do we integrate these parts of ourselves that we've been taught to keep separate?",
+    createdAt: new Date(Date.now() - 64000000),
+    reactions: { feel_this: 4, shifted_something: 2 },
+  },
+
+  // Additional comments on spirituality-002 (Samuel - meditation and sexuality disconnect)
+  {
+    id: "comment-spirituality-002-a2",
+    postId: "spirituality-002",
+    userId: "user-andrew-hayes",
+    authorName: "Andrew Hayes",
+    content:
+      "The panic is so real. Like one part of me has to shut down so the other can be present. I'm tired of that split.",
+    createdAt: new Date(Date.now() - 52000000),
+    reactions: { feel_this: 5, shifted_something: 1 },
+  },
+  {
+    id: "comment-spirituality-002-b",
+    postId: "spirituality-002",
+    userId: "user-benjamin-king",
+    authorName: "Benjamin King",
+    content:
+      "I didn't know others felt this dissonance. Thought it was just me. Maybe there's a way to bring these together.",
+    createdAt: new Date(Date.now() - 50000000),
+    reactions: { feel_this: 4, now_im_thinking: 2 },
+  },
+
+  // Comments on spirituality-003 (Benjamin - what if sexuality is spiritual?)
+  {
+    id: "comment-spirituality-003-a",
+    postId: "spirituality-003",
+    userId: "user-samuel-wright",
+    authorName: "Samuel Wright",
+    content:
+      "That feeling of coming home is important. Maybe that's the signal you should listen to instead of the fear.",
+    createdAt: new Date(Date.now() - 38000000),
+    reactions: { feel_this: 4, shifted_something: 3 },
+  },
+  {
+    id: "comment-spirituality-003-b",
+    postId: "spirituality-003",
+    userId: "user-andrew-hayes",
+    authorName: "Andrew Hayes",
+    content:
+      "Coming home to yourself – that's a beautiful way to describe it. I want to find that.",
+    createdAt: new Date(Date.now() - 36000000),
+    reactions: { feel_this: 3, sending_warmth: 2 },
+  },
+
+  // Comments on intimacy-001 (Luke - pushing away when things get real)
+  {
+    id: "comment-intimacy-001-a",
+    postId: "intimacy-001",
+    userId: "user-peter-graham",
+    authorName: "Peter Graham",
+    content:
+      "I do this too. The moment someone gets vulnerable, I suddenly need to leave. Why do we do that?",
+    createdAt: new Date(Date.now() - 73000000),
+    reactions: { feel_this: 6, now_im_thinking: 3 },
+  },
+  {
+    id: "comment-intimacy-001-b",
+    postId: "intimacy-001",
+    userId: "user-oliver-schmidt",
+    authorName: "Oliver Schmidt",
+    content:
+      "Seeing it happen is the first step, right? At least you're noticing the pattern.",
+    createdAt: new Date(Date.now() - 71000000),
+    reactions: { feel_this: 4, cheering_you_on: 2 },
+  },
+
+  // Comments on intimacy-002 (Oliver - keeping everyone at arm's length)
+  {
+    id: "comment-intimacy-002-a",
+    postId: "intimacy-002",
+    userId: "user-luke-morris",
+    authorName: "Luke Morris",
+    content:
+      "This is the thing – protection that becomes isolation. I'm realizing the same pattern in my own relationships.",
+    createdAt: new Date(Date.now() - 59000000),
+    reactions: { feel_this: 7, now_im_thinking: 2 },
+  },
+  {
+    id: "comment-intimacy-002-b",
+    postId: "intimacy-002",
+    userId: "user-peter-graham",
+    authorName: "Peter Graham",
+    content:
+      "The loneliness of keeping people away – yeah. But at least you see it now. That's something.",
+    createdAt: new Date(Date.now() - 57000000),
+    reactions: { feel_this: 5, sending_warmth: 3 },
+  },
+
+  // Additional comment on couples-003 (Mark & David - talking about fear)
+  {
+    id: "comment-couples-003-b",
+    postId: "couples-003",
+    userId: "user-robert-thomas",
+    authorName: "Robert & Thomas",
+    content:
+      "Naming fear instead of blame – we're trying to do that too. It's harder than I expected but it feels more honest.",
+    createdAt: new Date(Date.now() - 40000000),
+    reactions: { feel_this: 5, shifted_something: 2 },
+  },
+
+  // Additional comments on dating-002 (Victor - stayed open after ghosting)
+  {
+    id: "comment-dating-002-a2",
+    postId: "dating-002",
+    userId: "user-william-foster",
+    authorName: "William Foster",
+    content:
+      "That takes real courage. I usually shut down completely after something like that. How are you doing with it?",
+    createdAt: new Date(Date.now() - 62000000),
+    reactions: { feel_this: 5, cheering_you_on: 2 },
+  },
+  {
+    id: "comment-dating-002-b",
+    postId: "dating-002",
+    userId: "user-tyler-ross",
+    authorName: "Tyler Ross",
+    content:
+      "Staying open is lonelier than closing off, but you're right – closing off is lonelier in the end. Hard choice.",
+    createdAt: new Date(Date.now() - 60000000),
+    reactions: { feel_this: 4, shifted_something: 1 },
+  },
+
+  // Additional comments on dating-003 (William - alone for three years)
+  {
+    id: "comment-dating-003-a2",
+    postId: "dating-003",
+    userId: "user-victor-austin",
+    authorName: "Victor Austin",
+    content:
+      "Self-rejection as protection – I never thought of it that way but that's exactly what I'm doing.",
+    createdAt: new Date(Date.now() - 48000000),
+    reactions: { feel_this: 6, now_im_thinking: 3 },
+  },
+  {
+    id: "comment-dating-003-b",
+    postId: "dating-003",
+    userId: "user-tyler-ross",
+    authorName: "Tyler Ross",
+    content:
+      "The core issue – yeah. Once you see it, you can't unsee it. But at least you can start doing something about it.",
+    createdAt: new Date(Date.now() - 46000000),
+    reactions: { feel_this: 4, cheering_you_on: 2 },
+  },
+
+  // Additional comments on masculinity-001 (Xavier - showing up scared)
+  {
+    id: "comment-masculinity-001-a2",
+    postId: "masculinity-001",
+    userId: "user-yannick-gray",
+    authorName: "Yannick Gray",
+    content:
+      "The pressure to perform confidence even when you're breaking – I lived that. Still learning to let people see me scared.",
+    createdAt: new Date(Date.now() - 84000000),
+    reactions: { feel_this: 7, shifted_something: 2 },
+  },
+  {
+    id: "comment-masculinity-001-b",
+    postId: "masculinity-001",
+    userId: "user-zachary-kelley",
+    authorName: "Zachary Kelley",
+    content:
+      "This cost you your marriage – that's heavy. But recognizing it is the first step to something different.",
+    createdAt: new Date(Date.now() - 82000000),
+    reactions: { feel_this: 5, cheering_you_on: 3 },
+  },
+
+  // Additional comments on masculinity-002 (Yannick - conquest vs presence)
+  {
+    id: "comment-masculinity-002-a2",
+    postId: "masculinity-002",
+    userId: "user-xavier-murray",
+    authorName: "Xavier Murray",
+    content:
+      "Presence over performance – that's what I'm learning too. The connected moment beats any conquest.",
+    createdAt: new Date(Date.now() - 70000000),
+    reactions: { feel_this: 6, shifted_something: 2 },
+  },
+  {
+    id: "comment-masculinity-002-b",
+    postId: "masculinity-002",
+    userId: "user-zachary-kelley",
+    authorName: "Zachary Kelley",
+    content:
+      "Most connected experience – that's what sex should be. I'm just now learning that's possible.",
+    createdAt: new Date(Date.now() - 68000000),
+    reactions: { feel_this: 5, now_im_thinking: 2 },
+  },
+
+  // Comments on masculinity-003 (Zachary - strong and sensitive)
+  {
+    id: "comment-masculinity-003-a",
+    postId: "masculinity-003",
+    userId: "user-yannick-gray",
+    authorName: "Yannick Gray",
+    content:
+      "They're not opposites at all. The most powerful thing I've done is let myself be tender. Still learning to believe that though.",
+    createdAt: new Date(Date.now() - 55000000),
+    reactions: { feel_this: 7, shifted_something: 3 },
+  },
+  {
+    id: "comment-masculinity-003-b",
+    postId: "masculinity-003",
+    userId: "user-xavier-murray",
+    authorName: "Xavier Murray",
+    content:
+      "Sensitivity as strength – yeah. That's the flip I'm trying to make. It's not easy but it feels true.",
+    createdAt: new Date(Date.now() - 53000000),
+    reactions: { feel_this: 6, shifted_something: 2 },
   },
 ];
 

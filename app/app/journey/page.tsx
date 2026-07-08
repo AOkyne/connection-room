@@ -321,13 +321,13 @@ export default function JourneyPage() {
                 This insight shows how you tend to relate and connect. Understanding your pattern helps you navigate relationships with more awareness and authenticity.
               </p>
               <div className="flex gap-2 pt-1">
-                <Link href="/app/quizzes" className="flex-1">
-                  <Button variant="outline" size="sm" className="w-full">
+                <Link href="/app/quizzes">
+                  <Button variant="outline" size="sm">
                     Retake Quiz
                   </Button>
                 </Link>
-                <Link href="/app/quizzes" className="flex-1">
-                  <Button variant="ghost" size="sm" className="w-full">
+                <Link href="/app/quizzes">
+                  <Button variant="ghost" size="sm">
                     Other Quizzes
                   </Button>
                 </Link>
@@ -337,7 +337,7 @@ export default function JourneyPage() {
             <div className="space-y-3">
               <p className="text-[#1a0f0a] text-sm">Choose from our curated quizzes to discover your unique connection patterns and get personalized insights.</p>
               <Link href="/app/quizzes">
-                <Button variant="primary" size="sm" className="w-full">
+                <Button variant="primary" size="sm">
                   Explore Quizzes →
                 </Button>
               </Link>
