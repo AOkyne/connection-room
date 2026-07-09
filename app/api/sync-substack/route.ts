@@ -80,31 +80,36 @@ export async function GET(request: NextRequest) {
     // Store articles in Supabase, avoiding duplicates
     let syncedCount = 0;
     for (const item of items) {
-      // Check if article already exists
-      const { data: existing } = await supabase
-        .from("articles")
-        .select("id")
-        .eq("url", item.link)
-        .single();
+      try {
+        // Check if article already exists
+        const { data: existing, error: checkError } = await supabase
+          .from("articles")
+          .select("id")
+          .eq("url", item.link)
+          .maybeSingle();
 
-      if (!existing) {
-        // Insert new article
-        const { error } = await supabase.from("articles").insert({
-          title: item.title,
-          excerpt: item.description.substring(0, 500),
-          content: item.description,
-          url: item.link,
-          author: item.author,
-          published_at: new Date(item.pubDate),
-          created_at: new Date(),
-          updated_at: new Date(),
-        });
+        if (!existing && !checkError) {
+          // Insert new article
+          const { error } = await supabase.from("articles").insert({
+            title: item.title,
+            excerpt: item.description.substring(0, 500),
+            content: item.description,
+            url: item.link,
+            author: item.author,
+            published_at: new Date(item.pubDate),
+            created_at: new Date(),
+            updated_at: new Date(),
+          });
 
-        if (!error) {
-          syncedCount++;
-        } else {
-          console.warn("Error inserting article:", error);
+          if (!error) {
+            syncedCount++;
+            console.log("Synced article:", item.title);
+          } else {
+            console.warn("Error inserting article:", error);
+          }
         }
+      } catch (err) {
+        console.warn("Error processing article:", item.title, err);
       }
     }
 
