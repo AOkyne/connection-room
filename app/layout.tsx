@@ -31,7 +31,8 @@ export const metadata: Metadata = {
   viewport: "width=device-width, initial-scale=1",
   authors: [{ name: "Trevor James" }],
   icons: {
-    icon: "/trevor-james-favicon.png",
+    icon: "/favicon.ico",
+    apple: "/trevor-james-favicon.png",
   },
 };
 
