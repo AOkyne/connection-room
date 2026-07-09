@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { getArticles, type Article } from "@/lib/data/articles";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -38,6 +39,17 @@ export default function ArticlesPage() {
           { label: "Articles", isActive: true },
         ]}
       />
+
+      {/* Hero Image */}
+      <div className="relative w-full h-64 -mx-6 -mt-6 mb-8 overflow-hidden rounded-lg">
+        <Image
+          src="/imagery/articles-hero.png"
+          alt="Articles"
+          fill
+          className="object-cover object-center"
+          priority
+        />
+      </div>
 
       <div>
         <h1 className="text-4xl font-bold text-[#1a0f0a]">Articles</h1>
