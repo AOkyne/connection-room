@@ -39,6 +39,7 @@ export interface Comment {
 const POSTS_STORAGE_KEY = "connection-room:posts";
 const COMMENTS_STORAGE_KEY = "connection-room:comments";
 const USER_REACTIONS_KEY = "connection-room:user-reactions"; // Stores user's selected reaction per post
+const DELETED_POSTS_KEY = "connection-room:deleted-posts"; // Track deleted post IDs
 
 // Get current authenticated user ID
 async function getCurrentUserId(): Promise<string | null> {
@@ -92,6 +93,10 @@ export async function getPosts(spaceId?: string): Promise<Post[]> {
     return demoPosts;
   }
 
+  // Get deleted post IDs
+  const deletedPostsStored = localStorage.getItem(DELETED_POSTS_KEY);
+  const deletedPostIds = deletedPostsStored ? JSON.parse(deletedPostsStored) : [];
+
   // Always start with demo data as base
   let posts = demoPosts;
 
@@ -128,6 +133,9 @@ export async function getPosts(spaceId?: string): Promise<Post[]> {
     postMap.set(post.id, post);
   });
   posts = Array.from(postMap.values());
+
+  // Filter out deleted posts
+  posts = posts.filter((p: Post) => !deletedPostIds.includes(p.id));
 
   // Migrate old reactions
   posts = posts.map((p: Post) => ({
@@ -437,16 +445,25 @@ export async function deletePost(postId: string): Promise<void> {
     }
   }
 
-  // Demo mode fallback
+  // Demo mode fallback - remove from stored posts
   const stored = localStorage.getItem(POSTS_STORAGE_KEY);
   const posts = stored ? JSON.parse(stored) : demoPosts;
   const updatedPosts = posts.filter((p: Post) => p.id !== postId);
   localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(updatedPosts));
 
+  // Remove comments
   const commentsStored = localStorage.getItem(COMMENTS_STORAGE_KEY);
   const comments = commentsStored ? JSON.parse(commentsStored) : demoComments;
   const updatedComments = comments.filter((c: Comment) => c.postId !== postId);
   localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(updatedComments));
+
+  // Track deleted post ID so demo data doesn't bring it back
+  const deletedPostsStored = localStorage.getItem(DELETED_POSTS_KEY);
+  const deletedPostIds = deletedPostsStored ? JSON.parse(deletedPostsStored) : [];
+  if (!deletedPostIds.includes(postId)) {
+    deletedPostIds.push(postId);
+    localStorage.setItem(DELETED_POSTS_KEY, JSON.stringify(deletedPostIds));
+  }
 }
 
 // Update comment content
