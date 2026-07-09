@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getSession, clearSession, type AppSession } from "@/lib/session";
 import { recordAppVisit } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
-import { IconHome, IconJourney, IconConnectionsNav, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming } from "@/components/Icons";
+import { IconHome, IconJourney, IconConnectionsNav, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming, IconReflection } from "@/components/Icons";
 import { BugReportWidget } from "@/components/BugReportWidget";
 import Link from "next/link";
 
@@ -64,6 +64,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     { href: "/app/spaces", label: "Spaces", icon: null },
     { href: "/app/journey", label: "My Journey", icon: IconJourney },
     { href: "/app/connections", label: "Connections", icon: IconConnectionsNav },
+    { href: "/app/articles", label: "Articles", icon: IconReflection },
     { href: "/app/events", label: "Events", icon: IconUpcoming },
     { href: "/app/profile", label: "Profile", icon: IconProfileNav },
   ];
