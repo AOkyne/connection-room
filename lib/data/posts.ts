@@ -96,6 +96,7 @@ export async function getPosts(spaceId?: string): Promise<Post[]> {
   if (userId && supabase) {
     try {
       const posts = await getSupabasePosts(spaceId);
+      console.log("Supabase posts fetched:", posts?.length || 0, "for space:", spaceId);
       // If we got posts, return them
       if (posts && posts.length > 0) {
         return posts.map((p) => ({
@@ -109,8 +110,10 @@ export async function getPosts(spaceId?: string): Promise<Post[]> {
   }
 
   // Demo mode fallback (when Supabase is not available or returned no posts)
+  console.log("Using demo data fallback for posts");
   const stored = localStorage.getItem(POSTS_STORAGE_KEY);
   let posts = stored ? JSON.parse(stored) : demoPosts;
+  console.log("Returning", posts.length, "posts from fallback");
 
   // Migrate old reactions
   posts = posts.map((p: Post) => ({
