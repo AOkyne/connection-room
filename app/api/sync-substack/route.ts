@@ -27,10 +27,18 @@ function parseRSSFeed(xml: string): SubstackItem[] {
     const guidMatch = itemContent.match(/<guid>([\s\S]*?)<\/guid>/);
 
     if (titleMatch && linkMatch) {
+      // Extract and clean description (subtitle)
+      let description = "";
+      if (descriptionMatch) {
+        description = stripCDATA(decodeHtml(descriptionMatch[1]))
+          .replace(/<[^>]*>/g, "") // Remove any HTML tags
+          .trim();
+      }
+
       items.push({
         title: stripCDATA(decodeHtml(titleMatch[1])),
         link: linkMatch[1],
-        description: descriptionMatch ? stripCDATA(decodeHtml(stripHtml(descriptionMatch[1]))) : "",
+        description: description,
         pubDate: pubDateMatch ? pubDateMatch[1] : new Date().toISOString(),
         author: authorMatch ? stripCDATA(decodeHtml(authorMatch[1])) : "Trevor James",
         guid: guidMatch ? guidMatch[1] : linkMatch[1],
