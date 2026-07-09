@@ -51,11 +51,23 @@ export default function ArticlesPage() {
         />
       </div>
 
-      <div>
-        <h1 className="text-4xl font-bold text-[#1a0f0a]">Articles</h1>
-        <p className="text-lg text-[#1a0f0a] mt-2">
-          Read my latest thoughts and reflections
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold text-[#1a0f0a]">Articles</h1>
+          <p className="text-lg text-[#1a0f0a] mt-2">
+            Read my latest thoughts and reflections
+          </p>
+        </div>
+        <a
+          href="https://trevorjamesla.substack.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block"
+        >
+          <Button variant="primary" size="md">
+            Explore All on Substack →
+          </Button>
+        </a>
       </div>
 
       {articles.length === 0 ? (
