@@ -85,6 +85,11 @@ export default function AdminPage() {
             📅 Manage Events
           </Button>
         </Link>
+        <Link href="/app/admin/moderation">
+          <Button variant="outline" size="sm">
+            🛡️ Moderate Posts & Comments
+          </Button>
+        </Link>
         <Link href="/admin/daily-companion">
           <Button variant="outline" size="sm">
             ✨ Daily Content
