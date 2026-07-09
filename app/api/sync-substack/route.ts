@@ -88,7 +88,36 @@ export async function GET(request: NextRequest) {
     }
 
     const xml = await response.text();
-    const items = parseRSSFeed(xml);
+    let items = parseRSSFeed(xml);
+
+    // Check for pagination and fetch additional pages
+    const nextPageMatch = xml.match(/<link rel="next" href="([^"]+)"/);
+    let nextPageUrl = nextPageMatch ? nextPageMatch[1] : null;
+    let pageCount = 1;
+    const maxPages = 10; // Fetch up to 10 pages (200+ articles)
+
+    while (nextPageUrl && pageCount < maxPages) {
+      console.log(`Fetching page ${pageCount + 1} from:`, nextPageUrl);
+      try {
+        const pageResponse = await fetch(nextPageUrl);
+        if (!pageResponse.ok) break;
+
+        const pageXml = await pageResponse.text();
+        const pageItems = parseRSSFeed(pageXml);
+        items = [...items, ...pageItems];
+        console.log(`Page ${pageCount + 1} fetched:`, pageItems.length, "articles");
+
+        // Look for next page link
+        const pageNextMatch = pageXml.match(/<link rel="next" href="([^"]+)"/);
+        nextPageUrl = pageNextMatch ? pageNextMatch[1] : null;
+        pageCount++;
+      } catch (err) {
+        console.warn("Error fetching pagination page:", err);
+        break;
+      }
+    }
+
+    console.log(`Total articles fetched: ${items.length} across ${pageCount} pages`);
 
     // Store articles in Supabase, avoiding duplicates
     let syncedCount = 0;
