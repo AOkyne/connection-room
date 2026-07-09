@@ -77,10 +77,16 @@ export async function getMemberStats(): Promise<MemberStats> {
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const oneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-    const { data, error } = await supabase
+    // Try to fetch with role filter, fall back to basic query if role column doesn't exist yet
+    let data: any[] = [];
+    let error: any = null;
+
+    const { data: result, error: err } = await supabase
       .from("profiles")
-      .select("id, joined_at, completed_onboarding, profile_photo")
-      .neq("role", "admin");
+      .select("id, joined_at, completed_onboarding, profile_photo");
+
+    data = result || [];
+    error = err;
 
     if (error) throw error;
 

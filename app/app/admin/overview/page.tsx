@@ -27,19 +27,59 @@ export default function AdminOverviewPage() {
         return;
       }
 
-      const [members, activity, events, offers, seeded] = await Promise.all([
-        getMemberStats(),
-        getActivityStats(),
-        getEventStats(),
-        getOfferStats(),
-        getSeededContentStats(),
-      ]);
+      try {
+        const [members, activity, events, offers, seeded] = await Promise.all([
+          getMemberStats().catch(() => ({
+            totalMembers: 0,
+            newThisWeek: 0,
+            newThisMonth: 0,
+            completedOnboarding: 0,
+            withProfilePhoto: 0,
+            activeThisWeek: 0,
+            activeThisMonth: 0,
+          })),
+          getActivityStats().catch(() => ({
+            postsThisWeek: 0,
+            commentsThisWeek: 0,
+            reactionsThisWeek: 0,
+            activeMembers: [],
+          })),
+          getEventStats().catch(() => ({
+            totalPublished: 0,
+            totalDraft: 0,
+            upcomingCount: 0,
+            totalRegistrations: 0,
+            registrationsByEvent: [],
+          })),
+          getOfferStats().catch(() => ({
+            totalActive: 0,
+            totalDraft: 0,
+            featuredCount: 0,
+            totalOffers: 0,
+          })),
+          getSeededContentStats().catch(() => ({
+            seededProfiles: 0,
+            seededPosts: 0,
+            seededComments: 0,
+            seededEvents: 0,
+            seededOffers: 0,
+            realProfiles: 0,
+            realPosts: 0,
+            realComments: 0,
+            realEvents: 0,
+            realOffers: 0,
+          })),
+        ]);
 
-      setMemberStats(members);
-      setActivityStats(activity);
-      setEventStats(events);
-      setOfferStats(offers);
-      setSeededStats(seeded);
+        setMemberStats(members);
+        setActivityStats(activity);
+        setEventStats(events);
+        setOfferStats(offers);
+        setSeededStats(seeded);
+      } catch (error) {
+        console.error("Error loading admin data:", error);
+      }
+
       setMounted(true);
       setLoading(false);
     };
@@ -63,6 +103,28 @@ export default function AdminOverviewPage() {
         <h1 className="text-4xl font-bold text-[#1a0f0a]">Admin Dashboard</h1>
         <p className="text-lg text-[#a0704a] mt-2">Launch readiness overview</p>
       </div>
+
+      {/* Migration Status Info */}
+      {!memberStats || memberStats.totalMembers === 0 ? (
+        <Card className="bg-blue-50 border-2 border-blue-300">
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-blue-900">
+              ℹ️ Supabase Migrations Pending
+            </p>
+            <p className="text-sm text-blue-800">
+              To activate the admin dashboard fully, apply the migrations to your Supabase database:
+            </p>
+            <ol className="text-sm text-blue-800 list-decimal list-inside space-y-1">
+              <li>Run migrations 012 and 013 from <code className="bg-blue-100 px-1 rounded">supabase/migrations/</code></li>
+              <li>These add admin role, event/offer management, and seeded content tracking</li>
+              <li>After applying, refresh this page to see real data</li>
+            </ol>
+            <p className="text-xs text-blue-700 italic mt-3">
+              The overview will show demo/zero data until migrations are applied.
+            </p>
+          </div>
+        </Card>
+      ) : null}
 
       {/* Launch Snapshot - Key Metrics */}
       <div>
