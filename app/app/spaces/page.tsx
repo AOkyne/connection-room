@@ -9,13 +9,14 @@ import { SpaceIconSVG } from "@/components/SpaceIconSVG";
 import { SpaceJoinedFeedback } from "@/components/feedback";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { getSpaces, joinSpace, leaveSpace, ensureRequiredSpaces, sortSpacesByPreference, saveSpaceOrder, isStartHereRequired, getAppVisits, type Space } from "@/lib/data/spaces";
-import { demoMembers } from "@/lib/seed/demo-members";
+import { getMemberCountBySpace } from "@/lib/data/profiles";
 import { spaceImageMap } from "@/lib/constants/spaceImages";
 
 export default function SpacesPage() {
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [draggedSpace, setDraggedSpace] = useState<string | null>(null);
   const [joinedSpaceFeedback, setJoinedSpaceFeedback] = useState<{ spaceName: string; spaceId: string } | null>(null);
+  const [memberCounts, setMemberCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const loadSpaces = async () => {
@@ -25,6 +26,13 @@ export default function SpacesPage() {
       const s = await getSpaces();
       const sorted = sortSpacesByPreference(s);
       setSpaces(sorted);
+
+      // Load member counts for each space
+      const counts: Record<string, number> = {};
+      for (const space of sorted) {
+        counts[space.id] = await getMemberCountBySpace(space.id);
+      }
+      setMemberCounts(counts);
     };
 
     loadSpaces();
@@ -176,7 +184,7 @@ export default function SpacesPage() {
                     )}
                     <CardHeader title={space.name} icon={<SpaceIconSVG spaceId={space.id} size={32} />} />
                     <p className="text-sm text-[#1a0f0a] mb-4">{space.description}</p>
-                    <div className="text-xs text-[#a0704a] mb-4">{demoMembers.filter(m => m.spacesJoined?.includes(space.id)).length} members</div>
+                    <div className="text-xs text-[#a0704a] mb-4">{memberCounts[space.id] || 0} members</div>
                     <div className="flex gap-2 mt-auto">
                       <Link href={`/app/spaces/${space.id}`}>
                         <Button variant="secondary" size="sm">
@@ -220,7 +228,7 @@ export default function SpacesPage() {
 
                 <CardHeader title={space.name} icon={<SpaceIconSVG spaceId={space.id} size={32} />} />
                 <p className="text-sm text-[#1a0f0a] mb-4">{space.description}</p>
-                <div className="text-xs text-[#a0704a] mb-4">{demoMembers.filter(m => m.spacesJoined?.includes(space.id)).length} members</div>
+                <div className="text-xs text-[#a0704a] mb-4">{memberCounts[space.id] || 0} members</div>
                 <div className="mt-auto">
                   <Button
                     variant="primary"

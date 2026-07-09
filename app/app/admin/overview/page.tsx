@@ -104,27 +104,23 @@ export default function AdminOverviewPage() {
         <p className="text-lg text-[#a0704a] mt-2">Launch readiness overview</p>
       </div>
 
-      {/* Migration Status Info */}
-      {!memberStats || memberStats.totalMembers === 0 ? (
-        <Card className="bg-blue-50 border-2 border-blue-300">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-blue-900">
-              ℹ️ Supabase Migrations Pending
-            </p>
-            <p className="text-sm text-blue-800">
-              To activate the admin dashboard fully, apply the migrations to your Supabase database:
-            </p>
-            <ol className="text-sm text-blue-800 list-decimal list-inside space-y-1">
-              <li>Run migrations 012 and 013 from <code className="bg-blue-100 px-1 rounded">supabase/migrations/</code></li>
-              <li>These add admin role, event/offer management, and seeded content tracking</li>
-              <li>After applying, refresh this page to see real data</li>
-            </ol>
-            <p className="text-xs text-blue-700 italic mt-3">
-              The overview will show demo/zero data until migrations are applied.
-            </p>
-          </div>
-        </Card>
-      ) : null}
+      {/* Setup Status Info */}
+      <Card className="bg-blue-50 border-2 border-blue-300">
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-blue-900">
+            ℹ️ Admin Dashboard Setup
+          </p>
+          <p className="text-sm text-blue-800">
+            The launch readiness overview is available. Some analytics features may require additional configuration:
+          </p>
+          <ul className="text-sm text-blue-800 list-disc list-inside space-y-1">
+            <li>Migrations 012 and 013 have been applied</li>
+            <li>Event/offer management tables are ready</li>
+            <li>Seeded content tracking is enabled</li>
+            <li>Some analytics may show zero due to RLS policies</li>
+          </ul>
+        </div>
+      </Card>
 
       {/* Launch Snapshot - Key Metrics */}
       <div>

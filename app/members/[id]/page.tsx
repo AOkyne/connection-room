@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { getProfile, Profile } from "@/lib/data/profiles";
-import { demoMembers } from "@/lib/seed/demo-members";
+import { getProfile, Profile, getAllProfiles } from "@/lib/data/profiles";
 import { getSpaces, Space } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
 
@@ -20,7 +19,8 @@ export default function MemberProfilePage() {
 
   useEffect(() => {
     const loadData = async () => {
-      const memberData = demoMembers.find((m) => m.id === memberId);
+      const allMembers = await getAllProfiles();
+      const memberData = allMembers.find((m) => m.id === memberId);
       const profileData = await getProfile();
       const spacesData = await getSpaces();
 

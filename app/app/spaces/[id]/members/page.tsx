@@ -3,10 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { getProfile, Profile } from "@/lib/data/profiles";
+import { getProfile, Profile, getProfilesBySpace } from "@/lib/data/profiles";
 import { getSpace, Space } from "@/lib/data/spaces";
-import { demoMembers } from "@/lib/seed/demo-members";
-import { demoSpaceMemberships } from "@/lib/seed/demo-space-memberships";
 import { Button } from "@/components/Button";
 
 export default function SpaceMembersPage() {
@@ -22,20 +20,10 @@ export default function SpaceMembersPage() {
     const loadData = async () => {
       const spaceData = await getSpace(spaceId);
       const profileData = await getProfile();
+      const spaceMembers = await getProfilesBySpace(spaceId);
 
       setSpace(spaceData);
       setUserProfile(profileData);
-
-      // Get demo members in this space
-      const memberIds = demoSpaceMemberships[spaceId]
-        ? Object.keys(demoSpaceMemberships).filter((id) =>
-            demoSpaceMemberships[id].includes(spaceId)
-          )
-        : [];
-
-      const spaceMembers = demoMembers.filter((m) =>
-        memberIds.includes(m.id)
-      );
       setMembers(spaceMembers);
 
       setLoading(false);

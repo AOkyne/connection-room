@@ -416,3 +416,138 @@ export function deleteProfile(): void {
   localStorage.removeItem(PROFILE_STORAGE_KEY);
   localStorage.removeItem(COUPLE_PROFILE_STORAGE_KEY);
 }
+
+// Fetch all profiles from database (seeded and real)
+export async function getAllProfiles(): Promise<Profile[]> {
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .order("display_name");
+
+    if (error) {
+      console.error("Error fetching profiles:", error);
+      return [];
+    }
+
+    return (data || []).map((p) => ({
+      id: p.id,
+      firstName: p.display_name?.split(" ")[0] || "",
+      lastName: p.display_name?.split(" ").slice(1).join(" ") || "",
+      displayName: p.display_name || "",
+      pronouns: p.pronouns,
+      location: p.location,
+      ageRange: p.age_range,
+      relationshipStatus: p.relationship_status,
+      orientation: p.orientation,
+      profilePhoto: p.profile_photo || "",
+      memberType: p.member_type || "individual",
+      whatBroughtYouHere: p.what_brought_you_here,
+      connectionHoping: p.connection_hoping,
+      interests: Array.isArray(p.interests) ? p.interests : [],
+      connectionComfortLevel: p.pairing_comfort_level,
+      connectionBoundaries: p.pairing_boundaries,
+      quizResult: p.quiz_result,
+      firstPromptResponse: p.first_prompt_response,
+      firstPromptIsPublic: p.first_prompt_is_public,
+      completedOnboarding: p.completed_onboarding || false,
+      spacesJoined: Array.isArray(p.spaces_joined) ? p.spaces_joined : [],
+      joinedAt: new Date(p.created_at),
+      profile_tagline: p.profile_tagline,
+      show_in_member_lists: p.show_in_member_lists,
+      profile_visibility: p.profile_visibility,
+      show_general_location: p.show_general_location,
+      show_recent_posts: p.show_recent_posts,
+      is_demo_profile: p.is_seeded,
+    }));
+  } catch (err) {
+    console.error("Error fetching profiles:", err);
+    return [];
+  }
+}
+
+// Fetch profiles that joined a specific space
+export async function getProfilesBySpace(spaceId: string): Promise<Profile[]> {
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .order("display_name");
+
+    if (error) {
+      console.error("Error fetching space members:", error);
+      return [];
+    }
+
+    // Filter on client side for profiles that have this space in spaces_joined
+    return (data || [])
+      .filter((p) => {
+        const spaces = Array.isArray(p.spaces_joined) ? p.spaces_joined : [];
+        return spaces.includes(spaceId);
+      })
+      .map((p) => ({
+        id: p.id,
+        firstName: p.display_name?.split(" ")[0] || "",
+        lastName: p.display_name?.split(" ").slice(1).join(" ") || "",
+        displayName: p.display_name || "",
+        pronouns: p.pronouns,
+        location: p.location,
+        ageRange: p.age_range,
+        relationshipStatus: p.relationship_status,
+        orientation: p.orientation,
+        profilePhoto: p.profile_photo || "",
+        memberType: p.member_type || "individual",
+        whatBroughtYouHere: p.what_brought_you_here,
+        connectionHoping: p.connection_hoping,
+        interests: Array.isArray(p.interests) ? p.interests : [],
+        connectionComfortLevel: p.pairing_comfort_level,
+        connectionBoundaries: p.pairing_boundaries,
+        quizResult: p.quiz_result,
+        firstPromptResponse: p.first_prompt_response,
+        firstPromptIsPublic: p.first_prompt_is_public,
+        completedOnboarding: p.completed_onboarding || false,
+        spacesJoined: Array.isArray(p.spaces_joined) ? p.spaces_joined : [],
+        joinedAt: new Date(p.created_at),
+        profile_tagline: p.profile_tagline,
+        show_in_member_lists: p.show_in_member_lists,
+        profile_visibility: p.profile_visibility,
+        show_general_location: p.show_general_location,
+        show_recent_posts: p.show_recent_posts,
+        is_demo_profile: p.is_seeded,
+      }));
+  } catch (err) {
+    console.error("Error fetching space members:", err);
+    return [];
+  }
+}
+
+// Get member count for a specific space
+export async function getMemberCountBySpace(spaceId: string): Promise<number> {
+  if (!supabase) return 0;
+
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, spaces_joined");
+
+    if (error) {
+      console.error("Error getting member count:", error);
+      return 0;
+    }
+
+    // Count profiles that have this space in spaces_joined
+    const count = (data || []).filter((p) => {
+      const spaces = Array.isArray(p.spaces_joined) ? p.spaces_joined : [];
+      return spaces.includes(spaceId);
+    }).length;
+
+    return count;
+  } catch (err) {
+    console.error("Error getting member count:", err);
+    return 0;
+  }
+}
