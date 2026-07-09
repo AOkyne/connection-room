@@ -92,28 +92,35 @@ export async function getPosts(spaceId?: string): Promise<Post[]> {
     return demoPosts;
   }
 
+  // Always start with demo data as base
+  let posts = demoPosts;
+
   const userId = await getCurrentUserId();
   if (userId && supabase) {
     try {
-      const posts = await getSupabasePosts(spaceId);
-      console.log("Supabase posts fetched:", posts?.length || 0, "for space:", spaceId);
-      // If we got posts, return them
-      if (posts && posts.length > 0) {
-        return posts.map((p) => ({
-          ...p,
-          reactions: migrateReactions(p.reactions),
-        }));
+      const supabasePosts = await getSupabasePosts(spaceId);
+      // If we got real posts from Supabase, use those instead
+      if (supabasePosts && supabasePosts.length > 0) {
+        console.log("Using Supabase posts:", supabasePosts.length);
+        posts = supabasePosts;
+      } else {
+        console.log("Supabase returned empty, using demo data");
       }
     } catch (err) {
-      console.warn("Error fetching from Supabase, falling back to demo data:", err);
+      console.warn("Error fetching from Supabase, using demo data:", err);
     }
   }
 
-  // Demo mode fallback (when Supabase is not available or returned no posts)
-  console.log("Using demo data fallback for posts");
+  // Check localStorage for user-created posts
   const stored = localStorage.getItem(POSTS_STORAGE_KEY);
-  let posts = stored ? JSON.parse(stored) : demoPosts;
-  console.log("Returning", posts.length, "posts from fallback");
+  if (stored) {
+    try {
+      const storedPosts = JSON.parse(stored);
+      posts = [...posts, ...storedPosts];
+    } catch (err) {
+      console.warn("Could not parse stored posts");
+    }
+  }
 
   // Migrate old reactions
   posts = posts.map((p: Post) => ({
@@ -238,23 +245,35 @@ export async function addPostReaction(postId: string, reactionType: string, user
 export async function getComments(postId: string): Promise<Comment[]> {
   if (typeof window === "undefined") return [];
 
+  // Start with demo comments
+  let allComments = [...demoComments];
+
   const userId = await getCurrentUserId();
   if (userId && supabase) {
     try {
-      const comments = await getSupabaseComments(postId);
-      // If we got comments, return them
-      if (comments && comments.length > 0) {
-        return comments;
+      const supabaseComments = await getSupabaseComments(postId);
+      // If we got real comments from Supabase, use those instead of demo
+      if (supabaseComments && supabaseComments.length > 0) {
+        console.log("Using Supabase comments:", supabaseComments.length);
+        allComments = supabaseComments;
+      } else {
+        console.log("Supabase returned empty comments, using demo data");
       }
     } catch (err) {
-      console.warn("Error fetching from Supabase, falling back to demo data:", err);
+      console.warn("Error fetching from Supabase, using demo data:", err);
     }
   }
 
-  // Demo mode fallback - combine stored comments with demo comments
+  // Add stored comments (user-created in demo mode)
   const stored = localStorage.getItem(COMMENTS_STORAGE_KEY);
-  const storedComments = stored ? JSON.parse(stored) : [];
-  const allComments = [...demoComments, ...storedComments];
+  if (stored) {
+    try {
+      const storedComments = JSON.parse(stored);
+      allComments = [...allComments, ...storedComments];
+    } catch (err) {
+      console.warn("Could not parse stored comments");
+    }
+  }
 
   // Deduplicate by ID (stored comments take precedence)
   const commentMap = new Map<string, Comment>();
