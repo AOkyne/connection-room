@@ -28,11 +28,11 @@ function parseRSSFeed(xml: string): SubstackItem[] {
 
     if (titleMatch && linkMatch) {
       items.push({
-        title: decodeHtml(titleMatch[1]),
+        title: stripCDATA(decodeHtml(titleMatch[1])),
         link: linkMatch[1],
-        description: descriptionMatch ? decodeHtml(stripHtml(descriptionMatch[1])) : "",
+        description: descriptionMatch ? stripCDATA(decodeHtml(stripHtml(descriptionMatch[1]))) : "",
         pubDate: pubDateMatch ? pubDateMatch[1] : new Date().toISOString(),
-        author: authorMatch ? decodeHtml(authorMatch[1]) : "Trevor James",
+        author: authorMatch ? stripCDATA(decodeHtml(authorMatch[1])) : "Trevor James",
         guid: guidMatch ? guidMatch[1] : linkMatch[1],
       });
     }
@@ -50,6 +50,13 @@ function decodeHtml(html: string): string {
     "&#039;": "'",
   };
   return html.replace(/&[a-z]+;/g, (entity) => entities[entity] || entity);
+}
+
+function stripCDATA(text: string): string {
+  return text
+    .replace(/<!\[CDATA\[/g, "")
+    .replace(/\]\]>/g, "")
+    .trim();
 }
 
 function stripHtml(html: string): string {
