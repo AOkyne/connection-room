@@ -8,7 +8,7 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
   try {
     let query = supabase
       .from("posts")
-      .select("*, profiles(display_name, pronouns, profile_photo)")
+      .select("*")
       .order("created_at", { ascending: false });
 
     if (spaceId) {
@@ -52,17 +52,15 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
 
     return (
       data?.map((post) => {
-        const profile = Array.isArray(post.profiles) ? post.profiles[0] : post.profiles;
         // Don't show photos for seeded/demo posts - use initials instead
-        // Real user posts will show their profile photos
-        const authorPhoto = post.author_photo || profile?.profile_photo;
-        const isTomSawyerPhoto = authorPhoto && authorPhoto.includes('seed') || authorPhoto?.includes('tom');
+        const authorPhoto = post.author_photo;
+        const isTomSawyerPhoto = authorPhoto && (authorPhoto.includes('seed') || authorPhoto?.includes('tom'));
         return {
           id: post.id,
           spaceId: post.space_id,
           userId: post.user_id,
           authorName: post.author_name || post.user_id,
-          authorPronouns: post.author_pronouns || profile?.pronouns,
+          authorPronouns: post.author_pronouns,
           // Remove Tom Sawyer's seeded photo, show real user photos only
           authorPhoto: isTomSawyerPhoto ? undefined : authorPhoto,
           promptId: post.prompt_id,
@@ -106,7 +104,7 @@ export async function createSupabasePost(
         content: content,
         is_prompt_response: isPromptResponse || false,
       })
-      .select("*, profiles(display_name, pronouns, profile_photo)")
+      .select("*")
       .single();
 
     if (error) {
@@ -115,14 +113,13 @@ export async function createSupabasePost(
       return null;
     }
 
-    const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles;
     return {
       id: data.id,
       spaceId: data.space_id,
       userId: data.user_id,
       authorName: data.author_name || data.user_id,
-      authorPronouns: profile?.pronouns,
-      authorPhoto: profile?.profile_photo,
+      authorPronouns: data.author_pronouns,
+      authorPhoto: data.author_photo,
       promptId: data.prompt_id,
       content: data.content,
       isPromptResponse: !!data.is_prompt_response,
@@ -183,7 +180,7 @@ export async function getSupabaseComments(postId: string): Promise<Comment[]> {
   try {
     const { data, error } = await supabase
       .from("comments")
-      .select("*, profiles(display_name, pronouns, profile_photo)")
+      .select("*")
       .eq("post_id", postId)
       .order("created_at", { ascending: true });
 
@@ -194,15 +191,14 @@ export async function getSupabaseComments(postId: string): Promise<Comment[]> {
 
     return (
       data?.map((comment) => {
-        const profile = Array.isArray(comment.profiles) ? comment.profiles[0] : comment.profiles;
-        const authorPhoto = comment.author_photo || profile?.profile_photo;
+        const authorPhoto = comment.author_photo;
         const isTomSawyerPhoto = authorPhoto && (authorPhoto.includes('seed') || authorPhoto.includes('tom'));
         return {
           id: comment.id,
           postId: comment.post_id,
           userId: comment.user_id,
           authorName: comment.author_name || comment.user_id,
-          authorPronouns: comment.author_pronouns || profile?.pronouns,
+          authorPronouns: comment.author_pronouns,
           // Remove Tom Sawyer's seeded photo, show real user photos only
           authorPhoto: isTomSawyerPhoto ? undefined : authorPhoto,
           content: comment.content,
@@ -239,7 +235,7 @@ export async function createSupabaseComment(
         author_photo: authorPhoto,
         content: content,
       })
-      .select("*, profiles(display_name, pronouns, profile_photo)")
+      .select("*")
       .single();
 
     if (error) {
@@ -266,14 +262,13 @@ export async function createSupabaseComment(
       // Silently ignore - count is incremented optimistically in UI
     }
 
-    const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles;
     return {
       id: data.id,
       postId: data.post_id,
       userId: data.user_id,
       authorName: data.author_name || data.user_id,
-      authorPronouns: data.author_pronouns || profile?.pronouns,
-      authorPhoto: data.author_photo || profile?.profile_photo,
+      authorPronouns: data.author_pronouns,
+      authorPhoto: data.author_photo,
       content: data.content,
       createdAt: new Date(data.created_at),
       reactions: {},
