@@ -35,6 +35,22 @@ function generateAvatarUrl(initials: string): string {
 export async function getSession(): Promise<AppSession | null> {
   if (typeof window === "undefined") return null;
 
+  const stored = localStorage.getItem(SESSION_STORAGE_KEY);
+  if (stored) {
+    const session = JSON.parse(stored) as AppSession;
+    // Generate profilePhoto if missing
+    if (!session.profilePhoto && session.name) {
+      const initials = session.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
+      session.profilePhoto = generateAvatarUrl(initials);
+    }
+    return session;
+  }
+
   if (supabase) {
     try {
       const {
@@ -84,21 +100,6 @@ export async function getSession(): Promise<AppSession | null> {
     }
   }
 
-  const stored = localStorage.getItem(SESSION_STORAGE_KEY);
-  if (stored) {
-    const session = JSON.parse(stored) as AppSession;
-    // Generate profilePhoto if missing
-    if (!session.profilePhoto && session.name) {
-      const initials = session.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-      session.profilePhoto = generateAvatarUrl(initials);
-    }
-    return session;
-  }
   return null;
 }
 
