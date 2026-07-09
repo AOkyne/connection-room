@@ -8,6 +8,7 @@ import { getUserBadges } from "@/lib/data/badges";
 import { getUpcomingEvents } from "@/lib/data/events";
 import { getRelevantOffers } from "@/lib/data/offers";
 import { getRecentReflections, type RecentReflection } from "@/lib/data/reflections";
+import { getNewestArticle, type Article } from "@/lib/data/articles";
 import { initializeDailyCompanion } from "@/lib/seed/init-daily-companion";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -45,6 +46,7 @@ export default function AppHome() {
   const [offers, setOffers] = useState<any[]>([]);
   const [suggestedSpace, setSuggestedSpace] = useState<any>(null);
   const [recentReflections, setRecentReflections] = useState<RecentReflection[]>([]);
+  const [newestArticle, setNewestArticle] = useState<Article | null>(null);
   const [mounted, setMounted] = useState(false);
   const [promptResponse, setPromptResponse] = useState("");
   const [selectedSpaceId, setSelectedSpaceId] = useState("");
@@ -113,6 +115,7 @@ export default function AppHome() {
               }),
               Promise.resolve(getRelevantOffers(p)),
               Promise.resolve(getSuggestedSpace()),
+              Promise.resolve(getNewestArticle()),
             ]).then((results) => {
               if (results[0].status === "fulfilled") {
                 console.log("Badges loaded:", results[0].value);
@@ -123,6 +126,7 @@ export default function AppHome() {
               if (results[1].status === "fulfilled") setRecentReflections(results[1].value);
               if (results[2].status === "fulfilled") setOffers(results[2].value);
               if (results[3].status === "fulfilled") setSuggestedSpace(results[3].value);
+              if (results[4].status === "fulfilled") setNewestArticle(results[4].value);
             });
           }).catch(err => {
             console.warn("Auth ready check failed, loading badges anyway", err);
@@ -132,11 +136,13 @@ export default function AppHome() {
               withTimeout(getRecentReflections(5), 3000, []),
               Promise.resolve(getRelevantOffers(p)),
               Promise.resolve(getSuggestedSpace()),
+              Promise.resolve(getNewestArticle()),
             ]).then((results) => {
               if (results[0].status === "fulfilled") setBadges(results[0].value);
               if (results[1].status === "fulfilled") setRecentReflections(results[1].value);
               if (results[2].status === "fulfilled") setOffers(results[2].value);
               if (results[3].status === "fulfilled") setSuggestedSpace(results[3].value);
+              if (results[4].status === "fulfilled") setNewestArticle(results[4].value);
             });
           });
         }
@@ -223,6 +229,49 @@ export default function AppHome() {
 
       {/* Divider */}
       <div className="border-t border-[#e8ddd2]" />
+
+      {/* Latest Article */}
+      {newestArticle && (
+        <>
+          <div>
+            <h3 className="text-lg font-semibold text-[#1a0f0a] mb-4">From My Writing</h3>
+            <Card className="overflow-hidden">
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-[#c97a2a] mb-2">
+                    {new Date(newestArticle.publishedAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                  <h4 className="text-xl font-bold text-[#1a0f0a] mb-3">
+                    {newestArticle.title}
+                  </h4>
+                  <p className="text-[#1a0f0a] text-sm leading-relaxed">
+                    {newestArticle.excerpt}
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <a href={newestArticle.url} target="_blank" rel="noopener noreferrer">
+                    <Button variant="primary" size="sm">
+                      Read Full Article →
+                    </Button>
+                  </a>
+                  <Link href="/app/articles">
+                    <Button variant="outline" size="sm">
+                      See All Articles
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-[#e8ddd2]" />
+        </>
+      )}
 
       {/* Continue Where You Left Off */}
       <ContinueWhereYouLeftOff
