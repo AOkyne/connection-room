@@ -41,7 +41,7 @@ export default function ArticlesPage() {
       />
 
       {/* Hero Image */}
-      <div className="relative w-full h-64 -mx-6 -mt-6 mb-8 overflow-hidden rounded-lg">
+      <div className="relative w-full h-64 mb-8 overflow-hidden rounded-lg">
         <Image
           src="/imagery/articles-hero.png"
           alt="Articles"
