@@ -122,6 +122,13 @@ export async function getPosts(spaceId?: string): Promise<Post[]> {
     }
   }
 
+  // Deduplicate by ID
+  const postMap = new Map<string, Post>();
+  posts.forEach(post => {
+    postMap.set(post.id, post);
+  });
+  posts = Array.from(postMap.values());
+
   // Migrate old reactions
   posts = posts.map((p: Post) => ({
     ...p,
