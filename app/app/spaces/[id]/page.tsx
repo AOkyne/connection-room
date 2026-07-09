@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getSpace } from "@/lib/data/spaces";
-import { getPosts, createPost, addPostReaction, getComments, createComment, getUserReactionForPost, type Post, type Comment } from "@/lib/data/posts";
+import { getPosts, createPost, addPostReaction, getComments, createComment, getUserReactionForPost, updatePost, deletePost, updateComment, deleteComment, type Post, type Comment } from "@/lib/data/posts";
 import { getProfile } from "@/lib/data/profiles";
+import { getSession } from "@/lib/session";
 import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -54,6 +55,7 @@ export default function SpaceDetailPage() {
 
   const [space, setSpace] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [expandedPost, setExpandedPost] = useState<string | null>(null);
   const [comments, setComments] = useState<Record<string, Comment[]>>({});
@@ -82,6 +84,8 @@ export default function SpaceDetailPage() {
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [editingPostContent, setEditingPostContent] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingCommentContent, setEditingCommentContent] = useState("");
 
   // Filter and search posts
   const filteredPosts = posts.filter((post) => {
@@ -110,10 +114,11 @@ export default function SpaceDetailPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      // Fetch space and profile in parallel
-      const [s, p] = await Promise.all([
+      // Fetch space, profile, and session in parallel
+      const [s, p, session] = await Promise.all([
         getSpace(spaceId),
         getProfile(),
+        getSession(),
       ]);
 
       if (!s) {
@@ -123,6 +128,7 @@ export default function SpaceDetailPage() {
 
       setSpace(s);
       setProfile(p);
+      setIsAdmin(session?.type === "admin");
 
       // Load posts
       const spacePosts = await getPosts(spaceId);
@@ -333,6 +339,9 @@ export default function SpaceDetailPage() {
       return;
     }
 
+    // Update in database
+    await updatePost(postId, trimmedContent);
+
     // Update post content in the state
     const updatedPosts = posts.map(p =>
       p.id === postId ? { ...p, content: trimmedContent } : p
@@ -343,11 +352,61 @@ export default function SpaceDetailPage() {
     showToast("Post updated", "success", 2000);
   };
 
-  const handleDeletePost = (postId: string) => {
+  const handleDeletePost = async (postId: string) => {
     if (confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
+      await deletePost(postId);
       const updatedPosts = posts.filter(p => p.id !== postId);
       setPosts(updatedPosts);
+      // Also remove comments for this post from state
+      const updatedComments = { ...comments };
+      delete updatedComments[postId];
+      setComments(updatedComments);
       showToast("Post deleted", "success", 2000);
+    }
+  };
+
+  const handleEditComment = (commentId: string, currentContent: string) => {
+    setEditingCommentId(commentId);
+    setEditingCommentContent(currentContent);
+  };
+
+  const handleSaveCommentEdit = async (postId: string, commentId: string) => {
+    const trimmedContent = editingCommentContent.trim();
+
+    if (!trimmedContent) {
+      showToast("Please write something before saving", "warning");
+      return;
+    }
+
+    if (trimmedContent.length < MIN_COMMENT_LENGTH) {
+      showToast(`Please write at least ${MIN_COMMENT_LENGTH} character`, "info");
+      return;
+    }
+
+    if (trimmedContent.length > MAX_COMMENT_LENGTH) {
+      showToast(`Your comment is too long (max ${MAX_COMMENT_LENGTH} characters)`, "error");
+      return;
+    }
+
+    // Update in database
+    await updateComment(commentId, trimmedContent);
+
+    // Update comment in state
+    const updatedComments = comments[postId]?.map(c =>
+      c.id === commentId ? { ...c, content: trimmedContent } : c
+    ) || [];
+    setComments(prev => ({ ...prev, [postId]: updatedComments }));
+    setEditingCommentId(null);
+    setEditingCommentContent("");
+    showToast("Comment updated", "success", 2000);
+  };
+
+  const handleDeleteComment = async (postId: string, commentId: string) => {
+    if (confirm("Are you sure you want to delete this comment?")) {
+      await deleteComment(commentId);
+      const updatedComments = comments[postId]?.filter(c => c.id !== commentId) || [];
+      setComments(prev => ({ ...prev, [postId]: updatedComments }));
+      showToast("Comment deleted", "success", 2000);
     }
   };
 
@@ -697,7 +756,7 @@ export default function SpaceDetailPage() {
                     </p>
                   </div>
                 </button>
-                {profile?.displayName === post.authorName && (
+                {(profile?.displayName === post.authorName || isAdmin) && (
                   <div className="flex gap-2 ml-4">
                     <button
                       onClick={() => handleEditPost(post.id, post.content)}
@@ -780,7 +839,7 @@ export default function SpaceDetailPage() {
                   {/* Existing Comments */}
                   {(comments[post.id] || []).map((comment: Comment) => (
                     <div key={comment.id} className="bg-[#f3ede5] p-3 rounded-lg">
-                      <div className="flex items-start gap-2">
+                      <div className="flex items-start justify-between gap-2">
                         <button
                           onClick={() => {
                             const authorFirstName = comment.authorName.split(' ')[0];
@@ -801,7 +860,56 @@ export default function SpaceDetailPage() {
                             <p className="text-sm text-[#1a0f0a] mt-1">{comment.content}</p>
                           </div>
                         </button>
+                        {(profile?.displayName === comment.authorName || isAdmin) && (
+                          <div className="flex gap-2 ml-2">
+                            <button
+                              onClick={() => handleEditComment(comment.id, comment.content)}
+                              className="text-xs text-[#d4a348] hover:text-[#8b6f47] font-medium transition-colors whitespace-nowrap"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteComment(post.id, comment.id)}
+                              className="text-xs text-red-600 hover:text-red-700 font-medium transition-colors whitespace-nowrap"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        )}
                       </div>
+                      {editingCommentId === comment.id && (
+                        <div className="mt-3 space-y-2">
+                          <textarea
+                            value={editingCommentContent}
+                            onChange={(e) => setEditingCommentContent(e.target.value)}
+                            maxLength={MAX_COMMENT_LENGTH}
+                            rows={2}
+                            className="w-full px-3 py-2 border border-[#ede6e0] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] focus:ring-offset-2 focus:border-transparent transition-all duration-150 text-[#1a0f0a] placeholder-[#a0704a] resize-none text-sm"
+                          />
+                          <div className="flex justify-between items-center gap-2">
+                            <p className="text-xs text-[#a0704a]">
+                              {editingCommentContent.length} / {MAX_COMMENT_LENGTH} characters
+                            </p>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={() => handleSaveCommentEdit(post.id, comment.id)}
+                                disabled={!editingCommentContent.trim()}
+                              >
+                                Save
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setEditingCommentId(null)}
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
 

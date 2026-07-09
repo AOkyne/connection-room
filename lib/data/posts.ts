@@ -388,3 +388,108 @@ export async function getUserEngagementStats(userId: string): Promise<{ postsSha
     commentsOffered,
   };
 }
+
+// Update post content
+export async function updatePost(postId: string, content: string): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  if (supabase) {
+    try {
+      const { error } = await supabase
+        .from("posts")
+        .update({ content, updated_at: new Date() })
+        .eq("id", postId);
+
+      if (error) throw error;
+      return;
+    } catch (err) {
+      console.error("Error updating post:", err);
+    }
+  }
+
+  // Demo mode fallback
+  const stored = localStorage.getItem(POSTS_STORAGE_KEY);
+  const posts = stored ? JSON.parse(stored) : demoPosts;
+  const updatedPosts = posts.map((p: Post) =>
+    p.id === postId ? { ...p, content } : p
+  );
+  localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(updatedPosts));
+}
+
+// Delete post and its comments
+export async function deletePost(postId: string): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  if (supabase) {
+    try {
+      await supabase.from("comments").delete().eq("post_id", postId);
+      await supabase.from("posts").delete().eq("id", postId);
+      return;
+    } catch (err) {
+      console.error("Error deleting post:", err);
+    }
+  }
+
+  // Demo mode fallback
+  const stored = localStorage.getItem(POSTS_STORAGE_KEY);
+  const posts = stored ? JSON.parse(stored) : demoPosts;
+  const updatedPosts = posts.filter((p: Post) => p.id !== postId);
+  localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(updatedPosts));
+
+  const commentsStored = localStorage.getItem(COMMENTS_STORAGE_KEY);
+  const comments = commentsStored ? JSON.parse(commentsStored) : demoComments;
+  const updatedComments = comments.filter((c: Comment) => c.postId !== postId);
+  localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(updatedComments));
+}
+
+// Update comment content
+export async function updateComment(commentId: string, content: string): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  if (supabase) {
+    try {
+      const { error } = await supabase
+        .from("comments")
+        .update({ content, updated_at: new Date() })
+        .eq("id", commentId);
+
+      if (error) throw error;
+      return;
+    } catch (err) {
+      console.error("Error updating comment:", err);
+    }
+  }
+
+  // Demo mode fallback
+  const stored = localStorage.getItem(COMMENTS_STORAGE_KEY);
+  const comments = stored ? JSON.parse(stored) : demoComments;
+  const updatedComments = comments.map((c: Comment) =>
+    c.id === commentId ? { ...c, content } : c
+  );
+  localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(updatedComments));
+}
+
+// Delete comment
+export async function deleteComment(commentId: string): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  if (supabase) {
+    try {
+      const { error } = await supabase
+        .from("comments")
+        .delete()
+        .eq("id", commentId);
+
+      if (error) throw error;
+      return;
+    } catch (err) {
+      console.error("Error deleting comment:", err);
+    }
+  }
+
+  // Demo mode fallback
+  const stored = localStorage.getItem(COMMENTS_STORAGE_KEY);
+  const comments = stored ? JSON.parse(stored) : demoComments;
+  const updatedComments = comments.filter((c: Comment) => c.id !== commentId);
+  localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(updatedComments));
+}
