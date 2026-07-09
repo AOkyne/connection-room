@@ -1,305 +1,173 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/Button";
-import { Card, CardHeader } from "@/components/Card";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getSession } from "@/lib/session";
+import { getAdminEvents, deleteEvent, type Event } from "@/lib/admin/events";
+import { Card } from "@/components/Card";
+import { Button } from "@/components/Button";
+import { LoadingScreen } from "@/components/LoadingScreen";
+import { useToast } from "@/lib/hooks/useToast";
 
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  date: string; // ISO date string
-  time: string;
-  location?: string;
-  format: "in-person" | "virtual" | "hybrid";
-  facilitator: string;
-  attendeeCount: number;
-}
-
-const EVENTS_STORAGE_KEY = "connection-room:custom-events";
-
-export default function EventsAdmin() {
+export default function AdminEventsPage() {
+  const router = useRouter();
+  const { toasts, showToast, removeToast } = useToast();
+  const [mounted, setMounted] = useState(false);
   const [events, setEvents] = useState<Event[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState<Event>({
-    id: "",
-    title: "",
-    description: "",
-    date: "",
-    time: "",
-    format: "virtual",
-    facilitator: "",
-    attendeeCount: 0,
-  });
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
 
-  // Load events from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem(EVENTS_STORAGE_KEY);
-    if (stored) {
-      setEvents(JSON.parse(stored));
-    }
-  }, []);
+    const loadData = async () => {
+      const session = await getSession();
+      if (!session || session.type !== "admin") {
+        router.push("/app");
+        return;
+      }
 
-  // Save events to localStorage
-  const saveEvents = (newEvents: Event[]) => {
-    setEvents(newEvents);
-    localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(newEvents));
-  };
+      const data = await getAdminEvents();
+      setEvents(data);
+      setMounted(true);
+      setLoading(false);
+    };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    loadData();
+  }, [router]);
 
-    if (!formData.title || !formData.date || !formData.time) {
-      alert("Please fill in all required fields");
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this event? This cannot be undone.")) {
       return;
     }
 
-    if (editingId) {
-      // Update existing event
-      const updated = events.map((e) => (e.id === editingId ? { ...formData, id: editingId } : e));
-      saveEvents(updated);
-      setEditingId(null);
+    setDeleting(id);
+    const success = await deleteEvent(id);
+
+    if (success) {
+      setEvents(events.filter((e) => e.id !== id));
+      showToast("Event deleted", "success");
     } else {
-      // Add new event
-      const newEvent = {
-        ...formData,
-        id: `event-${Date.now()}`,
-      };
-      saveEvents([...events, newEvent]);
+      showToast("Failed to delete event", "error");
     }
-
-    // Reset form
-    setFormData({
-      id: "",
-      title: "",
-      description: "",
-      date: "",
-      time: "",
-      format: "virtual",
-      facilitator: "",
-      attendeeCount: 0,
-    });
-    setShowForm(false);
+    setDeleting(null);
   };
 
-  const handleEdit = (event: Event) => {
-    setFormData(event);
-    setEditingId(event.id);
-    setShowForm(true);
-  };
+  if (!mounted || loading) {
+    return (
+      <LoadingScreen
+        message="Loading events"
+        subtitle="Fetching event data..."
+      />
+    );
+  }
 
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this event?")) {
-      saveEvents(events.filter((e) => e.id !== id));
-    }
-  };
-
-  const handleCancel = () => {
-    setShowForm(false);
-    setEditingId(null);
-    setFormData({
-      id: "",
-      title: "",
-      description: "",
-      date: "",
-      time: "",
-      format: "virtual",
-      facilitator: "",
-      attendeeCount: 0,
-    });
-  };
+  const filteredEvents = events.filter((e) => {
+    if (filter === "all") return true;
+    return e.status === filter;
+  });
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl text-[#1a0f0a]">Manage Events</h1>
-        <Link href="/app/admin">
-          <Button variant="ghost" size="sm">
-            ← Back
+    <div className="space-y-6 max-w-6xl">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-[#1a0f0a]">Events</h1>
+          <p className="text-[#a0704a] mt-1">Manage community events</p>
+        </div>
+        <Link href="/app/admin/events/new">
+          <Button variant="primary" size="md">
+            + Create Event
           </Button>
         </Link>
       </div>
 
-      {!showForm && (
-        <Button variant="primary" size="md" onClick={() => setShowForm(true)}>
-          + Add New Event
-        </Button>
-      )}
-
-      {showForm && (
-        <Card>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <h2 className="text-xl font-semibold text-[#1a0f0a]">
-              {editingId ? "Edit Event" : "Create New Event"}
-            </h2>
-
-            <div>
-              <label className="block text-sm font-medium text-[#1a0f0a] mb-1">
-                Event Title *
-              </label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="e.g., Monthly Connection Circle"
-                className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a]"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-[#1a0f0a] mb-1">
-                Description
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="What is this event about?"
-                rows={3}
-                className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a]"
-              />
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-[#1a0f0a] mb-1">
-                  Date *
-                </label>
-                <input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a]"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#1a0f0a] mb-1">
-                  Time *
-                </label>
-                <input
-                  type="text"
-                  value={formData.time}
-                  onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                  placeholder="e.g., 7:00 PM PT"
-                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a]"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-[#1a0f0a] mb-1">
-                  Format
-                </label>
-                <select
-                  value={formData.format}
-                  onChange={(e) => setFormData({ ...formData, format: e.target.value as any })}
-                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a]"
-                >
-                  <option value="virtual">Virtual</option>
-                  <option value="in-person">In-Person</option>
-                  <option value="hybrid">Hybrid</option>
-                </select>
-              </div>
-
-              {(formData.format === "in-person" || formData.format === "hybrid") && (
-                <div>
-                  <label className="block text-sm font-medium text-[#1a0f0a] mb-1">
-                    Location
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.location || ""}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    placeholder="e.g., Los Angeles, CA"
-                    className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a]"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-[#1a0f0a] mb-1">
-                  Facilitator
-                </label>
-                <input
-                  type="text"
-                  value={formData.facilitator}
-                  onChange={(e) => setFormData({ ...formData, facilitator: e.target.value })}
-                  placeholder="e.g., Trevor James"
-                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#1a0f0a] mb-1">
-                  Attendee Count
-                </label>
-                <input
-                  type="number"
-                  value={formData.attendeeCount}
-                  onChange={(e) => setFormData({ ...formData, attendeeCount: parseInt(e.target.value) || 0 })}
-                  min="0"
-                  className="w-full px-3 py-2 border border-[#e8e3db] rounded-lg focus:outline-none focus:border-[#d4a348] text-[#1a0f0a]"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button variant="outline" size="md" type="button" onClick={handleCancel} className="flex-1">
-                Cancel
-              </Button>
-              <Button variant="primary" size="md" type="submit" className="flex-1">
-                {editingId ? "Update Event" : "Create Event"}
-              </Button>
-            </div>
-          </form>
-        </Card>
-      )}
+      <div className="flex gap-2">
+        {(["all", "published", "draft"] as const).map((f) => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              filter === f
+                ? "bg-[#d4a348] text-white"
+                : "bg-[#f3ede5] text-[#1a0f0a] hover:bg-[#e8ddd2]"
+            }`}
+          >
+            {f === "all"
+              ? `All (${events.length})`
+              : `${f === "published" ? "Published" : "Draft"} (${events.filter((e) => e.status === f).length})`}
+          </button>
+        ))}
+      </div>
 
       <div className="space-y-3">
-        <h2 className="text-xl font-semibold text-[#1a0f0a]">Events ({events.length})</h2>
-
-        {events.length === 0 ? (
-          <p className="text-[#1a0f0a]">No events yet. Create one to get started!</p>
+        {filteredEvents.length === 0 ? (
+          <Card className="text-center py-12">
+            <p className="text-[#a0704a] mb-4">No events found</p>
+            <Link href="/app/admin/events/new">
+              <Button variant="secondary">Create the first event</Button>
+            </Link>
+          </Card>
         ) : (
-          events.map((event) => (
-            <Card key={event.id}>
-              <div className="flex justify-between items-start">
+          filteredEvents.map((event) => (
+            <Card key={event.id} className="p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-[#1a0f0a]">{event.title}</h3>
-                  <p className="text-sm text-[#1a0f0a] mt-1">{event.description}</p>
-                  <div className="flex gap-4 mt-2 text-sm text-[#a0704a]">
-                    <span>📅 {new Date(event.date).toLocaleDateString()}</span>
-                    <span>🕐 {event.time}</span>
-                    <span>👥 {event.format}</span>
-                    {event.location && <span>📍 {event.location}</span>}
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-lg font-bold text-[#1a0f0a]">
+                      {event.title}
+                    </h3>
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded ${
+                        event.status === "published"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {event.status}
+                    </span>
+                    {event.featured && (
+                      <span className="px-2 py-1 text-xs font-medium rounded bg-yellow-100 text-yellow-800">
+                        ⭐ Featured
+                      </span>
+                    )}
                   </div>
-                  <p className="text-sm text-[#c97a2a] mt-2">Facilitator: {event.facilitator}</p>
+
+                  <p className="text-sm text-[#a0704a] mb-2">
+                    {event.startAt
+                      ? new Date(event.startAt).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "No date"}
+                  </p>
+
+                  {event.shortDescription && (
+                    <p className="text-sm text-[#1a0f0a] line-clamp-2">
+                      {event.shortDescription}
+                    </p>
+                  )}
+
+                  <div className="flex gap-4 mt-3 text-xs text-[#a0704a]">
+                    {event.registrationCount !== undefined && (
+                      <span>🔗 {event.registrationCount} registered</span>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex gap-2 ml-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(event)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
+                <div className="flex gap-2">
+                  <Link href={`/app/admin/events/${event.id}/edit`}>
+                    <Button variant="outline" size="sm">
+                      Edit
+                    </Button>
+                  </Link>
+                  <button
                     onClick={() => handleDelete(event.id)}
-                    className="border-[#a84a2a] text-[#a84a2a]"
+                    disabled={deleting === event.id}
+                    className="px-3 py-2 text-xs font-medium rounded border border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
                   >
-                    Delete
-                  </Button>
+                    {deleting === event.id ? "Deleting..." : "Delete"}
+                  </button>
                 </div>
               </div>
             </Card>

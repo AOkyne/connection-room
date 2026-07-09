@@ -46,6 +46,19 @@ export interface OfferStats {
   totalOffers: number;
 }
 
+export interface SeededContentStats {
+  seededProfiles: number;
+  seededPosts: number;
+  seededComments: number;
+  seededEvents: number;
+  seededOffers: number;
+  realProfiles: number;
+  realPosts: number;
+  realComments: number;
+  realEvents: number;
+  realOffers: number;
+}
+
 // Get member statistics
 export async function getMemberStats(): Promise<MemberStats> {
   if (!supabase) {
@@ -372,6 +385,105 @@ export async function getOfferStats(): Promise<OfferStats> {
       totalDraft: 0,
       featuredCount: 0,
       totalOffers: 0,
+    };
+  }
+}
+
+// Get seeded content statistics (for post-launch cleanup)
+export async function getSeededContentStats(): Promise<SeededContentStats> {
+  if (!supabase) {
+    return {
+      seededProfiles: 0,
+      seededPosts: 0,
+      seededComments: 0,
+      seededEvents: 0,
+      seededOffers: 0,
+      realProfiles: 0,
+      realPosts: 0,
+      realComments: 0,
+      realEvents: 0,
+      realOffers: 0,
+    };
+  }
+
+  try {
+    // Get seeded counts
+    const { data: seededProfiles } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("is_seeded", true);
+
+    const { data: seededPosts } = await supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("is_seeded", true);
+
+    const { data: seededComments } = await supabase
+      .from("comments")
+      .select("id", { count: "exact", head: true })
+      .eq("is_seeded", true);
+
+    const { data: seededEvents } = await supabase
+      .from("events")
+      .select("id", { count: "exact", head: true })
+      .eq("is_seeded", true);
+
+    const { data: seededOffers } = await supabase
+      .from("offers")
+      .select("id", { count: "exact", head: true })
+      .eq("is_seeded", true);
+
+    // Get real counts
+    const { data: realProfiles } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("is_seeded", false);
+
+    const { data: realPosts } = await supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("is_seeded", false);
+
+    const { data: realComments } = await supabase
+      .from("comments")
+      .select("id", { count: "exact", head: true })
+      .eq("is_seeded", false);
+
+    const { data: realEvents } = await supabase
+      .from("events")
+      .select("id", { count: "exact", head: true })
+      .eq("is_seeded", false);
+
+    const { data: realOffers } = await supabase
+      .from("offers")
+      .select("id", { count: "exact", head: true })
+      .eq("is_seeded", false);
+
+    return {
+      seededProfiles: seededProfiles?.length || 0,
+      seededPosts: seededPosts?.length || 0,
+      seededComments: seededComments?.length || 0,
+      seededEvents: seededEvents?.length || 0,
+      seededOffers: seededOffers?.length || 0,
+      realProfiles: realProfiles?.length || 0,
+      realPosts: realPosts?.length || 0,
+      realComments: realComments?.length || 0,
+      realEvents: realEvents?.length || 0,
+      realOffers: realOffers?.length || 0,
+    };
+  } catch (err) {
+    console.error("Error fetching seeded content stats:", err);
+    return {
+      seededProfiles: 0,
+      seededPosts: 0,
+      seededComments: 0,
+      seededEvents: 0,
+      seededOffers: 0,
+      realProfiles: 0,
+      realPosts: 0,
+      realComments: 0,
+      realEvents: 0,
+      realOffers: 0,
     };
   }
 }
