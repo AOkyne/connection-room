@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase/client";
+import { createClient } from "@supabase/supabase-js";
 
 interface SubstackItem {
   title: string;
@@ -58,6 +58,19 @@ function stripHtml(html: string): string {
 
 export async function GET(request: NextRequest) {
   try {
+    // Initialize Supabase with service role (for server-side operations)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      return NextResponse.json(
+        { error: "Missing Supabase configuration" },
+        { status: 500 }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
     // Fetch Substack RSS feed
     const response = await fetch("https://trevorjamesla.substack.com/feed");
     if (!response.ok) {
@@ -70,17 +83,14 @@ export async function GET(request: NextRequest) {
     const xml = await response.text();
     const items = parseRSSFeed(xml);
 
-    if (!supabase) {
-      return NextResponse.json(
-        { message: "Supabase not available, synced locally", count: items.length },
-        { status: 200 }
-      );
-    }
-
     // Store articles in Supabase, avoiding duplicates
     let syncedCount = 0;
+    const errors = [];
+
     for (const item of items) {
       try {
+        console.log("Processing article:", item.title);
+
         // Check if article already exists
         const { data: existing, error: checkError } = await supabase
           .from("articles")
@@ -88,9 +98,11 @@ export async function GET(request: NextRequest) {
           .eq("url", item.link)
           .maybeSingle();
 
-        if (!existing && !checkError) {
+        console.log("Existing check:", { existing, checkError });
+
+        if (!existing) {
           // Insert new article
-          const { error } = await supabase.from("articles").insert({
+          const { data, error } = await supabase.from("articles").insert({
             title: item.title,
             excerpt: item.description.substring(0, 500),
             content: item.description,
@@ -99,17 +111,23 @@ export async function GET(request: NextRequest) {
             published_at: new Date(item.pubDate),
             created_at: new Date(),
             updated_at: new Date(),
-          });
+          }).select();
+
+          console.log("Insert result:", { data, error });
 
           if (!error) {
             syncedCount++;
-            console.log("Synced article:", item.title);
+            console.log("✓ Synced article:", item.title);
           } else {
-            console.warn("Error inserting article:", error);
+            console.warn("✗ Error inserting article:", item.title, error);
+            errors.push({ title: item.title, error: error.message });
           }
+        } else {
+          console.log("Article already exists:", item.title);
         }
       } catch (err) {
-        console.warn("Error processing article:", item.title, err);
+        console.warn("Exception processing article:", item.title, err);
+        errors.push({ title: item.title, error: String(err) });
       }
     }
 
@@ -117,6 +135,7 @@ export async function GET(request: NextRequest) {
       message: "Sync complete",
       total: items.length,
       synced: syncedCount,
+      errors: errors.length > 0 ? errors : undefined,
     });
   } catch (error) {
     console.error("Error syncing Substack feed:", error);
