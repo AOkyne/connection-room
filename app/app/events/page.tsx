@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { getProfile } from "@/lib/data/profiles";
 import { getUpcomingEvents, toggleEventInterest, getUserEventInterests } from "@/lib/data/events";
 import { Card, CardHeader } from "@/components/Card";
@@ -11,6 +12,7 @@ import { useToast } from "@/lib/hooks/useToast";
 import { ToastContainer } from "@/components/Toast";
 
 export default function EventsPage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);
   const [interests, setInterests] = useState<Set<string>>(new Set());
@@ -96,11 +98,20 @@ END:VCALENDAR`;
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-4xl text-[#1a0f0a]">Upcoming Events</h1>
-        <p className="text-lg text-[#1a0f0a] mt-2">
-          Connection circles, workshops, and gatherings
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-4xl text-[#1a0f0a]">Upcoming Events</h1>
+          <p className="text-lg text-[#1a0f0a] mt-2">
+            Connection circles, workshops, and gatherings
+          </p>
+        </div>
+        <button
+          onClick={() => router.back()}
+          className="text-[#d4a348] hover:text-[#c9956d] transition-colors"
+          aria-label="Go back"
+        >
+          ← Back
+        </button>
       </div>
 
       {/* What are Events? */}
