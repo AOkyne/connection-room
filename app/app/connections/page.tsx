@@ -41,6 +41,7 @@ import {
 } from "@/lib/data/connectionRequests";
 
 export default function ConnectionsPage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
   const [preferences, setPreferences] = useState<any>(null);
   const [currentConnection, setCurrentConnectionState] = useState<any>(null);
