@@ -29,6 +29,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function JourneyPage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [spaces, setSpaces] = useState<any[]>([]);
   const [badges, setBadges] = useState<any[]>([]);
