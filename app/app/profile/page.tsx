@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { getProfile, updateProfile, type Profile } from "@/lib/data/profiles";
 import { ensureInviteCode } from "@/lib/data/invites";
 import { uploadProfilePhoto } from "@/lib/utils/storage";
@@ -20,6 +21,7 @@ import { InvitePanel } from "@/components/invites/InvitePanel";
 import { FriendsInvited } from "@/components/invites/FriendsInvited";
 
 export default function ProfilePage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileSavedFeedback, setProfileSavedFeedback] = useState(false);
   const [badges, setBadges] = useState<any[]>([]);

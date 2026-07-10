@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 
 import { useEffect, useState } from "react";
 import { getProfile, type Profile } from "@/lib/data/profiles";
