@@ -64,7 +64,7 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
           // Remove Tom Sawyer's seeded photo, show real user photos only
           authorPhoto: isTomSawyerPhoto ? undefined : authorPhoto,
           promptId: post.prompt_id,
-          content: post.content,
+          content: post.body || post.content,
           isPromptResponse: !!post.is_prompt_response,
           createdAt: new Date(post.created_at),
           reactions: reactionsMap[post.id] || {},
