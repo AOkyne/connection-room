@@ -97,14 +97,13 @@ export async function getPosts(spaceId?: string): Promise<Post[]> {
   const deletedPostsStored = localStorage.getItem(DELETED_POSTS_KEY);
   const deletedPostIds = deletedPostsStored ? JSON.parse(deletedPostsStored) : [];
 
-  // Always start with demo data as base
+  // Try to fetch from Supabase first (includes user-created posts)
   let posts = demoPosts;
 
-  const userId = await getCurrentUserId();
-  if (userId && supabase) {
+  if (supabase) {
     try {
       const supabasePosts = await getSupabasePosts(spaceId);
-      // If we got real posts from Supabase, use those instead
+      // If we got real posts from Supabase, combine with demo data
       if (supabasePosts && supabasePosts.length > 0) {
         console.log("Using Supabase posts:", supabasePosts.length);
         posts = supabasePosts;
