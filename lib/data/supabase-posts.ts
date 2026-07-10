@@ -59,7 +59,7 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
           id: post.id,
           spaceId: post.space_id,
           userId: post.user_id,
-          authorName: post.author_name || post.user_id,
+          authorName: post.author_name || post.user_id || "Community",
           authorPronouns: post.author_pronouns,
           // Remove Tom Sawyer's seeded photo, show real user photos only
           authorPhoto: isTomSawyerPhoto ? undefined : authorPhoto,
@@ -197,7 +197,7 @@ export async function getSupabaseComments(postId: string): Promise<Comment[]> {
           id: comment.id,
           postId: comment.post_id,
           userId: comment.user_id,
-          authorName: comment.author_name || comment.user_id,
+          authorName: comment.author_name || comment.user_id || "Community",
           authorPronouns: comment.author_pronouns,
           // Remove Tom Sawyer's seeded photo, show real user photos only
           authorPhoto: isTomSawyerPhoto ? undefined : authorPhoto,
