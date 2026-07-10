@@ -201,7 +201,7 @@ export async function getSupabaseComments(postId: string): Promise<Comment[]> {
           authorPronouns: comment.author_pronouns,
           // Remove Tom Sawyer's seeded photo, show real user photos only
           authorPhoto: isTomSawyerPhoto ? undefined : authorPhoto,
-          content: comment.content,
+          content: comment.body || comment.content,
           createdAt: new Date(comment.created_at),
           reactions: {},
         };
