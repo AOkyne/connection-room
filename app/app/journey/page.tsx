@@ -190,11 +190,20 @@ export default function JourneyPage() {
       </div>
 
       {/* Header */}
-      <div>
-        <h1 className="text-4xl text-[#1a0f0a]">My Journey</h1>
-        <p className="text-lg text-[#1a0f0a] mt-2">
-          Your guided path through the community
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-4xl text-[#1a0f0a]">My Journey</h1>
+          <p className="text-lg text-[#1a0f0a] mt-2">
+            Your guided path through the community
+          </p>
+        </div>
+        <button
+          onClick={() => router.back()}
+          className="text-[#d4a348] hover:text-[#c9956d] transition-colors"
+          aria-label="Go back"
+        >
+          ← Back
+        </button>
       </div>
 
       {/* Event Reminders */}

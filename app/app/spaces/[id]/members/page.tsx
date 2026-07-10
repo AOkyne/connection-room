@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { getProfile, Profile, getProfilesBySpace } from "@/lib/data/profiles";
 import { getSpace, Space } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
 
 export default function SpaceMembersPage() {
+  const router = useRouter();
   const params = useParams();
   const spaceId = params.id as string;
 
@@ -53,13 +54,8 @@ export default function SpaceMembersPage() {
       {/* Header */}
       <header className="bg-white border-b border-[#e8ddd2] sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 py-4 sm:px-6">
-          <div className="flex items-center gap-4">
-            <Link
-              href={`/app/spaces/${spaceId}`}
-              className="text-[#d4a348] hover:text-[#c9956d]"
-            >
-              Back
-            </Link>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
             <div>
               <h1 className="text-2xl font-semibold text-[#1a0f0a]">
                 {space.name} - Members
@@ -68,6 +64,14 @@ export default function SpaceMembersPage() {
                 {members.length} {members.length === 1 ? "member" : "members"}
               </p>
             </div>
+            </div>
+            <button
+              onClick={() => router.back()}
+              className="text-[#d4a348] hover:text-[#c9956d] transition-colors whitespace-nowrap"
+              aria-label="Go back"
+            >
+              ← Back
+            </button>
           </div>
         </div>
       </header>

@@ -281,11 +281,20 @@ export default function ConnectionsPage() {
     <div className="space-y-8">
       {/* Header */}
       <div className="space-y-4">
-        <div>
-          <h1 className="text-4xl text-[#1a0f0a]">Connections</h1>
-          <p className="text-lg text-[#1a0f0a] mt-2">
-            Structured conversations with other members
-          </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-4xl text-[#1a0f0a]">Connections</h1>
+            <p className="text-lg text-[#1a0f0a] mt-2">
+              Structured conversations with other members
+            </p>
+          </div>
+          <button
+            onClick={() => router.back()}
+            className="text-[#d4a348] hover:text-[#c9956d] transition-colors"
+            aria-label="Go back"
+          >
+            ← Back
+          </button>
         </div>
 
         {/* What are Connections Section */}

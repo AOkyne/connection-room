@@ -188,11 +188,20 @@ export default function ProfilePage() {
         <ProfileSavedFeedback onClose={() => setProfileSavedFeedback(false)} />
       )}
 
-      <div>
-        <h1 className="text-4xl font-bold text-[#1a1714]">Your Profile</h1>
-        <p className="text-lg text-[#6b6460] mt-2">
-          Help the community get to know you
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-4xl font-bold text-[#1a1714]">Your Profile</h1>
+          <p className="text-lg text-[#6b6460] mt-2">
+            Help the community get to know you
+          </p>
+        </div>
+        <button
+          onClick={() => router.back()}
+          className="text-[#d4a348] hover:text-[#c9956d] transition-colors"
+          aria-label="Go back"
+        >
+          ← Back
+        </button>
       </div>
 
       {/* Two-column layout for Basic Information and Interests */}
