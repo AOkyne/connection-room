@@ -48,7 +48,7 @@ export default function EditEventPage() {
           startAt: event.startAt || "",
           endAt: event.endAt || "",
           location: event.locationName || "",
-          status: event.status,
+          status: (event.status === "draft" || event.status === "published" ? event.status : "draft") as "draft" | "published",
           featured: event.featured || false,
           image: event.imageUrl || "",
         });
