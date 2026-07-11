@@ -71,20 +71,20 @@ export default function AdminMembersPage() {
       filtered = filtered.filter((m) => !m.completedOnboarding);
     }
 
-    // Activity filter
-    if (filterActivity === "active") {
-      filtered = filtered.filter((m) => {
-        const lastActive = m.lastActive ? new Date(m.lastActive).getTime() : 0;
-        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        return lastActive > sevenDaysAgo;
-      });
-    } else if (filterActivity === "inactive") {
-      filtered = filtered.filter((m) => {
-        const lastActive = m.lastActive ? new Date(m.lastActive).getTime() : 0;
-        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        return lastActive <= sevenDaysAgo;
-      });
-    }
+    // Activity filter - commented out until lastActive is reliably tracked
+    // if (filterActivity === "active") {
+    //   filtered = filtered.filter((m) => {
+    //     const lastActive = m.lastActive ? new Date(m.lastActive).getTime() : 0;
+    //     const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    //     return lastActive > sevenDaysAgo;
+    //   });
+    // } else if (filterActivity === "inactive") {
+    //   filtered = filtered.filter((m) => {
+    //     const lastActive = m.lastActive ? new Date(m.lastActive).getTime() : 0;
+    //     const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    //     return lastActive <= sevenDaysAgo;
+    //   });
+    // }
 
     // Sort
     if (sortBy === "name") {
@@ -226,18 +226,7 @@ export default function AdminMembersPage() {
           </select>
         </div>
 
-        <div>
-          <label className="text-sm text-[#a0704a] block mb-1">Activity</label>
-          <select
-            value={filterActivity}
-            onChange={(e) => setFilterActivity(e.target.value as FilterActivity)}
-            className="px-3 py-2 border border-[#e8ddd2] rounded-lg text-sm text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
-          >
-            <option value="all">All</option>
-            <option value="active">Active (7 days)</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
+        {/* Activity filter - lastActive tracking not yet implemented */}
       </div>
 
       {/* Members Grid */}
