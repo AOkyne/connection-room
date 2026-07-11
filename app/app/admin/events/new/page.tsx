@@ -25,6 +25,8 @@ export default function CreateEventPage() {
     status: "draft" as "draft" | "published",
     featured: false,
     image: "" as string,
+    price: "",
+    currency: "USD",
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -95,6 +97,8 @@ export default function CreateEventPage() {
         status: formData.status as "draft" | "published",
         featured: formData.featured,
         visibility: "members" as const,
+        priceCents: formData.price ? Math.round(parseFloat(formData.price) * 100) : undefined,
+        currency: formData.price ? formData.currency : undefined,
       };
 
       const result = await createEvent(eventData);
@@ -247,6 +251,41 @@ export default function CreateEventPage() {
               placeholder="Event location or 'Online'"
               className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-[#1a0f0a] block mb-1">
+                Price (Optional)
+              </label>
+              <input
+                type="number"
+                name="price"
+                value={formData.price}
+                onChange={handleChange}
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-[#1a0f0a] block mb-1">
+                Currency
+              </label>
+              <select
+                name="currency"
+                value={formData.currency}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
+              >
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="CAD">CAD ($)</option>
+                <option value="AUD">AUD ($)</option>
+              </select>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
