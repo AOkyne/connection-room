@@ -214,7 +214,8 @@ END:VCALENDAR`;
                     )}
                   </div>
 
-                  <div className="md:min-w-fit">
+                  {/* Action Buttons Column */}
+                  <div className="flex flex-col gap-3 md:min-w-fit">
                     <Button
                       variant={interests.has(event.id) ? "primary" : "outline"}
                       size="md"
@@ -222,29 +223,28 @@ END:VCALENDAR`;
                     >
                       {interests.has(event.id) ? "✓ Interested" : "Mark Interested"}
                     </Button>
-                  </div>
-                </div>
 
-                {/* Calendar Export Buttons */}
-                <div className="border-t border-[#e8ddd2] pt-4">
-                  <p className="text-xs font-semibold text-[#a0704a] uppercase tracking-wide mb-3">Add to Calendar</p>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(createGoogleCalendarUrl(event), "_blank")}
-                      className="text-xs"
-                    >
-                      Google Calendar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => createICalFile(event)}
-                      className="text-xs"
-                    >
-                      iCal / Outlook
-                    </Button>
+                    <div className="flex flex-col gap-2">
+                      <p className="text-xs font-semibold text-[#a0704a] uppercase tracking-wide">Add to Calendar</p>
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(createGoogleCalendarUrl(event), "_blank")}
+                          className="text-xs"
+                        >
+                          Google Calendar
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => createICalFile(event)}
+                          className="text-xs"
+                        >
+                          iCal / Outlook
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
