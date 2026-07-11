@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
+import { fireWorkshopCreationWebhook, type WorkshopCreationPayload, type WorkshopCreationResponse } from "@/lib/webhooks/workshop-creation";
 
 // Helper to timeout async operations
 function withTimeout<T>(promise: Promise<T> | PromiseLike<T>, timeoutMs: number = 5000): Promise<T> {
@@ -44,6 +45,9 @@ export interface Event {
   createdAt?: string;
   updatedAt?: string;
   registrationCount?: number;
+  workshopId?: string;
+  checkinUrl?: string;
+  feedbackUrl?: string;
 }
 
 // Get all events (admin)
@@ -273,6 +277,78 @@ export async function createEvent(event: Partial<Event>): Promise<Event | null> 
     } catch (err) {
       console.warn("[createEvent] Could not cache event in localStorage:", err instanceof Error ? err.message : err);
     }
+
+    // Fire workshop creation webhook asynchronously (non-blocking)
+    if (createdEvent.startAt) {
+      const eventDate = new Date(createdEvent.startAt);
+      const dateString = eventDate.toISOString().split("T")[0];
+
+      const startTime = createdEvent.startAt
+        ? new Date(createdEvent.startAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
+        : undefined;
+
+      const endTime = createdEvent.endAt
+        ? new Date(createdEvent.endAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
+        : undefined;
+
+      const workshopPayload: WorkshopCreationPayload = {
+        eventId: createdEvent.id,
+        eventTitle: createdEvent.title,
+        eventDate: dateString,
+        startTime,
+        endTime,
+        location: createdEvent.locationName || createdEvent.locationAddress,
+        description: createdEvent.description || createdEvent.shortDescription,
+      };
+
+      // Callback to handle workshop response and update event record
+      const handleWorkshopResponse = async (workshopData: WorkshopCreationResponse) => {
+        // Update event in Supabase if available
+        if (supabase) {
+          try {
+            const { error } = await supabase
+              .from("events")
+              .update({
+                workshop_id: workshopData.workshopId,
+                checkin_url: workshopData.checkinUrl,
+                feedback_url: workshopData.feedbackUrl,
+              })
+              .eq("id", createdEvent.id);
+
+            if (error) {
+              console.error("[createEvent] Failed to update Supabase with workshop data:", error);
+              throw error;
+            }
+          } catch (err) {
+            console.warn("[createEvent] Could not update Supabase with workshop data, updating localStorage:", err);
+            // Fall through to localStorage update
+          }
+        }
+
+        // Also update localStorage
+        if (typeof window !== "undefined") {
+          try {
+            const events = JSON.parse(localStorage.getItem("connection-room:custom-events") || "[]");
+            const eventIndex = events.findIndex((e: Event) => e.id === createdEvent.id);
+
+            if (eventIndex !== -1) {
+              events[eventIndex] = {
+                ...events[eventIndex],
+                workshopId: workshopData.workshopId,
+                checkinUrl: workshopData.checkinUrl,
+                feedbackUrl: workshopData.feedbackUrl,
+              };
+              localStorage.setItem("connection-room:custom-events", JSON.stringify(events));
+            }
+          } catch (err) {
+            console.warn("[createEvent] Could not update localStorage with workshop data:", err);
+          }
+        }
+      };
+
+      console.log("[createEvent] Firing workshop creation webhook...");
+      fireWorkshopCreationWebhook(workshopPayload, handleWorkshopResponse);
+    }
   }
 
   console.log("[createEvent] Returning createdEvent:", createdEvent ? createdEvent.id : "null");
@@ -479,6 +555,9 @@ function mapEventFromDb(dbEvent: any): Event {
     createdAt: dbEvent.created_at,
     updatedAt: dbEvent.updated_at,
     registrationCount: dbEvent.event_registrations?.[0]?.count || 0,
+    workshopId: dbEvent.workshop_id,
+    checkinUrl: dbEvent.checkin_url,
+    feedbackUrl: dbEvent.feedback_url,
   };
 }
 
@@ -511,5 +590,8 @@ function mapEventToDb(event: Partial<Event>): any {
     related_space_id: event.relatedSpaceId,
     tags: event.tags,
     featured: event.featured,
+    workshop_id: event.workshopId,
+    checkin_url: event.checkinUrl,
+    feedback_url: event.feedbackUrl,
   };
 }
