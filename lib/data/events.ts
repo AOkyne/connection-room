@@ -23,6 +23,8 @@ export function getUpcomingEvents(): Event[] {
             ...e,
             date: eventDate,
             time: e.time || eventDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "America/Los_Angeles" }) + " PT",
+            facilitator: e.facilitator || e.hostName || "",
+            format: e.format || e.eventType || "virtual",
             interested: false,
           };
         });
