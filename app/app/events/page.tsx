@@ -198,11 +198,11 @@ END:VCALENDAR`;
             <Card key={event.id} className="border-2 border-[#e8ddd2]">
               <div className="flex flex-col md:flex-row gap-4">
                 {event.imageUrl && (
-                  <div className="md:w-48 md:flex-shrink-0">
+                  <div className="md:w-72 md:flex-shrink-0">
                     <img
                       src={event.imageUrl}
                       alt={event.title}
-                      className="w-full aspect-[4/3] object-cover rounded-lg"
+                      className="w-full aspect-[4/3] object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow"
                     />
                   </div>
                 )}
