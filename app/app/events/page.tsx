@@ -170,7 +170,7 @@ END:VCALENDAR`;
                     <img
                       src={event.imageUrl}
                       alt={event.title}
-                      className="w-full aspect-video object-cover rounded-lg"
+                      className="w-full aspect-[4/3] object-cover rounded-lg"
                     />
                   </div>
                 )}
