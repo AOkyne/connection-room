@@ -107,26 +107,59 @@ export async function getAdminEvents(): Promise<Event[]> {
 
 // Get published events (public)
 export async function getPublicEvents(): Promise<Event[]> {
-  if (!supabase) return [];
+  let supabaseEvents: Event[] = [];
+  let localEvents: Event[] = [];
 
-  try {
-    const { data, error } = await supabase
-      .from("events")
-      .select(
-        `*,
-        event_registrations(count)`
-      )
-      .eq("status", "published")
-      .in("visibility", ["public", "members"])
-      .order("start_at", { ascending: false });
+  // Try Supabase first
+  if (supabase) {
+    try {
+      const supabasePromise = supabase
+        .from("events")
+        .select(
+          `*,
+          event_registrations(count)`
+        )
+        .eq("status", "published")
+        .in("visibility", ["public", "members"])
+        .order("start_at", { ascending: false });
 
-    if (error) throw error;
+      const { data, error } = await withTimeout(supabasePromise, 5000);
 
-    return (data || []).map(mapEventFromDb);
-  } catch (err) {
-    console.error("Error fetching public events:", err);
-    return [];
+      if (error) throw error;
+
+      supabaseEvents = (data || []).map(mapEventFromDb);
+      console.log("[getPublicEvents] Loaded from Supabase:", supabaseEvents.length, "events");
+    } catch (err) {
+      console.error("[getPublicEvents] Supabase failed:", err instanceof Error ? err.message : err);
+    }
   }
+
+  // Also load published events from localStorage
+  try {
+    if (typeof window !== "undefined") {
+      const allLocalEvents = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+      localEvents = allLocalEvents.filter((e: Event) => e.status === "published" && (e.visibility === "public" || e.visibility === "members"));
+      console.log("[getPublicEvents] Loaded from localStorage:", localEvents.length, "events");
+    }
+  } catch (err) {
+    console.error("[getPublicEvents] Error loading localStorage:", err);
+  }
+
+  // Merge both sources
+  if (supabaseEvents.length > 0 || localEvents.length > 0) {
+    const supabaseIds = new Set(supabaseEvents.map(e => e.id));
+    const localOnlyEvents = localEvents.filter(e => !supabaseIds.has(e.id));
+
+    const merged = [...supabaseEvents, ...localOnlyEvents];
+    console.log("[getPublicEvents] Merged results:", merged.length, "total (Supabase:", supabaseEvents.length, '+ local-only:', localOnlyEvents.length, ')');
+
+    return merged.sort((a: Event, b: Event) =>
+      new Date(b.startAt || 0).getTime() - new Date(a.startAt || 0).getTime()
+    );
+  }
+
+  console.log("[getPublicEvents] No published events found");
+  return [];
 }
 
 // Get single event
