@@ -50,6 +50,13 @@ export default function AdminEventsPage() {
     };
 
     loadData();
+
+    const handleFocus = () => {
+      loadData();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
   }, [router]);
 
   const handleDelete = async (id: string) => {

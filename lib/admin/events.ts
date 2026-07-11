@@ -38,7 +38,21 @@ export interface Event {
 
 // Get all events (admin)
 export async function getAdminEvents(): Promise<Event[]> {
-  // Try Supabase first if available
+  // Try localStorage first if available (for demo mode)
+  try {
+    if (typeof window !== "undefined") {
+      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+      if (events.length > 0) {
+        return events.sort((a: Event, b: Event) =>
+          new Date(b.startAt || 0).getTime() - new Date(a.startAt || 0).getTime()
+        );
+      }
+    }
+  } catch (err) {
+    console.error("Error fetching events from localStorage:", err);
+  }
+
+  // Try Supabase if localStorage is empty
   if (supabase) {
     try {
       const { data, error } = await supabase
@@ -50,23 +64,12 @@ export async function getAdminEvents(): Promise<Event[]> {
 
       return (data || []).map(mapEventFromDb);
     } catch (err) {
-      console.error("Error fetching events from Supabase, falling back to demo mode:", err);
-      // Fall through to demo mode below
+      console.error("Error fetching events from Supabase:", err);
+      // Fall through to empty array below
     }
   }
 
-  // Demo mode: fetch from localStorage
-  try {
-    if (typeof window === "undefined") return [];
-
-    const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
-    return events.sort((a: Event, b: Event) =>
-      new Date(b.startAt || 0).getTime() - new Date(a.startAt || 0).getTime()
-    );
-  } catch (err) {
-    console.error("Error fetching events from localStorage:", err);
-    return [];
-  }
+  return [];
 }
 
 // Get published events (public)
