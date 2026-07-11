@@ -32,7 +32,7 @@ export function getUpcomingEvents(): Event[] {
             date: eventDate,
             time: time,
             facilitator: e.facilitator || e.hostName || "",
-            format: e.format || e.eventType || "virtual",
+            format: e.format || e.eventType || "online",
             interested: false,
           };
         });

@@ -7,6 +7,7 @@ import { getEvent, updateEvent } from "@/lib/admin/events";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { RichTextEditor } from "@/components/RichTextEditor";
 import { useToast } from "@/lib/hooks/useToast";
 
 export default function EditEventPage() {
@@ -26,7 +27,7 @@ export default function EditEventPage() {
     endAt: "",
     location: "",
     facilitator: "",
-    format: "virtual" as "virtual" | "in-person" | "hybrid",
+    format: "online" as "online" | "in-person" | "hybrid",
     status: "draft" as "draft" | "published",
     featured: false,
     image: "" as string,
@@ -53,7 +54,7 @@ export default function EditEventPage() {
           endAt: event.endAt || "",
           location: event.locationName || "",
           facilitator: event.hostName || "",
-          format: (event.eventType === "virtual" || event.eventType === "in-person" || event.eventType === "hybrid" ? event.eventType : "virtual") as "virtual" | "in-person" | "hybrid",
+          format: (event.eventType === "online" || event.eventType === "in-person" || event.eventType === "hybrid" ? event.eventType : "online") as "online" | "in-person" | "hybrid",
           status: (event.status === "draft" || event.status === "published" ? event.status : "draft") as "draft" | "published",
           featured: event.featured || false,
           image: event.imageUrl || "",
@@ -233,13 +234,10 @@ export default function EditEventPage() {
             <label className="text-sm font-medium text-[#1a0f0a] block mb-1">
               Full Description
             </label>
-            <textarea
-              name="description"
+            <RichTextEditor
               value={formData.description}
-              onChange={handleChange}
+              onChange={(value) => setFormData((prev) => ({ ...prev, description: value }))}
               placeholder="Detailed event description"
-              rows={4}
-              className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
             />
           </div>
 
@@ -309,7 +307,7 @@ export default function EditEventPage() {
               onChange={handleChange}
               className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
             >
-              <option value="virtual">Virtual</option>
+              <option value="online">Online</option>
               <option value="in-person">In-person</option>
               <option value="hybrid">Hybrid</option>
             </select>
