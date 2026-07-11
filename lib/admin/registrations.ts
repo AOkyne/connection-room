@@ -45,7 +45,10 @@ export async function registerForEvent(
 
     // Send webhook to workshop ops app if eventDate is provided
     if (eventDate) {
+      console.log(`[registerForEvent] Supabase success, triggering webhook sync for event ${eventId}`);
       await syncEventRegistrationsToWorkshop(eventId, eventTitle, eventDate);
+    } else {
+      console.warn(`[registerForEvent] No eventDate provided, skipping webhook`);
     }
 
     return registration;
@@ -72,7 +75,10 @@ export async function registerForEvent(
 
       // Send webhook even for localStorage registrations if eventDate is provided
       if (eventDate) {
+        console.log(`[registerForEvent] localStorage fallback, triggering webhook sync for event ${eventId}`);
         await syncEventRegistrationsToWorkshop(eventId, eventTitle, eventDate);
+      } else {
+        console.warn(`[registerForEvent] No eventDate provided on fallback, skipping webhook`);
       }
 
       return registration;
@@ -341,18 +347,31 @@ export async function syncEventRegistrationsToWorkshop(
   eventTitle: string,
   eventDate: string
 ): Promise<boolean> {
-  const registrations = await getEventRegistrations(eventId);
+  try {
+    const registrations = await getEventRegistrations(eventId);
+    console.log(`[syncEventRegistrationsToWorkshop] Syncing ${registrations.length} registrations for event ${eventId}`);
 
-  const workshopRegistrations: WorkshopRegistration[] = registrations.map((reg) => ({
-    id: reg.id,
-    name: reg.name,
-    email: reg.email,
-    status: reg.status,
-    registeredAt: reg.registeredAt,
-  }));
+    const workshopRegistrations: WorkshopRegistration[] = registrations.map((reg) => ({
+      id: reg.id,
+      name: reg.name,
+      email: reg.email,
+      status: reg.status,
+      registeredAt: reg.registeredAt,
+    }));
 
-  queueEventRegistrationsWebhook(eventId, eventTitle, eventDate, workshopRegistrations);
-  return true;
+    console.log(`[syncEventRegistrationsToWorkshop] Queueing webhook with payload:`, {
+      eventId,
+      eventTitle,
+      eventDate,
+      registrationCount: workshopRegistrations.length,
+    });
+
+    queueEventRegistrationsWebhook(eventId, eventTitle, eventDate, workshopRegistrations);
+    return true;
+  } catch (err) {
+    console.error(`[syncEventRegistrationsToWorkshop] Error syncing registrations:`, err);
+    return false;
+  }
 }
 
 // Get all registrations including cancelled (for admin view)
