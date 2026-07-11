@@ -20,7 +20,9 @@ export default function CreateEventPage() {
     location: "",
     status: "draft" as "draft" | "published",
     featured: false,
+    image: "" as string,
   });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -42,6 +44,30 @@ export default function CreateEventPage() {
       ...prev,
       [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
     }));
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setFormData((prev) => ({
+          ...prev,
+          image: base64String,
+        }));
+        setImagePreview(base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setFormData((prev) => ({
+      ...prev,
+      image: "",
+    }));
+    setImagePreview(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -93,6 +119,43 @@ export default function CreateEventPage() {
               placeholder="Brief description for listing"
               className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
             />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-[#1a0f0a] block mb-1">
+              Event Image
+            </label>
+            {imagePreview ? (
+              <div className="space-y-2">
+                <img
+                  src={imagePreview}
+                  alt="Event preview"
+                  className="w-full max-h-64 object-cover rounded-lg"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  onClick={removeImage}
+                  className="text-red-600"
+                >
+                  Remove Image
+                </Button>
+              </div>
+            ) : (
+              <label className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-[#e8ddd2] rounded-lg cursor-pointer hover:border-[#d4a348] transition-colors">
+                <div className="text-center">
+                  <p className="text-[#a0704a] mb-1">📸 Click to upload event image</p>
+                  <p className="text-xs text-[#a0704a]">PNG, JPG, GIF up to 5MB</p>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+              </label>
+            )}
           </div>
 
           <div>
