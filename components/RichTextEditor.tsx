@@ -25,6 +25,13 @@ export function RichTextEditor({ value, onChange, placeholder = "Enter text..." 
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      document.execCommand("insertParagraph", false);
+    }
+  };
+
   const applyFormat = (command: string, value?: string) => {
     document.execCommand(command, false, value);
     editorRef.current?.focus();
@@ -87,6 +94,7 @@ export function RichTextEditor({ value, onChange, placeholder = "Enter text..." 
       <div
         ref={editorRef}
         onInput={handleInput}
+        onKeyDown={handleKeyDown}
         contentEditable
         suppressContentEditableWarning
         className="w-full px-3 py-2 border border-[#e8ddd2] rounded-b-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a] min-h-32"
