@@ -159,8 +159,9 @@ export async function createEvent(event: Partial<Event>): Promise<Event | null> 
       shortDescription: event.shortDescription,
       description: event.description,
       locationName: event.locationName,
-      imageUrl: event.imageUrl,
       featured: event.featured || false,
+      priceCents: event.priceCents,
+      currency: event.currency,
       createdAt: new Date().toISOString(),
     };
 
@@ -207,9 +208,14 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
 
     if (index === -1) return null;
 
+    const updateData = { ...event };
+    if (updateData.imageUrl && updateData.imageUrl.startsWith("data:")) {
+      delete updateData.imageUrl;
+    }
+
     events[index] = {
       ...events[index],
-      ...event,
+      ...updateData,
       updatedAt: new Date().toISOString(),
     };
 
