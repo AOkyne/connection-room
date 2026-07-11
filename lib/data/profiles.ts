@@ -456,6 +456,7 @@ export async function getAllProfiles(): Promise<Profile[]> {
       completedOnboarding: p.completed_onboarding || false,
       spacesJoined: Array.isArray(p.spaces_joined) ? p.spaces_joined : [],
       joinedAt: new Date(p.created_at),
+      lastActive: p.updated_at ? new Date(p.updated_at) : undefined,
       profile_tagline: p.profile_tagline,
       show_in_member_lists: p.show_in_member_lists,
       profile_visibility: p.profile_visibility,
