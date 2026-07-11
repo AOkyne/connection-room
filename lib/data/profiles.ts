@@ -24,6 +24,7 @@ export interface Profile {
   completedOnboarding: boolean;
   spacesJoined?: string[];
   joinedAt: Date;
+  lastActive?: Date;
   photo_confirmed?: boolean;
   photo_confirmed_at?: Date;
   profile_tagline?: string;
