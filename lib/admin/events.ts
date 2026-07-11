@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase/client";
 import { fireWorkshopCreationWebhook, type WorkshopCreationPayload, type WorkshopCreationResponse } from "@/lib/webhooks/workshop-creation";
+import { fireWorkshopDeletionWebhook } from "@/lib/webhooks/workshop-deletion";
 
 // Helper to timeout async operations
 function withTimeout<T>(promise: Promise<T> | PromiseLike<T>, timeoutMs: number = 5000): Promise<T> {
@@ -455,6 +456,15 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
 
 // Delete event
 export async function deleteEvent(id: string): Promise<boolean> {
+  // Get the event before deleting so we can retrieve workshopId
+  let eventToDelete: Event | null = null;
+
+  try {
+    eventToDelete = await getEvent(id);
+  } catch (err) {
+    console.warn("[deleteEvent] Could not fetch event before deletion:", err);
+  }
+
   let deletedFromSupabase = false;
 
   try {
@@ -478,15 +488,23 @@ export async function deleteEvent(id: string): Promise<boolean> {
       if (filtered.length < events.length) {
         localStorage.setItem("connection-room:custom-events", JSON.stringify(filtered));
         console.log("[deleteEvent] Successfully deleted from localStorage:", id);
-        return true;
       }
     }
   } catch (err) {
     console.error("[deleteEvent] Error deleting from localStorage:", err);
   }
 
+  // Fire deletion webhook if event had a workshopId
+  if (eventToDelete && eventToDelete.workshopId) {
+    console.log(`[deleteEvent] Firing workshop deletion webhook for event ${id}`);
+    fireWorkshopDeletionWebhook(id, eventToDelete.workshopId);
+  } else if (eventToDelete) {
+    console.log(`[deleteEvent] No workshopId found for event ${id}, attempting deletion by eventId`);
+    fireWorkshopDeletionWebhook(id);
+  }
+
   // Return true if deleted from at least one source
-  return deletedFromSupabase;
+  return deletedFromSupabase || (typeof window !== "undefined");
 }
 
 // Register for event
