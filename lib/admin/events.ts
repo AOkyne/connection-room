@@ -48,7 +48,10 @@ export interface Event {
 
 // Get all events (admin)
 export async function getAdminEvents(): Promise<Event[]> {
-  // Try Supabase first (source of truth) with timeout
+  let supabaseEvents: Event[] = [];
+  let localEvents: Event[] = [];
+
+  // Try Supabase first (source of truth)
   if (supabase) {
     try {
       const supabasePromise = supabase
@@ -60,36 +63,46 @@ export async function getAdminEvents(): Promise<Event[]> {
 
       if (error) throw error;
 
-      const events = (data || []).map(mapEventFromDb);
-
-      // Update localStorage cache with Supabase data
-      if (typeof window !== "undefined" && events.length > 0) {
-        try {
-          localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
-        } catch (err) {
-          console.warn("Could not cache events in localStorage:", err);
-        }
-      }
-
-      return events;
+      supabaseEvents = (data || []).map(mapEventFromDb);
+      console.log("[getAdminEvents] Loaded from Supabase:", supabaseEvents.length, "events");
     } catch (err) {
-      console.error("Error fetching events from Supabase, falling back to localStorage:", err);
-      // Fall through to localStorage fallback below
+      console.error("[getAdminEvents] Supabase failed:", err instanceof Error ? err.message : err);
     }
   }
 
-  // Fallback to localStorage if Supabase fails
+  // Also load localStorage
   try {
-    if (typeof window === "undefined") return [];
+    if (typeof window !== "undefined") {
+      localEvents = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+      console.log("[getAdminEvents] Loaded from localStorage:", localEvents.length, "events");
+    }
+  } catch (err) {
+    console.error("[getAdminEvents] Error loading localStorage:", err);
+  }
 
-    const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
-    return events.sort((a: Event, b: Event) =>
+  // Merge both sources: Supabase is primary, but include any local-only events
+  if (supabaseEvents.length > 0) {
+    const supabaseIds = new Set(supabaseEvents.map(e => e.id));
+    const localOnlyEvents = localEvents.filter(e => !supabaseIds.has(e.id));
+
+    const merged = [...supabaseEvents, ...localOnlyEvents];
+    console.log("[getAdminEvents] Merged results:", merged.length, "total (Supabase:", supabaseEvents.length, '+ local-only:', localOnlyEvents.length, ')');
+
+    return merged.sort((a: Event, b: Event) =>
       new Date(b.startAt || 0).getTime() - new Date(a.startAt || 0).getTime()
     );
-  } catch (err) {
-    console.error("Error fetching events from localStorage:", err);
-    return [];
   }
+
+  // If Supabase failed, use localStorage only
+  if (localEvents.length > 0) {
+    console.log("[getAdminEvents] Using localStorage only:", localEvents.length, "events");
+    return localEvents.sort((a: Event, b: Event) =>
+      new Date(b.startAt || 0).getTime() - new Date(a.startAt || 0).getTime()
+    );
+  }
+
+  console.log("[getAdminEvents] No events found anywhere");
+  return [];
 }
 
 // Get published events (public)
