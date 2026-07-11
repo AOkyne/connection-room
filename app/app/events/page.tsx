@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getProfile } from "@/lib/data/profiles";
-import { getUpcomingEvents, toggleEventInterest, getUserEventInterests } from "@/lib/data/events";
+import { getUpcomingEvents, getPastEvents, toggleEventInterest, getUserEventInterests } from "@/lib/data/events";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -14,9 +14,11 @@ import { ToastContainer } from "@/components/Toast";
 export default function EventsPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
-  const [events, setEvents] = useState<any[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+  const [pastEvents, setPastEvents] = useState<any[]>([]);
   const [interests, setInterests] = useState<Set<string>>(new Set());
   const [mounted, setMounted] = useState(false);
+  const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
   const [filterFormat, setFilterFormat] = useState<"all" | "virtual" | "in-person" | "hybrid">("all");
   const { toasts, showToast, removeToast } = useToast();
 
@@ -25,8 +27,10 @@ export default function EventsPage() {
       const p = await getProfile();
       setProfile(p);
 
-      const e = getUpcomingEvents();
-      setEvents(e);
+      const upcoming = getUpcomingEvents();
+      const past = getPastEvents();
+      setUpcomingEvents(upcoming);
+      setPastEvents(past);
 
       if (p) {
         const i = getUserEventInterests(p.id);
@@ -90,7 +94,9 @@ END:VCALENDAR`;
     window.URL.revokeObjectURL(url);
   };
 
-  const filteredEvents = events.filter(event => {
+  const currentEvents = tab === "upcoming" ? upcomingEvents : pastEvents;
+
+  const filteredEvents = currentEvents.filter(event => {
     if (filterFormat === "all") return true;
     return event.format.toLowerCase().replace(" ", "-") === filterFormat;
   });
@@ -100,7 +106,9 @@ END:VCALENDAR`;
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-4xl text-[#1a0f0a]">Upcoming Events</h1>
+          <h1 className="text-4xl text-[#1a0f0a]">
+            {tab === "upcoming" ? "Upcoming Events" : "Past Events"}
+          </h1>
           <p className="text-lg text-[#1a0f0a] mt-2">
             Connection circles, workshops, and gatherings
           </p>
@@ -134,6 +142,30 @@ END:VCALENDAR`;
           </div>
         </div>
       </Card>
+
+      {/* Event Type Tabs */}
+      <div className="flex gap-2 border-b border-[#e8ddd2]">
+        <button
+          onClick={() => setTab("upcoming")}
+          className={`px-4 py-3 font-medium transition-all border-b-2 ${
+            tab === "upcoming"
+              ? "border-[#d4a348] text-[#d4a348]"
+              : "border-transparent text-[#a0704a] hover:text-[#1a0f0a]"
+          }`}
+        >
+          Upcoming
+        </button>
+        <button
+          onClick={() => setTab("past")}
+          className={`px-4 py-3 font-medium transition-all border-b-2 ${
+            tab === "past"
+              ? "border-[#d4a348] text-[#d4a348]"
+              : "border-transparent text-[#a0704a] hover:text-[#1a0f0a]"
+          }`}
+        >
+          Past
+        </button>
+      </div>
 
       {/* Filter by Format */}
       <div className="space-y-3">

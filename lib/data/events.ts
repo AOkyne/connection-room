@@ -6,8 +6,8 @@ import type { Event } from "./demo-data";
 const EVENTS_STORAGE_KEY = "connection-room:event-interests";
 const CUSTOM_EVENTS_STORAGE_KEY = "connection-room:custom-events";
 
-// Get all upcoming events (demo + custom)
-export function getUpcomingEvents(): Event[] {
+// Helper to load and convert all events
+function getAllEvents(): Event[] {
   let allEvents = [...demoEvents];
 
   // Add custom events from localStorage
@@ -43,7 +43,21 @@ export function getUpcomingEvents(): Event[] {
     }
   }
 
-  return allEvents.filter((event) => event.date > new Date()).sort((a, b) => a.date.getTime() - b.date.getTime());
+  return allEvents;
+}
+
+// Get all upcoming events (demo + custom)
+export function getUpcomingEvents(): Event[] {
+  return getAllEvents()
+    .filter((event) => event.date > new Date())
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+}
+
+// Get all past events (demo + custom)
+export function getPastEvents(): Event[] {
+  return getAllEvents()
+    .filter((event) => event.date <= new Date())
+    .sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
 // Get user's event interests
