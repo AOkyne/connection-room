@@ -38,17 +38,25 @@ export interface Event {
 
 // Get all events (admin)
 export async function getAdminEvents(): Promise<Event[]> {
-  if (!supabase) return [];
-
   try {
-    const { data, error } = await supabase
-      .from("events")
-      .select("*")
-      .order("start_at", { ascending: false });
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .order("start_at", { ascending: false });
 
-    if (error) throw error;
+      if (error) throw error;
 
-    return (data || []).map(mapEventFromDb);
+      return (data || []).map(mapEventFromDb);
+    } else {
+      // Demo mode: fetch from localStorage
+      if (typeof window === "undefined") return [];
+
+      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+      return events.sort((a: Event, b: Event) =>
+        new Date(b.startAt || 0).getTime() - new Date(a.startAt || 0).getTime()
+      );
+    }
   } catch (err) {
     console.error("Error fetching admin events:", err);
     return [];
@@ -81,20 +89,26 @@ export async function getPublicEvents(): Promise<Event[]> {
 
 // Get single event
 export async function getEvent(id: string): Promise<Event | null> {
-  if (!supabase) return null;
-
   try {
-    const { data, error } = await supabase
-      .from("events")
-      .select(
-        `*,
-        event_registrations(count)`
-      )
-      .eq("id", id)
-      .single();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("events")
+        .select(
+          `*,
+          event_registrations(count)`
+        )
+        .eq("id", id)
+        .single();
 
-    if (error) throw error;
-    return data ? mapEventFromDb(data) : null;
+      if (error) throw error;
+      return data ? mapEventFromDb(data) : null;
+    } else {
+      // Demo mode: fetch from localStorage
+      if (typeof window === "undefined") return null;
+
+      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+      return events.find((e: Event) => e.id === id) || null;
+    }
   } catch (err) {
     console.error("Error fetching event:", err);
     return null;
@@ -103,17 +117,40 @@ export async function getEvent(id: string): Promise<Event | null> {
 
 // Create event
 export async function createEvent(event: Partial<Event>): Promise<Event | null> {
-  if (!supabase) return null;
-
   try {
-    const { data, error } = await supabase
-      .from("events")
-      .insert([mapEventToDb(event)])
-      .select()
-      .single();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("events")
+        .insert([mapEventToDb(event)])
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data ? mapEventFromDb(data) : null;
+      if (error) throw error;
+      return data ? mapEventFromDb(data) : null;
+    } else {
+      // Demo mode: store in localStorage
+      if (typeof window === "undefined") return null;
+
+      const newEvent: Event = {
+        id: `event-${Date.now()}`,
+        title: event.title || "",
+        status: event.status || "draft",
+        visibility: event.visibility || "members",
+        startAt: event.startAt || "",
+        shortDescription: event.shortDescription,
+        description: event.description,
+        locationName: event.locationName,
+        imageUrl: event.imageUrl,
+        featured: event.featured || false,
+        createdAt: new Date().toISOString(),
+      };
+
+      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+      events.push(newEvent);
+      localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
+
+      return newEvent;
+    }
   } catch (err) {
     console.error("Error creating event:", err);
     return null;
@@ -122,21 +159,38 @@ export async function createEvent(event: Partial<Event>): Promise<Event | null> 
 
 // Update event
 export async function updateEvent(id: string, event: Partial<Event>): Promise<Event | null> {
-  if (!supabase) return null;
-
   try {
-    const { data, error } = await supabase
-      .from("events")
-      .update({
-        ...mapEventToDb(event),
-        updated_at: new Date(),
-      })
-      .eq("id", id)
-      .select()
-      .single();
+    if (supabase) {
+      const { data, error } = await supabase
+        .from("events")
+        .update({
+          ...mapEventToDb(event),
+          updated_at: new Date(),
+        })
+        .eq("id", id)
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data ? mapEventFromDb(data) : null;
+      if (error) throw error;
+      return data ? mapEventFromDb(data) : null;
+    } else {
+      // Demo mode: update in localStorage
+      if (typeof window === "undefined") return null;
+
+      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+      const index = events.findIndex((e: Event) => e.id === id);
+
+      if (index === -1) return null;
+
+      events[index] = {
+        ...events[index],
+        ...event,
+        updatedAt: new Date().toISOString(),
+      };
+
+      localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
+      return events[index];
+    }
   } catch (err) {
     console.error("Error updating event:", err);
     return null;
@@ -145,13 +199,24 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
 
 // Delete event
 export async function deleteEvent(id: string): Promise<boolean> {
-  if (!supabase) return false;
-
   try {
-    const { error } = await supabase.from("events").delete().eq("id", id);
+    if (supabase) {
+      const { error } = await supabase.from("events").delete().eq("id", id);
 
-    if (error) throw error;
-    return true;
+      if (error) throw error;
+      return true;
+    } else {
+      // Demo mode: delete from localStorage
+      if (typeof window === "undefined") return false;
+
+      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+      const filtered = events.filter((e: Event) => e.id !== id);
+
+      if (filtered.length === events.length) return false;
+
+      localStorage.setItem("connection-room:demo-events", JSON.stringify(filtered));
+      return true;
+    }
   } catch (err) {
     console.error("Error deleting event:", err);
     return false;
