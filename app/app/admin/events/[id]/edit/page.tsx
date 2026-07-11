@@ -3,17 +3,21 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getSession } from "@/lib/session";
+import { getEvent, updateEvent } from "@/lib/admin/events";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { useToast } from "@/lib/hooks/useToast";
 
 export default function EditEventPage() {
   const router = useRouter();
   const params = useParams();
   const eventId = params.id as string;
+  const { showToast } = useToast();
 
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     shortDescription: "",
@@ -34,13 +38,31 @@ export default function EditEventPage() {
         router.push("/app");
         return;
       }
-      // TODO: Load event data from database
+
+      const event = await getEvent(eventId);
+      if (event) {
+        setFormData({
+          title: event.title || "",
+          shortDescription: event.shortDescription || "",
+          description: event.description || "",
+          startAt: event.startAt || "",
+          endAt: event.endAt || "",
+          location: event.locationName || "",
+          status: event.status,
+          featured: event.featured || false,
+          image: event.imageUrl || "",
+        });
+        if (event.imageUrl) {
+          setImagePreview(event.imageUrl);
+        }
+      }
+
       setMounted(true);
       setLoading(false);
     };
 
     loadData();
-  }, [router]);
+  }, [router, eventId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -76,9 +98,40 @@ export default function EditEventPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement event update
-    console.log("Update event:", eventId, formData);
-    router.push("/app/admin/events");
+
+    if (!formData.title.trim()) {
+      showToast("Event title is required", "error");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const eventData = {
+        title: formData.title,
+        shortDescription: formData.shortDescription,
+        description: formData.description,
+        startAt: formData.startAt,
+        endAt: formData.endAt,
+        locationName: formData.location,
+        imageUrl: formData.image,
+        status: formData.status as "draft" | "published",
+        featured: formData.featured,
+      };
+
+      const result = await updateEvent(eventId, eventData);
+
+      if (result) {
+        showToast("Event updated successfully!", "success");
+        router.push("/app/admin/events");
+      } else {
+        showToast("Failed to update event", "error");
+      }
+    } catch (error) {
+      console.error("Error updating event:", error);
+      showToast("Error updating event", "error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!mounted || loading) {
@@ -249,14 +302,20 @@ export default function EditEventPage() {
           </div>
 
           <div className="flex gap-2 pt-4 border-t border-[#e8ddd2]">
-            <Button variant="primary" size="md" type="submit">
-              Save Changes
+            <Button
+              variant="primary"
+              size="md"
+              type="submit"
+              disabled={saving}
+            >
+              {saving ? "Saving..." : "Save Changes"}
             </Button>
             <Button
               variant="outline"
               size="md"
               type="button"
               onClick={() => router.push("/app/admin/events")}
+              disabled={saving}
             >
               Cancel
             </Button>

@@ -3,14 +3,18 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession } from "@/lib/session";
+import { createEvent } from "@/lib/admin/events";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { useToast } from "@/lib/hooks/useToast";
 
 export default function CreateEventPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     shortDescription: "",
@@ -72,9 +76,41 @@ export default function CreateEventPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement event creation
-    console.log("Create event:", formData);
-    router.push("/app/admin/events");
+
+    if (!formData.title.trim()) {
+      showToast("Event title is required", "error");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const eventData = {
+        title: formData.title,
+        shortDescription: formData.shortDescription,
+        description: formData.description,
+        startAt: formData.startAt,
+        endAt: formData.endAt,
+        locationName: formData.location,
+        imageUrl: formData.image,
+        status: formData.status as "draft" | "published",
+        featured: formData.featured,
+        visibility: "members" as const,
+      };
+
+      const result = await createEvent(eventData);
+
+      if (result) {
+        showToast("Event created successfully!", "success");
+        router.push("/app/admin/events");
+      } else {
+        showToast("Failed to create event", "error");
+      }
+    } catch (error) {
+      console.error("Error creating event:", error);
+      showToast("Error creating event", "error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!mounted || loading) {
@@ -245,14 +281,20 @@ export default function CreateEventPage() {
           </div>
 
           <div className="flex gap-2 pt-4 border-t border-[#e8ddd2]">
-            <Button variant="primary" size="md" type="submit">
-              Create Event
+            <Button
+              variant="primary"
+              size="md"
+              type="submit"
+              disabled={saving}
+            >
+              {saving ? "Creating..." : "Create Event"}
             </Button>
             <Button
               variant="outline"
               size="md"
               type="button"
               onClick={() => router.push("/app/admin/events")}
+              disabled={saving}
             >
               Cancel
             </Button>
