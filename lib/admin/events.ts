@@ -38,21 +38,7 @@ export interface Event {
 
 // Get all events (admin)
 export async function getAdminEvents(): Promise<Event[]> {
-  // Try localStorage first if available (for demo mode)
-  try {
-    if (typeof window !== "undefined") {
-      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
-      if (events.length > 0) {
-        return events.sort((a: Event, b: Event) =>
-          new Date(b.startAt || 0).getTime() - new Date(a.startAt || 0).getTime()
-        );
-      }
-    }
-  } catch (err) {
-    console.error("Error fetching events from localStorage:", err);
-  }
-
-  // Try Supabase if localStorage is empty
+  // Try Supabase first (source of truth)
   if (supabase) {
     try {
       const { data, error } = await supabase
@@ -62,14 +48,36 @@ export async function getAdminEvents(): Promise<Event[]> {
 
       if (error) throw error;
 
-      return (data || []).map(mapEventFromDb);
+      const events = (data || []).map(mapEventFromDb);
+
+      // Update localStorage cache with Supabase data
+      if (typeof window !== "undefined" && events.length > 0) {
+        try {
+          localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
+        } catch (err) {
+          console.warn("Could not cache events in localStorage:", err);
+        }
+      }
+
+      return events;
     } catch (err) {
-      console.error("Error fetching events from Supabase:", err);
-      // Fall through to empty array below
+      console.error("Error fetching events from Supabase, falling back to localStorage:", err);
+      // Fall through to localStorage fallback below
     }
   }
 
-  return [];
+  // Fallback to localStorage if Supabase fails
+  try {
+    if (typeof window === "undefined") return [];
+
+    const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+    return events.sort((a: Event, b: Event) =>
+      new Date(b.startAt || 0).getTime() - new Date(a.startAt || 0).getTime()
+    );
+  } catch (err) {
+    console.error("Error fetching events from localStorage:", err);
+    return [];
+  }
 }
 
 // Get published events (public)
@@ -132,7 +140,9 @@ export async function getEvent(id: string): Promise<Event | null> {
 
 // Create event
 export async function createEvent(event: Partial<Event>): Promise<Event | null> {
-  // Try Supabase first if available
+  let createdEvent: Event | null = null;
+
+  // Try Supabase first (source of truth)
   if (supabase) {
     try {
       const { data, error } = await supabase
@@ -142,46 +152,62 @@ export async function createEvent(event: Partial<Event>): Promise<Event | null> 
         .single();
 
       if (error) throw error;
-      return data ? mapEventFromDb(data) : null;
+      if (data) {
+        createdEvent = mapEventFromDb(data);
+      }
     } catch (err) {
-      console.error("Error creating event in Supabase, falling back to demo mode:", err);
-      // Fall through to demo mode below
+      console.error("Error creating event in Supabase:", err);
+      // Don't return yet - try localStorage as fallback
     }
   }
 
-  // Demo mode: store in localStorage
-  try {
-    if (typeof window === "undefined") return null;
+  // If Supabase failed, create in localStorage
+  if (!createdEvent) {
+    try {
+      if (typeof window === "undefined") return null;
 
-    const newEvent: Event = {
-      id: `event-${Date.now()}`,
-      title: event.title || "",
-      status: event.status || "draft",
-      visibility: event.visibility || "members",
-      startAt: event.startAt || "",
-      shortDescription: event.shortDescription,
-      description: event.description,
-      locationName: event.locationName,
-      featured: event.featured || false,
-      priceCents: event.priceCents,
-      currency: event.currency,
-      createdAt: new Date().toISOString(),
-    };
-
-    const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
-    events.push(newEvent);
-    localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
-
-    return newEvent;
-  } catch (err) {
-    console.error("Error creating event in demo mode:", err);
-    return null;
+      createdEvent = {
+        id: `event-${Date.now()}`,
+        title: event.title || "",
+        status: event.status || "draft",
+        visibility: event.visibility || "members",
+        startAt: event.startAt || "",
+        shortDescription: event.shortDescription,
+        description: event.description,
+        locationName: event.locationName,
+        featured: event.featured || false,
+        priceCents: event.priceCents,
+        currency: event.currency,
+        createdAt: new Date().toISOString(),
+      };
+    } catch (err) {
+      console.error("Error creating event:", err);
+      return null;
+    }
   }
+
+  // Always update localStorage cache (excluding base64 image data)
+  try {
+    if (typeof window !== "undefined" && createdEvent) {
+      const eventWithoutImage = { ...createdEvent };
+      delete (eventWithoutImage as any).imageUrl;
+
+      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+      events.push(eventWithoutImage);
+      localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
+    }
+  } catch (err) {
+    console.warn("Could not cache event in localStorage:", err);
+  }
+
+  return createdEvent;
 }
 
 // Update event
 export async function updateEvent(id: string, event: Partial<Event>): Promise<Event | null> {
-  // Try Supabase first if available
+  let updatedEvent: Event | null = null;
+
+  // Try Supabase first (source of truth)
   if (supabase) {
     try {
       const { data, error } = await supabase
@@ -195,39 +221,61 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
         .single();
 
       if (error) throw error;
-      return data ? mapEventFromDb(data) : null;
+      if (data) {
+        updatedEvent = mapEventFromDb(data);
+      }
     } catch (err) {
-      console.error("Error updating event in Supabase, falling back to demo mode:", err);
-      // Fall through to demo mode below
+      console.error("Error updating event in Supabase:", err);
+      // Don't return yet - try localStorage as fallback
     }
   }
 
-  // Demo mode: update in localStorage
+  // If Supabase failed, update in localStorage
+  if (!updatedEvent) {
+    try {
+      if (typeof window === "undefined") return null;
+
+      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+      const index = events.findIndex((e: Event) => e.id === id);
+
+      if (index === -1) return null;
+
+      const updateData = { ...event };
+      if (updateData.imageUrl && updateData.imageUrl.startsWith("data:")) {
+        delete updateData.imageUrl;
+      }
+
+      events[index] = {
+        ...events[index],
+        ...updateData,
+        updatedAt: new Date().toISOString(),
+      };
+
+      updatedEvent = events[index];
+    } catch (err) {
+      console.error("Error updating event:", err);
+      return null;
+    }
+  }
+
+  // Always update localStorage cache (excluding base64 image data)
   try {
-    if (typeof window === "undefined") return null;
+    if (typeof window !== "undefined" && updatedEvent) {
+      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+      const index = events.findIndex((e: Event) => e.id === id);
 
-    const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
-    const index = events.findIndex((e: Event) => e.id === id);
-
-    if (index === -1) return null;
-
-    const updateData = { ...event };
-    if (updateData.imageUrl && updateData.imageUrl.startsWith("data:")) {
-      delete updateData.imageUrl;
+      if (index !== -1) {
+        const eventWithoutImage = { ...updatedEvent };
+        delete (eventWithoutImage as any).imageUrl;
+        events[index] = eventWithoutImage;
+        localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
+      }
     }
-
-    events[index] = {
-      ...events[index],
-      ...updateData,
-      updatedAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
-    return events[index];
   } catch (err) {
-    console.error("Error updating event in localStorage:", err);
-    return null;
+    console.warn("Could not cache event in localStorage:", err);
   }
+
+  return updatedEvent;
 }
 
 // Delete event
