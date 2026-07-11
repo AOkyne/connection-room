@@ -8,6 +8,7 @@ import { registerForEvent, cancelRegistration } from "@/lib/admin/registrations"
 interface EventRegistrationModalProps {
   eventId: string;
   eventTitle: string;
+  eventDate: string;
   isOpen: boolean;
   isRegistered: boolean;
   userId: string;
@@ -48,7 +49,8 @@ export function EventRegistrationModal({
         userId,
         formData.name,
         formData.email,
-        eventTitle
+        eventTitle,
+        eventDate
       );
 
       if (result) {
@@ -69,7 +71,7 @@ export function EventRegistrationModal({
   const handleCancel = async () => {
     setIsLoading(true);
     try {
-      const result = await cancelRegistration(eventId, userId, eventTitle, formData.name, formData.email);
+      const result = await cancelRegistration(eventId, userId, eventTitle, formData.name, formData.email, eventDate);
 
       if (result) {
         showToast(`Cancelled registration for "${eventTitle}"`, "success");

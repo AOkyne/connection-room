@@ -4,32 +4,43 @@
 const WORKSHOP_API_URL = "https://workshops.trevorjamesla.com/api/registrations";
 const WORKSHOP_API_KEY = "Xensationx555";
 
-export interface WorkshopRegistrationPayload {
-  eventId: string;
-  eventTitle: string;
-  userId: string;
+export interface WorkshopRegistration {
+  id: string;
   name: string;
   email: string;
+  phone?: string;
   status: "registered" | "interested" | "attended" | "cancelled";
   registeredAt: string;
-  action: "create" | "update" | "cancel";
 }
 
-export async function sendRegistrationWebhook(
-  payload: WorkshopRegistrationPayload
+export interface WorkshopRegistrationsPayload {
+  eventId: string;
+  eventTitle: string;
+  eventDate: string;
+  registrations: WorkshopRegistration[];
+}
+
+export async function sendEventRegistrationsWebhook(
+  eventId: string,
+  eventTitle: string,
+  eventDate: string,
+  registrations: WorkshopRegistration[]
 ): Promise<boolean> {
   try {
+    const payload: WorkshopRegistrationsPayload = {
+      eventId,
+      eventTitle,
+      eventDate,
+      registrations,
+    };
+
     const response = await fetch(WORKSHOP_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${WORKSHOP_API_KEY}`,
       },
-      body: JSON.stringify({
-        ...payload,
-        timestamp: new Date().toISOString(),
-        source: "connection-room",
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -41,7 +52,7 @@ export async function sendRegistrationWebhook(
     }
 
     console.log(
-      `[Workshop Webhook] ${payload.action} registration sent for ${payload.name} (${payload.email})`
+      `[Workshop Webhook] Sent ${registrations.length} registrations for event ${eventTitle}`
     );
     return true;
   } catch (error) {
@@ -51,45 +62,47 @@ export async function sendRegistrationWebhook(
   }
 }
 
-export async function sendBulkRegistrationsWebhook(
-  eventId: string,
-  registrations: Array<{
-    userId: string;
-    name: string;
-    email: string;
-    status: "registered" | "interested" | "attended" | "cancelled";
-    registeredAt: string;
-  }>
-): Promise<boolean> {
-  try {
-    const response = await fetch(`${WORKSHOP_API_URL}/bulk`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${WORKSHOP_API_KEY}`,
-      },
-      body: JSON.stringify({
-        eventId,
-        registrations,
-        timestamp: new Date().toISOString(),
-        source: "connection-room",
-      }),
-    });
-
-    if (!response.ok) {
-      console.error(
-        `Workshop bulk webhook failed with status ${response.status}:`,
-        await response.text()
-      );
-      return false;
-    }
-
-    console.log(
-      `[Workshop Webhook] Bulk sync sent for event ${eventId} (${registrations.length} registrations)`
-    );
-    return true;
-  } catch (error) {
-    console.error("[Workshop Webhook] Error sending bulk webhook:", error);
-    return false;
+// Debounced webhook sender - batches updates for the same event
+const webhookQueue = new Map<
+  string,
+  {
+    eventId: string;
+    eventTitle: string;
+    eventDate: string;
+    registrations: WorkshopRegistration[];
+    timeoutId: NodeJS.Timeout;
   }
+>();
+
+export function queueEventRegistrationsWebhook(
+  eventId: string,
+  eventTitle: string,
+  eventDate: string,
+  registrations: WorkshopRegistration[],
+  delayMs: number = 2000
+): void {
+  // Clear existing timeout for this event
+  const existing = webhookQueue.get(eventId);
+  if (existing) {
+    clearTimeout(existing.timeoutId);
+  }
+
+  // Schedule new webhook with delay for batching
+  const timeoutId = setTimeout(() => {
+    sendEventRegistrationsWebhook(eventId, eventTitle, eventDate, registrations)
+      .then(() => {
+        webhookQueue.delete(eventId);
+      })
+      .catch(() => {
+        webhookQueue.delete(eventId);
+      });
+  }, delayMs);
+
+  webhookQueue.set(eventId, {
+    eventId,
+    eventTitle,
+    eventDate,
+    registrations,
+    timeoutId,
+  });
 }

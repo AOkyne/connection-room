@@ -27,7 +27,8 @@ export default function EventsPage() {
     isOpen: boolean;
     eventId: string;
     eventTitle: string;
-  }>({ isOpen: false, eventId: "", eventTitle: "" });
+    eventDate: string;
+  }>({ isOpen: false, eventId: "", eventTitle: "", eventDate: "" });
   const { toasts, showToast, removeToast } = useToast();
 
   useEffect(() => {
@@ -58,19 +59,20 @@ export default function EventsPage() {
     return <LoadingScreen message="Getting ready for events" subtitle="We're personalizing your experience. Just a moment..." />;
   }
 
-  const handleToggleInterest = async (eventId: string, eventTitle: string) => {
+  const handleToggleInterest = async (eventId: string, eventTitle: string, eventDate: Date) => {
+    const dateString = eventDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
     const isCurrentlyInterested = interests.has(eventId);
 
     if (isCurrentlyInterested) {
       // Remove interest by marking as cancelled
-      await updateRegistrationStatus(eventId, profile.id, "cancelled", eventTitle, profile.fullName || profile.email, profile.email);
+      await updateRegistrationStatus(eventId, profile.id, "cancelled", eventTitle, profile.fullName || profile.email, profile.email, dateString);
       const newInterests = new Set(interests);
       newInterests.delete(eventId);
       setInterests(newInterests);
       showToast(`Removed "${eventTitle}" from interested`, "success");
     } else {
       // Add interest - create registration with "interested" status
-      await markAsInterested(eventId, profile.id, profile.fullName || profile.email, profile.email, eventTitle);
+      await markAsInterested(eventId, profile.id, profile.fullName || profile.email, profile.email, eventTitle, dateString);
       const newInterests = new Set(interests);
       newInterests.add(eventId);
       setInterests(newInterests);
@@ -78,8 +80,9 @@ export default function EventsPage() {
     }
   };
 
-  const handleOpenRegistrationModal = (eventId: string, eventTitle: string) => {
-    setRegistrationModal({ isOpen: true, eventId, eventTitle });
+  const handleOpenRegistrationModal = (eventId: string, eventTitle: string, eventDate: Date) => {
+    const dateString = eventDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+    setRegistrationModal({ isOpen: true, eventId, eventTitle, eventDate: dateString });
   };
 
   const handleRegistrationChange = (isRegistered: boolean) => {
@@ -286,7 +289,7 @@ END:VCALENDAR`;
                     <Button
                       variant={registrations.has(event.id) ? "primary" : "primary"}
                       size="md"
-                      onClick={() => handleOpenRegistrationModal(event.id, event.title)}
+                      onClick={() => handleOpenRegistrationModal(event.id, event.title, event.date)}
                     >
                       {registrations.has(event.id) ? "✓ Registered" : "Register"}
                     </Button>
@@ -295,7 +298,7 @@ END:VCALENDAR`;
                       variant={interests.has(event.id) ? "primary" : "outline"}
                       size="md"
                       onClick={() => {
-                        handleToggleInterest(event.id, event.title);
+                        handleToggleInterest(event.id, event.title, event.date);
                       }}
                     >
                       {interests.has(event.id) ? "♥ Interested" : "Mark Interested"}
@@ -364,6 +367,7 @@ END:VCALENDAR`;
       <EventRegistrationModal
         eventId={registrationModal.eventId}
         eventTitle={registrationModal.eventTitle}
+        eventDate={registrationModal.eventDate}
         isOpen={registrationModal.isOpen}
         isRegistered={registrations.has(registrationModal.eventId)}
         userId={profile.id}

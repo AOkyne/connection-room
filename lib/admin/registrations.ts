@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
-import { sendRegistrationWebhook } from "@/lib/webhooks/workshop-webhook";
+import { queueEventRegistrationsWebhook, type WorkshopRegistration } from "@/lib/webhooks/workshop-webhook";
 
 const REGISTRATIONS_STORAGE_KEY = "connection-room:event-registrations";
 
@@ -19,7 +19,8 @@ export async function registerForEvent(
   userId: string,
   name: string,
   email: string,
-  eventTitle: string = ""
+  eventTitle: string = "",
+  eventDate: string = ""
 ): Promise<EventRegistration | null> {
   try {
     // Try Supabase first
@@ -40,17 +41,10 @@ export async function registerForEvent(
 
     const registration = data as EventRegistration;
 
-    // Send webhook to workshop ops app
-    await sendRegistrationWebhook({
-      eventId,
-      eventTitle,
-      userId,
-      name,
-      email,
-      status: "registered",
-      registeredAt: registration.registeredAt,
-      action: "create",
-    });
+    // Send webhook to workshop ops app if eventDate is provided
+    if (eventDate) {
+      await syncEventRegistrationsToWorkshop(eventId, eventTitle, eventDate);
+    }
 
     return registration;
   } catch (err) {
@@ -74,17 +68,10 @@ export async function registerForEvent(
       const updated = [...existing, registration];
       localStorage.setItem(REGISTRATIONS_STORAGE_KEY, JSON.stringify(updated));
 
-      // Send webhook even for localStorage registrations
-      await sendRegistrationWebhook({
-        eventId,
-        eventTitle,
-        userId,
-        name,
-        email,
-        status: "registered",
-        registeredAt: registration.registeredAt,
-        action: "create",
-      });
+      // Send webhook even for localStorage registrations if eventDate is provided
+      if (eventDate) {
+        await syncEventRegistrationsToWorkshop(eventId, eventTitle, eventDate);
+      }
 
       return registration;
     } catch (e) {
@@ -101,32 +88,22 @@ export async function updateRegistrationStatus(
   status: "registered" | "interested" | "attended" | "cancelled",
   eventTitle: string = "",
   name: string = "",
-  email: string = ""
+  email: string = "",
+  eventDate: string = ""
 ): Promise<boolean> {
   try {
     // Try Supabase first
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("event_registrations")
       .update({ status })
       .eq("event_id", eventId)
-      .eq("user_id", userId)
-      .select()
-      .single();
+      .eq("user_id", userId);
 
     if (error) throw error;
 
-    // Send webhook for status update
-    if (data) {
-      await sendRegistrationWebhook({
-        eventId,
-        eventTitle,
-        userId,
-        name: data.name || name,
-        email: data.email || email,
-        status,
-        registeredAt: data.registered_at,
-        action: status === "cancelled" ? "cancel" : "update",
-      });
+    // Send webhook for status update if eventDate is provided
+    if (eventDate) {
+      await syncEventRegistrationsToWorkshop(eventId, eventTitle, eventDate);
     }
 
     return true;
@@ -138,10 +115,6 @@ export async function updateRegistrationStatus(
 
     try {
       const existing = JSON.parse(localStorage.getItem(REGISTRATIONS_STORAGE_KEY) || "[]");
-      const registration = existing.find(
-        (reg: EventRegistration) => reg.eventId === eventId && reg.userId === userId
-      );
-
       const updated = existing.map((reg: EventRegistration) =>
         reg.eventId === eventId && reg.userId === userId
           ? { ...reg, status }
@@ -149,18 +122,9 @@ export async function updateRegistrationStatus(
       );
       localStorage.setItem(REGISTRATIONS_STORAGE_KEY, JSON.stringify(updated));
 
-      // Send webhook for status update
-      if (registration) {
-        await sendRegistrationWebhook({
-          eventId,
-          eventTitle,
-          userId,
-          name: registration.name || name,
-          email: registration.email || email,
-          status,
-          registeredAt: registration.registeredAt,
-          action: status === "cancelled" ? "cancel" : "update",
-        });
+      // Send webhook for status update if eventDate is provided
+      if (eventDate) {
+        await syncEventRegistrationsToWorkshop(eventId, eventTitle, eventDate);
       }
 
       return true;
@@ -177,9 +141,10 @@ export async function cancelRegistration(
   userId: string,
   eventTitle: string = "",
   name: string = "",
-  email: string = ""
+  email: string = "",
+  eventDate: string = ""
 ): Promise<boolean> {
-  return updateRegistrationStatus(eventId, userId, "cancelled", eventTitle, name, email);
+  return updateRegistrationStatus(eventId, userId, "cancelled", eventTitle, name, email, eventDate);
 }
 
 // Mark as attended
@@ -188,9 +153,10 @@ export async function markAsAttended(
   userId: string,
   eventTitle: string = "",
   name: string = "",
-  email: string = ""
+  email: string = "",
+  eventDate: string = ""
 ): Promise<boolean> {
-  return updateRegistrationStatus(eventId, userId, "attended", eventTitle, name, email);
+  return updateRegistrationStatus(eventId, userId, "attended", eventTitle, name, email, eventDate);
 }
 
 // Mark as interested (without registering)
@@ -199,7 +165,8 @@ export async function markAsInterested(
   userId: string,
   name: string,
   email: string,
-  eventTitle: string = ""
+  eventTitle: string = "",
+  eventDate: string = ""
 ): Promise<EventRegistration | null> {
   try {
     // Try Supabase first
@@ -223,17 +190,10 @@ export async function markAsInterested(
 
     const registration = data as EventRegistration;
 
-    // Send webhook for interest
-    await sendRegistrationWebhook({
-      eventId,
-      eventTitle,
-      userId,
-      name,
-      email,
-      status: "interested",
-      registeredAt: registration.registeredAt,
-      action: "create",
-    });
+    // Send webhook for interest if eventDate is provided
+    if (eventDate) {
+      await syncEventRegistrationsToWorkshop(eventId, eventTitle, eventDate);
+    }
 
     return registration;
   } catch (err) {
@@ -267,17 +227,10 @@ export async function markAsInterested(
 
       localStorage.setItem(REGISTRATIONS_STORAGE_KEY, JSON.stringify(existing));
 
-      // Send webhook for interest
-      await sendRegistrationWebhook({
-        eventId,
-        eventTitle,
-        userId,
-        name,
-        email,
-        status: "interested",
-        registeredAt,
-        action: "create",
-      });
+      // Send webhook for interest if eventDate is provided
+      if (eventDate) {
+        await syncEventRegistrationsToWorkshop(eventId, eventTitle, eventDate);
+      }
 
       return registration;
     } catch (e) {
@@ -370,6 +323,26 @@ export async function getEventRegistrationStats(eventId: string): Promise<{
       (r) => r.status === "cancelled" || (r as any).status === "cancelled"
     ).length,
   };
+}
+
+// Send event registrations to workshop ops via webhook
+export async function syncEventRegistrationsToWorkshop(
+  eventId: string,
+  eventTitle: string,
+  eventDate: string
+): Promise<boolean> {
+  const registrations = await getEventRegistrations(eventId);
+
+  const workshopRegistrations: WorkshopRegistration[] = registrations.map((reg) => ({
+    id: reg.id,
+    name: reg.name,
+    email: reg.email,
+    status: reg.status,
+    registeredAt: reg.registeredAt,
+  }));
+
+  queueEventRegistrationsWebhook(eventId, eventTitle, eventDate, workshopRegistrations);
+  return true;
 }
 
 // Get all registrations including cancelled (for admin view)
