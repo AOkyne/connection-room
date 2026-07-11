@@ -43,7 +43,13 @@ export function EventRegistrationModal({
 
     setIsLoading(true);
     try {
-      const result = await registerForEvent(eventId, userId, formData.name, formData.email);
+      const result = await registerForEvent(
+        eventId,
+        userId,
+        formData.name,
+        formData.email,
+        eventTitle
+      );
 
       if (result) {
         showToast(`Registered for "${eventTitle}"!`, "success");
@@ -63,7 +69,7 @@ export function EventRegistrationModal({
   const handleCancel = async () => {
     setIsLoading(true);
     try {
-      const result = await cancelRegistration(eventId, userId);
+      const result = await cancelRegistration(eventId, userId, eventTitle, formData.name, formData.email);
 
       if (result) {
         showToast(`Cancelled registration for "${eventTitle}"`, "success");

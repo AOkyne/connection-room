@@ -63,14 +63,14 @@ export default function EventsPage() {
 
     if (isCurrentlyInterested) {
       // Remove interest by marking as cancelled
-      await updateRegistrationStatus(eventId, profile.id, "cancelled");
+      await updateRegistrationStatus(eventId, profile.id, "cancelled", eventTitle, profile.fullName || profile.email, profile.email);
       const newInterests = new Set(interests);
       newInterests.delete(eventId);
       setInterests(newInterests);
       showToast(`Removed "${eventTitle}" from interested`, "success");
     } else {
       // Add interest - create registration with "interested" status
-      await markAsInterested(eventId, profile.id, profile.fullName || profile.email, profile.email);
+      await markAsInterested(eventId, profile.id, profile.fullName || profile.email, profile.email, eventTitle);
       const newInterests = new Set(interests);
       newInterests.add(eventId);
       setInterests(newInterests);

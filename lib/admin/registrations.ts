@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
+import { sendRegistrationWebhook } from "@/lib/webhooks/workshop-webhook";
 
 const REGISTRATIONS_STORAGE_KEY = "connection-room:event-registrations";
 
@@ -17,7 +18,8 @@ export async function registerForEvent(
   eventId: string,
   userId: string,
   name: string,
-  email: string
+  email: string,
+  eventTitle: string = ""
 ): Promise<EventRegistration | null> {
   try {
     // Try Supabase first
@@ -36,7 +38,21 @@ export async function registerForEvent(
 
     if (error) throw error;
 
-    return data as EventRegistration;
+    const registration = data as EventRegistration;
+
+    // Send webhook to workshop ops app
+    await sendRegistrationWebhook({
+      eventId,
+      eventTitle,
+      userId,
+      name,
+      email,
+      status: "registered",
+      registeredAt: registration.registeredAt,
+      action: "create",
+    });
+
+    return registration;
   } catch (err) {
     console.warn("Supabase registration failed, falling back to localStorage:", err);
 
@@ -57,6 +73,19 @@ export async function registerForEvent(
       const existing = JSON.parse(localStorage.getItem(REGISTRATIONS_STORAGE_KEY) || "[]");
       const updated = [...existing, registration];
       localStorage.setItem(REGISTRATIONS_STORAGE_KEY, JSON.stringify(updated));
+
+      // Send webhook even for localStorage registrations
+      await sendRegistrationWebhook({
+        eventId,
+        eventTitle,
+        userId,
+        name,
+        email,
+        status: "registered",
+        registeredAt: registration.registeredAt,
+        action: "create",
+      });
+
       return registration;
     } catch (e) {
       console.error("localStorage registration failed:", e);
@@ -69,17 +98,37 @@ export async function registerForEvent(
 export async function updateRegistrationStatus(
   eventId: string,
   userId: string,
-  status: "registered" | "interested" | "attended" | "cancelled"
+  status: "registered" | "interested" | "attended" | "cancelled",
+  eventTitle: string = "",
+  name: string = "",
+  email: string = ""
 ): Promise<boolean> {
   try {
     // Try Supabase first
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("event_registrations")
       .update({ status })
       .eq("event_id", eventId)
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .select()
+      .single();
 
     if (error) throw error;
+
+    // Send webhook for status update
+    if (data) {
+      await sendRegistrationWebhook({
+        eventId,
+        eventTitle,
+        userId,
+        name: data.name || name,
+        email: data.email || email,
+        status,
+        registeredAt: data.registered_at,
+        action: status === "cancelled" ? "cancel" : "update",
+      });
+    }
+
     return true;
   } catch (err) {
     console.warn(`Supabase status update failed, falling back to localStorage:`, err);
@@ -89,12 +138,31 @@ export async function updateRegistrationStatus(
 
     try {
       const existing = JSON.parse(localStorage.getItem(REGISTRATIONS_STORAGE_KEY) || "[]");
+      const registration = existing.find(
+        (reg: EventRegistration) => reg.eventId === eventId && reg.userId === userId
+      );
+
       const updated = existing.map((reg: EventRegistration) =>
         reg.eventId === eventId && reg.userId === userId
           ? { ...reg, status }
           : reg
       );
       localStorage.setItem(REGISTRATIONS_STORAGE_KEY, JSON.stringify(updated));
+
+      // Send webhook for status update
+      if (registration) {
+        await sendRegistrationWebhook({
+          eventId,
+          eventTitle,
+          userId,
+          name: registration.name || name,
+          email: registration.email || email,
+          status,
+          registeredAt: registration.registeredAt,
+          action: status === "cancelled" ? "cancel" : "update",
+        });
+      }
+
       return true;
     } catch (e) {
       console.error("localStorage status update failed:", e);
@@ -106,17 +174,23 @@ export async function updateRegistrationStatus(
 // Cancel registration (sets status to cancelled)
 export async function cancelRegistration(
   eventId: string,
-  userId: string
+  userId: string,
+  eventTitle: string = "",
+  name: string = "",
+  email: string = ""
 ): Promise<boolean> {
-  return updateRegistrationStatus(eventId, userId, "cancelled");
+  return updateRegistrationStatus(eventId, userId, "cancelled", eventTitle, name, email);
 }
 
 // Mark as attended
 export async function markAsAttended(
   eventId: string,
-  userId: string
+  userId: string,
+  eventTitle: string = "",
+  name: string = "",
+  email: string = ""
 ): Promise<boolean> {
-  return updateRegistrationStatus(eventId, userId, "attended");
+  return updateRegistrationStatus(eventId, userId, "attended", eventTitle, name, email);
 }
 
 // Mark as interested (without registering)
@@ -124,7 +198,8 @@ export async function markAsInterested(
   eventId: string,
   userId: string,
   name: string,
-  email: string
+  email: string,
+  eventTitle: string = ""
 ): Promise<EventRegistration | null> {
   try {
     // Try Supabase first
@@ -145,7 +220,22 @@ export async function markAsInterested(
       .single();
 
     if (error) throw error;
-    return data as EventRegistration;
+
+    const registration = data as EventRegistration;
+
+    // Send webhook for interest
+    await sendRegistrationWebhook({
+      eventId,
+      eventTitle,
+      userId,
+      name,
+      email,
+      status: "interested",
+      registeredAt: registration.registeredAt,
+      action: "create",
+    });
+
+    return registration;
   } catch (err) {
     console.warn("Supabase interested update failed, falling back to localStorage:", err);
 
@@ -158,6 +248,7 @@ export async function markAsInterested(
         (reg: EventRegistration) => reg.eventId === eventId && reg.userId === userId
       );
 
+      const registeredAt = new Date().toISOString();
       const registration: EventRegistration = {
         id: index >= 0 ? existing[index].id : `reg-${Date.now()}-${Math.random()}`,
         eventId,
@@ -165,7 +256,7 @@ export async function markAsInterested(
         name,
         email,
         status: "interested",
-        registeredAt: new Date().toISOString(),
+        registeredAt,
       };
 
       if (index >= 0) {
@@ -175,6 +266,19 @@ export async function markAsInterested(
       }
 
       localStorage.setItem(REGISTRATIONS_STORAGE_KEY, JSON.stringify(existing));
+
+      // Send webhook for interest
+      await sendRegistrationWebhook({
+        eventId,
+        eventTitle,
+        userId,
+        name,
+        email,
+        status: "interested",
+        registeredAt,
+        action: "create",
+      });
+
       return registration;
     } catch (e) {
       console.error("localStorage interested update failed:", e);
