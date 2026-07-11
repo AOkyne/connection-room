@@ -73,7 +73,7 @@ export async function getAdminEvents(): Promise<Event[]> {
   // Also load localStorage
   try {
     if (typeof window !== "undefined") {
-      localEvents = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+      localEvents = JSON.parse(localStorage.getItem("connection-room:custom-events") || "[]");
       console.log("[getAdminEvents] Loaded from localStorage:", localEvents.length, "events");
     }
   } catch (err) {
@@ -137,7 +137,7 @@ export async function getPublicEvents(): Promise<Event[]> {
   // Also load published events from localStorage
   try {
     if (typeof window !== "undefined") {
-      const allLocalEvents = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+      const allLocalEvents = JSON.parse(localStorage.getItem("connection-room:custom-events") || "[]");
       localEvents = allLocalEvents.filter((e: Event) => e.status === "published" && (e.visibility === "public" || e.visibility === "members"));
       console.log("[getPublicEvents] Loaded from localStorage:", localEvents.length, "events");
     }
@@ -188,7 +188,7 @@ export async function getEvent(id: string): Promise<Event | null> {
   try {
     if (typeof window === "undefined") return null;
 
-    const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+    const events = JSON.parse(localStorage.getItem("connection-room:custom-events") || "[]");
     return events.find((e: Event) => e.id === id) || null;
   } catch (err) {
     console.error("Error fetching event from localStorage:", err);
@@ -271,9 +271,9 @@ export async function createEvent(event: Partial<Event>): Promise<Event | null> 
           delete (eventToStore as any).imageUrl;
         }
 
-        const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+        const events = JSON.parse(localStorage.getItem("connection-room:custom-events") || "[]");
         events.push(eventToStore);
-        localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
+        localStorage.setItem("connection-room:custom-events", JSON.stringify(events));
         console.log("[createEvent] Successfully cached to localStorage. Total events:", events.length);
       }
     } catch (err) {
@@ -323,7 +323,7 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
         return null;
       }
 
-      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+      const events = JSON.parse(localStorage.getItem("connection-room:custom-events") || "[]");
       console.log("[updateEvent] Found", events.length, "events in localStorage");
 
       const index = events.findIndex((e: Event) => e.id === id);
@@ -363,13 +363,28 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
         delete (eventToStore as any).imageUrl;
       }
 
-      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+      const events = JSON.parse(localStorage.getItem("connection-room:custom-events") || "[]");
+      console.log("[updateEvent] Current events in localStorage before save:", events.map(e => e.id));
+
       const index = events.findIndex((e: Event) => e.id === id);
+      console.log("[updateEvent] Looking for ID:", id, "Found at index:", index);
 
       if (index !== -1) {
+        const beforeSave = JSON.stringify(events);
         events[index] = eventToStore;
-        localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
-        console.log("[updateEvent] Successfully saved to localStorage");
+        const afterModify = JSON.stringify(events);
+        console.log("[updateEvent] Before save size:", beforeSave.length, "After modify size:", afterModify.length);
+
+        try {
+          localStorage.setItem("connection-room:custom-events", afterModify);
+          const verified = localStorage.getItem("connection-room:custom-events");
+          console.log("[updateEvent] Verified in localStorage:", verified === afterModify ? "YES" : "NO - DATA MISMATCH!");
+          console.log("[updateEvent] Successfully saved to localStorage");
+        } catch (e) {
+          console.error("[updateEvent] FAILED TO SAVE TO LOCALSTORAGE:", e);
+        }
+      } else {
+        console.error("[updateEvent] EVENT NOT FOUND IN LOCALSTORAGE - IDs available:", events.map(e => e.id));
       }
     }
   } catch (err) {
@@ -392,12 +407,12 @@ export async function deleteEvent(id: string): Promise<boolean> {
       // Demo mode: delete from localStorage
       if (typeof window === "undefined") return false;
 
-      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+      const events = JSON.parse(localStorage.getItem("connection-room:custom-events") || "[]");
       const filtered = events.filter((e: Event) => e.id !== id);
 
       if (filtered.length === events.length) return false;
 
-      localStorage.setItem("connection-room:demo-events", JSON.stringify(filtered));
+      localStorage.setItem("connection-room:custom-events", JSON.stringify(filtered));
       return true;
     }
   } catch (err) {
