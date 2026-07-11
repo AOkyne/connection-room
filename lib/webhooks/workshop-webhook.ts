@@ -70,7 +70,7 @@ const webhookQueue = new Map<
     eventTitle: string;
     eventDate: string;
     registrations: WorkshopRegistration[];
-    timeoutId: NodeJS.Timeout;
+    timeoutId: ReturnType<typeof setTimeout>;
   }
 >();
 
