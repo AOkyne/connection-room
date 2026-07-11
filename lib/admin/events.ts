@@ -455,28 +455,38 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
 
 // Delete event
 export async function deleteEvent(id: string): Promise<boolean> {
+  let deletedFromSupabase = false;
+
   try {
     if (supabase) {
       const { error } = await supabase.from("events").delete().eq("id", id);
 
       if (error) throw error;
-      return true;
-    } else {
-      // Demo mode: delete from localStorage
-      if (typeof window === "undefined") return false;
+      deletedFromSupabase = true;
+      console.log("[deleteEvent] Successfully deleted from Supabase:", id);
+    }
+  } catch (err) {
+    console.error("[deleteEvent] Error deleting from Supabase:", err);
+  }
 
+  // Always also delete from localStorage (even if Supabase succeeded)
+  try {
+    if (typeof window !== "undefined") {
       const events = JSON.parse(localStorage.getItem("connection-room:custom-events") || "[]");
       const filtered = events.filter((e: Event) => e.id !== id);
 
-      if (filtered.length === events.length) return false;
-
-      localStorage.setItem("connection-room:custom-events", JSON.stringify(filtered));
-      return true;
+      if (filtered.length < events.length) {
+        localStorage.setItem("connection-room:custom-events", JSON.stringify(filtered));
+        console.log("[deleteEvent] Successfully deleted from localStorage:", id);
+        return true;
+      }
     }
   } catch (err) {
-    console.error("Error deleting event:", err);
-    return false;
+    console.error("[deleteEvent] Error deleting from localStorage:", err);
   }
+
+  // Return true if deleted from at least one source
+  return deletedFromSupabase;
 }
 
 // Register for event
