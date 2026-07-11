@@ -19,7 +19,7 @@ export function getUpcomingEvents(): Event[] {
         // Convert ISO date strings to Date objects for custom events
         const convertedCustomEvents = customEvents.map((e: any) => ({
           ...e,
-          date: new Date(e.date),
+          date: e.date ? new Date(e.date) : (e.startAt ? new Date(e.startAt) : new Date()),
           interested: false,
         }));
         allEvents = [...allEvents, ...convertedCustomEvents];
