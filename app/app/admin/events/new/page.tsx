@@ -97,12 +97,17 @@ export default function CreateEventPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    console.log("[CreateEvent] Form submitted");
+
     if (!formData.title.trim()) {
+      console.log("[CreateEvent] Validation failed: no title");
       showToast("Event title is required", "error");
       return;
     }
 
     setSaving(true);
+    console.log("[CreateEvent] Starting event creation...");
+
     try {
       const eventData = {
         title: formData.title,
@@ -119,20 +124,31 @@ export default function CreateEventPage() {
         currency: formData.price ? formData.currency : undefined,
       };
 
+      console.log("[CreateEvent] Event data prepared:", { title: eventData.title, status: eventData.status });
+
       const result = await createEvent(eventData);
+      console.log("[CreateEvent] createEvent returned:", result ? `Event ${result.id}` : "null");
 
       if (result) {
+        console.log("[CreateEvent] Success - clearing draft and redirecting");
         localStorage.removeItem("connection-room:event-draft");
         showToast("Event created successfully!", "success");
-        router.push("/app/admin/events");
+
+        // Ensure redirect happens
+        setTimeout(() => {
+          console.log("[CreateEvent] Navigating to events list");
+          router.push("/app/admin/events");
+        }, 100);
       } else {
-        showToast("Failed to create event", "error");
+        console.log("[CreateEvent] Failed - result was null");
+        showToast("Failed to create event - please try again", "error");
       }
     } catch (error) {
-      console.error("Error creating event:", error);
-      showToast("Error creating event", "error");
+      console.error("[CreateEvent] Caught exception:", error);
+      showToast(`Error: ${error instanceof Error ? error.message : "Unknown error"}`, "error");
     } finally {
       setSaving(false);
+      console.log("[CreateEvent] Form submission complete");
     }
   };
 

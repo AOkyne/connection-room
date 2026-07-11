@@ -152,10 +152,12 @@ export async function getEvent(id: string): Promise<Event | null> {
 
 // Create event
 export async function createEvent(event: Partial<Event>): Promise<Event | null> {
+  console.log("[createEvent] Starting with event:", { title: event.title, status: event.status });
   let createdEvent: Event | null = null;
 
   // Try Supabase first (source of truth) with timeout
   if (supabase) {
+    console.log("[createEvent] Attempting Supabase creation...");
     try {
       const supabasePromise = supabase
         .from("events")
@@ -163,22 +165,33 @@ export async function createEvent(event: Partial<Event>): Promise<Event | null> 
         .select()
         .single();
 
+      console.log("[createEvent] Waiting for Supabase response (5s timeout)...");
       const { data, error } = await withTimeout(supabasePromise, 5000);
 
-      if (error) throw error;
+      if (error) {
+        console.error("[createEvent] Supabase returned error:", error);
+        throw error;
+      }
       if (data) {
         createdEvent = mapEventFromDb(data);
+        console.log("[createEvent] Supabase success:", createdEvent.id);
       }
     } catch (err) {
-      console.error("Error creating event in Supabase:", err);
+      console.error("[createEvent] Supabase failed:", err instanceof Error ? err.message : err);
       // Don't return yet - try localStorage as fallback
     }
+  } else {
+    console.log("[createEvent] Supabase not available, skipping");
   }
 
   // If Supabase failed, create in localStorage
   if (!createdEvent) {
+    console.log("[createEvent] Supabase failed or unavailable, creating in localStorage...");
     try {
-      if (typeof window === "undefined") return null;
+      if (typeof window === "undefined") {
+        console.error("[createEvent] Not in browser environment");
+        return null;
+      }
 
       createdEvent = {
         id: `event-${Date.now()}`,
@@ -194,26 +207,32 @@ export async function createEvent(event: Partial<Event>): Promise<Event | null> 
         currency: event.currency,
         createdAt: new Date().toISOString(),
       };
+      console.log("[createEvent] Created event in memory:", createdEvent.id);
     } catch (err) {
-      console.error("Error creating event:", err);
+      console.error("[createEvent] Failed to create event in memory:", err);
       return null;
     }
   }
 
   // Always update localStorage cache (excluding base64 image data)
-  try {
-    if (typeof window !== "undefined" && createdEvent) {
-      const eventWithoutImage = { ...createdEvent };
-      delete (eventWithoutImage as any).imageUrl;
+  if (createdEvent) {
+    console.log("[createEvent] Updating localStorage cache...");
+    try {
+      if (typeof window !== "undefined") {
+        const eventWithoutImage = { ...createdEvent };
+        delete (eventWithoutImage as any).imageUrl;
 
-      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
-      events.push(eventWithoutImage);
-      localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
+        const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+        events.push(eventWithoutImage);
+        localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
+        console.log("[createEvent] Successfully cached to localStorage. Total events:", events.length);
+      }
+    } catch (err) {
+      console.warn("[createEvent] Could not cache event in localStorage:", err);
     }
-  } catch (err) {
-    console.warn("Could not cache event in localStorage:", err);
   }
 
+  console.log("[createEvent] Returning createdEvent:", createdEvent ? createdEvent.id : "null");
   return createdEvent;
 }
 
