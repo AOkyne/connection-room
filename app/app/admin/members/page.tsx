@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { getAllProfiles, type Profile } from "@/lib/data/profiles";
+import { resetMemberProgress, sendAdminMessage } from "@/lib/admin/member-actions";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -28,6 +29,10 @@ export default function AdminMembersPage() {
   const [filterActivity, setFilterActivity] = useState<FilterActivity>("all");
   const [selectedMember, setSelectedMember] = useState<Profile | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [messageSubject, setMessageSubject] = useState("");
+  const [messageBody, setMessageBody] = useState("");
+  const [showMessageForm, setShowMessageForm] = useState(false);
+  const [actionInProgress, setActionInProgress] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -102,6 +107,67 @@ export default function AdminMembersPage() {
 
     setFilteredMembers(filtered);
   }, [members, searchTerm, sortBy, filterOnboarding, filterActivity]);
+
+  const handleResetProgress = async () => {
+    if (
+      !selectedMember ||
+      !confirm(
+        `Reset progress for ${selectedMember.displayName}? This will clear their onboarding status and badges.`
+      )
+    ) {
+      return;
+    }
+
+    setActionInProgress(true);
+    try {
+      const success = await resetMemberProgress(selectedMember.id);
+      if (success) {
+        showToast(`Progress reset for ${selectedMember.displayName}`, "success");
+        setShowEditModal(false);
+      } else {
+        showToast("Failed to reset progress", "error");
+      }
+    } catch (error) {
+      console.error("Error resetting progress:", error);
+      showToast("Error resetting progress", "error");
+    } finally {
+      setActionInProgress(false);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!selectedMember || !messageSubject.trim() || !messageBody.trim()) {
+      showToast("Please enter both subject and message", "warning");
+      return;
+    }
+
+    setActionInProgress(true);
+    try {
+      const success = await sendAdminMessage(
+        selectedMember.id,
+        selectedMember.displayName,
+        messageSubject,
+        messageBody,
+        "Admin"
+      );
+      if (success) {
+        showToast(
+          `Message sent to ${selectedMember.displayName}`,
+          "success"
+        );
+        setMessageSubject("");
+        setMessageBody("");
+        setShowMessageForm(false);
+      } else {
+        showToast("Failed to send message", "error");
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      showToast("Error sending message", "error");
+    } finally {
+      setActionInProgress(false);
+    }
+  };
 
   if (!mounted || loading) {
     return (
@@ -255,98 +321,143 @@ export default function AdminMembersPage() {
       {/* Edit Modal */}
       {showEditModal && selectedMember && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="max-w-2xl w-full max-h-96 overflow-y-auto">
+          <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-[#1a0f0a]">
-                  Edit {selectedMember.displayName}
+                  {showMessageForm ? "Send Message" : "Manage Member"}
                 </h2>
                 <button
-                  onClick={() => setShowEditModal(false)}
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setShowMessageForm(false);
+                    setMessageSubject("");
+                    setMessageBody("");
+                  }}
                   className="text-[#a0704a] hover:text-[#1a0f0a]"
                 >
                   ✕
                 </button>
               </div>
 
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm font-medium text-[#1a0f0a]">
-                    Display Name
-                  </label>
-                  <input
-                    type="text"
-                    defaultValue={selectedMember.displayName}
-                    className="w-full mt-1 px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
-                  />
-                </div>
+              {showMessageForm ? (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-[#1a0f0a]">
+                      To: {selectedMember.displayName}
+                    </label>
+                    <p className="text-xs text-[#a0704a] mt-1">
+                      {selectedMember.id}
+                    </p>
+                  </div>
 
-                <div>
-                  <label className="text-sm font-medium text-[#1a0f0a]">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="Not yet implemented"
-                    disabled
-                    className="w-full mt-1 px-3 py-2 border border-[#e8ddd2] rounded-lg bg-gray-50 text-[#a0704a]"
-                  />
-                </div>
+                  <div>
+                    <label className="text-sm font-medium text-[#1a0f0a] block mb-1">
+                      Subject
+                    </label>
+                    <input
+                      type="text"
+                      value={messageSubject}
+                      onChange={(e) => setMessageSubject(e.target.value)}
+                      placeholder="Message subject..."
+                      className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#1a0f0a]">
-                    Actions
-                  </label>
-                  <div className="flex gap-2">
+                  <div>
+                    <label className="text-sm font-medium text-[#1a0f0a] block mb-1">
+                      Message
+                    </label>
+                    <textarea
+                      value={messageBody}
+                      onChange={(e) => setMessageBody(e.target.value)}
+                      placeholder="Write your message..."
+                      rows={4}
+                      className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
+                    />
+                  </div>
+
+                  <div className="flex gap-2 pt-2 border-t border-[#e8ddd2]">
                     <Button
-                      variant="outline"
+                      variant="primary"
                       size="sm"
-                      onClick={() => {
-                        showToast(
-                          "Reset progress feature coming soon",
-                          "info"
-                        );
-                      }}
-                      className="text-sm"
+                      onClick={handleSendMessage}
+                      disabled={actionInProgress}
                     >
-                      Reset Progress
+                      {actionInProgress ? "Sending..." : "Send Message"}
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        showToast(
-                          "Message feature coming soon",
-                          "info"
-                        );
-                      }}
-                      className="text-sm"
+                      onClick={() => setShowMessageForm(false)}
                     >
-                      Send Message
+                      Back
                     </Button>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="p-3 bg-[#f3ede5] rounded space-y-2">
+                    <div>
+                      <p className="text-sm text-[#a0704a]">Display Name</p>
+                      <p className="font-medium text-[#1a0f0a]">
+                        {selectedMember.displayName}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-[#a0704a]">Member ID</p>
+                      <p className="text-xs font-mono text-[#1a0f0a] break-all">
+                        {selectedMember.id}
+                      </p>
+                    </div>
+                    {selectedMember.joinedAt && (
+                      <div>
+                        <p className="text-sm text-[#a0704a]">Joined</p>
+                        <p className="text-[#1a0f0a]">
+                          {new Date(
+                            selectedMember.joinedAt
+                          ).toLocaleDateString()}
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
-              <div className="flex gap-2 pt-2 border-t border-[#e8ddd2]">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => {
-                    showToast("Changes saved (coming soon)", "success");
-                    setShowEditModal(false);
-                  }}
-                >
-                  Save Changes
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowEditModal(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-[#1a0f0a] block">
+                      Member Actions
+                    </label>
+                    <div className="space-y-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowMessageForm(true)}
+                        className="w-full justify-start text-left"
+                      >
+                        💬 Send Message
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleResetProgress}
+                        disabled={actionInProgress}
+                        className="w-full justify-start text-left text-red-600"
+                      >
+                        {actionInProgress
+                          ? "⏳ Resetting..."
+                          : "🔄 Reset Progress"}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-blue-50 rounded text-xs text-blue-900">
+                    <p>
+                      <strong>Reset Progress</strong> will clear the member's
+                      onboarding completion status and badges. They will need to
+                      restart onboarding.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </Card>
         </div>

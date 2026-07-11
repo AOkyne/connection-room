@@ -5,6 +5,16 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { getAdminEvents, deleteEvent, type Event } from "@/lib/admin/events";
+import {
+  getEventCapacity,
+  setEventCapacity,
+  getEventRegistrants,
+  updateRegistrantStatus,
+  removeRegistrant,
+  sendEventNotification,
+  getEventStats,
+  type EventRegistrant,
+} from "@/lib/admin/event-management";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -18,6 +28,12 @@ export default function AdminEventsPage() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [showRegistrants, setShowRegistrants] = useState(false);
+  const [registrants, setRegistrants] = useState<EventRegistrant[]>([]);
+  const [capacity, setCapacity] = useState<number | undefined>(undefined);
+  const [newCapacity, setNewCapacity] = useState<string>("");
+  const [eventStats, setEventStats] = useState<any>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -51,6 +67,55 @@ export default function AdminEventsPage() {
       showToast("Failed to delete event", "error");
     }
     setDeleting(null);
+  };
+
+  const handleViewRegistrants = (eventId: string) => {
+    const regs = getEventRegistrants(eventId);
+    const stats = getEventStats(eventId);
+    const cap = getEventCapacity(eventId);
+
+    setSelectedEventId(eventId);
+    setRegistrants(regs);
+    setCapacity(cap);
+    setEventStats(stats);
+    setNewCapacity(cap?.toString() || "");
+    setShowRegistrants(true);
+  };
+
+  const handleUpdateCapacity = () => {
+    if (!selectedEventId || !newCapacity.trim()) return;
+
+    const newCap = parseInt(newCapacity);
+    if (isNaN(newCap) || newCap < 0) {
+      showToast("Please enter a valid number", "error");
+      return;
+    }
+
+    setEventCapacity(selectedEventId, newCap);
+    setCapacity(newCap);
+    showToast(`Capacity updated to ${newCap}`, "success");
+  };
+
+  const handleUpdateRegistrantStatus = (
+    registrantId: string,
+    status: "registered" | "interested" | "attended" | "cancelled"
+  ) => {
+    if (!selectedEventId) return;
+
+    updateRegistrantStatus(selectedEventId, registrantId, status);
+    const updated = registrants.map((r) =>
+      r.id === registrantId ? { ...r, status } : r
+    );
+    setRegistrants(updated);
+    showToast(`Status updated to ${status}`, "success");
+  };
+
+  const handleRemoveRegistrant = (registrantId: string) => {
+    if (!selectedEventId) return;
+
+    removeRegistrant(selectedEventId, registrantId);
+    setRegistrants(registrants.filter((r) => r.id !== registrantId));
+    showToast("Registrant removed", "success");
   };
 
   if (!mounted || loading) {
@@ -155,10 +220,17 @@ export default function AdminEventsPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewRegistrants(event.id)}
+                  >
+                    👥 Registrants
+                  </Button>
                   <Link href={`/app/admin/events/${event.id}/edit`}>
                     <Button variant="outline" size="sm">
-                      Edit
+                      ✎ Edit
                     </Button>
                   </Link>
                   <button
@@ -166,7 +238,7 @@ export default function AdminEventsPage() {
                     disabled={deleting === event.id}
                     className="px-3 py-2 text-xs font-medium rounded border border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
                   >
-                    {deleting === event.id ? "Deleting..." : "Delete"}
+                    {deleting === event.id ? "Deleting..." : "🗑 Delete"}
                   </button>
                 </div>
               </div>
@@ -174,6 +246,150 @@ export default function AdminEventsPage() {
           ))
         )}
       </div>
+
+      {/* Registrants Modal */}
+      {showRegistrants && selectedEventId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-[#1a0f0a]">
+                  Event Registrants
+                </h2>
+                <button
+                  onClick={() => setShowRegistrants(false)}
+                  className="text-[#a0704a] hover:text-[#1a0f0a]"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Stats Overview */}
+              {eventStats && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 p-3 bg-[#f3ede5] rounded">
+                  <div>
+                    <p className="text-xs text-[#a0704a]">Registered</p>
+                    <p className="text-lg font-bold text-[#1a0f0a]">
+                      {eventStats.registered}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#a0704a]">Interested</p>
+                    <p className="text-lg font-bold text-[#1a0f0a]">
+                      {eventStats.interested}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#a0704a]">Attended</p>
+                    <p className="text-lg font-bold text-[#1a0f0a]">
+                      {eventStats.attended}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#a0704a]">Cancelled</p>
+                    <p className="text-lg font-bold text-[#1a0f0a]">
+                      {eventStats.cancelled}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Capacity Management */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[#1a0f0a] block">
+                  Event Capacity
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={newCapacity}
+                    onChange={(e) => setNewCapacity(e.target.value)}
+                    placeholder="Set capacity..."
+                    className="flex-1 px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleUpdateCapacity}
+                  >
+                    Update
+                  </Button>
+                </div>
+                {capacity !== undefined && (
+                  <p className="text-xs text-[#a0704a]">
+                    Current capacity: {capacity || "Not set"}
+                  </p>
+                )}
+              </div>
+
+              {/* Registrants List */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[#1a0f0a] block">
+                  Registrants ({registrants.length})
+                </label>
+                {registrants.length === 0 ? (
+                  <p className="text-sm text-[#a0704a] p-3 bg-[#f3ede5] rounded">
+                    No registrants yet
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {registrants.map((reg) => (
+                      <div
+                        key={reg.id}
+                        className="flex items-center gap-2 p-2 bg-[#f3ede5] rounded text-sm"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-[#1a0f0a] truncate">
+                            {reg.userName}
+                          </p>
+                          <p className="text-xs text-[#a0704a]">
+                            {new Date(reg.registeredAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <select
+                          value={reg.status}
+                          onChange={(e) =>
+                            handleUpdateRegistrantStatus(
+                              reg.id,
+                              e.target.value as
+                                | "registered"
+                                | "interested"
+                                | "attended"
+                                | "cancelled"
+                            )
+                          }
+                          className="px-2 py-1 border border-[#e8ddd2] rounded text-xs text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
+                        >
+                          <option value="interested">Interested</option>
+                          <option value="registered">Registered</option>
+                          <option value="attended">Attended</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                        <button
+                          onClick={() => handleRemoveRegistrant(reg.id)}
+                          className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded transition-colors"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2 pt-2 border-t border-[#e8ddd2]">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowRegistrants(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
