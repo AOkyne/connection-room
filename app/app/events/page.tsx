@@ -247,7 +247,7 @@ END:VCALENDAR`;
                   </div>
 
                   {/* Action Buttons Column */}
-                  <div className="flex flex-col gap-3 md:min-w-fit">
+                  <div className="flex flex-col gap-6 md:min-w-fit">
                     <Button
                       variant={interests.has(event.id) ? "primary" : "outline"}
                       size="md"
@@ -256,7 +256,7 @@ END:VCALENDAR`;
                       {interests.has(event.id) ? "✓ Interested" : "Mark Interested"}
                     </Button>
 
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 pt-4 border-t border-[#e8ddd2]">
                       <p className="text-xs font-semibold text-[#a0704a] uppercase tracking-wide">Add to Calendar</p>
                       <div className="flex flex-col gap-2">
                         <Button
