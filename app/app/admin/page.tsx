@@ -75,9 +75,14 @@ export default function AdminPage() {
 
       {/* Quick Links */}
       <div className="flex flex-wrap gap-3">
-        <Link href="/app/admin/invites">
+        <Link href="/app/admin/overview">
           <Button variant="outline" size="sm">
-            📊 Invite Relationships
+            📈 Analytics
+          </Button>
+        </Link>
+        <Link href="/app/admin/members">
+          <Button variant="outline" size="sm">
+            👥 Manage Members
           </Button>
         </Link>
         <Link href="/app/admin/events">
@@ -88,6 +93,11 @@ export default function AdminPage() {
         <Link href="/app/admin/moderation">
           <Button variant="outline" size="sm">
             🛡️ Moderate Posts & Comments
+          </Button>
+        </Link>
+        <Link href="/app/admin/invites">
+          <Button variant="outline" size="sm">
+            📊 Invite Relationships
           </Button>
         </Link>
         <Link href="/admin/daily-companion">

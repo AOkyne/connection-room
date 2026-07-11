@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
-import { getMemberStats, getActivityStats, getEventStats, getOfferStats, getSeededContentStats, type MemberStats, type ActivityStats, type EventStats, type OfferStats, type SeededContentStats } from "@/lib/admin/analytics";
+import { getMemberStats, getActivityStats, getEventStats, getOfferStats, getSeededContentStats, getSpaceStats, type MemberStats, type ActivityStats, type EventStats, type OfferStats, type SeededContentStats, type SpaceStats } from "@/lib/admin/analytics";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -17,6 +17,7 @@ export default function AdminOverviewPage() {
   const [eventStats, setEventStats] = useState<EventStats | null>(null);
   const [offerStats, setOfferStats] = useState<OfferStats | null>(null);
   const [seededStats, setSeededStats] = useState<SeededContentStats | null>(null);
+  const [spaceStats, setSpaceStats] = useState<SpaceStats[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,7 +29,7 @@ export default function AdminOverviewPage() {
       }
 
       try {
-        const [members, activity, events, offers, seeded] = await Promise.all([
+        const [members, activity, events, offers, seeded, spaces] = await Promise.all([
           getMemberStats().catch(() => ({
             totalMembers: 0,
             newThisWeek: 0,
@@ -69,6 +70,7 @@ export default function AdminOverviewPage() {
             realEvents: 0,
             realOffers: 0,
           })),
+          getSpaceStats().catch(() => []),
         ]);
 
         setMemberStats(members);
@@ -76,6 +78,7 @@ export default function AdminOverviewPage() {
         setEventStats(events);
         setOfferStats(offers);
         setSeededStats(seeded);
+        setSpaceStats(spaces);
       } catch (error) {
         console.error("Error loading admin data:", error);
       }
@@ -304,6 +307,45 @@ export default function AdminOverviewPage() {
           </Link>
         </div>
       </div>
+
+      {/* Space Analytics */}
+      {spaceStats && spaceStats.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-bold text-[#1a0f0a] mb-4">Space Analytics</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {spaceStats.map((space) => (
+              <Card key={space.spaceId} className="border-l-4 border-[#d4a348]">
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-[#1a0f0a]">{space.spaceName}</h3>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p className="text-[#a0704a]">Members</p>
+                      <p className="text-lg font-bold text-[#1a0f0a]">{space.memberCount}</p>
+                    </div>
+                    <div>
+                      <p className="text-[#a0704a]">Posts</p>
+                      <p className="text-lg font-bold text-[#1a0f0a]">{space.postCount}</p>
+                    </div>
+                    <div>
+                      <p className="text-[#a0704a]">Comments</p>
+                      <p className="text-lg font-bold text-[#1a0f0a]">{space.commentCount}</p>
+                    </div>
+                    <div>
+                      <p className="text-[#a0704a]">Active This Week</p>
+                      <p className="text-lg font-bold text-[#1a0f0a]">{space.activeThisWeek}</p>
+                    </div>
+                  </div>
+                  {space.lastActivity && (
+                    <p className="text-xs text-[#a0704a]">
+                      Last activity: {new Date(space.lastActivity).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Profile Photo Status */}
       <Card>
