@@ -1,9 +1,9 @@
 import { supabase } from "@/lib/supabase/client";
 
 // Helper to timeout async operations
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 5000): Promise<T> {
+function withTimeout<T>(promise: Promise<T> | PromiseLike<T>, timeoutMs: number = 5000): Promise<T> {
   return Promise.race([
-    promise,
+    Promise.resolve(promise),
     new Promise<T>((_, reject) =>
       setTimeout(() => reject(new Error(`Operation timed out after ${timeoutMs}ms`)), timeoutMs)
     ),
