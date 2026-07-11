@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase/client";
 import { fireWorkshopCreationWebhook, type WorkshopCreationPayload, type WorkshopCreationResponse } from "@/lib/webhooks/workshop-creation";
 import { fireWorkshopDeletionWebhook } from "@/lib/webhooks/workshop-deletion";
+import { fireWorkshopUpdateWebhook, type WorkshopUpdatePayload } from "@/lib/webhooks/workshop-update";
 
 // Helper to timeout async operations
 function withTimeout<T>(promise: Promise<T> | PromiseLike<T>, timeoutMs: number = 5000): Promise<T> {
@@ -448,6 +449,34 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
     }
   } catch (err) {
     console.warn("[updateEvent] Could not cache event in localStorage:", err instanceof Error ? err.message : err);
+  }
+
+  // Fire workshop update webhook if event was successfully updated
+  if (updatedEvent && updatedEvent.startAt) {
+    const eventDate = new Date(updatedEvent.startAt);
+    const dateString = eventDate.toISOString().split("T")[0];
+
+    const startTime = updatedEvent.startAt
+      ? new Date(updatedEvent.startAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
+      : undefined;
+
+    const endTime = updatedEvent.endAt
+      ? new Date(updatedEvent.endAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
+      : undefined;
+
+    const workshopPayload: WorkshopUpdatePayload = {
+      eventId: updatedEvent.id,
+      eventTitle: updatedEvent.title,
+      eventDate: dateString,
+      startTime,
+      endTime,
+      location: updatedEvent.locationName || updatedEvent.locationAddress,
+      description: updatedEvent.description || updatedEvent.shortDescription,
+      workshopId: updatedEvent.workshopId,
+    };
+
+    console.log("[updateEvent] Firing workshop update webhook for event", updatedEvent.id);
+    fireWorkshopUpdateWebhook(workshopPayload);
   }
 
   console.log("[updateEvent] Returning updated event:", updatedEvent ? updatedEvent.id : "null");
