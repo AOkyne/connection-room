@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase/client";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import { queueEventRegistrationsWebhook, type WorkshopRegistration } from "@/lib/webhooks/workshop-webhook";
 
 const REGISTRATIONS_STORAGE_KEY = "connection-room:event-registrations";
@@ -24,6 +24,8 @@ export async function registerForEvent(
 ): Promise<EventRegistration | null> {
   try {
     // Try Supabase first
+    if (!isSupabaseConfigured || !supabase) throw new Error("Supabase not configured");
+
     const { data, error } = await supabase
       .from("event_registrations")
       .insert({
@@ -93,6 +95,8 @@ export async function updateRegistrationStatus(
 ): Promise<boolean> {
   try {
     // Try Supabase first
+    if (!isSupabaseConfigured || !supabase) throw new Error("Supabase not configured");
+
     const { error } = await supabase
       .from("event_registrations")
       .update({ status })
@@ -170,6 +174,8 @@ export async function markAsInterested(
 ): Promise<EventRegistration | null> {
   try {
     // Try Supabase first
+    if (!isSupabaseConfigured || !supabase) throw new Error("Supabase not configured");
+
     const { data, error } = await supabase
       .from("event_registrations")
       .upsert(
@@ -244,6 +250,8 @@ export async function markAsInterested(
 export async function getEventRegistrations(eventId: string): Promise<EventRegistration[]> {
   try {
     // Try Supabase first
+    if (!isSupabaseConfigured || !supabase) throw new Error("Supabase not configured");
+
     const { data, error } = await supabase
       .from("event_registrations")
       .select("*")
@@ -274,6 +282,8 @@ export async function getEventRegistrations(eventId: string): Promise<EventRegis
 export async function getUserRegistrations(userId: string): Promise<EventRegistration[]> {
   try {
     // Try Supabase first
+    if (!isSupabaseConfigured || !supabase) throw new Error("Supabase not configured");
+
     const { data, error } = await supabase
       .from("event_registrations")
       .select("*")
@@ -349,6 +359,8 @@ export async function syncEventRegistrationsToWorkshop(
 export async function getAllEventRegistrations(eventId: string): Promise<EventRegistration[]> {
   try {
     // Try Supabase first
+    if (!isSupabaseConfigured || !supabase) throw new Error("Supabase not configured");
+
     const { data, error } = await supabase
       .from("event_registrations")
       .select("*")

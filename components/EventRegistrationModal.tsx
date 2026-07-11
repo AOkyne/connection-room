@@ -19,6 +19,7 @@ interface EventRegistrationModalProps {
 export function EventRegistrationModal({
   eventId,
   eventTitle,
+  eventDate,
   isOpen,
   isRegistered,
   userId,
