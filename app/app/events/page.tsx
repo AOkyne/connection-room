@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getProfile } from "@/lib/data/profiles";
 import { getUpcomingEvents, getPastEvents, toggleEventInterest, getUserEventInterests } from "@/lib/data/events";
+import { getUserRegistrations } from "@/lib/admin/registrations";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { IconUpcoming } from "@/components/Icons";
 import { useToast } from "@/lib/hooks/useToast";
 import { ToastContainer } from "@/components/Toast";
+import { EventRegistrationModal } from "@/components/EventRegistrationModal";
 
 export default function EventsPage() {
   const router = useRouter();
@@ -17,9 +19,15 @@ export default function EventsPage() {
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [pastEvents, setPastEvents] = useState<any[]>([]);
   const [interests, setInterests] = useState<Set<string>>(new Set());
+  const [registrations, setRegistrations] = useState<Set<string>>(new Set());
   const [mounted, setMounted] = useState(false);
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
   const [filterFormat, setFilterFormat] = useState<"all" | "virtual" | "in-person" | "hybrid">("all");
+  const [registrationModal, setRegistrationModal] = useState<{
+    isOpen: boolean;
+    eventId: string;
+    eventTitle: string;
+  }>({ isOpen: false, eventId: "", eventTitle: "" });
   const { toasts, showToast, removeToast } = useToast();
 
   useEffect(() => {
@@ -35,6 +43,9 @@ export default function EventsPage() {
       if (p) {
         const i = getUserEventInterests(p.id);
         setInterests(i);
+
+        const regs = await getUserRegistrations(p.id);
+        setRegistrations(new Set(regs.map((r) => r.eventId)));
       }
 
       setMounted(true);
@@ -58,6 +69,20 @@ export default function EventsPage() {
       showToast(`Removed "${eventTitle}" from interested`, "success");
     }
     setInterests(newInterests);
+  };
+
+  const handleOpenRegistrationModal = (eventId: string, eventTitle: string) => {
+    setRegistrationModal({ isOpen: true, eventId, eventTitle });
+  };
+
+  const handleRegistrationChange = (isRegistered: boolean) => {
+    const newRegistrations = new Set(registrations);
+    if (isRegistered) {
+      newRegistrations.add(registrationModal.eventId);
+    } else {
+      newRegistrations.delete(registrationModal.eventId);
+    }
+    setRegistrations(newRegistrations);
   };
 
   const createGoogleCalendarUrl = (event: any) => {
@@ -252,11 +277,19 @@ END:VCALENDAR`;
                   {/* Action Buttons Column */}
                   <div className="flex flex-col gap-6 md:min-w-fit">
                     <Button
+                      variant={registrations.has(event.id) ? "primary" : "primary"}
+                      size="md"
+                      onClick={() => handleOpenRegistrationModal(event.id, event.title)}
+                    >
+                      {registrations.has(event.id) ? "✓ Registered" : "Register"}
+                    </Button>
+
+                    <Button
                       variant={interests.has(event.id) ? "primary" : "outline"}
                       size="md"
                       onClick={() => handleToggleInterest(event.id, event.title)}
                     >
-                      {interests.has(event.id) ? "✓ Interested" : "Mark Interested"}
+                      {interests.has(event.id) ? "♥ Interested" : "Mark Interested"}
                     </Button>
 
                     <div className="flex flex-col gap-2 pt-4 border-t border-[#e8ddd2]">
@@ -317,6 +350,17 @@ END:VCALENDAR`;
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
+
+      {/* Event Registration Modal */}
+      <EventRegistrationModal
+        eventId={registrationModal.eventId}
+        eventTitle={registrationModal.eventTitle}
+        isOpen={registrationModal.isOpen}
+        isRegistered={registrations.has(registrationModal.eventId)}
+        userId={profile.id}
+        onClose={() => setRegistrationModal({ ...registrationModal, isOpen: false })}
+        onRegistrationChange={handleRegistrationChange}
+      />
     </div>
   );
 }
