@@ -265,14 +265,8 @@ export async function createEvent(event: Partial<Event>): Promise<Event | null> 
     console.log("[createEvent] Updating localStorage cache...");
     try {
       if (typeof window !== "undefined") {
-        const eventToStore = { ...createdEvent };
-        // Remove base64 image to avoid localStorage quota issues
-        if (eventToStore.imageUrl && eventToStore.imageUrl.startsWith("data:")) {
-          delete (eventToStore as any).imageUrl;
-        }
-
         const events = JSON.parse(localStorage.getItem("connection-room:custom-events") || "[]");
-        events.push(eventToStore);
+        events.push(createdEvent);
         localStorage.setItem("connection-room:custom-events", JSON.stringify(events));
         console.log("[createEvent] Successfully cached to localStorage. Total events:", events.length);
       }
@@ -334,15 +328,9 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
         return null;
       }
 
-      const updateData = { ...event };
-      // Remove base64 images - they're too large for localStorage and cause silent failures
-      if (updateData.imageUrl && updateData.imageUrl.startsWith("data:")) {
-        delete updateData.imageUrl;
-      }
-
       events[index] = {
         ...events[index],
-        ...updateData,
+        ...event,
         updatedAt: new Date().toISOString(),
       };
 
@@ -354,15 +342,9 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
     }
   }
 
-  // Always update localStorage cache (excluding large base64 images)
+  // Always update localStorage cache
   try {
     if (typeof window !== "undefined" && updatedEvent) {
-      const eventToStore = { ...updatedEvent };
-      // Remove base64 image to avoid localStorage quota issues
-      if (eventToStore.imageUrl && eventToStore.imageUrl.startsWith("data:")) {
-        delete (eventToStore as any).imageUrl;
-      }
-
       const events = JSON.parse(localStorage.getItem("connection-room:custom-events") || "[]");
       console.log("[updateEvent] Current events in localStorage before save:", events.map((e: Event) => e.id));
 
@@ -371,7 +353,7 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
 
       if (index !== -1) {
         const beforeSave = JSON.stringify(events);
-        events[index] = eventToStore;
+        events[index] = updatedEvent;
         const afterModify = JSON.stringify(events);
         console.log("[updateEvent] Before save size:", beforeSave.length, "After modify size:", afterModify.length);
 
