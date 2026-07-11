@@ -1,5 +1,15 @@
 import { supabase } from "@/lib/supabase/client";
 
+// Helper to timeout async operations
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 5000): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`Operation timed out after ${timeoutMs}ms`)), timeoutMs)
+    ),
+  ]);
+}
+
 export interface Event {
   id: string;
   title: string;
@@ -38,13 +48,15 @@ export interface Event {
 
 // Get all events (admin)
 export async function getAdminEvents(): Promise<Event[]> {
-  // Try Supabase first (source of truth)
+  // Try Supabase first (source of truth) with timeout
   if (supabase) {
     try {
-      const { data, error } = await supabase
+      const supabasePromise = supabase
         .from("events")
         .select("*")
         .order("start_at", { ascending: false });
+
+      const { data, error } = await withTimeout(supabasePromise, 5000);
 
       if (error) throw error;
 
@@ -142,14 +154,16 @@ export async function getEvent(id: string): Promise<Event | null> {
 export async function createEvent(event: Partial<Event>): Promise<Event | null> {
   let createdEvent: Event | null = null;
 
-  // Try Supabase first (source of truth)
+  // Try Supabase first (source of truth) with timeout
   if (supabase) {
     try {
-      const { data, error } = await supabase
+      const supabasePromise = supabase
         .from("events")
         .insert([mapEventToDb(event)])
         .select()
         .single();
+
+      const { data, error } = await withTimeout(supabasePromise, 5000);
 
       if (error) throw error;
       if (data) {
@@ -207,10 +221,10 @@ export async function createEvent(event: Partial<Event>): Promise<Event | null> 
 export async function updateEvent(id: string, event: Partial<Event>): Promise<Event | null> {
   let updatedEvent: Event | null = null;
 
-  // Try Supabase first (source of truth)
+  // Try Supabase first (source of truth) with timeout
   if (supabase) {
     try {
-      const { data, error } = await supabase
+      const supabasePromise = supabase
         .from("events")
         .update({
           ...mapEventToDb(event),
@@ -219,6 +233,8 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
         .eq("id", id)
         .select()
         .single();
+
+      const { data, error } = await withTimeout(supabasePromise, 5000);
 
       if (error) throw error;
       if (data) {
