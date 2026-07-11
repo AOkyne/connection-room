@@ -364,7 +364,7 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
       }
 
       const events = JSON.parse(localStorage.getItem("connection-room:custom-events") || "[]");
-      console.log("[updateEvent] Current events in localStorage before save:", events.map(e => e.id));
+      console.log("[updateEvent] Current events in localStorage before save:", events.map((e: Event) => e.id));
 
       const index = events.findIndex((e: Event) => e.id === id);
       console.log("[updateEvent] Looking for ID:", id, "Found at index:", index);
@@ -384,7 +384,7 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
           console.error("[updateEvent] FAILED TO SAVE TO LOCALSTORAGE:", e);
         }
       } else {
-        console.error("[updateEvent] EVENT NOT FOUND IN LOCALSTORAGE - IDs available:", events.map(e => e.id));
+        console.error("[updateEvent] EVENT NOT FOUND IN LOCALSTORAGE - IDs available:", events.map((e: Event) => e.id));
       }
     }
   } catch (err) {
