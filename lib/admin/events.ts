@@ -266,20 +266,13 @@ export async function createEvent(event: Partial<Event>): Promise<Event | null> 
     }
   }
 
-  // Always update localStorage cache (excluding large base64 images to avoid quota issues)
+  // Always update localStorage cache (including images)
   if (createdEvent) {
     console.log("[createEvent] Updating localStorage cache...");
     try {
       if (typeof window !== "undefined") {
         const events = JSON.parse(localStorage.getItem("connection-room:custom-events") || "[]");
-
-        // Store event without the base64 image to avoid localStorage quota limits
-        const eventForStorage = {
-          ...createdEvent,
-          imageUrl: createdEvent.imageUrl ? "[image-stored-in-supabase]" : undefined,
-        };
-
-        events.push(eventForStorage);
+        events.push(createdEvent);
         localStorage.setItem("connection-room:custom-events", JSON.stringify(events));
         console.log("[createEvent] Successfully cached to localStorage. Total events:", events.length);
       }
@@ -427,7 +420,7 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
     }
   }
 
-  // Always update localStorage cache (excluding large base64 images to avoid quota issues)
+  // Always update localStorage cache (including images)
   try {
     if (typeof window !== "undefined" && updatedEvent) {
       const events = JSON.parse(localStorage.getItem("connection-room:custom-events") || "[]");
@@ -437,14 +430,8 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
       console.log("[updateEvent] Looking for ID:", id, "Found at index:", index);
 
       if (index !== -1) {
-        // Store event without the base64 image to avoid localStorage quota limits
-        const eventForStorage = {
-          ...updatedEvent,
-          imageUrl: updatedEvent.imageUrl ? "[image-stored-in-supabase]" : undefined,
-        };
-
         const beforeSave = JSON.stringify(events);
-        events[index] = eventForStorage;
+        events[index] = updatedEvent;
         const afterModify = JSON.stringify(events);
         console.log("[updateEvent] Before save size:", beforeSave.length, "After modify size:", afterModify.length);
 
