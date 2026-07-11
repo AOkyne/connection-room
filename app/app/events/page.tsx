@@ -165,6 +165,13 @@ END:VCALENDAR`;
           filteredEvents.map((event) => (
             <Card key={event.id} className="border-2 border-[#e8ddd2]">
               <div className="flex flex-col gap-4">
+                {event.imageUrl && (
+                  <img
+                    src={event.imageUrl}
+                    alt={event.title}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
+                )}
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-start gap-3 mb-3">
