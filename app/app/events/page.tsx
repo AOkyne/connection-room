@@ -215,7 +215,10 @@ END:VCALENDAR`;
                       </span>
                     </div>
 
-                    <p className="text-[#1a0f0a] mb-4">{event.description}</p>
+                    <div
+                      className="text-[#1a0f0a] mb-4 prose prose-sm prose-headings:text-[#1a0f0a] prose-p:text-[#1a0f0a] prose-li:text-[#1a0f0a] prose-strong:font-semibold prose-em:italic"
+                      dangerouslySetInnerHTML={{ __html: event.description }}
+                    />
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
                       <div>
