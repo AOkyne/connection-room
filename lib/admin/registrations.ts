@@ -356,6 +356,15 @@ export async function syncEventRegistrationsToWorkshop(
   eventDate: string
 ): Promise<boolean> {
   try {
+    // Debug: check what's in localStorage before calling getEventRegistrations
+    if (typeof window !== "undefined") {
+      const allRegs = JSON.parse(localStorage.getItem(REGISTRATIONS_STORAGE_KEY) || "[]");
+      console.log(`[syncEventRegistrationsToWorkshop] DEBUG: ALL registrations in localStorage:`, allRegs);
+      console.log(`[syncEventRegistrationsToWorkshop] DEBUG: Looking for eventId "${eventId}"`);
+      const matching = allRegs.filter((r: any) => r.eventId === eventId);
+      console.log(`[syncEventRegistrationsToWorkshop] DEBUG: Registrations matching this eventId:`, matching);
+    }
+
     const registrations = await getEventRegistrations(eventId);
     console.log(`[syncEventRegistrationsToWorkshop] Syncing ${registrations.length} registrations for event ${eventId}`);
 
