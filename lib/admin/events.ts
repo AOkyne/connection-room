@@ -260,21 +260,18 @@ export async function createEvent(event: Partial<Event>): Promise<Event | null> 
     }
   }
 
-  // Always update localStorage cache (excluding base64 image data)
+  // Always update localStorage cache (now including images)
   if (createdEvent) {
     console.log("[createEvent] Updating localStorage cache...");
     try {
       if (typeof window !== "undefined") {
-        const eventWithoutImage = { ...createdEvent };
-        delete (eventWithoutImage as any).imageUrl;
-
         const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
-        events.push(eventWithoutImage);
+        events.push(createdEvent);
         localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
         console.log("[createEvent] Successfully cached to localStorage. Total events:", events.length);
       }
     } catch (err) {
-      console.warn("[createEvent] Could not cache event in localStorage:", err);
+      console.warn("[createEvent] Could not cache event in localStorage:", err instanceof Error ? err.message : err);
     }
   }
 
@@ -313,18 +310,29 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
 
   // If Supabase failed, update in localStorage
   if (!updatedEvent) {
+    console.log("[updateEvent] Supabase failed, attempting localStorage update for ID:", id);
     try {
-      if (typeof window === "undefined") return null;
+      if (typeof window === "undefined") {
+        console.error("[updateEvent] Not in browser environment");
+        return null;
+      }
 
       const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
-      const index = events.findIndex((e: Event) => e.id === id);
+      console.log("[updateEvent] Found", events.length, "events in localStorage");
 
-      if (index === -1) return null;
+      const index = events.findIndex((e: Event) => e.id === id);
+      console.log("[updateEvent] Looking for ID", id, "- found at index:", index);
+
+      if (index === -1) {
+        console.error("[updateEvent] Event not found in localStorage");
+        return null;
+      }
 
       const updateData = { ...event };
-      if (updateData.imageUrl && updateData.imageUrl.startsWith("data:")) {
-        delete updateData.imageUrl;
-      }
+      // Keep base64 images in localStorage for now - will handle size issues if they arise
+      // if (updateData.imageUrl && updateData.imageUrl.startsWith("data:")) {
+      //   delete updateData.imageUrl;
+      // }
 
       events[index] = {
         ...events[index],
@@ -333,29 +341,30 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
       };
 
       updatedEvent = events[index];
+      console.log("[updateEvent] Updated event in memory, now saving to localStorage");
     } catch (err) {
-      console.error("Error updating event:", err);
+      console.error("[updateEvent] Error updating event:", err);
       return null;
     }
   }
 
-  // Always update localStorage cache (excluding base64 image data)
+  // Always update localStorage cache (now including images)
   try {
     if (typeof window !== "undefined" && updatedEvent) {
       const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
       const index = events.findIndex((e: Event) => e.id === id);
 
       if (index !== -1) {
-        const eventWithoutImage = { ...updatedEvent };
-        delete (eventWithoutImage as any).imageUrl;
-        events[index] = eventWithoutImage;
+        events[index] = updatedEvent;
         localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
+        console.log("[updateEvent] Successfully saved to localStorage");
       }
     }
   } catch (err) {
-    console.warn("Could not cache event in localStorage:", err);
+    console.warn("[updateEvent] Could not cache event in localStorage:", err instanceof Error ? err.message : err);
   }
 
+  console.log("[updateEvent] Returning updated event:", updatedEvent ? updatedEvent.id : "null");
   return updatedEvent;
 }
 
