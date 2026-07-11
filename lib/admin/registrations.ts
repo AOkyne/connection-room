@@ -73,6 +73,9 @@ export async function registerForEvent(
       const updated = [...existing, registration];
       localStorage.setItem(REGISTRATIONS_STORAGE_KEY, JSON.stringify(updated));
 
+      console.log(`[registerForEvent] Saved registration to localStorage. Total registrations now:`, updated.length);
+      console.log(`[registerForEvent] Saved registration:`, registration);
+
       // Send webhook even for localStorage registrations if eventDate is provided
       if (eventDate) {
         console.log(`[registerForEvent] localStorage fallback, triggering webhook sync for event ${eventId}`);
@@ -274,9 +277,14 @@ export async function getEventRegistrations(eventId: string): Promise<EventRegis
 
     try {
       const existing = JSON.parse(localStorage.getItem(REGISTRATIONS_STORAGE_KEY) || "[]");
-      return existing.filter(
+      console.log(`[getEventRegistrations] All registrations in localStorage:`, existing);
+      console.log(`[getEventRegistrations] Looking for eventId: ${eventId}`);
+
+      const filtered = existing.filter(
         (reg: EventRegistration) => reg.eventId === eventId && reg.status !== "cancelled"
       );
+      console.log(`[getEventRegistrations] Filtered registrations for ${eventId}:`, filtered);
+      return filtered;
     } catch (e) {
       console.error("localStorage registration fetch failed:", e);
       return [];
