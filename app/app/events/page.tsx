@@ -294,7 +294,9 @@ END:VCALENDAR`;
                     <Button
                       variant={interests.has(event.id) ? "primary" : "outline"}
                       size="md"
-                      onClick={() => handleToggleInterest(event.id, event.title)}
+                      onClick={() => {
+                        handleToggleInterest(event.id, event.title);
+                      }}
                     >
                       {interests.has(event.id) ? "♥ Interested" : "Mark Interested"}
                     </Button>
