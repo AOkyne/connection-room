@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getProfile } from "@/lib/data/profiles";
 import { getUpcomingEvents, getPastEvents, toggleEventInterest, getUserEventInterests } from "@/lib/data/events";
-import { getUserRegistrations } from "@/lib/admin/registrations";
+import { getUserRegistrations, markAsInterested, updateRegistrationStatus } from "@/lib/admin/registrations";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -58,17 +58,24 @@ export default function EventsPage() {
     return <LoadingScreen message="Getting ready for events" subtitle="We're personalizing your experience. Just a moment..." />;
   }
 
-  const handleToggleInterest = (eventId: string, eventTitle: string) => {
-    const isInterested = toggleEventInterest(profile.id, eventId);
-    const newInterests = new Set(interests);
-    if (isInterested) {
-      newInterests.add(eventId);
-      showToast(`Marked "${eventTitle}" as interested!`, "success");
-    } else {
+  const handleToggleInterest = async (eventId: string, eventTitle: string) => {
+    const isCurrentlyInterested = interests.has(eventId);
+
+    if (isCurrentlyInterested) {
+      // Remove interest by marking as cancelled
+      await updateRegistrationStatus(eventId, profile.id, "cancelled");
+      const newInterests = new Set(interests);
       newInterests.delete(eventId);
+      setInterests(newInterests);
       showToast(`Removed "${eventTitle}" from interested`, "success");
+    } else {
+      // Add interest - create registration with "interested" status
+      await markAsInterested(eventId, profile.id, profile.fullName || profile.email, profile.email);
+      const newInterests = new Set(interests);
+      newInterests.add(eventId);
+      setInterests(newInterests);
+      showToast(`Marked "${eventTitle}" as interested!`, "success");
     }
-    setInterests(newInterests);
   };
 
   const handleOpenRegistrationModal = (eventId: string, eventTitle: string) => {
