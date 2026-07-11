@@ -260,13 +260,19 @@ export async function createEvent(event: Partial<Event>): Promise<Event | null> 
     }
   }
 
-  // Always update localStorage cache (now including images)
+  // Always update localStorage cache (excluding large base64 images)
   if (createdEvent) {
     console.log("[createEvent] Updating localStorage cache...");
     try {
       if (typeof window !== "undefined") {
+        const eventToStore = { ...createdEvent };
+        // Remove base64 image to avoid localStorage quota issues
+        if (eventToStore.imageUrl && eventToStore.imageUrl.startsWith("data:")) {
+          delete (eventToStore as any).imageUrl;
+        }
+
         const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
-        events.push(createdEvent);
+        events.push(eventToStore);
         localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
         console.log("[createEvent] Successfully cached to localStorage. Total events:", events.length);
       }
@@ -329,10 +335,10 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
       }
 
       const updateData = { ...event };
-      // Keep base64 images in localStorage for now - will handle size issues if they arise
-      // if (updateData.imageUrl && updateData.imageUrl.startsWith("data:")) {
-      //   delete updateData.imageUrl;
-      // }
+      // Remove base64 images - they're too large for localStorage and cause silent failures
+      if (updateData.imageUrl && updateData.imageUrl.startsWith("data:")) {
+        delete updateData.imageUrl;
+      }
 
       events[index] = {
         ...events[index],
@@ -348,14 +354,20 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
     }
   }
 
-  // Always update localStorage cache (now including images)
+  // Always update localStorage cache (excluding large base64 images)
   try {
     if (typeof window !== "undefined" && updatedEvent) {
+      const eventToStore = { ...updatedEvent };
+      // Remove base64 image to avoid localStorage quota issues
+      if (eventToStore.imageUrl && eventToStore.imageUrl.startsWith("data:")) {
+        delete (eventToStore as any).imageUrl;
+      }
+
       const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
       const index = events.findIndex((e: Event) => e.id === id);
 
       if (index !== -1) {
-        events[index] = updatedEvent;
+        events[index] = eventToStore;
         localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
         console.log("[updateEvent] Successfully saved to localStorage");
       }
