@@ -472,7 +472,6 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
       endTime,
       location: updatedEvent.locationName || updatedEvent.locationAddress,
       description: updatedEvent.description || updatedEvent.shortDescription,
-      workshopId: updatedEvent.workshopId,
     };
 
     console.log("[updateEvent] Firing workshop update webhook for event", updatedEvent.id);
@@ -523,12 +522,9 @@ export async function deleteEvent(id: string): Promise<boolean> {
     console.error("[deleteEvent] Error deleting from localStorage:", err);
   }
 
-  // Fire deletion webhook if event had a workshopId
-  if (eventToDelete && eventToDelete.workshopId) {
+  // Fire deletion webhook after successful deletion
+  if (eventToDelete) {
     console.log(`[deleteEvent] Firing workshop deletion webhook for event ${id}`);
-    fireWorkshopDeletionWebhook(id, eventToDelete.workshopId);
-  } else if (eventToDelete) {
-    console.log(`[deleteEvent] No workshopId found for event ${id}, attempting deletion by eventId`);
     fireWorkshopDeletionWebhook(id);
   }
 

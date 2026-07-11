@@ -1,23 +1,18 @@
 // Workshop deletion webhook integration
 // Fires when an event is deleted to remove the matching workshop
 
-const WORKSHOP_API_URL = "https://workshops.trevorjamesla.com/api/workshops";
+const WORKSHOP_DELETE_URL = "https://workshops.trevorjamesla.com/api/workshops-delete";
 const WORKSHOP_API_KEY = "Xensationx555";
 
-export async function sendWorkshopDeletionWebhook(
-  eventId: string,
-  workshopId?: string
-): Promise<boolean> {
+export async function sendWorkshopDeletionWebhook(eventId: string): Promise<boolean> {
   try {
-    // If we have a workshopId from the creation response, use it
-    // Otherwise use eventId as the identifier
-    const identifier = workshopId || eventId;
-
-    const response = await fetch(`${WORKSHOP_API_URL}/${identifier}`, {
-      method: "DELETE",
+    const response = await fetch(WORKSHOP_DELETE_URL, {
+      method: "POST",
       headers: {
+        "Content-Type": "application/json",
         "Authorization": `Bearer ${WORKSHOP_API_KEY}`,
       },
+      body: JSON.stringify({ eventId }),
     });
 
     if (!response.ok) {
@@ -39,12 +34,9 @@ export async function sendWorkshopDeletionWebhook(
 }
 
 // Fire workshop deletion webhook asynchronously (non-blocking)
-export function fireWorkshopDeletionWebhook(
-  eventId: string,
-  workshopId?: string
-): void {
+export function fireWorkshopDeletionWebhook(eventId: string): void {
   // Fire and forget - don't await
-  sendWorkshopDeletionWebhook(eventId, workshopId)
+  sendWorkshopDeletionWebhook(eventId)
     .then((success) => {
       if (success) {
         console.log(`[Workshop Webhook] Workshop deletion completed for event ${eventId}`);

@@ -1,35 +1,39 @@
 // Workshop update webhook integration
 // Fires when an event is updated to sync changes to the workshop
 
-const WORKSHOP_API_URL = "https://workshops.trevorjamesla.com/api/workshops";
+const WORKSHOP_UPDATE_URL = "https://workshops.trevorjamesla.com/api/workshops-update";
 const WORKSHOP_API_KEY = "Xensationx555";
 
 export interface WorkshopUpdatePayload {
   eventId: string;
-  eventTitle: string;
-  eventDate: string; // YYYY-MM-DD format
+  eventTitle?: string;
+  eventDate?: string; // YYYY-MM-DD format
   startTime?: string; // HH:MM format
   endTime?: string; // HH:MM format
   location?: string;
   description?: string;
-  workshopId?: string; // If updating an existing workshop
 }
 
 export async function sendWorkshopUpdateWebhook(
   payload: WorkshopUpdatePayload
 ): Promise<boolean> {
   try {
-    const url = payload.workshopId
-      ? `${WORKSHOP_API_URL}/${payload.workshopId}`
-      : `${WORKSHOP_API_URL}/${payload.eventId}`;
+    // Only include fields that are defined (partial update)
+    const body: any = { eventId: payload.eventId };
+    if (payload.eventTitle !== undefined) body.eventTitle = payload.eventTitle;
+    if (payload.eventDate !== undefined) body.eventDate = payload.eventDate;
+    if (payload.startTime !== undefined) body.startTime = payload.startTime;
+    if (payload.endTime !== undefined) body.endTime = payload.endTime;
+    if (payload.location !== undefined) body.location = payload.location;
+    if (payload.description !== undefined) body.description = payload.description;
 
-    const response = await fetch(url, {
-      method: "PUT",
+    const response = await fetch(WORKSHOP_UPDATE_URL, {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${WORKSHOP_API_KEY}`,
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {
@@ -41,7 +45,7 @@ export async function sendWorkshopUpdateWebhook(
     }
 
     console.log(
-      `[Workshop Webhook] Successfully updated workshop for event "${payload.eventTitle}"`
+      `[Workshop Webhook] Successfully updated workshop for event ${payload.eventId}`
     );
     return true;
   } catch (error) {
