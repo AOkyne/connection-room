@@ -19,10 +19,18 @@ export function getUpcomingEvents(): Event[] {
         // Convert ISO date strings to Date objects for custom events
         const convertedCustomEvents = customEvents.map((e: any) => {
           const eventDate = e.date ? new Date(e.date) : (e.startAt ? new Date(e.startAt) : new Date());
+          let time = e.time;
+          if (!time) {
+            const hours = String(eventDate.getHours()).padStart(2, "0");
+            const minutes = String(eventDate.getMinutes()).padStart(2, "0");
+            const hour12 = eventDate.getHours() % 12 || 12;
+            const ampm = eventDate.getHours() >= 12 ? "PM" : "AM";
+            time = `${hour12}:${minutes} ${ampm} PT`;
+          }
           return {
             ...e,
             date: eventDate,
-            time: e.time || eventDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "America/Los_Angeles" }) + " PT",
+            time: time,
             facilitator: e.facilitator || e.hostName || "",
             format: e.format || e.eventType || "virtual",
             interested: false,
