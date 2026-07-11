@@ -127,6 +127,7 @@ export default function EditEventPage() {
       const result = await updateEvent(eventId, eventData);
 
       if (result) {
+        localStorage.removeItem("connection-room:event-draft");
         showToast("Event updated successfully!", "success");
         router.push("/app/admin/events");
       } else {

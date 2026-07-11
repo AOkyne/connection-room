@@ -37,12 +37,30 @@ export default function CreateEventPage() {
         router.push("/app");
         return;
       }
+
+      const savedDraft = localStorage.getItem("connection-room:event-draft");
+      if (savedDraft) {
+        try {
+          setFormData(JSON.parse(savedDraft));
+        } catch (err) {
+          console.error("Error loading saved draft:", err);
+        }
+      }
+
       setMounted(true);
       setLoading(false);
     };
 
     loadData();
   }, [router]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      localStorage.setItem("connection-room:event-draft", JSON.stringify(formData));
+    }, 3000);
+
+    return () => clearInterval(timer);
+  }, [formData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -104,6 +122,7 @@ export default function CreateEventPage() {
       const result = await createEvent(eventData);
 
       if (result) {
+        localStorage.removeItem("connection-room:event-draft");
         showToast("Event created successfully!", "success");
         router.push("/app/admin/events");
       } else {
