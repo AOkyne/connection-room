@@ -25,6 +25,8 @@ export default function EditEventPage() {
     startAt: "",
     endAt: "",
     location: "",
+    facilitator: "",
+    format: "virtual" as "virtual" | "in-person" | "hybrid",
     status: "draft" as "draft" | "published",
     featured: false,
     image: "" as string,
@@ -50,6 +52,8 @@ export default function EditEventPage() {
           startAt: event.startAt || "",
           endAt: event.endAt || "",
           location: event.locationName || "",
+          facilitator: event.hostName || "",
+          format: (event.eventType === "virtual" || event.eventType === "in-person" || event.eventType === "hybrid" ? event.eventType : "virtual") as "virtual" | "in-person" | "hybrid",
           status: (event.status === "draft" || event.status === "published" ? event.status : "draft") as "draft" | "published",
           featured: event.featured || false,
           image: event.imageUrl || "",
@@ -117,6 +121,8 @@ export default function EditEventPage() {
         startAt: formData.startAt,
         endAt: formData.endAt,
         locationName: formData.location,
+        hostName: formData.facilitator,
+        eventType: formData.format,
         imageUrl: formData.image,
         status: formData.status as "draft" | "published",
         featured: formData.featured,
@@ -264,18 +270,49 @@ export default function EditEventPage() {
             </div>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-[#1a0f0a] block mb-1">
+                Location
+              </label>
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+                placeholder="Event location or 'Online'"
+                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-[#1a0f0a] block mb-1">
+                Facilitator
+              </label>
+              <input
+                type="text"
+                name="facilitator"
+                value={formData.facilitator}
+                onChange={handleChange}
+                placeholder="Facilitator name"
+                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
+              />
+            </div>
+          </div>
+
           <div>
             <label className="text-sm font-medium text-[#1a0f0a] block mb-1">
-              Location
+              Event Format
             </label>
-            <input
-              type="text"
-              name="location"
-              value={formData.location}
+            <select
+              name="format"
+              value={formData.format}
               onChange={handleChange}
-              placeholder="Event location or 'Online'"
               className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
-            />
+            >
+              <option value="virtual">Virtual</option>
+              <option value="in-person">In-person</option>
+              <option value="hybrid">Hybrid</option>
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

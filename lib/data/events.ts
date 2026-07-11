@@ -17,11 +17,15 @@ export function getUpcomingEvents(): Event[] {
       try {
         const customEvents = JSON.parse(customEventsStr);
         // Convert ISO date strings to Date objects for custom events
-        const convertedCustomEvents = customEvents.map((e: any) => ({
-          ...e,
-          date: e.date ? new Date(e.date) : (e.startAt ? new Date(e.startAt) : new Date()),
-          interested: false,
-        }));
+        const convertedCustomEvents = customEvents.map((e: any) => {
+          const eventDate = e.date ? new Date(e.date) : (e.startAt ? new Date(e.startAt) : new Date());
+          return {
+            ...e,
+            date: eventDate,
+            time: e.time || eventDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "America/Los_Angeles" }) + " PT",
+            interested: false,
+          };
+        });
         allEvents = [...allEvents, ...convertedCustomEvents];
       } catch (e) {
         console.error("Error parsing custom events:", e);
