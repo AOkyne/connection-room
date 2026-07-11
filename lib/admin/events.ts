@@ -38,8 +38,9 @@ export interface Event {
 
 // Get all events (admin)
 export async function getAdminEvents(): Promise<Event[]> {
-  try {
-    if (supabase) {
+  // Try Supabase first if available
+  if (supabase) {
+    try {
       const { data, error } = await supabase
         .from("events")
         .select("*")
@@ -48,17 +49,22 @@ export async function getAdminEvents(): Promise<Event[]> {
       if (error) throw error;
 
       return (data || []).map(mapEventFromDb);
-    } else {
-      // Demo mode: fetch from localStorage
-      if (typeof window === "undefined") return [];
-
-      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
-      return events.sort((a: Event, b: Event) =>
-        new Date(b.startAt || 0).getTime() - new Date(a.startAt || 0).getTime()
-      );
+    } catch (err) {
+      console.error("Error fetching events from Supabase, falling back to demo mode:", err);
+      // Fall through to demo mode below
     }
+  }
+
+  // Demo mode: fetch from localStorage
+  try {
+    if (typeof window === "undefined") return [];
+
+    const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+    return events.sort((a: Event, b: Event) =>
+      new Date(b.startAt || 0).getTime() - new Date(a.startAt || 0).getTime()
+    );
   } catch (err) {
-    console.error("Error fetching admin events:", err);
+    console.error("Error fetching events from localStorage:", err);
     return [];
   }
 }
@@ -89,8 +95,9 @@ export async function getPublicEvents(): Promise<Event[]> {
 
 // Get single event
 export async function getEvent(id: string): Promise<Event | null> {
-  try {
-    if (supabase) {
+  // Try Supabase first if available
+  if (supabase) {
+    try {
       const { data, error } = await supabase
         .from("events")
         .select(
@@ -102,23 +109,29 @@ export async function getEvent(id: string): Promise<Event | null> {
 
       if (error) throw error;
       return data ? mapEventFromDb(data) : null;
-    } else {
-      // Demo mode: fetch from localStorage
-      if (typeof window === "undefined") return null;
-
-      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
-      return events.find((e: Event) => e.id === id) || null;
+    } catch (err) {
+      console.error("Error fetching event from Supabase, falling back to demo mode:", err);
+      // Fall through to demo mode below
     }
+  }
+
+  // Demo mode: fetch from localStorage
+  try {
+    if (typeof window === "undefined") return null;
+
+    const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+    return events.find((e: Event) => e.id === id) || null;
   } catch (err) {
-    console.error("Error fetching event:", err);
+    console.error("Error fetching event from localStorage:", err);
     return null;
   }
 }
 
 // Create event
 export async function createEvent(event: Partial<Event>): Promise<Event | null> {
-  try {
-    if (supabase) {
+  // Try Supabase first if available
+  if (supabase) {
+    try {
       const { data, error } = await supabase
         .from("events")
         .insert([mapEventToDb(event)])
@@ -127,40 +140,46 @@ export async function createEvent(event: Partial<Event>): Promise<Event | null> 
 
       if (error) throw error;
       return data ? mapEventFromDb(data) : null;
-    } else {
-      // Demo mode: store in localStorage
-      if (typeof window === "undefined") return null;
-
-      const newEvent: Event = {
-        id: `event-${Date.now()}`,
-        title: event.title || "",
-        status: event.status || "draft",
-        visibility: event.visibility || "members",
-        startAt: event.startAt || "",
-        shortDescription: event.shortDescription,
-        description: event.description,
-        locationName: event.locationName,
-        imageUrl: event.imageUrl,
-        featured: event.featured || false,
-        createdAt: new Date().toISOString(),
-      };
-
-      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
-      events.push(newEvent);
-      localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
-
-      return newEvent;
+    } catch (err) {
+      console.error("Error creating event in Supabase, falling back to demo mode:", err);
+      // Fall through to demo mode below
     }
+  }
+
+  // Demo mode: store in localStorage
+  try {
+    if (typeof window === "undefined") return null;
+
+    const newEvent: Event = {
+      id: `event-${Date.now()}`,
+      title: event.title || "",
+      status: event.status || "draft",
+      visibility: event.visibility || "members",
+      startAt: event.startAt || "",
+      shortDescription: event.shortDescription,
+      description: event.description,
+      locationName: event.locationName,
+      imageUrl: event.imageUrl,
+      featured: event.featured || false,
+      createdAt: new Date().toISOString(),
+    };
+
+    const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+    events.push(newEvent);
+    localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
+
+    return newEvent;
   } catch (err) {
-    console.error("Error creating event:", err);
+    console.error("Error creating event in demo mode:", err);
     return null;
   }
 }
 
 // Update event
 export async function updateEvent(id: string, event: Partial<Event>): Promise<Event | null> {
-  try {
-    if (supabase) {
+  // Try Supabase first if available
+  if (supabase) {
+    try {
       const { data, error } = await supabase
         .from("events")
         .update({
@@ -173,26 +192,31 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
 
       if (error) throw error;
       return data ? mapEventFromDb(data) : null;
-    } else {
-      // Demo mode: update in localStorage
-      if (typeof window === "undefined") return null;
-
-      const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
-      const index = events.findIndex((e: Event) => e.id === id);
-
-      if (index === -1) return null;
-
-      events[index] = {
-        ...events[index],
-        ...event,
-        updatedAt: new Date().toISOString(),
-      };
-
-      localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
-      return events[index];
+    } catch (err) {
+      console.error("Error updating event in Supabase, falling back to demo mode:", err);
+      // Fall through to demo mode below
     }
+  }
+
+  // Demo mode: update in localStorage
+  try {
+    if (typeof window === "undefined") return null;
+
+    const events = JSON.parse(localStorage.getItem("connection-room:demo-events") || "[]");
+    const index = events.findIndex((e: Event) => e.id === id);
+
+    if (index === -1) return null;
+
+    events[index] = {
+      ...events[index],
+      ...event,
+      updatedAt: new Date().toISOString(),
+    };
+
+    localStorage.setItem("connection-room:demo-events", JSON.stringify(events));
+    return events[index];
   } catch (err) {
-    console.error("Error updating event:", err);
+    console.error("Error updating event in localStorage:", err);
     return null;
   }
 }
