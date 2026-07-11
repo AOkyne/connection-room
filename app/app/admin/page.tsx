@@ -100,6 +100,11 @@ export default function AdminPage() {
             📊 Invite Relationships
           </Button>
         </Link>
+        <Link href="/app/admin/concerns">
+          <Button variant="outline" size="sm">
+            ⚠️ Reported Concerns
+          </Button>
+        </Link>
         <Link href="/admin/daily-companion">
           <Button variant="outline" size="sm">
             ✨ Daily Content
