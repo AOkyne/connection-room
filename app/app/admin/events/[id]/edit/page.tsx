@@ -210,6 +210,7 @@ export default function EditEventPage() {
                 <div className="text-center">
                   <p className="text-[#a0704a] mb-1">📸 Click to upload event image</p>
                   <p className="text-xs text-[#a0704a]">PNG, JPG, GIF up to 5MB</p>
+                  <p className="text-xs text-[#a0704a] mt-1">Recommended: 4:3 aspect ratio (e.g., 1200×900px)</p>
                 </div>
                 <input
                   type="file"
