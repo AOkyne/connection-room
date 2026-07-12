@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { getAllProfiles, type Profile } from "@/lib/data/profiles";
-import { resetMemberProgress, sendAdminMessage } from "@/lib/admin/member-actions";
+import { resetMemberProgress, sendAdminMessage, deleteMembers } from "@/lib/admin/member-actions";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -33,6 +33,10 @@ export default function AdminMembersPage() {
   const [messageBody, setMessageBody] = useState("");
   const [showMessageForm, setShowMessageForm] = useState(false);
   const [actionInProgress, setActionInProgress] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [deleteTargets, setDeleteTargets] = useState<Profile[] | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -169,6 +173,69 @@ export default function AdminMembersPage() {
     }
   };
 
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredMembers.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredMembers.map((m) => m.id)));
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTargets || deleteConfirmText !== "DELETE") return;
+
+    setIsDeleting(true);
+    try {
+      const ids = deleteTargets.map((m) => m.id);
+      const { deletedCount, failedCount, errors } = await deleteMembers(ids);
+
+      if (deletedCount > 0) {
+        setMembers((prev) => prev.filter((m) => !ids.includes(m.id)));
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          ids.forEach((id) => next.delete(id));
+          return next;
+        });
+      }
+
+      if (failedCount === 0) {
+        showToast(
+          deletedCount === 1
+            ? "Member deleted"
+            : `${deletedCount} members deleted`,
+          "success"
+        );
+      } else {
+        console.error("Errors deleting members:", errors);
+        showToast(
+          `Deleted ${deletedCount}, failed to delete ${failedCount}. Check console for details.`,
+          deletedCount > 0 ? "warning" : "error"
+        );
+      }
+
+      setDeleteTargets(null);
+      setDeleteConfirmText("");
+      setShowEditModal(false);
+    } catch (error) {
+      console.error("Error deleting members:", error);
+      showToast("Error deleting members", "error");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (!mounted || loading) {
     return (
       <LoadingScreen
@@ -229,6 +296,39 @@ export default function AdminMembersPage() {
         {/* Activity filter - lastActive tracking not yet implemented */}
       </div>
 
+      {/* Bulk Selection Bar */}
+      {filteredMembers.length > 0 && (
+        <div className="flex items-center justify-between bg-[#f3ede5] rounded-lg px-4 py-2">
+          <label className="flex items-center gap-2 text-sm text-[#1a0f0a] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={
+                selectedIds.size > 0 && selectedIds.size === filteredMembers.length
+              }
+              onChange={toggleSelectAll}
+              className="w-4 h-4"
+            />
+            {selectedIds.size > 0
+              ? `${selectedIds.size} selected`
+              : "Select all"}
+          </label>
+          {selectedIds.size > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs text-red-600 border-red-300"
+              onClick={() =>
+                setDeleteTargets(
+                  filteredMembers.filter((m) => selectedIds.has(m.id))
+                )
+              }
+            >
+              🗑️ Delete Selected ({selectedIds.size})
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* Members Grid */}
       {filteredMembers.length === 0 ? (
         <Card className="text-center py-12">
@@ -241,6 +341,12 @@ export default function AdminMembersPage() {
               <div className="space-y-4">
                 {/* Member Header */}
                 <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(member.id)}
+                    onChange={() => toggleSelected(member.id)}
+                    className="w-4 h-4 mt-1"
+                  />
                   <Avatar
                     name={member.displayName}
                     photo={member.profilePhoto}
@@ -435,6 +541,15 @@ export default function AdminMembersPage() {
                           ? "⏳ Resetting..."
                           : "🔄 Reset Progress"}
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setDeleteTargets([selectedMember])}
+                        disabled={actionInProgress}
+                        className="w-full justify-start text-left text-red-600"
+                      >
+                        🗑️ Delete Member
+                      </Button>
                     </div>
                   </div>
 
@@ -445,8 +560,75 @@ export default function AdminMembersPage() {
                       restart onboarding.
                     </p>
                   </div>
+                  <div className="p-3 bg-red-50 rounded text-xs text-red-900">
+                    <p>
+                      <strong>Delete Member</strong> permanently removes their
+                      account, login access, and all associated data. This
+                      cannot be undone.
+                    </p>
+                  </div>
                 </div>
               )}
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteTargets && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-md w-full">
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold text-red-600">
+                Delete {deleteTargets.length === 1 ? "Member" : `${deleteTargets.length} Members`}?
+              </h2>
+
+              <div className="max-h-40 overflow-y-auto space-y-1 text-sm text-[#1a0f0a] bg-[#f3ede5] rounded p-3">
+                {deleteTargets.map((m) => (
+                  <p key={m.id}>{m.displayName}</p>
+                ))}
+              </div>
+
+              <p className="text-sm text-[#a0704a]">
+                This permanently deletes{" "}
+                {deleteTargets.length === 1 ? "this member's" : "these members'"}{" "}
+                account, login access, and all associated data (badges, journey
+                progress, event registrations, connections). This cannot be undone.
+              </p>
+
+              <div>
+                <label className="text-sm font-medium text-[#1a0f0a] block mb-1">
+                  Type <span className="font-mono">DELETE</span> to confirm
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 text-[#1a0f0a]"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2 border-t border-[#e8ddd2]">
+                <button
+                  onClick={handleDelete}
+                  disabled={deleteConfirmText !== "DELETE" || isDeleting}
+                  className="font-medium rounded-xl transition-all duration-150 px-3 py-1.5 text-sm text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isDeleting ? "Deleting..." : "Permanently Delete"}
+                </button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setDeleteTargets(null);
+                    setDeleteConfirmText("");
+                  }}
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           </Card>
         </div>

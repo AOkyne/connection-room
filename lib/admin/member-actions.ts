@@ -177,6 +177,60 @@ export function getUnreadMessageCount(userId: string): number {
   return messages.filter((m: AdminMessage) => !m.read).length;
 }
 
+// Permanently delete one or more members: revokes their auth account
+// (cascades through profiles and all related data) and logs the action.
+export async function deleteMembers(
+  memberIds: string[]
+): Promise<{ deletedCount: number; failedCount: number; errors: string[] }> {
+  try {
+    const response = await fetch("/api/admin/members/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ memberIds }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      return {
+        deletedCount: 0,
+        failedCount: memberIds.length,
+        errors: [data.error || "Request failed"],
+      };
+    }
+
+    if (typeof window !== "undefined") {
+      const log = {
+        action: "delete_members",
+        memberIds,
+        deletedCount: data.deletedCount,
+        failedCount: data.failedCount,
+        timestamp: new Date().toISOString(),
+      };
+      const logs = JSON.parse(
+        localStorage.getItem("connection-room:admin-logs") || "[]"
+      );
+      logs.push(log);
+      localStorage.setItem(
+        "connection-room:admin-logs",
+        JSON.stringify(logs.slice(-100))
+      );
+    }
+
+    const errors = (data.results || [])
+      .filter((r: { success: boolean }) => !r.success)
+      .map((r: { id: string; error?: string }) => `${r.id}: ${r.error || "unknown error"}`);
+
+    return { deletedCount: data.deletedCount, failedCount: data.failedCount, errors };
+  } catch (error) {
+    console.error("Error deleting members:", error);
+    return {
+      deletedCount: 0,
+      failedCount: memberIds.length,
+      errors: [String(error)],
+    };
+  }
+}
+
 // Get all admin logs
 export function getAdminLogs(): any[] {
   if (typeof window === "undefined") return [];
