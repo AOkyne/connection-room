@@ -277,11 +277,14 @@ export async function getEventRegistrations(eventId: string): Promise<EventRegis
     // Fallback to localStorage
     if (typeof window === "undefined") return [];
 
+    console.log(`[getEventRegistrations] Starting localStorage fallback for eventId: ${eventId}`);
     try {
       const existing = JSON.parse(localStorage.getItem(REGISTRATIONS_STORAGE_KEY) || "[]");
+      console.log(`[getEventRegistrations] Parsed localStorage successfully. Found ${existing.length} registrations`);
       console.log(`[getEventRegistrations] All registrations in localStorage:`, existing);
       console.log(`[getEventRegistrations] Looking for eventId: ${eventId}`);
 
+      console.log(`[getEventRegistrations] Starting filter loop...`);
       const filtered = existing.filter(
         (reg: EventRegistration) => {
           const matches = reg.eventId === eventId && reg.status !== "cancelled";
