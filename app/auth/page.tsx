@@ -77,7 +77,12 @@ function BetaAuthContent() {
           // Supabase failed, try fallback immediately
           console.log("Supabase signup failed, trying fallback:", result.error);
           const fallbackResult = await fallbackSignUpWithPassword(email, password);
-          if (fallbackResult.success) {
+          if (fallbackResult.success && fallbackResult.user) {
+            // Fallback auth only writes connection-room:fallback-session. The
+            // authenticated app shell (app/app/layout.tsx) checks
+            // connection-room:session instead, so without this the user
+            // finishes onboarding and then gets bounced back to /auth.
+            createMemberSession(fallbackResult.user.displayName);
             setUsingFallback(true);
             setError("✓ Account created - Using fallback mode (Supabase temporarily unavailable)");
             setTimeout(() => {
@@ -98,7 +103,11 @@ function BetaAuthContent() {
           // Supabase failed, try fallback immediately
           console.log("Supabase signin failed, trying fallback:", result.error);
           const fallbackResult = await fallbackSignInWithPassword(email, password);
-          if (fallbackResult.success) {
+          if (fallbackResult.success && fallbackResult.user) {
+            // Same fix as signup: keep connection-room:session in sync with
+            // the fallback session so app/app/layout.tsx doesn't bounce
+            // the user back to /auth.
+            createMemberSession(fallbackResult.user.displayName);
             setUsingFallback(true);
             setError("✓ Logged in - Using fallback mode (Supabase temporarily unavailable)");
             setTimeout(() => {

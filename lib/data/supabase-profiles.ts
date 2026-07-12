@@ -31,6 +31,8 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
         completed_onboarding: profile.completedOnboarding,
         spaces_joined: profile.spacesJoined,
         created_at: profile.joinedAt,
+        welcome_video_watched: profile.welcomeVideoWatched,
+        welcome_video_watched_at: profile.welcomeVideoWatchedAt,
         updated_at: new Date(),
       },
       { onConflict: "user_id" }
@@ -75,6 +77,8 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
         completedOnboarding: profileData.completed_onboarding,
         spacesJoined: profileData.spaces_joined || [],
         joinedAt: new Date(profileData.joined_at),
+        welcomeVideoWatched: profileData.welcome_video_watched || false,
+        welcomeVideoWatchedAt: profileData.welcome_video_watched_at ? new Date(profileData.welcome_video_watched_at) : undefined,
       }
     : null;
 }
@@ -163,6 +167,8 @@ export async function getProfileFromSupabase(
       completedOnboarding: data.completed_onboarding,
       spacesJoined: spacesJoined,
       joinedAt: new Date(data.joined_at),
+      welcomeVideoWatched: data.welcome_video_watched || false,
+      welcomeVideoWatchedAt: data.welcome_video_watched_at ? new Date(data.welcome_video_watched_at) : undefined,
     };
   } catch {
     // Profile fetch timed out or errored - fall back to null

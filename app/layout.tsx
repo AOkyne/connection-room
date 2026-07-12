@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import { Cormorant_Garamond, Inter, Playfair_Display, Dancing_Script } from "next/font/google";
 import { appConfig } from "@/lib/config";
 import { BugReportWidget } from "@/components/BugReportWidget";
 import "./globals.css";
+import "./tcr-content.css";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-serif",
@@ -13,6 +14,24 @@ const cormorant = Cormorant_Garamond({
 const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
+});
+
+// Used only by the onboarding welcome step and the Philosophy/House Rules/FAQs
+// content pages (scoped under .tcr-page in tcr-content.css). preload: false so
+// these don't add weight to every route's initial load.
+const playfair = Playfair_Display({
+  variable: "--font-tcr-display",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  preload: false,
+});
+
+const dancingScript = Dancing_Script({
+  variable: "--font-tcr-script",
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -44,7 +63,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${cormorant.variable} ${inter.variable} h-full antialiased`}
+      className={`${cormorant.variable} ${inter.variable} ${playfair.variable} ${dancingScript.variable} h-full antialiased`}
     >
       <head>
         <meta name="theme-color" content="#c9a876" />

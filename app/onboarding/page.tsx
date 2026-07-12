@@ -7,6 +7,7 @@ import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
 import { Card, CardHeader } from "@/components/Card";
 import { IconConnection, IconIntegration, IconProfile, IconCouples, IconReflection } from "@/components/Icons";
+import { WelcomeVideoStep } from "@/components/onboarding/WelcomeVideoStep";
 import Link from "next/link";
 
 type Step = "welcome" | "agreements" | "member-type" | "basics" | "photo" | "interests" | "connections" | "couples" | "prompt" | "complete";
@@ -827,91 +828,11 @@ export default function OnboardingPage() {
           )}
 
           {currentStep === "complete" && completionSuccess && (
-            <Card>
-              <div className="text-center space-y-8">
-                <div className="space-y-2">
-                  <div className="text-6xl mb-4 animate-bounce">✓</div>
-                  <h2 className="text-5xl text-[#1a0f0a]">You're in</h2>
-                  <p className="text-xl text-[#d4a348] font-medium">Welcome to The Connection Room</p>
-                  <p className="text-lg text-[#1a0f0a] mt-4 leading-relaxed">
-                    Your profile is complete, and you're now part of our community. You're ready to explore connection, meet others on the same path, and begin your journey toward authentic intimacy.
-                  </p>
-                </div>
-
-                <div className="bg-[#f3ede5] p-6 rounded-lg space-y-3">
-                  <p className="font-semibold text-[#1a0f0a]">What you can do now:</p>
-                  <ul className="text-sm text-[#1a0f0a] space-y-2 text-left">
-                    <li className="flex items-start gap-2">
-                      <span className="text-[#d4a348]">🚪</span>
-                      <span><strong>Seven Doors:</strong> A guided 7-week journey through connection</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-[#d4a348]">🤝</span>
-                      <span><strong>Find Connections:</strong> Browse people matched to your interests</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-[#d4a348]">💬</span>
-                      <span><strong>Join Spaces:</strong> Share reflections and connect with the community</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="bg-[#fffbf7] border-l-4 border-[#d4a348] p-6 rounded-lg space-y-4">
-                  <div className="flex flex-col items-center gap-4">
-                    <img
-                      src="/trevor-photo.png"
-                      alt="Trevor James"
-                      className="w-24 h-24 rounded-full object-cover border-2 border-[#d4a348]"
-                    />
-                    <div className="text-center space-y-3">
-                      <p className="text-[#1a0f0a] italic text-lg leading-relaxed">
-                        "Welcome to the room. I'm here every day, and I'm genuinely glad you're here. What you're about to experience isn't therapy, and it isn't a hookup app—it's something real. A place where the guard comes down, where you can be seen, and where connection becomes possible. Take your time. Start wherever feels right. And remember: you don't have to arrive ready. You just have to arrive."
-                      </p>
-                      <p className="text-[#a0704a] text-sm font-medium">— Trevor James</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <p className="text-[#1a0f0a] font-medium">Where would you like to start?</p>
-
-                  <button
-                    onClick={() => handleNavigateToDestination("/app/journey")}
-                    className="w-full p-4 text-left rounded-lg border-2 border-[#d4a348] bg-[#f3ede5] hover:bg-[#e8ddd2] transition-all"
-                  >
-                    <p className="font-medium text-[#1a0f0a]">🚪 Start the Seven Doors</p>
-                    <p className="text-sm text-[#1a0f0a] mt-1">Your first guided chapter—explore your connection patterns and begin your transformation</p>
-                  </button>
-
-                  <button
-                    onClick={() => handleNavigateToDestination("/app/spaces?space=commons")}
-                    className="p-4 text-left rounded-lg border-2 border-[#e8ddd2] hover:border-[#d4a348] hover:bg-[#f3ede5] transition-all"
-                  >
-                    <p className="font-medium text-[#1a0f0a]">Visit The Commons</p>
-                    <p className="text-sm text-[#1a0f0a] mt-1">Introduce yourself and see who else is here</p>
-                  </button>
-
-                  <button
-                    onClick={() => handleNavigateToDestination("/app/spaces")}
-                    className="p-4 text-left rounded-lg border-2 border-[#e8ddd2] hover:border-[#d4a348] hover:bg-[#f3ede5] transition-all"
-                  >
-                    <p className="font-medium text-[#1a0f0a]">Explore Your Spaces</p>
-                    <p className="text-sm text-[#1a0f0a] mt-1">Browse all the communities available to you</p>
-                  </button>
-                </div>
-
-                <div className="flex gap-3">
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    onClick={() => handleNavigateToDestination("/app")}
-                    className="flex-1"
-                  >
-                    Skip for Now
-                  </Button>
-                </div>
-              </div>
-            </Card>
+            <WelcomeVideoStep
+              profile={profile}
+              onUpdate={handleUpdate}
+              onEnter={() => handleNavigateToDestination("/app")}
+            />
           )}
         </div>
       </div>
