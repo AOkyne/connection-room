@@ -366,26 +366,34 @@ export async function syncEventRegistrationsToWorkshop(
   eventDate: string
 ): Promise<boolean> {
   try {
-    // Debug: check what's in localStorage before calling getEventRegistrations
+    // Query localStorage directly (bypass getEventRegistrations which has a bug)
+    let workshopRegistrations: WorkshopRegistration[] = [];
+
     if (typeof window !== "undefined") {
-      const allRegs = JSON.parse(localStorage.getItem(REGISTRATIONS_STORAGE_KEY) || "[]");
-      console.log(`[syncEventRegistrationsToWorkshop] DEBUG: ALL registrations in localStorage:`, allRegs);
-      console.log(`[syncEventRegistrationsToWorkshop] DEBUG: Looking for eventId "${eventId}"`);
-      const matching = allRegs.filter((r: any) => r.eventId === eventId);
-      console.log(`[syncEventRegistrationsToWorkshop] DEBUG: Registrations matching this eventId:`, matching);
+      try {
+        const allRegs = JSON.parse(localStorage.getItem(REGISTRATIONS_STORAGE_KEY) || "[]");
+        console.log(`[syncEventRegistrationsToWorkshop] Found ${allRegs.length} total registrations in localStorage`);
+
+        // Filter for this event and active statuses (not cancelled)
+        const filtered = allRegs.filter(
+          (reg: EventRegistration) => reg.eventId === eventId && reg.status !== "cancelled"
+        );
+        console.log(`[syncEventRegistrationsToWorkshop] Filtered to ${filtered.length} active registrations for event ${eventId}`);
+
+        workshopRegistrations = filtered.map((reg: EventRegistration) => ({
+          id: reg.id,
+          name: reg.name,
+          email: reg.email,
+          status: reg.status,
+          registeredAt: reg.registeredAt,
+        }));
+      } catch (e) {
+        console.error(`[syncEventRegistrationsToWorkshop] Error parsing localStorage:`, e);
+        return false;
+      }
     }
 
-    const registrations = await getEventRegistrations(eventId);
-    console.log(`[syncEventRegistrationsToWorkshop] Syncing ${registrations.length} registrations for event ${eventId}`);
-
-    const workshopRegistrations: WorkshopRegistration[] = registrations.map((reg) => ({
-      id: reg.id,
-      name: reg.name,
-      email: reg.email,
-      status: reg.status,
-      registeredAt: reg.registeredAt,
-    }));
-
+    console.log(`[syncEventRegistrationsToWorkshop] Syncing ${workshopRegistrations.length} registrations for event ${eventId}`);
     console.log(`[syncEventRegistrationsToWorkshop] Queueing webhook with payload:`, {
       eventId,
       eventTitle,
