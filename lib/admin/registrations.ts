@@ -283,9 +283,14 @@ export async function getEventRegistrations(eventId: string): Promise<EventRegis
       console.log(`[getEventRegistrations] Looking for eventId: ${eventId}`);
 
       const filtered = existing.filter(
-        (reg: EventRegistration) => reg.eventId === eventId && reg.status !== "cancelled"
+        (reg: EventRegistration) => {
+          const matches = reg.eventId === eventId && reg.status !== "cancelled";
+          console.log(`[getEventRegistrations] Checking reg:`, { eventId: reg.eventId, status: reg.status, matches });
+          return matches;
+        }
       );
       console.log(`[getEventRegistrations] Filtered registrations for ${eventId}:`, filtered);
+      console.log(`[getEventRegistrations] Filtered count: ${filtered.length}`);
       return filtered;
     } catch (e) {
       console.error("localStorage registration fetch failed:", e);
