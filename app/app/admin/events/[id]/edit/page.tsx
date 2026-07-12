@@ -62,7 +62,11 @@ export default function EditEventPage() {
           currency: event.currency || "USD",
         });
         if (event.imageUrl) {
+          console.log("[EditEvent] Image URL loaded, length:", event.imageUrl.length);
+          console.log("[EditEvent] Image URL starts with:", event.imageUrl.substring(0, 50));
           setImagePreview(event.imageUrl);
+        } else {
+          console.log("[EditEvent] No imageUrl found on event");
         }
       }
 
