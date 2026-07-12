@@ -78,8 +78,10 @@ export async function registerForEvent(
 
       // Send webhook even for localStorage registrations if eventDate is provided
       if (eventDate) {
-        console.log(`[registerForEvent] localStorage fallback, triggering webhook sync for event ${eventId}`);
+        console.log(`[registerForEvent] localStorage fallback, triggering webhook sync. eventId=${eventId}, eventDate=${eventDate}`);
+        console.log(`[registerForEvent] Calling syncEventRegistrationsToWorkshop now...`);
         await syncEventRegistrationsToWorkshop(eventId, eventTitle, eventDate);
+        console.log(`[registerForEvent] syncEventRegistrationsToWorkshop completed`);
       } else {
         console.warn(`[registerForEvent] No eventDate provided on fallback, skipping webhook`);
       }
