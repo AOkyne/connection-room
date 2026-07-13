@@ -12,6 +12,23 @@ export interface AuthUser {
   };
 }
 
+// Fires the automated welcome email for a brand-new member. Non-blocking:
+// a slow or failed send should never hold up or break signup.
+function fireWelcomeEmail(): void {
+  if (!supabase) return;
+  supabase.auth
+    .getSession()
+    .then(({ data }) => {
+      const token = data.session?.access_token;
+      if (!token) return;
+      return fetch("/api/welcome-email", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    })
+    .catch((err) => console.warn("Could not send welcome email:", err));
+}
+
 // Sign up or sign in with email (magic link if available, else password)
 export async function signInWithEmail(
   email: string,
@@ -125,6 +142,7 @@ export async function signUpWithPassword(
         console.error("Profile insert error:", profileError);
       } else {
         console.log("Profile created successfully");
+        fireWelcomeEmail();
 
         // Handle invite attribution if user came from an invite link
         const inviteCode = typeof window !== "undefined" ? getStoredInviteCode() : null;
