@@ -253,6 +253,85 @@ export async function deleteMembers(
   }
 }
 
+// Send a real email (via SMTP) to one or more members. Distinct from
+// sendAdminMessage(), which only delivers an in-app notification.
+export async function emailMembers(
+  memberIds: string[],
+  subject: string,
+  message: string
+): Promise<{ sentCount: number; failedCount: number; sentIds: string[]; errors: string[] }> {
+  try {
+    const { data: sessionData } = supabase
+      ? await supabase.auth.getSession()
+      : { data: { session: null } };
+    const accessToken = sessionData.session?.access_token;
+    if (!accessToken) {
+      return {
+        sentCount: 0,
+        failedCount: memberIds.length,
+        sentIds: [],
+        errors: [
+          "Not signed in with a real admin account. Admin actions require a real Supabase sign-in, not a demo session.",
+        ],
+      };
+    }
+
+    const response = await fetch("/api/admin/members/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ memberIds, subject, message }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      return {
+        sentCount: 0,
+        failedCount: memberIds.length,
+        sentIds: [],
+        errors: [data.error || "Request failed"],
+      };
+    }
+
+    if (typeof window !== "undefined") {
+      const log = {
+        action: "email_members",
+        memberIds,
+        subject,
+        sentCount: data.sentCount,
+        failedCount: data.failedCount,
+        timestamp: new Date().toISOString(),
+      };
+      const logs = JSON.parse(
+        localStorage.getItem("connection-room:admin-logs") || "[]"
+      );
+      logs.push(log);
+      localStorage.setItem(
+        "connection-room:admin-logs",
+        JSON.stringify(logs.slice(-100))
+      );
+    }
+
+    const results: { id: string; success: boolean; error?: string }[] = data.results || [];
+    const sentIds = results.filter((r) => r.success).map((r) => r.id);
+    const errors = results
+      .filter((r) => !r.success)
+      .map((r) => `${r.id}: ${r.error || "unknown error"}`);
+
+    return { sentCount: data.sentCount, failedCount: data.failedCount, sentIds, errors };
+  } catch (error) {
+    console.error("Error emailing members:", error);
+    return {
+      sentCount: 0,
+      failedCount: memberIds.length,
+      sentIds: [],
+      errors: [String(error)],
+    };
+  }
+}
+
 // Get all admin logs
 export function getAdminLogs(): any[] {
   if (typeof window === "undefined") return [];

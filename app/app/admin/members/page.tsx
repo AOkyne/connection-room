@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { getAllProfiles, type Profile } from "@/lib/data/profiles";
-import { resetMemberProgress, sendAdminMessage, deleteMembers } from "@/lib/admin/member-actions";
+import { resetMemberProgress, sendAdminMessage, deleteMembers, emailMembers } from "@/lib/admin/member-actions";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -39,6 +39,11 @@ export default function AdminMembersPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [emailTargets, setEmailTargets] = useState<Profile[] | null>(null);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
+  const [isEmailing, setIsEmailing] = useState(false);
+  const [emailError, setEmailError] = useState("");
 
   useEffect(() => {
     const loadData = async () => {
@@ -244,6 +249,48 @@ export default function AdminMembersPage() {
     }
   };
 
+  const handleSendEmail = async () => {
+    if (!emailTargets || !emailSubject.trim() || !emailBody.trim()) return;
+
+    setIsEmailing(true);
+    setEmailError("");
+    try {
+      const ids = emailTargets.map((m) => m.id);
+      const { sentCount, failedCount, sentIds, errors } = await emailMembers(
+        ids,
+        emailSubject,
+        emailBody
+      );
+
+      if (failedCount === 0) {
+        showToast(
+          sentCount === 1 ? "Email sent" : `Email sent to ${sentCount} members`,
+          "success"
+        );
+        setEmailTargets(null);
+        setEmailSubject("");
+        setEmailBody("");
+        setShowEditModal(false);
+      } else {
+        console.error("Errors emailing members:", errors);
+        showToast(
+          `Sent ${sentCount}, failed to send ${failedCount}. See details below.`,
+          sentCount > 0 ? "warning" : "error"
+        );
+        // Keep the modal open when anything failed so the error is visible
+        // and retryable, instead of silently closing as if nothing happened.
+        setEmailError(errors.join("; ") || "Sending failed");
+        setEmailTargets((prev) => prev?.filter((m) => !sentIds.includes(m.id)) ?? null);
+      }
+    } catch (error) {
+      console.error("Error emailing members:", error);
+      setEmailError(String(error));
+      showToast("Error emailing members", "error");
+    } finally {
+      setIsEmailing(false);
+    }
+  };
+
   if (!mounted || loading) {
     return (
       <LoadingScreen
@@ -321,19 +368,36 @@ export default function AdminMembersPage() {
               : "Select all"}
           </label>
           {selectedIds.size > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs text-red-600 border-red-300"
-              onClick={() => {
-                setDeleteError("");
-                setDeleteTargets(
-                  filteredMembers.filter((m) => selectedIds.has(m.id))
-                );
-              }}
-            >
-              🗑️ Delete Selected ({selectedIds.size})
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs"
+                onClick={() => {
+                  setEmailError("");
+                  setEmailSubject("");
+                  setEmailBody("");
+                  setEmailTargets(
+                    filteredMembers.filter((m) => selectedIds.has(m.id))
+                  );
+                }}
+              >
+                📧 Email Selected ({selectedIds.size})
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs text-red-600 border-red-300"
+                onClick={() => {
+                  setDeleteError("");
+                  setDeleteTargets(
+                    filteredMembers.filter((m) => selectedIds.has(m.id))
+                  );
+                }}
+              >
+                🗑️ Delete Selected ({selectedIds.size})
+              </Button>
+            </div>
           )}
         </div>
       )}
@@ -542,6 +606,19 @@ export default function AdminMembersPage() {
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => {
+                          setEmailError("");
+                          setEmailSubject("");
+                          setEmailBody("");
+                          setEmailTargets([selectedMember]);
+                        }}
+                        className="w-full justify-start text-left"
+                      >
+                        📧 Email Member
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={handleResetProgress}
                         disabled={actionInProgress}
                         className="w-full justify-start text-left text-red-600"
@@ -565,6 +642,13 @@ export default function AdminMembersPage() {
                     </div>
                   </div>
 
+                  <div className="p-3 bg-blue-50 rounded text-xs text-blue-900">
+                    <p>
+                      <strong>Send Message</strong> delivers an in-app
+                      notification only. <strong>Email Member</strong> sends a
+                      real email to their address on file.
+                    </p>
+                  </div>
                   <div className="p-3 bg-blue-50 rounded text-xs text-blue-900">
                     <p>
                       <strong>Reset Progress</strong> will clear the member's
@@ -644,6 +728,89 @@ export default function AdminMembersPage() {
                     setDeleteError("");
                   }}
                   disabled={isDeleting}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Email Compose Modal */}
+      {emailTargets && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold text-[#1a0f0a]">
+                Email {emailTargets.length === 1 ? emailTargets[0].displayName : `${emailTargets.length} Members`}
+              </h2>
+
+              {emailTargets.length > 1 && (
+                <div className="max-h-32 overflow-y-auto space-y-1 text-sm text-[#1a0f0a] bg-[#f3ede5] rounded p-3">
+                  {emailTargets.map((m) => (
+                    <p key={m.id}>{m.displayName}</p>
+                  ))}
+                </div>
+              )}
+
+              <p className="text-sm text-[#a0704a]">
+                Sends a real email to each member&rsquo;s address on file
+                (separate from the in-app Send Message notification).
+              </p>
+
+              {emailError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+                  {emailError}
+                </div>
+              )}
+
+              <div>
+                <label className="text-sm font-medium text-[#1a0f0a] block mb-1">
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  placeholder="Email subject..."
+                  className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-[#1a0f0a] block mb-1">
+                  Message
+                </label>
+                <textarea
+                  value={emailBody}
+                  onChange={(e) => setEmailBody(e.target.value)}
+                  placeholder="Write your email..."
+                  rows={6}
+                  className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2 border-t border-[#e8ddd2]">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleSendEmail}
+                  disabled={!emailSubject.trim() || !emailBody.trim() || isEmailing}
+                >
+                  {isEmailing ? "Sending..." : "Send Email"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setEmailTargets(null);
+                    setEmailSubject("");
+                    setEmailBody("");
+                    setEmailError("");
+                  }}
+                  disabled={isEmailing}
                 >
                   Cancel
                 </Button>
