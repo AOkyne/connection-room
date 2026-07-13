@@ -88,7 +88,11 @@ export default function OnboardingPage() {
     setSubmitError(null);
 
     try {
-      const updated = { ...profile, completedOnboarding: true };
+      const updated = {
+        ...profile,
+        completedOnboarding: true,
+        onboardingCompletedAt: new Date(),
+      };
       const result = await updateProfile(updated);
 
       if (!result) {

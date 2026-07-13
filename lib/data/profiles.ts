@@ -37,6 +37,7 @@ export interface Profile {
   invitedByProfileId?: string;
   welcomeVideoWatched?: boolean;
   welcomeVideoWatchedAt?: Date;
+  onboardingCompletedAt?: Date;
 }
 
 export interface CoupleProfile {
@@ -128,6 +129,7 @@ export async function getProfile(): Promise<Profile | null> {
           joinedAt: new Date(data.created_at),
           welcomeVideoWatched: data.welcome_video_watched || false,
           welcomeVideoWatchedAt: data.welcome_video_watched_at ? new Date(data.welcome_video_watched_at) : undefined,
+          onboardingCompletedAt: data.onboarding_completed_at ? new Date(data.onboarding_completed_at) : undefined,
         };
       }
     } catch (err) {
