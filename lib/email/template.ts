@@ -1,7 +1,8 @@
-// Shared branded email wrapper: logo at top, Trevor's photo next to a
-// fixed sign-off. Every automated email (welcome, drip sequence) supplies
-// only its own body paragraphs and renders through these two functions so
-// a single style/copy change applies everywhere at once.
+// Shared branded email wrapper: logo at top, a "visit the community" link,
+// and Trevor's photo next to the sign-off. Every automated email (welcome,
+// drip sequence) supplies its own body paragraphs, sign-off line, and the
+// app URL, and renders through these two functions so a single style
+// change applies everywhere at once.
 
 function escapeHtml(text: string): string {
   return text
@@ -21,16 +22,26 @@ function renderParagraphHtml(paragraph: string): string {
   return linked.replace(/\n/g, "<br>");
 }
 
-export function buildBrandedEmailText(paragraphs: string[]): string {
+export function buildBrandedEmailText(
+  paragraphs: string[],
+  appUrl: string,
+  signOff: string = "Warm hugs,"
+): string {
   return `${paragraphs.join("\n\n")}
 
-Warm hugs,
+Visit The Connection Room: ${appUrl}
+
+${signOff}
 
 Trevor James
 Founder, The Connection Room`;
 }
 
-export function buildBrandedEmailHtml(paragraphs: string[]): string {
+export function buildBrandedEmailHtml(
+  paragraphs: string[],
+  appUrl: string,
+  signOff: string = "Warm hugs,"
+): string {
   const bodyParagraphs = paragraphs
     .map(
       (p) =>
@@ -53,13 +64,20 @@ export function buildBrandedEmailHtml(paragraphs: string[]): string {
             <tr>
               <td style="padding:24px 32px 8px;">
                 ${bodyParagraphs}
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 28px;">
+                  <tr>
+                    <td align="center">
+                      <a href="${appUrl}" style="display:inline-block;background-color:#B8892F;color:#FFFDF8;text-decoration:none;padding:12px 28px;border-radius:999px;font-weight:600;font-size:15px;">Visit The Connection Room</a>
+                    </td>
+                  </tr>
+                </table>
                 <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:8px;">
                   <tr>
                     <td style="padding-right:16px;vertical-align:middle;">
                       <img src="cid:trevor-photo" alt="Trevor James" width="64" height="64" style="display:block;border-radius:50%;object-fit:cover;" />
                     </td>
                     <td style="vertical-align:middle;font-size:15px;line-height:1.4;color:#1a0f0a;">
-                      <div>Warm hugs,</div>
+                      <div>${escapeHtml(signOff)}</div>
                       <div style="font-weight:600;margin-top:4px;">Trevor James</div>
                       <div style="color:#a0704a;">Founder, The Connection Room</div>
                     </td>

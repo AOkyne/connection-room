@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
       to: userData.user.email,
       subject: "Welcome to The Connection Room!",
       paragraphs: buildParagraphs(firstName, appUrl),
+      appUrl,
     });
     return NextResponse.json({ success: true });
   } catch (err) {

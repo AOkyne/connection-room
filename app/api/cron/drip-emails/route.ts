@@ -3,6 +3,10 @@ import { createClient } from "@supabase/supabase-js";
 import { hasSmtpConfig, sendBrandedEmail } from "@/lib/email/send";
 import { DRIP_EMAILS } from "@/lib/email/drip-content";
 
+// Sends to every qualifying member sequentially, so give this route the
+// most headroom the plan allows rather than the default timeout.
+export const maxDuration = 60;
+
 interface DripSummary {
   sent: number;
   failed: number;
@@ -96,6 +100,8 @@ export async function GET(request: NextRequest) {
           to: email,
           subject: drip.subject,
           paragraphs: drip.paragraphs(firstName, appUrl),
+          appUrl,
+          signOff: drip.signOff,
         });
 
         const { error: insertError } = await supabase

@@ -38,14 +38,16 @@ export async function sendBrandedEmail(options: {
   to: string;
   subject: string;
   paragraphs: string[];
+  appUrl: string;
+  signOff?: string;
 }): Promise<void> {
   const transporter = getTransporter();
   await transporter.sendMail({
     from: process.env.SMTP_FROM || "noreply@trevorjamesla.com",
     to: options.to,
     subject: options.subject,
-    text: buildBrandedEmailText(options.paragraphs),
-    html: buildBrandedEmailHtml(options.paragraphs),
+    text: buildBrandedEmailText(options.paragraphs, options.appUrl, options.signOff),
+    html: buildBrandedEmailHtml(options.paragraphs, options.appUrl, options.signOff),
     replyTo: "support@trevorjamesla.com",
     attachments: getBrandedAttachments(),
   });
