@@ -181,7 +181,7 @@ export function getUnreadMessageCount(userId: string): number {
 // (cascades through profiles and all related data) and logs the action.
 export async function deleteMembers(
   memberIds: string[]
-): Promise<{ deletedCount: number; failedCount: number; errors: string[] }> {
+): Promise<{ deletedCount: number; failedCount: number; deletedIds: string[]; errors: string[] }> {
   try {
     const { data: sessionData } = supabase
       ? await supabase.auth.getSession()
@@ -191,6 +191,7 @@ export async function deleteMembers(
       return {
         deletedCount: 0,
         failedCount: memberIds.length,
+        deletedIds: [],
         errors: [
           "Not signed in with a real admin account. Admin actions require a real Supabase sign-in, not a demo session.",
         ],
@@ -211,6 +212,7 @@ export async function deleteMembers(
       return {
         deletedCount: 0,
         failedCount: memberIds.length,
+        deletedIds: [],
         errors: [data.error || "Request failed"],
       };
     }
@@ -233,16 +235,19 @@ export async function deleteMembers(
       );
     }
 
-    const errors = (data.results || [])
-      .filter((r: { success: boolean }) => !r.success)
-      .map((r: { id: string; error?: string }) => `${r.id}: ${r.error || "unknown error"}`);
+    const results: { id: string; success: boolean; error?: string }[] = data.results || [];
+    const deletedIds = results.filter((r) => r.success).map((r) => r.id);
+    const errors = results
+      .filter((r) => !r.success)
+      .map((r) => `${r.id}: ${r.error || "unknown error"}`);
 
-    return { deletedCount: data.deletedCount, failedCount: data.failedCount, errors };
+    return { deletedCount: data.deletedCount, failedCount: data.failedCount, deletedIds, errors };
   } catch (error) {
     console.error("Error deleting members:", error);
     return {
       deletedCount: 0,
       failedCount: memberIds.length,
+      deletedIds: [],
       errors: [String(error)],
     };
   }

@@ -11,6 +11,7 @@ import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { useToast } from "@/lib/hooks/useToast";
 import { Avatar } from "@/components/Avatar";
+import { ToastContainer } from "@/components/Toast";
 
 type SortBy = "name" | "joinDate" | "activity";
 type FilterOnboarding = "all" | "completed" | "incomplete";
@@ -37,6 +38,7 @@ export default function AdminMembersPage() {
   const [deleteTargets, setDeleteTargets] = useState<Profile[] | null>(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     const loadData = async () => {
@@ -197,15 +199,16 @@ export default function AdminMembersPage() {
     if (!deleteTargets || deleteConfirmText !== "DELETE") return;
 
     setIsDeleting(true);
+    setDeleteError("");
     try {
       const ids = deleteTargets.map((m) => m.id);
-      const { deletedCount, failedCount, errors } = await deleteMembers(ids);
+      const { deletedCount, failedCount, deletedIds, errors } = await deleteMembers(ids);
 
-      if (deletedCount > 0) {
-        setMembers((prev) => prev.filter((m) => !ids.includes(m.id)));
+      if (deletedIds.length > 0) {
+        setMembers((prev) => prev.filter((m) => !deletedIds.includes(m.id)));
         setSelectedIds((prev) => {
           const next = new Set(prev);
-          ids.forEach((id) => next.delete(id));
+          deletedIds.forEach((id) => next.delete(id));
           return next;
         });
       }
@@ -217,19 +220,24 @@ export default function AdminMembersPage() {
             : `${deletedCount} members deleted`,
           "success"
         );
+        setDeleteTargets(null);
+        setDeleteConfirmText("");
+        setShowEditModal(false);
       } else {
         console.error("Errors deleting members:", errors);
         showToast(
-          `Deleted ${deletedCount}, failed to delete ${failedCount}. Check console for details.`,
+          `Deleted ${deletedCount}, failed to delete ${failedCount}. See details below.`,
           deletedCount > 0 ? "warning" : "error"
         );
+        // Keep the modal open when anything failed so the error is visible
+        // and retryable, instead of silently closing as if nothing happened.
+        setDeleteError(errors.join("; ") || "Deletion failed");
+        setDeleteConfirmText("");
+        setDeleteTargets((prev) => prev?.filter((m) => !deletedIds.includes(m.id)) ?? null);
       }
-
-      setDeleteTargets(null);
-      setDeleteConfirmText("");
-      setShowEditModal(false);
     } catch (error) {
       console.error("Error deleting members:", error);
+      setDeleteError(String(error));
       showToast("Error deleting members", "error");
     } finally {
       setIsDeleting(false);
@@ -317,11 +325,12 @@ export default function AdminMembersPage() {
               variant="outline"
               size="sm"
               className="text-xs text-red-600 border-red-300"
-              onClick={() =>
+              onClick={() => {
+                setDeleteError("");
                 setDeleteTargets(
                   filteredMembers.filter((m) => selectedIds.has(m.id))
-                )
-              }
+                );
+              }}
             >
               🗑️ Delete Selected ({selectedIds.size})
             </Button>
@@ -544,7 +553,10 @@ export default function AdminMembersPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setDeleteTargets([selectedMember])}
+                        onClick={() => {
+                          setDeleteError("");
+                          setDeleteTargets([selectedMember]);
+                        }}
                         disabled={actionInProgress}
                         className="w-full justify-start text-left text-red-600"
                       >
@@ -596,6 +608,12 @@ export default function AdminMembersPage() {
                 progress, event registrations, connections). This cannot be undone.
               </p>
 
+              {deleteError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+                  {deleteError}
+                </div>
+              )}
+
               <div>
                 <label className="text-sm font-medium text-[#1a0f0a] block mb-1">
                   Type <span className="font-mono">DELETE</span> to confirm
@@ -623,6 +641,7 @@ export default function AdminMembersPage() {
                   onClick={() => {
                     setDeleteTargets(null);
                     setDeleteConfirmText("");
+                    setDeleteError("");
                   }}
                   disabled={isDeleting}
                 >
@@ -634,8 +653,7 @@ export default function AdminMembersPage() {
         </div>
       )}
 
-      {/* Toast Notifications */}
-      {/* Add toast container here if not already in layout */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }
