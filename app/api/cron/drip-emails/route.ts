@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { hasSmtpConfig, sendBrandedEmail } from "@/lib/email/send";
-import { DRIP_EMAILS } from "@/lib/email/drip-content";
+import { renderTemplateBody } from "@/lib/email/render-template";
 
 // Sends to every qualifying member sequentially, so give this route the
 // most headroom the plan allows rather than the default timeout.
@@ -42,12 +42,25 @@ export async function GET(request: NextRequest) {
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://community.trevorjamesla.com";
 
+  const { data: drips, error: dripsError } = await supabase
+    .from("email_templates")
+    .select("key, subject, body, sign_off, days_after_onboarding")
+    .not("days_after_onboarding", "is", null)
+    .eq("active", true);
+
+  if (dripsError) {
+    console.error("Error fetching drip templates:", dripsError);
+    return NextResponse.json({ error: "Failed to fetch drip templates" }, { status: 500 });
+  }
+
   const summary: Record<string, DripSummary> = {};
 
-  for (const drip of DRIP_EMAILS) {
+  for (const drip of drips || []) {
     summary[drip.key] = { sent: 0, failed: 0, skipped: 0 };
 
-    const thresholdDate = new Date(Date.now() - drip.days * 24 * 60 * 60 * 1000).toISOString();
+    const thresholdDate = new Date(
+      Date.now() - drip.days_after_onboarding * 24 * 60 * 60 * 1000
+    ).toISOString();
 
     const { data: candidates, error: candidatesError } = await supabase
       .from("profiles")
@@ -99,9 +112,9 @@ export async function GET(request: NextRequest) {
         await sendBrandedEmail({
           to: email,
           subject: drip.subject,
-          paragraphs: drip.paragraphs(firstName, appUrl),
+          paragraphs: renderTemplateBody(drip.body, { firstName, appUrl }),
           appUrl,
-          signOff: drip.signOff,
+          signOff: drip.sign_off,
         });
 
         const { error: insertError } = await supabase

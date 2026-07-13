@@ -110,6 +110,11 @@ export default function AdminPage() {
             ✨ Daily Content
           </Button>
         </Link>
+        <Link href="/app/admin/emails">
+          <Button variant="outline" size="sm">
+            ✉️ Automated Emails
+          </Button>
+        </Link>
       </div>
 
       {/* Content Alerts */}
