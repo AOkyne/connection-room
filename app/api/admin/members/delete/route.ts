@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 interface DeleteResult {
   id: string;
@@ -8,15 +8,11 @@ interface DeleteResult {
 }
 
 export async function POST(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseServiceKey) {
-    return NextResponse.json(
-      { error: "Missing Supabase configuration" },
-      { status: 500 }
-    );
+  const auth = await requireAdmin(request);
+  if (!auth.ok) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
+  const { supabase } = auth;
 
   let memberIds: unknown;
   try {
@@ -33,7 +29,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
   const results: DeleteResult[] = [];
 
   for (const id of memberIds) {

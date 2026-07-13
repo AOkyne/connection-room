@@ -183,9 +183,26 @@ export async function deleteMembers(
   memberIds: string[]
 ): Promise<{ deletedCount: number; failedCount: number; errors: string[] }> {
   try {
+    const { data: sessionData } = supabase
+      ? await supabase.auth.getSession()
+      : { data: { session: null } };
+    const accessToken = sessionData.session?.access_token;
+    if (!accessToken) {
+      return {
+        deletedCount: 0,
+        failedCount: memberIds.length,
+        errors: [
+          "Not signed in with a real admin account. Admin actions require a real Supabase sign-in, not a demo session.",
+        ],
+      };
+    }
+
     const response = await fetch("/api/admin/members/delete", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
       body: JSON.stringify({ memberIds }),
     });
 

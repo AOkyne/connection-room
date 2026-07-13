@@ -14,6 +14,7 @@ import {
   fallbackSignInWithPassword,
   fallbackSignUpWithPassword,
 } from "@/lib/auth/fallback";
+import { supabase } from "@/lib/supabase/client";
 import { storeInviteCodeLocally } from "@/lib/data/invites";
 import Link from "next/link";
 
@@ -23,13 +24,10 @@ function BetaAuthContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authMode, setAuthMode] = useState<"password-signup" | "password-signin" | "admin">("password-signup");
-  const [adminSecret, setAdminSecret] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [usingFallback, setUsingFallback] = useState(false);
-
-  const ADMIN_SECRET = "connection2024";
 
   // Capture invite code from URL
   useEffect(() => {
@@ -42,22 +40,50 @@ function BetaAuthContent() {
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    if (!adminSecret) {
-      setError("Please enter the admin secret key");
-      return;
-    }
-    if (adminSecret !== ADMIN_SECRET) {
-      setError("Incorrect admin secret key");
-      return;
-    }
-
     setLoading(true);
-    const profile = createDemoProfile("Admin", "individual");
-    createAdminSession("Admin", profile.profilePhoto);
-    setTimeout(() => {
-      router.push("/app/admin");
-    }, 100);
+
+    try {
+      const result = await signInWithPassword(email, password);
+      if (!result.success) {
+        setError((result.error as string) || "Invalid email or password");
+        setLoading(false);
+        return;
+      }
+
+      if (!supabase) {
+        setError("Admin login requires Supabase to be configured.");
+        setLoading(false);
+        return;
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      const { data: profile } = user
+        ? await supabase
+            .from("profiles")
+            .select("role, display_name, profile_photo")
+            .eq("user_id", user.id)
+            .maybeSingle()
+        : { data: null };
+
+      if (profile?.role !== "admin") {
+        setError("This account does not have admin access.");
+        await supabase.auth.signOut();
+        setLoading(false);
+        return;
+      }
+
+      createAdminSession(profile.display_name || "Admin", profile.profile_photo || undefined);
+      setTimeout(() => {
+        router.push("/app/admin");
+      }, 100);
+    } catch (err) {
+      console.error("Admin login error:", err);
+      setError("An unexpected error occurred. Please try again.");
+      setLoading(false);
+    }
   };
 
   const handleBetaSignIn = async (e: React.FormEvent) => {
@@ -240,57 +266,40 @@ function BetaAuthContent() {
             )}
 
             <form onSubmit={authMode === "admin" ? handleAdminLogin : handleBetaSignIn} className="space-y-4">
-              {authMode !== "admin" ? (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-[#1a1714] mb-2">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="you@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
-                    />
-                  </div>
+              <div>
+                <label className="block text-sm font-medium text-[#1a1714] mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
+                />
+              </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-[#1a1714] mb-2">
-                      Password {authMode === "password-signup" && "(min 8 characters)"}
-                    </label>
-                    <input
-                      type="password"
-                      placeholder={authMode === "password-signup" ? "Choose a password" : "Enter your password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      minLength={authMode === "password-signup" ? 8 : undefined}
-                      className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
-                    />
-                  </div>
-                </>
-              ) : (
-                <div>
-                  <label className="block text-sm font-medium text-[#1a1714] mb-2">
-                    Admin Secret Key
-                  </label>
-                  <input
-                    type="password"
-                    placeholder="Enter admin secret key"
-                    value={adminSecret}
-                    onChange={(e) => setAdminSecret(e.target.value)}
-                    required
-                    className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleAdminLogin(e as any);
-                    }}
-                  />
-                  <p className="text-xs text-[#a0704a] mt-2">
-                    Contact Trevor for the admin secret key
-                  </p>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-[#1a1714] mb-2">
+                  Password {authMode === "password-signup" && "(min 8 characters)"}
+                </label>
+                <input
+                  type="password"
+                  placeholder={authMode === "password-signup" ? "Choose a password" : "Enter your password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={authMode === "password-signup" ? 8 : undefined}
+                  className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
+                />
+              </div>
+
+              {authMode === "admin" && (
+                <p className="text-xs text-[#a0704a]">
+                  Sign in with your regular account. Access is granted based on
+                  your account's admin role, not a separate password.
+                </p>
               )}
 
               <Button
@@ -298,7 +307,7 @@ function BetaAuthContent() {
                 variant="primary"
                 size="lg"
                 className="w-full"
-                disabled={loading || (authMode !== "admin" ? (!email || !password) : !adminSecret)}
+                disabled={loading || !email || !password}
               >
                 {loading ? (
                   authMode === "admin" ? "Logging in..." : (authMode === "password-signup" ? "Creating account..." : "Signing in...")
