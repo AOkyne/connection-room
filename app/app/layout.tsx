@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getSession, clearSession, type AppSession } from "@/lib/session";
 import { recordAppVisit } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
-import { IconHome, IconJourney, IconConnectionsNav, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming, IconReflection } from "@/components/Icons";
+import { IconHome, IconJourney, IconConnectionsNav, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming, IconReflection, IconWelcome } from "@/components/Icons";
 import { BugReportWidget } from "@/components/BugReportWidget";
 import Link from "next/link";
 
@@ -128,6 +128,17 @@ export default function AppLayout({ children }: AppLayoutProps) {
               </Link>
             </div>
           )}
+
+          {/* About: Philosophy, House Rules, Brand Vision, Terms, Privacy */}
+          <div className="border-t border-[#e8e3db] mt-4 pt-4">
+            <Link
+              href="/app/about"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#6b6460] hover:bg-[#f8f6f2] transition-colors"
+            >
+              <IconWelcome size={20} />
+              <span>About</span>
+            </Link>
+          </div>
         </nav>
 
         {/* Main Content */}

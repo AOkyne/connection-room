@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 interface ContentFooterProps {
-  hide?: "philosophy" | "house-rules" | "faqs";
+  hide?: "philosophy" | "house-rules" | "faqs" | "brand-vision";
 }
 
 export function ContentFooter({ hide }: ContentFooterProps) {
@@ -10,6 +10,7 @@ export function ContentFooter({ hide }: ContentFooterProps) {
     { href: "/philosophy", label: "Philosophy" },
     { href: "/house-rules", label: "House Rules" },
     { href: "/faqs", label: "FAQs" },
+    { href: "/brand-vision", label: "Brand Vision" },
   ].filter((l) => l.href.slice(1) !== hide);
 
   return (

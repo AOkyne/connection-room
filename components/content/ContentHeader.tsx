@@ -4,10 +4,11 @@ const NAV_ITEMS = [
   { href: "/philosophy", label: "Philosophy" },
   { href: "/house-rules", label: "House Rules" },
   { href: "/faqs", label: "FAQs" },
+  { href: "/brand-vision", label: "Brand Vision" },
 ];
 
 interface ContentHeaderProps {
-  active?: "philosophy" | "house-rules" | "faqs";
+  active?: "philosophy" | "house-rules" | "faqs" | "brand-vision";
 }
 
 export function ContentHeader({ active }: ContentHeaderProps) {
