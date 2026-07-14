@@ -15,7 +15,7 @@ export function ContentHeader({ active }: ContentHeaderProps) {
   return (
     <header className="tcr-header">
       <div className="tcr-logo">
-        <Link href="/app" className="tcr-back">
+        <Link href="/app/about" className="tcr-back">
           &larr; Back
         </Link>
         <Link href="/app">

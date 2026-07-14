@@ -6,7 +6,7 @@ interface ContentFooterProps {
 
 export function ContentFooter({ hide }: ContentFooterProps) {
   const links = [
-    { href: "/app", label: "Back to Dashboard" },
+    { href: "/app/about", label: "Back to About" },
     { href: "/philosophy", label: "Philosophy" },
     { href: "/house-rules", label: "House Rules" },
     { href: "/faqs", label: "FAQs" },
