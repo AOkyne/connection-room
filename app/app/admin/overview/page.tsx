@@ -7,6 +7,7 @@ import { getSession } from "@/lib/session";
 import { getMemberStats, getActivityStats, getEventStats, getOfferStats, getSeededContentStats, getSpaceStats, type MemberStats, type ActivityStats, type EventStats, type OfferStats, type SeededContentStats, type SpaceStats } from "@/lib/admin/analytics";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { LoadingScreen } from "@/components/LoadingScreen";
 
 export default function AdminOverviewPage() {
@@ -101,6 +102,12 @@ export default function AdminOverviewPage() {
 
   return (
     <div className="space-y-8 max-w-7xl">
+      <Breadcrumb
+        items={[
+          { label: "Admin", href: "/app/admin" },
+          { label: "Analytics", isActive: true },
+        ]}
+      />
       {/* Header */}
       <div>
         <h1 className="text-4xl font-bold text-[#1a0f0a]">Admin Dashboard</h1>

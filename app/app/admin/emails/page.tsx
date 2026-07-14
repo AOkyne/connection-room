@@ -6,6 +6,7 @@ import { getSession } from "@/lib/session";
 import { getEmailTemplates, updateEmailTemplate, type EmailTemplate } from "@/lib/admin/email-templates";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { useToast } from "@/lib/hooks/useToast";
 import { ToastContainer } from "@/components/Toast";
@@ -104,6 +105,12 @@ export default function AdminEmailsPage() {
 
   return (
     <div className="space-y-6 max-w-4xl">
+      <Breadcrumb
+        items={[
+          { label: "Admin", href: "/app/admin" },
+          { label: "Automated Emails", isActive: true },
+        ]}
+      />
       <div>
         <h1 className="text-3xl font-bold text-[#1a0f0a]">Automated Emails</h1>
         <p className="text-[#a0704a] mt-1">

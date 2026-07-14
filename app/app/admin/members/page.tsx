@@ -8,6 +8,7 @@ import { getAllProfiles, type Profile } from "@/lib/data/profiles";
 import { resetMemberProgress, sendAdminMessage, deleteMembers, emailMembers } from "@/lib/admin/member-actions";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { useToast } from "@/lib/hooks/useToast";
 import { Avatar } from "@/components/Avatar";
@@ -302,6 +303,12 @@ export default function AdminMembersPage() {
 
   return (
     <div className="space-y-6 max-w-6xl">
+      <Breadcrumb
+        items={[
+          { label: "Admin", href: "/app/admin" },
+          { label: "Members", isActive: true },
+        ]}
+      />
       <div>
         <h1 className="text-3xl font-bold text-[#1a0f0a]">Members</h1>
         <p className="text-[#a0704a] mt-1">

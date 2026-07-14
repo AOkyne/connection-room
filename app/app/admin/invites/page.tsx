@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/Button";
 import { Card, CardHeader } from "@/components/Card";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
 import { IconConnection } from "@/components/Icons";
@@ -138,13 +139,14 @@ export default function InvitesAdmin() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
+      <Breadcrumb
+        items={[
+          { label: "Admin", href: "/app/admin" },
+          { label: "Invite Relationships", isActive: true },
+        ]}
+      />
+      <div>
         <h1 className="text-3xl text-[#1a0f0a]">Invite Relationships</h1>
-        <Link href="/app/admin">
-          <Button variant="ghost" size="sm">
-            ← Back
-          </Button>
-        </Link>
       </div>
 
       <Card>

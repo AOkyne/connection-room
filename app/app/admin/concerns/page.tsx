@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { useToast } from "@/lib/hooks/useToast";
 
@@ -148,6 +149,12 @@ export default function AdminConcernsPage() {
 
   return (
     <div className="space-y-6 max-w-6xl">
+      <Breadcrumb
+        items={[
+          { label: "Admin", href: "/app/admin" },
+          { label: "Reported Concerns", isActive: true },
+        ]}
+      />
       <div>
         <h1 className="text-3xl font-bold text-[#1a0f0a]">Reported Concerns</h1>
         <p className="text-[#a0704a] mt-1">

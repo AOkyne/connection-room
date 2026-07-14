@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { getSession } from "@/lib/session";
 
 interface Post {

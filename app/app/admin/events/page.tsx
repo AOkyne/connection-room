@@ -17,6 +17,7 @@ import {
 } from "@/lib/admin/event-management";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { useToast } from "@/lib/hooks/useToast";
 
@@ -141,6 +142,12 @@ export default function AdminEventsPage() {
 
   return (
     <div className="space-y-6 max-w-6xl">
+      <Breadcrumb
+        items={[
+          { label: "Admin", href: "/app/admin" },
+          { label: "Events", isActive: true },
+        ]}
+      />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-[#1a0f0a]">Events</h1>
