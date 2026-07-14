@@ -79,12 +79,15 @@ export async function getMemberStats(): Promise<MemberStats> {
 
     const { data: result, error: err, status } = await supabase
       .from("profiles")
-      .select("id, created_at");
+      .select("id, created_at, completed_onboarding, profile_photo")
+      .order("created_at", { ascending: false });
 
     if (err) {
       console.error("getMemberStats error details:", { status, err, message: err?.message });
       throw err;
     }
+
+    console.log("📊 Member Stats - Total profiles fetched:", result?.length || 0);
 
     const profiles = result || [];
     const totalMembers = profiles.length;
@@ -131,12 +134,18 @@ export async function getMemberStats(): Promise<MemberStats> {
 
     const activeThisMonth = activeIdsMonth.size;
 
+    // Count completed onboarding and profile photos
+    const completedOnboarding = profiles.filter((p: any) => p.completed_onboarding).length;
+    const withProfilePhoto = profiles.filter((p: any) => p.profile_photo).length;
+
+    console.log("📊 Analytics:", { totalMembers, newThisWeek, activeThisWeek, completedOnboarding, withProfilePhoto });
+
     return {
       totalMembers,
       newThisWeek,
       newThisMonth,
-      completedOnboarding: 0,
-      withProfilePhoto: 0,
+      completedOnboarding,
+      withProfilePhoto,
       activeThisWeek,
       activeThisMonth,
     };
@@ -168,23 +177,35 @@ export async function getActivityStats(): Promise<ActivityStats> {
   try {
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    const { data: posts } = await supabase
+    const { data: posts, error: postsError } = await supabase
       .from("posts")
       .select("id")
       .gte("created_at", oneWeekAgo.toISOString());
 
-    const { data: comments } = await supabase
+    const { data: comments, error: commentsError } = await supabase
       .from("comments")
       .select("id")
       .gte("created_at", oneWeekAgo.toISOString());
 
+    const { data: reactions, error: reactionsError } = await supabase
+      .from("reactions")
+      .select("id")
+      .gte("created_at", oneWeekAgo.toISOString());
+
+    if (postsError || commentsError || reactionsError) {
+      console.error("Activity stats errors:", { postsError, commentsError, reactionsError });
+    }
+
     const postsThisWeek = posts?.length || 0;
     const commentsThisWeek = comments?.length || 0;
+    const reactionsThisWeek = reactions?.length || 0;
+
+    console.log("📈 Activity Stats:", { postsThisWeek, commentsThisWeek, reactionsThisWeek });
 
     return {
       postsThisWeek,
       commentsThisWeek,
-      reactionsThisWeek: 0,
+      reactionsThisWeek,
       activeMembers: [],
     };
   } catch (err) {
