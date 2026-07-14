@@ -6,6 +6,9 @@ import {
   joinSpace as joinSupabaseSpace,
   leaveSpace as leaveSupabaseSpace,
   hasJoinedSpace as checkHasJoinedSpace,
+  getNewContentCount,
+  updateSpaceVisit,
+  getAllNewContent,
 } from "./supabase-spaces";
 
 export interface Space {
@@ -16,6 +19,7 @@ export interface Space {
   color: string;
   memberCount: number;
   isJoined: boolean;
+  newPostCount?: number;
   featuredPrompt?: string;
   hidden?: boolean;
 }
@@ -242,6 +246,81 @@ export function getAppVisits(): number {
 
   const stored = localStorage.getItem(APP_VISITS_KEY);
   return stored ? parseInt(stored, 10) : 0;
+}
+
+// Track a space visit and update last_visited_at
+export async function trackSpaceVisit(spaceId: string): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  const userId = await getCurrentUserId();
+  if (userId && supabase) {
+    try {
+      await updateSpaceVisit(userId, spaceId);
+    } catch (err) {
+      console.warn("Error tracking space visit:", err);
+    }
+  } else {
+    // Demo mode: track in localStorage
+    const key = `connection-room:space-visit-${spaceId}`;
+    localStorage.setItem(key, new Date().toISOString());
+  }
+}
+
+// Get new post count for a space
+export async function getSpaceNewPostCount(spaceId: string): Promise<number> {
+  if (typeof window === "undefined") return 0;
+
+  const userId = await getCurrentUserId();
+  if (userId && supabase) {
+    try {
+      return await getNewContentCount(userId, spaceId);
+    } catch (err) {
+      console.warn("Error getting new post count:", err);
+      return 0;
+    }
+  }
+
+  // Demo mode: check localStorage
+  const visitKey = `connection-room:space-visit-${spaceId}`;
+  const lastVisit = localStorage.getItem(visitKey);
+  if (!lastVisit) return 0;
+
+  // For demo, we'd need to count posts in localStorage created after lastVisit
+  // For now, return 0 (demo posts are static)
+  return 0;
+}
+
+// Get all spaces with new post counts
+export async function getSpacesWithNewCounts(): Promise<Space[]> {
+  const spaces = await getSpaces();
+  const userId = await getCurrentUserId();
+
+  if (userId && supabase) {
+    // Fetch new counts for Supabase spaces
+    const spacesWithCounts = await Promise.all(
+      spaces.map(async (space) => ({
+        ...space,
+        newPostCount: await getSpaceNewPostCount(space.id),
+      }))
+    );
+    return spacesWithCounts;
+  }
+
+  // Demo mode: no counts
+  return spaces.map(s => ({ ...s, newPostCount: 0 }));
+}
+
+// Get total unread count across all joined spaces
+export async function getTotalNewPostCount(): Promise<number> {
+  const spaces = await getSpaces();
+  const joinedSpaces = spaces.filter(s => s.isJoined);
+
+  let total = 0;
+  for (const space of joinedSpaces) {
+    const count = await getSpaceNewPostCount(space.id);
+    total += count;
+  }
+  return total;
 }
 
 // Mark Start Here as complete

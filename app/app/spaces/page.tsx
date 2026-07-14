@@ -8,7 +8,7 @@ import { Button } from "@/components/Button";
 import { SpaceIconSVG } from "@/components/SpaceIconSVG";
 import { SpaceJoinedFeedback } from "@/components/feedback";
 import { Breadcrumb } from "@/components/Breadcrumb";
-import { getSpaces, joinSpace, leaveSpace, ensureRequiredSpaces, sortSpacesByPreference, saveSpaceOrder, isStartHereRequired, getAppVisits, type Space } from "@/lib/data/spaces";
+import { getSpaces, joinSpace, leaveSpace, ensureRequiredSpaces, sortSpacesByPreference, saveSpaceOrder, isStartHereRequired, getAppVisits, getSpacesWithNewCounts, trackSpaceVisit, type Space } from "@/lib/data/spaces";
 import { getMemberCountBySpace } from "@/lib/data/profiles";
 import { spaceImageMap } from "@/lib/constants/spaceImages";
 
@@ -23,7 +23,7 @@ export default function SpacesPage() {
       // Ensure user has joined required spaces
       await ensureRequiredSpaces();
 
-      const s = await getSpaces();
+      const s = await getSpacesWithNewCounts();
       const sorted = sortSpacesByPreference(s);
       setSpaces(sorted);
 
@@ -184,7 +184,14 @@ export default function SpacesPage() {
                     )}
                     <CardHeader title={space.name} icon={<SpaceIconSVG spaceId={space.id} size={32} />} />
                     <p className="text-sm text-[#1a0f0a] mb-4">{space.description}</p>
-                    <div className="text-xs text-[#a0704a] mb-4">{memberCounts[space.id] || 0} members</div>
+                    <div className="flex items-center justify-between text-xs text-[#a0704a] mb-4">
+                      <span>{memberCounts[space.id] || 0} members</span>
+                      {space.newPostCount && space.newPostCount > 0 && (
+                        <span className="bg-[#d4a348] text-white px-2 py-1 rounded-full text-xs font-medium">
+                          {space.newPostCount} new
+                        </span>
+                      )}
+                    </div>
                     <div className="flex gap-2 mt-auto">
                       <Link href={`/app/spaces/${space.id}`}>
                         <Button variant="secondary" size="sm">

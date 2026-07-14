@@ -95,6 +95,11 @@ export default function AdminPage() {
             🛡️ Moderate Posts & Comments
           </Button>
         </Link>
+        <Link href="/app/admin/activity">
+          <Button variant="outline" size="sm">
+            📢 Activity Feed
+          </Button>
+        </Link>
         <Link href="/app/admin/invites">
           <Button variant="outline" size="sm">
             📊 Invite Relationships

@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession, clearSession, type AppSession } from "@/lib/session";
-import { recordAppVisit } from "@/lib/data/spaces";
+import { recordAppVisit, getTotalNewPostCount } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
 import { IconHome, IconJourney, IconConnectionsNav, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming, IconReflection, IconWelcome } from "@/components/Icons";
 import { BugReportWidget } from "@/components/BugReportWidget";
@@ -19,6 +19,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const router = useRouter();
   const [session, setSession] = useState<AppSession | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [totalUnread, setTotalUnread] = useState(0);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
@@ -53,6 +54,19 @@ export default function AppLayout({ children }: AppLayoutProps) {
     checkSession();
   }, [router]);
 
+  // Load total unread count
+  useEffect(() => {
+    const loadUnreadCount = async () => {
+      if (mounted && session?.type === "member") {
+        const count = await getTotalNewPostCount();
+        setTotalUnread(count);
+      }
+    };
+    loadUnreadCount();
+    // Refresh every 30 seconds
+    const interval = setInterval(loadUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [mounted, session]);
 
   const handleLogout = async () => {
     await clearSession();
@@ -112,7 +126,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
               className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#6b6460] hover:bg-[#f8f6f2] transition-colors"
             >
               {item.icon ? <item.icon size={20} /> : <IconSpaces size={20} />}
-              <span>{item.label}</span>
+              <span className="flex-1">{item.label}</span>
+              {item.label === "Spaces" && totalUnread > 0 && (
+                <span className="bg-[#d4a348] text-white px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2">
+                  {totalUnread}
+                </span>
+              )}
             </Link>
           ))}
 

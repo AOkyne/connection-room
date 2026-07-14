@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { getSpace } from "@/lib/data/spaces";
+import { getSpace, trackSpaceVisit } from "@/lib/data/spaces";
 import { getPosts, createPost, addPostReaction, getComments, createComment, getUserReactionForPost, updatePost, deletePost, updateComment, deleteComment, type Post, type Comment } from "@/lib/data/posts";
 import { getProfile } from "@/lib/data/profiles";
 import { getSession } from "@/lib/session";
@@ -114,6 +114,9 @@ export default function SpaceDetailPage() {
 
   useEffect(() => {
     const loadData = async () => {
+      // Track this space visit
+      await trackSpaceVisit(spaceId);
+
       // Fetch space, profile, and session in parallel
       const [s, p, session] = await Promise.all([
         getSpace(spaceId),
