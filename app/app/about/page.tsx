@@ -12,6 +12,11 @@ const LINKS = [
     description: "How we hold this space together, and what we ask of each other.",
   },
   {
+    href: "/faqs",
+    label: "FAQs",
+    description: "Practical answers about how the community works.",
+  },
+  {
     href: "/brand-vision",
     label: "Brand Vision",
     description: "The vision behind The Connection Room brand.",
