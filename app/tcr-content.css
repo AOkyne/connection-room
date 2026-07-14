@@ -60,8 +60,21 @@
   border-bottom: 1px solid var(--tcr-border);
 }
 
-.tcr-page .tcr-logo { display: flex; align-items: center; }
+.tcr-page .tcr-logo { display: flex; align-items: center; gap: 20px; }
 .tcr-page .tcr-logo__image { height: 52px; width: auto; display: block; }
+
+.tcr-page .tcr-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--tcr-ink-soft);
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.tcr-page .tcr-back:hover { color: var(--tcr-gold-deep); }
 
 .tcr-page .tcr-nav {
   display: flex;

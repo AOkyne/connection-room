@@ -14,13 +14,18 @@ interface ContentHeaderProps {
 export function ContentHeader({ active }: ContentHeaderProps) {
   return (
     <header className="tcr-header">
-      <Link href="/app" className="tcr-logo">
-        <img
-          src="/connection-room-logo.svg"
-          alt="The Connection Room"
-          className="tcr-logo__image"
-        />
-      </Link>
+      <div className="tcr-logo">
+        <Link href="/app" className="tcr-back">
+          &larr; Back
+        </Link>
+        <Link href="/app">
+          <img
+            src="/connection-room-logo.svg"
+            alt="The Connection Room"
+            className="tcr-logo__image"
+          />
+        </Link>
+      </div>
       <nav className="tcr-nav">
         {NAV_ITEMS.map((item) => (
           <Link
