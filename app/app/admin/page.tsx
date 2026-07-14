@@ -7,6 +7,7 @@ import { getAllBadges } from "@/lib/data/badges";
 import { getUpcomingEvents } from "@/lib/data/events";
 import { getAllOffers } from "@/lib/data/offers";
 import { getRecentSignups, getSession } from "@/lib/session";
+import { getMemberStats, getActivityStats, type MemberStats, type ActivityStats } from "@/lib/admin/analytics";
 import { demoMembers } from "@/lib/seed/demo-members";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -29,6 +30,8 @@ export default function AdminPage() {
   const [recentSignups, setRecentSignups] = useState<any[]>([]);
   const [allMembers, setAllMembers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [memberStats, setMemberStats] = useState<MemberStats | null>(null);
+  const [activityStats, setActivityStats] = useState<ActivityStats | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -45,6 +48,18 @@ export default function AdminPage() {
       setOffers(getAllOffers());
       setRecentSignups(getRecentSignups());
       setAllMembers(demoMembers);
+
+      // Load real analytics data
+      try {
+        const [members, activity] = await Promise.all([
+          getMemberStats(),
+          getActivityStats(),
+        ]);
+        setMemberStats(members);
+        setActivityStats(activity);
+      } catch (error) {
+        console.error("Error loading analytics:", error);
+      }
 
       // Load reported concerns from localStorage
       if (typeof window !== "undefined") {
@@ -150,26 +165,34 @@ export default function AdminPage() {
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader title="Total Members" icon={<IconProfileNav size={20} />} />
-          <p className="text-3xl font-bold text-[#d4a348]">247</p>
-          <p className="text-sm text-[#a0704a] mt-2">+12 this week</p>
+          <p className="text-3xl font-bold text-[#d4a348]">{memberStats?.totalMembers || 0}</p>
+          <p className="text-sm text-[#a0704a] mt-2">+{memberStats?.newThisWeek || 0} this week</p>
         </Card>
 
         <Card>
           <CardHeader title="Active This Week" icon={<IconAlert size={20} />} />
-          <p className="text-3xl font-bold text-[#d4a348]">156</p>
-          <p className="text-sm text-[#a0704a] mt-2">63% engagement</p>
+          <p className="text-3xl font-bold text-[#d4a348]">{memberStats?.activeThisWeek || 0}</p>
+          <p className="text-sm text-[#a0704a] mt-2">
+            {memberStats?.totalMembers
+              ? Math.round((memberStats.activeThisWeek / memberStats.totalMembers) * 100)
+              : 0}% engagement
+          </p>
         </Card>
 
         <Card>
           <CardHeader title="Posts & Responses" icon={<IconChat size={20} />} />
-          <p className="text-3xl font-bold text-[#d4a348]">423</p>
-          <p className="text-sm text-[#a0704a] mt-2">+45 this week</p>
+          <p className="text-3xl font-bold text-[#d4a348]">
+            {(activityStats?.postsThisWeek || 0) + (activityStats?.commentsThisWeek || 0)}
+          </p>
+          <p className="text-sm text-[#a0704a] mt-2">
+            {activityStats?.postsThisWeek || 0} posts, {activityStats?.commentsThisWeek || 0} comments
+          </p>
         </Card>
 
         <Card>
-          <CardHeader title="Connections Completed" icon={<IconConnection size={20} />} />
-          <p className="text-3xl font-bold text-[#d4a348]">89</p>
-          <p className="text-sm text-[#a0704a] mt-2">High satisfaction</p>
+          <CardHeader title="Community Activity" icon={<IconConnection size={20} />} />
+          <p className="text-3xl font-bold text-[#d4a348]">{activityStats?.reactionsThisWeek || 0}</p>
+          <p className="text-sm text-[#a0704a] mt-2">Reactions this week</p>
         </Card>
       </div>
 

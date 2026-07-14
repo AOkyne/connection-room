@@ -108,10 +108,11 @@ export default function AdminOverviewPage() {
           { label: "Analytics", isActive: true },
         ]}
       />
+
       {/* Header */}
       <div>
-        <h1 className="text-4xl font-bold text-[#1a0f0a]">Admin Dashboard</h1>
-        <p className="text-lg text-[#a0704a] mt-2">Launch readiness overview</p>
+        <h1 className="text-4xl font-bold text-[#1a0f0a]">Analytics</h1>
+        <p className="text-lg text-[#a0704a] mt-2">Community metrics and performance</p>
       </div>
 
       {/* Setup Status Info */}
