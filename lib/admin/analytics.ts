@@ -79,7 +79,8 @@ export async function getMemberStats(): Promise<MemberStats> {
 
     const { data: result, error: err, status } = await supabase
       .from("profiles")
-      .select("id, created_at, completed_onboarding, profile_photo")
+      .select("id, created_at, completed_onboarding, profile_photo, is_demo_profile")
+      .eq("is_demo_profile", false)
       .order("created_at", { ascending: false });
 
     if (err) {
@@ -87,7 +88,7 @@ export async function getMemberStats(): Promise<MemberStats> {
       throw err;
     }
 
-    console.log("📊 Member Stats - Total profiles fetched:", result?.length || 0);
+    console.log("📊 Member Stats - Real profiles fetched:", result?.length || 0);
 
     const profiles = result || [];
     const totalMembers = profiles.length;
@@ -177,30 +178,47 @@ export async function getActivityStats(): Promise<ActivityStats> {
   try {
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
+    // Get real members (exclude demo)
+    const { data: realMembers } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("is_demo_profile", false);
+
+    const realMemberIds = new Set((realMembers || []).map((m: any) => m.id));
+
+    // Get posts from real members only
     const { data: posts, error: postsError } = await supabase
       .from("posts")
-      .select("id")
+      .select("id, user_id")
       .gte("created_at", oneWeekAgo.toISOString());
 
+    const realPosts = (posts || []).filter((p: any) => realMemberIds.has(p.user_id));
+
+    // Get comments from real members only
     const { data: comments, error: commentsError } = await supabase
       .from("comments")
-      .select("id")
+      .select("id, user_id")
       .gte("created_at", oneWeekAgo.toISOString());
 
+    const realComments = (comments || []).filter((c: any) => realMemberIds.has(c.user_id));
+
+    // Get reactions from real members only
     const { data: reactions, error: reactionsError } = await supabase
       .from("reactions")
-      .select("id")
+      .select("id, user_id")
       .gte("created_at", oneWeekAgo.toISOString());
+
+    const realReactions = (reactions || []).filter((r: any) => realMemberIds.has(r.user_id));
 
     if (postsError || commentsError || reactionsError) {
       console.error("Activity stats errors:", { postsError, commentsError, reactionsError });
     }
 
-    const postsThisWeek = posts?.length || 0;
-    const commentsThisWeek = comments?.length || 0;
-    const reactionsThisWeek = reactions?.length || 0;
+    const postsThisWeek = realPosts.length;
+    const commentsThisWeek = realComments.length;
+    const reactionsThisWeek = realReactions.length;
 
-    console.log("📈 Activity Stats:", { postsThisWeek, commentsThisWeek, reactionsThisWeek });
+    console.log("📈 Activity Stats (Real Members Only):", { postsThisWeek, commentsThisWeek, reactionsThisWeek });
 
     return {
       postsThisWeek,
