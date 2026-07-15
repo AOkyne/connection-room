@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase/client";
 import { fireWorkshopCreationWebhook, type WorkshopCreationPayload, type WorkshopCreationResponse } from "@/lib/webhooks/workshop-creation";
 import { fireWorkshopDeletionWebhook } from "@/lib/webhooks/workshop-deletion";
 import { fireWorkshopUpdateWebhook, type WorkshopUpdatePayload } from "@/lib/webhooks/workshop-update";
+import { deleteZoomMeetingForEvent } from "@/lib/admin/zoom-client";
 
 // Helper to timeout async operations
 function withTimeout<T>(promise: Promise<T> | PromiseLike<T>, timeoutMs: number = 5000): Promise<T> {
@@ -361,10 +362,19 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
   // Try Supabase first (source of truth) with timeout
   if (supabase) {
     try {
+      // mapEventToDb() always includes an id -- falling back to a freshly
+      // generated one if the caller's partial event doesn't have one, which
+      // is correct for createEvent() but not here: including it in an
+      // UPDATE payload tries to overwrite the row's real id with that
+      // fallback value, which then fails with a foreign key violation
+      // against event_registrations (or any other table referencing the
+      // real id) the moment the event has any registrations at all.
+      const { id: _ignoredId, ...eventFieldsToUpdate } = mapEventToDb(event);
+
       const supabasePromise = supabase
         .from("events")
         .update({
-          ...mapEventToDb(event),
+          ...eventFieldsToUpdate,
           updated_at: new Date(),
         })
         .eq("id", id)
@@ -523,6 +533,10 @@ export async function deleteEvent(id: string): Promise<boolean> {
   if (eventToDelete) {
     console.log(`[deleteEvent] Firing workshop deletion webhook for event ${id}`);
     fireWorkshopDeletionWebhook(id);
+
+    if (eventToDelete.onlineUrl) {
+      deleteZoomMeetingForEvent(eventToDelete.onlineUrl);
+    }
   }
 
   // Return true if deleted from at least one source

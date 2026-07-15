@@ -47,6 +47,7 @@ async function getAllEventsFromSupabase(): Promise<Event[]> {
         : "TBD",
       location: e.location_name || e.location_address || e.location,
       format: normalizeFormat(e.event_type || e.format),
+      onlineUrl: e.online_url,
       facilitator: e.host_name || e.facilitator,
       interested: false,
       attendeeCount: e.event_registrations?.[0]?.count ?? e.attendee_count ?? 0,

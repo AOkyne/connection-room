@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { createEvent } from "@/lib/admin/events";
 import { datetimeLocalToISO } from "@/lib/utils/datetime-local";
+import { createZoomMeetingLink } from "@/lib/admin/zoom-client";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -60,7 +61,16 @@ export default function CreateEventPage() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      localStorage.setItem("connection-room:event-draft", JSON.stringify(formData));
+      try {
+        // Exclude the base64 image -- it can be large enough to blow the
+        // localStorage quota on its own, which was throwing an uncaught
+        // QuotaExceededError every 3 seconds and never actually saving
+        // any part of the draft, image or not.
+        const { image, ...draftWithoutImage } = formData;
+        localStorage.setItem("connection-room:event-draft", JSON.stringify(draftWithoutImage));
+      } catch (err) {
+        console.warn("Could not save event draft (storage quota likely exceeded):", err);
+      }
     }, 3000);
 
     return () => clearInterval(timer);
@@ -113,13 +123,24 @@ export default function CreateEventPage() {
     console.log("[CreateEvent] Starting event creation...");
 
     try {
+      const startAtISO = datetimeLocalToISO(formData.startAt);
+      const endAtISO = datetimeLocalToISO(formData.endAt);
+
+      let onlineUrl: string | undefined;
+      if ((formData.format === "online" || formData.format === "hybrid") && startAtISO) {
+        onlineUrl = await createZoomMeetingLink(formData.title, startAtISO, endAtISO, showToast);
+      }
+
       const eventData = {
         title: formData.title,
         shortDescription: formData.shortDescription,
         description: formData.description,
-        startAt: datetimeLocalToISO(formData.startAt),
-        endAt: datetimeLocalToISO(formData.endAt),
+        startAt: startAtISO,
+        endAt: endAtISO,
         locationName: formData.location,
+        locationType:
+          formData.format === "in-person" ? ("in_person" as const) : (formData.format as "online" | "hybrid"),
+        onlineUrl,
         hostName: formData.facilitator,
         eventType: formData.format,
         imageUrl: formData.image,

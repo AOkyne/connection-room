@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { getEvent, updateEvent } from "@/lib/admin/events";
 import { datetimeLocalToISO, isoToDatetimeLocal } from "@/lib/utils/datetime-local";
+import { createZoomMeetingLink } from "@/lib/admin/zoom-client";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -36,6 +37,7 @@ export default function EditEventPage() {
     currency: "USD",
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [existingOnlineUrl, setExistingOnlineUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const loadData = async () => {
@@ -62,6 +64,7 @@ export default function EditEventPage() {
           price: event.priceCents ? (event.priceCents / 100).toString() : "",
           currency: event.currency || "USD",
         });
+        setExistingOnlineUrl(event.onlineUrl);
         if (event.imageUrl) {
           console.log("[EditEvent] Image URL loaded, length:", event.imageUrl.length);
           console.log("[EditEvent] Image URL starts with:", event.imageUrl.substring(0, 50));
@@ -120,13 +123,27 @@ export default function EditEventPage() {
 
     setSaving(true);
     try {
+      const startAtISO = datetimeLocalToISO(formData.startAt);
+      const endAtISO = datetimeLocalToISO(formData.endAt);
+
+      // Only auto-create a Zoom meeting if this event doesn't already have
+      // one -- otherwise every unrelated edit (fixing a typo, etc.) would
+      // spawn a brand new Zoom meeting each time.
+      let onlineUrl = existingOnlineUrl;
+      if (!onlineUrl && (formData.format === "online" || formData.format === "hybrid") && startAtISO) {
+        onlineUrl = await createZoomMeetingLink(formData.title, startAtISO, endAtISO, showToast);
+      }
+
       const eventData = {
         title: formData.title,
         shortDescription: formData.shortDescription,
         description: formData.description,
-        startAt: datetimeLocalToISO(formData.startAt),
-        endAt: datetimeLocalToISO(formData.endAt),
+        startAt: startAtISO,
+        endAt: endAtISO,
         locationName: formData.location,
+        locationType:
+          formData.format === "in-person" ? ("in_person" as const) : (formData.format as "online" | "hybrid"),
+        onlineUrl,
         hostName: formData.facilitator,
         eventType: formData.format,
         imageUrl: formData.image,

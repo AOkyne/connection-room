@@ -295,6 +295,23 @@ END:VCALENDAR`;
                     {event.location && event.format === "in-person" && (
                       <p className="text-[#1a0f0a] text-sm mb-4">📍 {event.location}</p>
                     )}
+
+                    {(event.format === "virtual" || event.format === "hybrid") && (
+                      registrations.has(event.id) && event.onlineUrl ? (
+                        <a
+                          href={event.onlineUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block text-[#d4a348] hover:text-[#c9956d] text-sm font-medium mb-4"
+                        >
+                          🔗 Join Online
+                        </a>
+                      ) : (
+                        <p className="text-[#a0704a] text-sm mb-4">
+                          💻 Online — the join link appears here once you register
+                        </p>
+                      )
+                    )}
                   </div>
 
                   {/* Action Buttons Column */}

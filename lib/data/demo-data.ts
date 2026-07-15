@@ -84,6 +84,7 @@ export interface Event {
   time: string;
   location?: string;
   format: "in-person" | "virtual" | "hybrid";
+  onlineUrl?: string;
   facilitator: string;
   interested: boolean;
   attendeeCount: number;

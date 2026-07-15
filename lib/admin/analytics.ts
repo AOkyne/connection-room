@@ -79,8 +79,8 @@ export async function getMemberStats(): Promise<MemberStats> {
 
     const { data: result, error: err, status } = await supabase
       .from("profiles")
-      .select("id, created_at, completed_onboarding, profile_photo, is_demo_profile")
-      .eq("is_demo_profile", false)
+      .select("id, created_at, completed_onboarding, profile_photo, is_seeded")
+      .eq("is_seeded", false)
       .order("created_at", { ascending: false });
 
     if (err) {
@@ -182,7 +182,7 @@ export async function getActivityStats(): Promise<ActivityStats> {
     const { data: realMembers } = await supabase
       .from("profiles")
       .select("id")
-      .eq("is_demo_profile", false);
+      .eq("is_seeded", false);
 
     const realMemberIds = new Set((realMembers || []).map((m: any) => m.id));
 
