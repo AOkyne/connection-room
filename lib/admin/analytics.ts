@@ -27,6 +27,13 @@ export interface SpaceStats {
   activeThisWeek: number;
 }
 
+export interface MemberTypeBreakdown {
+  individual: number;
+  partneredIndividual: number;
+  couple: number;
+  other: number;
+}
+
 export interface EventStats {
   totalPublished: number;
   totalDraft: number;
@@ -242,11 +249,25 @@ export async function getSpaceStats(): Promise<SpaceStats[]> {
   if (!supabase) return [];
 
   try {
+    // spaces has no member_count column (never existed -- a prior version
+    // of this function queried it directly and silently returned [] on
+    // every call as a result, since the query itself errored). member
+    // counts come from space_memberships instead, same as
+    // getMemberCountBySpace() in lib/data/profiles.ts.
     const { data: spaces, error: spacesError } = await supabase
       .from("spaces")
-      .select("id, name, member_count");
+      .select("id, name");
 
     if (spacesError) throw spacesError;
+
+    const { data: memberships } = await supabase
+      .from("space_memberships")
+      .select("space_id");
+
+    const membershipCounts = new Map<string, number>();
+    (memberships || []).forEach((m: any) => {
+      membershipCounts.set(m.space_id, (membershipCounts.get(m.space_id) || 0) + 1);
+    });
 
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
@@ -284,7 +305,7 @@ export async function getSpaceStats(): Promise<SpaceStats[]> {
       stats.push({
         spaceId: space.id,
         spaceName: space.name,
-        memberCount: space.member_count || 0,
+        memberCount: membershipCounts.get(space.id) || 0,
         postCount: (posts || []).length,
         commentCount: (comments || []).length,
         lastActivity: lastActivityPost?.created_at,
@@ -292,10 +313,45 @@ export async function getSpaceStats(): Promise<SpaceStats[]> {
       });
     }
 
-    return stats.sort((a, b) => b.postCount - a.postCount);
+    return stats.sort((a, b) => b.memberCount - a.memberCount);
   } catch (err) {
     console.error("Error fetching space stats:", err);
     return [];
+  }
+}
+
+// Get member type breakdown (real members only, excludes seeded/demo)
+export async function getMemberTypeBreakdown(): Promise<MemberTypeBreakdown> {
+  const empty: MemberTypeBreakdown = { individual: 0, partneredIndividual: 0, couple: 0, other: 0 };
+  if (!supabase) return empty;
+
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("member_type")
+      .eq("is_seeded", false);
+
+    if (error) throw error;
+
+    return (data || []).reduce((acc, p: any) => {
+      switch (p.member_type) {
+        case "individual":
+          acc.individual++;
+          break;
+        case "partnered-individual":
+          acc.partneredIndividual++;
+          break;
+        case "couple":
+          acc.couple++;
+          break;
+        default:
+          acc.other++;
+      }
+      return acc;
+    }, { ...empty });
+  } catch (err) {
+    console.error("Error fetching member type breakdown:", err);
+    return empty;
   }
 }
 

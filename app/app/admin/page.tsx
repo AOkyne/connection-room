@@ -7,7 +7,8 @@ import { getAllBadges } from "@/lib/data/badges";
 import { getUpcomingEvents } from "@/lib/data/events";
 import { getAllOffers } from "@/lib/data/offers";
 import { getRecentSignups, getSession } from "@/lib/session";
-import { getMemberStats, getActivityStats, type MemberStats, type ActivityStats } from "@/lib/admin/analytics";
+import { getMemberStats, getActivityStats, getSpaceStats, getMemberTypeBreakdown, type MemberStats, type ActivityStats, type SpaceStats, type MemberTypeBreakdown } from "@/lib/admin/analytics";
+import { supabase } from "@/lib/supabase/client";
 import { demoMembers } from "@/lib/seed/demo-members";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -32,6 +33,8 @@ export default function AdminPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [memberStats, setMemberStats] = useState<MemberStats | null>(null);
   const [activityStats, setActivityStats] = useState<ActivityStats | null>(null);
+  const [spaceStats, setSpaceStats] = useState<SpaceStats[]>([]);
+  const [memberTypes, setMemberTypes] = useState<MemberTypeBreakdown | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -53,21 +56,34 @@ export default function AdminPage() {
 
       // Load real analytics data
       try {
-        const [members, activity] = await Promise.all([
+        const [members, activity, spaces, types] = await Promise.all([
           getMemberStats(),
           getActivityStats(),
+          getSpaceStats(),
+          getMemberTypeBreakdown(),
         ]);
         setMemberStats(members);
         setActivityStats(activity);
+        setSpaceStats(spaces);
+        setMemberTypes(types);
       } catch (error) {
         console.error("Error loading analytics:", error);
       }
 
-      // Load reported concerns from localStorage
-      if (typeof window !== "undefined") {
-        const storedConcerns = localStorage.getItem("connection-room:connection-reports");
-        if (storedConcerns) {
-          setConcerns(JSON.parse(storedConcerns));
+      // Load reported concerns from the real reports table -- this
+      // previously read localStorage, which only ever reflected reports
+      // filed from the admin's own browser, never real member submissions.
+      if (supabase) {
+        const { data: reportsData, error: reportsError } = await supabase
+          .from("reports")
+          .select("id, reason, status, created_at")
+          .order("created_at", { ascending: false });
+        if (reportsError) {
+          console.error("Error loading reports:", reportsError);
+        } else {
+          setConcerns(
+            (reportsData || []).map((r: any) => ({ id: r.id, concern: r.reason, status: r.status }))
+          );
         }
       }
 
@@ -297,18 +313,16 @@ export default function AdminPage() {
         <Card>
           <CardHeader title="Most Active Spaces" icon={<IconSpaces size={20} />} />
           <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-[#1a0f0a]">The Commons</span>
-              <span className="font-medium text-[#1a0f0a]">156 members</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[#1a0f0a]">Start Here</span>
-              <span className="font-medium text-[#1a0f0a]">142 members</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-[#1a0f0a]">Spirituality, Sexuality & Integration</span>
-              <span className="font-medium text-[#1a0f0a]">128 members</span>
-            </div>
+            {spaceStats.length === 0 ? (
+              <p className="text-[#a0704a] text-sm">No space activity yet</p>
+            ) : (
+              spaceStats.slice(0, 3).map((space) => (
+                <div key={space.spaceId} className="flex justify-between">
+                  <span className="text-[#1a0f0a]">{space.spaceName}</span>
+                  <span className="font-medium text-[#1a0f0a]">{space.memberCount} members</span>
+                </div>
+              ))
+            )}
           </div>
         </Card>
 
@@ -317,16 +331,22 @@ export default function AdminPage() {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-[#1a0f0a]">Individual</span>
-              <span className="font-medium text-[#1a0f0a]">154</span>
+              <span className="font-medium text-[#1a0f0a]">{memberTypes?.individual ?? 0}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-[#1a0f0a]">Partnered Individual</span>
-              <span className="font-medium text-[#1a0f0a]">62</span>
+              <span className="font-medium text-[#1a0f0a]">{memberTypes?.partneredIndividual ?? 0}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-[#1a0f0a]">Couples</span>
-              <span className="font-medium text-[#1a0f0a]">31</span>
+              <span className="font-medium text-[#1a0f0a]">{memberTypes?.couple ?? 0}</span>
             </div>
+            {(memberTypes?.other ?? 0) > 0 && (
+              <div className="flex justify-between">
+                <span className="text-[#1a0f0a]">Other</span>
+                <span className="font-medium text-[#1a0f0a]">{memberTypes?.other}</span>
+              </div>
+            )}
           </div>
         </Card>
 
@@ -355,9 +375,24 @@ export default function AdminPage() {
         <Card>
           <CardHeader title="Quick Stats" icon={<IconProgress size={20} />} />
           <div className="space-y-2 text-sm">
-            <p className="text-[#1a0f0a]">Avg comments per post: 2.4</p>
-            <p className="text-[#1a0f0a]">Connection opt-in rate: 67%</p>
-            <p className="text-[#1a0f0a]">Retention (7 days): 78%</p>
+            <p className="text-[#1a0f0a]">
+              Avg comments per post (this week):{" "}
+              {activityStats && activityStats.postsThisWeek > 0
+                ? (activityStats.commentsThisWeek / activityStats.postsThisWeek).toFixed(1)
+                : "—"}
+            </p>
+            <p className="text-[#1a0f0a]">
+              Onboarding completion:{" "}
+              {memberStats && memberStats.totalMembers > 0
+                ? `${Math.round((memberStats.completedOnboarding / memberStats.totalMembers) * 100)}%`
+                : "—"}
+            </p>
+            <p className="text-[#1a0f0a]">
+              Active this week:{" "}
+              {memberStats && memberStats.totalMembers > 0
+                ? `${Math.round((memberStats.activeThisWeek / memberStats.totalMembers) * 100)}%`
+                : "—"}
+            </p>
           </div>
         </Card>
       </div>
