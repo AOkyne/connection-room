@@ -487,6 +487,49 @@ export async function getAllProfiles(): Promise<Profile[]> {
   }
 }
 
+// ADMIN ONLY (see getAllProfiles). Same data, minus profile_photo -- some
+// members' photos are multi-megabyte base64 strings stored directly in the
+// row (the images should really be in Supabase Storage, not the database,
+// but that's a larger migration than this fixes), and pulling + sorting
+// that much text for every row measured at 11+ seconds in isolation for
+// ~46 rows, well past Postgres's statement timeout under any concurrent
+// load. Use this for any listing view that doesn't render avatars (e.g.
+// the admin dashboard's summary table); use getAllProfiles() when photos
+// are actually displayed (e.g. the dedicated members management page).
+export async function getAllProfilesLite(): Promise<Profile[]> {
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, display_name, pronouns, member_type, completed_onboarding, created_at, updated_at, is_seeded")
+      .order("display_name");
+
+    if (error) {
+      console.error("Error fetching profiles (lite):", error);
+      return [];
+    }
+
+    return (data || []).map((p) => ({
+      id: p.id,
+      firstName: p.display_name?.split(" ")[0] || "",
+      lastName: p.display_name?.split(" ").slice(1).join(" ") || "",
+      displayName: p.display_name || "",
+      pronouns: p.pronouns,
+      profilePhoto: "",
+      memberType: p.member_type || "individual",
+      interests: [],
+      completedOnboarding: p.completed_onboarding || false,
+      joinedAt: new Date(p.created_at),
+      lastActive: p.updated_at ? new Date(p.updated_at) : undefined,
+      is_demo_profile: p.is_seeded,
+    }));
+  } catch (err) {
+    console.error("Error fetching profiles (lite):", err);
+    return [];
+  }
+}
+
 // ADMIN ONLY (see getAllProfiles). Use getPublicProfilesBySpace for any
 // member-facing space member list.
 export async function getProfilesBySpace(spaceId: string): Promise<Profile[]> {

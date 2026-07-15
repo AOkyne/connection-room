@@ -9,7 +9,7 @@ import { getAllOffers } from "@/lib/data/offers";
 import { getRecentSignups, getSession } from "@/lib/session";
 import { getMemberStats, getActivityStats, getSpaceStats, getMemberTypeBreakdown, type MemberStats, type ActivityStats, type SpaceStats, type MemberTypeBreakdown } from "@/lib/admin/analytics";
 import { supabase } from "@/lib/supabase/client";
-import { getAllProfiles } from "@/lib/data/profiles";
+import { getAllProfilesLite } from "@/lib/data/profiles";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { IconConnection, IconDemo, IconSpaces, IconBadges, IconProgress, IconUpcoming, IconAlert, IconForYou, IconChat, IconProfileNav } from "@/components/Icons";
@@ -49,55 +49,87 @@ export default function AdminPage() {
       setBadges(getAllBadges());
       setOffers(getAllOffers());
       setRecentSignups(getRecentSignups());
-      // getAllProfiles() was never called here -- this table was showing
-      // hardcoded seed data (lib/seed/demo-members) instead of real
-      // members, so real signups never appeared regardless of how many
-      // people actually joined. getAllProfiles() is admin-only (profiles
-      // is locked to owner+admin SELECT), which this page already gates
-      // on via the session.type === "admin" check above.
-      try {
-        const realProfiles = await getAllProfiles();
+
+      // Everything below is independent -- fetch it all in parallel rather
+      // than one await after another. This alone doesn't change how long
+      // the slowest individual query takes (see getSpaceStats' own
+      // bulk-query fix for that), but it stops every fetch from queueing
+      // behind the others, so total load time is close to the slowest
+      // single fetch instead of the sum of all of them.
+      const emailsPromise = (async () => {
+        if (!supabase) return {} as Record<string, string | undefined>;
+        try {
+          const {
+            data: { session: authSession },
+          } = await supabase.auth.getSession();
+          const token = authSession?.access_token;
+          if (!token) return {};
+          const response = await fetch("/api/admin/members/emails", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (!response.ok) return {};
+          const { emails } = await response.json();
+          return emails as Record<string, string | undefined>;
+        } catch (err) {
+          console.error("Error loading member emails:", err);
+          return {};
+        }
+      })();
+
+      const [
+        realProfilesResult,
+        upcomingEventsResult,
+        analyticsResult,
+        reportsResult,
+        emails,
+      ] = await Promise.allSettled([
+        getAllProfilesLite(),
+        getUpcomingEvents(),
+        Promise.all([getMemberStats(), getActivityStats(), getSpaceStats(), getMemberTypeBreakdown()]),
+        supabase
+          ? supabase.from("reports").select("id, reason, status, created_at").order("created_at", { ascending: false })
+          : Promise.resolve({ data: [], error: null }),
+        emailsPromise,
+      ]);
+
+      const emailByProfileId = emails.status === "fulfilled" ? emails.value : {};
+
+      if (realProfilesResult.status === "fulfilled") {
+        // getAllProfiles() was never called here before -- this table was
+        // showing hardcoded seed data (lib/seed/demo-members) instead of
+        // real members, so real signups never appeared regardless of how
+        // many people actually joined.
         setAllMembers(
-          realProfiles.filter((p) => !p.is_demo_profile)
+          realProfilesResult.value
+            .filter((p) => !p.is_demo_profile)
+            .map((p) => ({ ...p, email: emailByProfileId[p.id] }))
         );
-      } catch (error) {
-        console.error("Error loading members:", error);
+      } else {
+        console.error("Error loading members:", realProfilesResult.reason);
       }
 
-      const upcomingEvents = await getUpcomingEvents();
-      setEvents(upcomingEvents);
+      if (upcomingEventsResult.status === "fulfilled") {
+        setEvents(upcomingEventsResult.value);
+      }
 
-      // Load real analytics data
-      try {
-        const [members, activity, spaces, types] = await Promise.all([
-          getMemberStats(),
-          getActivityStats(),
-          getSpaceStats(),
-          getMemberTypeBreakdown(),
-        ]);
+      if (analyticsResult.status === "fulfilled") {
+        const [members, activity, spaces, types] = analyticsResult.value;
         setMemberStats(members);
         setActivityStats(activity);
         setSpaceStats(spaces);
         setMemberTypes(types);
-      } catch (error) {
-        console.error("Error loading analytics:", error);
+      } else {
+        console.error("Error loading analytics:", analyticsResult.reason);
       }
 
-      // Load reported concerns from the real reports table -- this
-      // previously read localStorage, which only ever reflected reports
-      // filed from the admin's own browser, never real member submissions.
-      if (supabase) {
-        const { data: reportsData, error: reportsError } = await supabase
-          .from("reports")
-          .select("id, reason, status, created_at")
-          .order("created_at", { ascending: false });
-        if (reportsError) {
-          console.error("Error loading reports:", reportsError);
-        } else {
-          setConcerns(
-            (reportsData || []).map((r: any) => ({ id: r.id, concern: r.reason, status: r.status }))
-          );
-        }
+      // Reported concerns, from the real reports table -- this previously
+      // read localStorage, which only ever reflected reports filed from
+      // the admin's own browser, never real member submissions.
+      if (reportsResult.status === "fulfilled" && !("error" in reportsResult.value && reportsResult.value.error)) {
+        const reportsData = (reportsResult.value as any).data;
+        setConcerns((reportsData || []).map((r: any) => ({ id: r.id, concern: r.reason, status: r.status })));
+      } else {
+        console.error("Error loading reports:", reportsResult.status === "fulfilled" ? (reportsResult.value as any).error : reportsResult.reason);
       }
 
       setMounted(true);

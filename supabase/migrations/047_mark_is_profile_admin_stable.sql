@@ -1,0 +1,35 @@
+-- Found live: after parallelizing several admin-dashboard queries that
+-- all hit profiles concurrently (each protected by the
+-- profiles_admin_select RLS policy, which calls is_profile_admin(auth.uid())),
+-- some of those queries started failing with a genuine Postgres statement
+-- timeout (57014), reproducible on every load, not transient.
+--
+-- is_profile_admin() (044_dedicated_admin_check_function.sql) was never
+-- given an explicit volatility category, so it defaulted to VOLATILE --
+-- the most conservative category, which tells the planner the function's
+-- result can change from call to call (even within the same statement) and
+-- so it must be re-invoked for every row a query evaluates it against,
+-- rather than being computed once and reused. For an RLS USING clause
+-- checked against every row in profiles, that means the function's own
+-- internal SELECT ran once per row instead of once per statement -- cheap
+-- individually, but enough overhead under concurrent load (several
+-- dashboard queries firing in parallel, each doing this per-row work
+-- simultaneously) to exceed the timeout.
+--
+-- The function's result genuinely does not change within a single query's
+-- execution (same transaction snapshot, same auth.uid()), which is exactly
+-- what STABLE means -- marking it STABLE lets the planner evaluate it once
+-- per statement (or cache it) instead of once per row.
+
+ALTER FUNCTION is_profile_admin(uuid) STABLE;
+
+-- =====================================================================
+-- ROLLBACK NOTES
+--
+-- ALTER FUNCTION is_profile_admin(uuid) VOLATILE would reintroduce the
+-- per-row re-evaluation overhead this migration removes -- do not do this
+-- without a specific reason. STABLE is the correct category here (the
+-- function only reads data, never writes, and returns the same result for
+-- the same arguments within one statement); there is no scenario where
+-- reverting to VOLATILE fixes anything.
+-- =====================================================================

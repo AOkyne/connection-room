@@ -84,11 +84,25 @@ export async function getMemberStats(): Promise<MemberStats> {
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const oneMonthAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-    const { data: result, error: err, status } = await supabase
-      .from("profiles")
-      .select("id, created_at, completed_onboarding, profile_photo, is_seeded")
-      .eq("is_seeded", false)
-      .order("created_at", { ascending: false });
+    // profile_photo stores the image itself as base64 text directly in the
+    // row -- some are multiple megabytes. Selecting it here (this function
+    // only ever needed a truthy/falsy check, never the actual image) made
+    // this a genuinely slow query: sorting and transferring tens of
+    // megabytes of image text for ~46 rows measured at 11+ seconds
+    // in isolation, well past Postgres's statement timeout under any
+    // concurrent load. Fetch it as a separate, row-data-free COUNT instead.
+    const [{ data: result, error: err, status }, { count: withPhotoCount }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, created_at, completed_onboarding, is_seeded")
+        .eq("is_seeded", false)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("is_seeded", false)
+        .not("profile_photo", "is", null),
+    ]);
 
     if (err) {
       console.error("getMemberStats error details:", { status, err, message: err?.message });
@@ -106,33 +120,25 @@ export async function getMemberStats(): Promise<MemberStats> {
       (p) => new Date(p.created_at) > oneMonthAgo
     ).length;
 
-    // Get active members this week
-    const { data: activePosts } = await supabase
-      .from("posts")
-      .select("user_id")
-      .gte("created_at", oneWeekAgo.toISOString());
-
-    const { data: activeComments } = await supabase
-      .from("comments")
-      .select("user_id")
-      .gte("created_at", oneWeekAgo.toISOString());
+    // One month-scoped fetch each for posts/comments (in parallel), then
+    // derive "this week" as a subset client-side, instead of 4 separate
+    // sequential queries (week posts, week comments, month posts, month
+    // comments) -- the week window is always inside the month window, so
+    // there's no need to ask the database twice.
+    const [{ data: activePostsMonth }, { data: activeCommentsMonth }] = await Promise.all([
+      supabase.from("posts").select("user_id, created_at").gte("created_at", oneMonthAgo.toISOString()),
+      supabase.from("comments").select("user_id, created_at").gte("created_at", oneMonthAgo.toISOString()),
+    ]);
 
     const activeIds = new Set<string>();
-    (activePosts || []).forEach((p: any) => activeIds.add(p.user_id));
-    (activeComments || []).forEach((c: any) => activeIds.add(c.user_id));
+    (activePostsMonth || [])
+      .filter((p: any) => new Date(p.created_at) > oneWeekAgo)
+      .forEach((p: any) => activeIds.add(p.user_id));
+    (activeCommentsMonth || [])
+      .filter((c: any) => new Date(c.created_at) > oneWeekAgo)
+      .forEach((c: any) => activeIds.add(c.user_id));
 
     const activeThisWeek = activeIds.size;
-
-    // Get active members this month
-    const { data: activePostsMonth } = await supabase
-      .from("posts")
-      .select("user_id")
-      .gte("created_at", oneMonthAgo.toISOString());
-
-    const { data: activeCommentsMonth } = await supabase
-      .from("comments")
-      .select("user_id")
-      .gte("created_at", oneMonthAgo.toISOString());
 
     const activeIdsMonth = new Set<string>();
     (activePostsMonth || []).forEach((p: any) => activeIdsMonth.add(p.user_id));
@@ -144,7 +150,7 @@ export async function getMemberStats(): Promise<MemberStats> {
 
     // Count completed onboarding and profile photos
     const completedOnboarding = profiles.filter((p: any) => p.completed_onboarding).length;
-    const withProfilePhoto = profiles.filter((p: any) => p.profile_photo).length;
+    const withProfilePhoto = withPhotoCount || 0;
 
     console.log("📊 Analytics:", { totalMembers, newThisWeek, activeThisWeek, completedOnboarding, withProfilePhoto });
 
@@ -260,58 +266,56 @@ export async function getSpaceStats(): Promise<SpaceStats[]> {
 
     if (spacesError) throw spacesError;
 
-    const { data: memberships } = await supabase
-      .from("space_memberships")
-      .select("space_id");
+    // One bulk query for every post/comment, grouped client-side by space,
+    // instead of 2 queries per space in a loop (was up to ~26 sequential
+    // round-trips across ~13 spaces -- the dominant cause of the admin
+    // dashboard's slow load, since this function previously errored
+    // instantly on the missing member_count column and so never actually
+    // ran this loop until that was fixed).
+    const [{ data: memberships }, { data: allPosts }] = await Promise.all([
+      supabase.from("space_memberships").select("space_id"),
+      supabase.from("posts").select("id, space_id, created_at"),
+    ]);
 
     const membershipCounts = new Map<string, number>();
     (memberships || []).forEach((m: any) => {
       membershipCounts.set(m.space_id, (membershipCounts.get(m.space_id) || 0) + 1);
     });
 
+    const { data: allComments } = await supabase
+      .from("comments")
+      .select("id, post_id, created_at")
+      .in("post_id", (allPosts || []).map((p: any) => p.id));
+
+    const postIdToSpaceId = new Map((allPosts || []).map((p: any) => [p.id, p.space_id]));
+
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    const stats: SpaceStats[] = [];
-
-    for (const space of spaces || []) {
-      const { data: posts } = await supabase
-        .from("posts")
-        .select("id, created_at")
-        .eq("space_id", space.id);
-
-      const { data: comments } = await supabase
-        .from("comments")
-        .select("id, created_at")
-        .in(
-          "post_id",
-          (posts || []).map((p) => p.id)
-        );
+    const stats: SpaceStats[] = (spaces || []).map((space) => {
+      const posts = (allPosts || []).filter((p: any) => p.space_id === space.id);
+      const comments = (allComments || []).filter(
+        (c: any) => postIdToSpaceId.get(c.post_id) === space.id
+      );
 
       const activeThisWeek = [
-        ...(posts || [])
-          .filter((p) => new Date(p.created_at) > oneWeekAgo)
-          .map((p) => p.id),
-        ...(comments || [])
-          .filter((c) => new Date(c.created_at) > oneWeekAgo)
-          .map((c) => c.id),
+        ...posts.filter((p: any) => new Date(p.created_at) > oneWeekAgo).map((p: any) => p.id),
+        ...comments.filter((c: any) => new Date(c.created_at) > oneWeekAgo).map((c: any) => c.id),
       ].length;
 
-      const lastActivityPost = (posts || []).sort(
-        (a: any, b: any) =>
-          new Date(b.created_at).getTime() -
-          new Date(a.created_at).getTime()
+      const lastActivityPost = [...posts].sort(
+        (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )[0];
 
-      stats.push({
+      return {
         spaceId: space.id,
         spaceName: space.name,
         memberCount: membershipCounts.get(space.id) || 0,
-        postCount: (posts || []).length,
-        commentCount: (comments || []).length,
+        postCount: posts.length,
+        commentCount: comments.length,
         lastActivity: lastActivityPost?.created_at,
         activeThisWeek,
-      });
-    }
+      };
+    });
 
     return stats.sort((a, b) => b.memberCount - a.memberCount);
   } catch (err) {
