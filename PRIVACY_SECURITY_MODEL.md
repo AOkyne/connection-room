@@ -188,6 +188,43 @@ since there is nothing for it to guard against right now. If a `/preview`
 or guest-mode route is added later, this conclusion must be re-verified —
 do not assume the current safety holds after that kind of change.
 
+## Live RLS audit findings (2026-07-15)
+
+After applying migration 039, a `pg_policies` check turned up a policy on
+`profiles` — `profiles_public`, `USING (true)`, role `public` — that
+existed in the live database but corresponded to no file in this repo's
+migration history. It alone granted unconditional read access to every
+profile row, to anyone including unauthenticated requests, regardless of
+039's restrictive policies (Postgres RLS policies are OR'd together, so a
+stricter policy does not override a looser one sitting next to it). Dropped
+live, then codified in migration 040 along with four other undocumented,
+redundant-but-harmless duplicate policies on `profiles`. **This means the
+migration files in this repo are not, on their own, a fully reliable record
+of live RLS state** — `pg_policies` is ground truth, migration history is
+not guaranteed to match it.
+
+A full `pg_policies` sweep across all tables in the `public` schema, run as
+part of the same audit, found three further issues unrelated to profile
+privacy (not fixed as part of this work — flagged for separate follow-up):
+
+- **`events`**: `allow_authenticated_update`, `allow_authenticated_delete`,
+  and `allow_authenticated_insert` all resolve to `true` for role
+  `authenticated` with no ownership or admin check — any signed-in member
+  can update or delete any event, not just admins.
+- **`articles`**: `"Allow api insert"` has `with_check = true` for role
+  `public` — any request, including unauthenticated ones, can insert
+  arbitrary article rows.
+- **`couples_profiles`**: `"Couples profiles readable by authenticated
+  users"` has `qual = true` for role `authenticated` — any signed-in
+  member can read any couple's full row, including
+  `relationship_structure`, `couple_goals`, and `couple_boundaries`. This
+  is the same category of exposure the original `profiles` bug had; this
+  sibling table was never addressed.
+
+The pre-existing `profiles.id = auth.uid()` broken-admin-check pattern
+(see below) was also confirmed still live on `events`, `offers`,
+`event_registrations`, and `admin_activity_logs`.
+
 ## Known limitations
 
 - **Pre-existing broken admin RLS policies outside this migration's scope.**
