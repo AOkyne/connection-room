@@ -16,6 +16,15 @@ export interface AppSession {
 const SESSION_STORAGE_KEY = "connection-room:session";
 const RECENT_SIGNUPS_KEY = "connection-room:recent-signups";
 
+// Generic placeholder names getSession() has fallen back to historically
+// when a real profile lookup failed (several such bugs were fixed
+// elsewhere today -- see lib/data/profiles.ts and app/auth/page.tsx).
+// A session cached with one of these names is never revalidated once
+// stored, so anyone who hit one of those bugs before the fix stays stuck
+// seeing "Guest"/"Admin" forever, even after the underlying lookup starts
+// working again -- getSession() always trusts the cache unconditionally.
+const FALLBACK_SESSION_NAMES = new Set(["Guest User", "Admin", "Demo Admin", "Demo Member"]);
+
 // Helper to generate a profile photo from initials
 function generateAvatarUrl(initials: string): string {
   const colors = [
@@ -38,6 +47,31 @@ export async function getSession(): Promise<AppSession | null> {
   const stored = localStorage.getItem(SESSION_STORAGE_KEY);
   if (stored) {
     const session = JSON.parse(stored) as AppSession;
+
+    // A cached fallback name for a real Supabase-backed session means a
+    // profile lookup failed at some point in the past -- worth one retry
+    // rather than trusting it forever, since the underlying cause may
+    // since have been fixed (as happened today). Demo-only sessions (no
+    // supabaseUserId) legitimately use these names on purpose, so leave
+    // those alone.
+    if (session.supabaseUserId && FALLBACK_SESSION_NAMES.has(session.name) && supabase) {
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("display_name, profile_photo")
+          .eq("user_id", session.supabaseUserId)
+          .maybeSingle();
+
+        if (profile?.display_name) {
+          session.name = profile.display_name;
+          if (profile.profile_photo) session.profilePhoto = profile.profile_photo;
+          localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+        }
+      } catch (err) {
+        console.debug("Could not refresh stale fallback session name");
+      }
+    }
+
     // Generate profilePhoto if missing
     if (!session.profilePhoto && session.name) {
       const initials = session.name
