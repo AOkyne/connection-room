@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { createEvent } from "@/lib/admin/events";
 import { zonedDatetimeLocalToISO, EVENT_TIMEZONES, DEFAULT_EVENT_TIMEZONE } from "@/lib/utils/timezone";
 import { createZoomMeetingLink } from "@/lib/admin/zoom-client";
+import { uploadEventImage } from "@/lib/utils/storage";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -15,6 +16,10 @@ import { useToast } from "@/lib/hooks/useToast";
 export default function CreateEventPage() {
   const router = useRouter();
   const { showToast } = useToast();
+  // Generated once per page load and reused as the event's real id on
+  // submit, so an image uploaded before saving lands in the same folder
+  // as the event it ends up belonging to (see handleImageChange).
+  const tempEventId = useRef(`event-${Date.now()}`);
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -85,9 +90,25 @@ export default function CreateEventPage() {
     }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Try Supabase Storage first -- events don't have a real id yet at
+      // creation time, so a fresh id is generated here and reused as the
+      // event's actual id on submit (see handleSubmit) so the uploaded
+      // image's path lines up with the event it belongs to.
+      try {
+        const uploadUrl = await uploadEventImage(file, tempEventId.current);
+        if (uploadUrl) {
+          setFormData((prev) => ({ ...prev, image: uploadUrl }));
+          setImagePreview(uploadUrl);
+          return;
+        }
+      } catch (err) {
+        console.warn("Event image upload failed, falling back to base64:", err);
+      }
+
+      // Fall back to base64 if Storage upload failed or is unavailable
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64String = reader.result as string;
@@ -133,6 +154,7 @@ export default function CreateEventPage() {
       }
 
       const eventData = {
+        id: tempEventId.current,
         title: formData.title,
         shortDescription: formData.shortDescription,
         description: formData.description,

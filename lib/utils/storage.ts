@@ -118,3 +118,63 @@ export function isBase64Url(url: string | undefined): boolean {
   if (!url) return false;
   return url.startsWith("data:image/");
 }
+
+const EVENT_IMAGES_BUCKET = "event-images";
+
+/**
+ * Upload an event image to Supabase Storage. Admin-only (enforced by
+ * Storage RLS on the event-images bucket, migration 049) -- events
+ * previously only ever stored images as base64 directly in
+ * events.image_url, which some existing events still have (multi-MB
+ * text in the database row); this is the equivalent of
+ * uploadProfilePhoto() for events.
+ * @param file File to upload
+ * @param eventId Event ID to organize images (or a temp id for new events)
+ * @returns Public URL of the uploaded image, or null if upload fails
+ */
+export async function uploadEventImage(
+  file: File,
+  eventId: string
+): Promise<string | null> {
+  if (!supabase) {
+    console.warn("Supabase not configured, cannot upload image");
+    return null;
+  }
+
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error(
+      `File too large. Max size is 5MB (your file is ${(file.size / 1024 / 1024).toFixed(1)}MB)`
+    );
+  }
+
+  if (!["image/jpeg", "image/png", "image/gif"].includes(file.type)) {
+    throw new Error("File must be JPG, PNG, or GIF");
+  }
+
+  try {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${eventId}-${Date.now()}.${fileExt}`;
+    const filePath = `${eventId}/${fileName}`;
+
+    const { data, error } = await supabase.storage
+      .from(EVENT_IMAGES_BUCKET)
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (error) {
+      console.error("Storage upload error:", error);
+      throw new Error(`Failed to upload image: ${error.message}`);
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from(EVENT_IMAGES_BUCKET).getPublicUrl(data.path);
+
+    return publicUrl;
+  } catch (err) {
+    console.error("Error uploading event image:", err);
+    return null; // Return null to trigger base64 fallback in components
+  }
+}

@@ -6,6 +6,7 @@ import { getSession } from "@/lib/session";
 import { getEvent, updateEvent } from "@/lib/admin/events";
 import { zonedDatetimeLocalToISO, isoToZonedDatetimeLocal, EVENT_TIMEZONES, DEFAULT_EVENT_TIMEZONE } from "@/lib/utils/timezone";
 import { createZoomMeetingLink } from "@/lib/admin/zoom-client";
+import { uploadEventImage } from "@/lib/utils/storage";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -92,20 +93,32 @@ export default function EditEventPage() {
     }));
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setFormData((prev) => ({
-          ...prev,
-          image: base64String,
-        }));
-        setImagePreview(base64String);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    try {
+      const uploadUrl = await uploadEventImage(file, eventId);
+      if (uploadUrl) {
+        setFormData((prev) => ({ ...prev, image: uploadUrl }));
+        setImagePreview(uploadUrl);
+        return;
+      }
+    } catch (err) {
+      console.warn("Event image upload failed, falling back to base64:", err);
     }
+
+    // Fall back to base64 if Storage upload failed or is unavailable
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setFormData((prev) => ({
+        ...prev,
+        image: base64String,
+      }));
+      setImagePreview(base64String);
+    };
+    reader.readAsDataURL(file);
   };
 
   const removeImage = () => {
