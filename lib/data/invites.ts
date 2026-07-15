@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/lib/supabase/client";
+import { demoSafeWrite } from "@/lib/demo/demo-mode-guard";
 import { generateInviteCode } from "@/lib/utils/invite-code";
 import type { Profile } from "./profiles";
 
@@ -22,13 +23,17 @@ export async function ensureInviteCode(profile: Profile): Promise<string | null>
 
   const inviteCode = generateInviteCode(profile.displayName);
 
-  // Try to save to Supabase if available
-  if (supabase) {
+  // Try to save to Supabase if available (with demo mode protection)
+  const client = supabase;
+  if (client) {
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ invite_code: inviteCode, invite_code_created_at: new Date().toISOString() })
-        .eq("user_id", profile.id);
+      const { error } = await demoSafeWrite(
+        () => client
+          .from("profiles")
+          .update({ invite_code: inviteCode, invite_code_created_at: new Date().toISOString() })
+          .eq("user_id", profile.id),
+        { context: "ensureInviteCode" }
+      );
 
       if (error) {
         console.warn("Could not save invite code to Supabase:", error);
@@ -238,12 +243,16 @@ export async function createInviteRelationship(
     // Prevent self-referral
     if (inviterProfile.id === newProfile.id) return false;
 
-    // Create invite relationship
-    const { error } = await supabase.from("invite_relationships").insert({
-      inviter_profile_id: inviterProfile.id,
-      invited_profile_id: newProfile.id,
-      invite_code: inviteCode,
-    });
+    // Create invite relationship (with demo mode protection)
+    const client = supabase;
+    const { error } = await demoSafeWrite(
+      () => client.from("invite_relationships").insert({
+        inviter_profile_id: inviterProfile.id,
+        invited_profile_id: newProfile.id,
+        invite_code: inviteCode,
+      }),
+      { context: "createInviteRelationship" }
+    );
 
     if (error && !error.message.includes("duplicate")) {
       console.warn("Error creating invite relationship:", error);

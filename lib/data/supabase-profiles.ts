@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
+import { demoSafeWrite } from "@/lib/demo/demo-mode-guard";
 import type { Profile, CoupleProfile } from "./profiles";
 
 // Create or update profile in Supabase
@@ -6,39 +7,44 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
   if (!supabase) {
     return null;
   }
+  const client = supabase;
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .upsert(
-      {
-        user_id: profile.id,
-        display_name: profile.displayName,
-        pronouns: profile.pronouns,
-        location: profile.location,
-        age_range: profile.ageRange,
-        relationship_status: profile.relationshipStatus,
-        orientation: profile.orientation,
-        profile_photo: profile.profilePhoto,
-        member_type: profile.memberType,
-        what_brought_you_here: profile.whatBroughtYouHere,
-        connection_hoping: profile.connectionHoping,
-        interests: profile.interests,
-        pairing_comfort_level: profile.connectionComfortLevel,
-        pairing_boundaries: profile.connectionBoundaries,
-        quiz_result: profile.quizResult,
-        first_prompt_response: profile.firstPromptResponse,
-        first_prompt_is_public: profile.firstPromptIsPublic,
-        completed_onboarding: profile.completedOnboarding,
-        spaces_joined: profile.spacesJoined,
-        created_at: profile.joinedAt,
-        welcome_video_watched: profile.welcomeVideoWatched,
-        welcome_video_watched_at: profile.welcomeVideoWatchedAt,
-        onboarding_completed_at: profile.onboardingCompletedAt,
-        updated_at: new Date(),
-      },
-      { onConflict: "user_id" }
-    )
-    .select();
+  // Wrap with demo mode protection
+  const { data, error } = await demoSafeWrite(
+    async () => client
+      .from("profiles")
+      .upsert(
+        {
+          user_id: profile.id,
+          display_name: profile.displayName,
+          pronouns: profile.pronouns,
+          location: profile.location,
+          age_range: profile.ageRange,
+          relationship_status: profile.relationshipStatus,
+          orientation: profile.orientation,
+          profile_photo: profile.profilePhoto,
+          member_type: profile.memberType,
+          what_brought_you_here: profile.whatBroughtYouHere,
+          connection_hoping: profile.connectionHoping,
+          interests: profile.interests,
+          connection_comfort_level: profile.connectionComfortLevel,
+          connection_boundaries: profile.connectionBoundaries,
+          quiz_result: profile.quizResult,
+          first_prompt_response: profile.firstPromptResponse,
+          first_prompt_is_public: profile.firstPromptIsPublic,
+          completed_onboarding: profile.completedOnboarding,
+          spaces_joined: profile.spacesJoined,
+          created_at: profile.joinedAt,
+          welcome_video_watched: profile.welcomeVideoWatched,
+          welcome_video_watched_at: profile.welcomeVideoWatchedAt,
+          onboarding_completed_at: profile.onboardingCompletedAt,
+          updated_at: new Date(),
+        },
+        { onConflict: "user_id" }
+      )
+      .select(),
+    { context: "saveProfileToSupabase" }
+  );
 
   if (error) {
     console.error("Error saving profile to Supabase:", {

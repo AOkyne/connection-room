@@ -55,7 +55,7 @@ export default function UserProfilePage() {
             profilePhoto: data.profile_photo,
             interests: data.interests || [],
             whatBroughtYouHere: data.what_brought_you_here,
-            connectionComfortLevel: data.pairing_comfort_level,
+            connectionComfortLevel: data.connection_comfort_level,
             memberType: data.member_type,
             joinedAt: data.joined_at ? new Date(data.joined_at) : undefined,
           });

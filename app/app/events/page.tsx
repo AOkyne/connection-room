@@ -36,8 +36,8 @@ export default function EventsPage() {
       const p = await getProfile();
       setProfile(p);
 
-      const upcoming = getUpcomingEvents();
-      const past = getPastEvents();
+      const upcoming = await getUpcomingEvents();
+      const past = await getPastEvents();
       setUpcomingEvents(upcoming);
       setPastEvents(past);
 
@@ -93,6 +93,15 @@ export default function EventsPage() {
       newRegistrations.delete(registrationModal.eventId);
     }
     setRegistrations(newRegistrations);
+  };
+
+  const formatPrice = (priceCents?: number, currency?: string) => {
+    if (!priceCents) return "Free";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency || "USD",
+      minimumFractionDigits: priceCents % 100 === 0 ? 0 : 2,
+    }).format(priceCents / 100);
   };
 
   const createGoogleCalendarUrl = (event: any) => {
@@ -255,7 +264,7 @@ END:VCALENDAR`;
                       dangerouslySetInnerHTML={{ __html: event.description }}
                     />
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm mb-4">
                       <div>
                         <p className="text-[#a0704a] uppercase tracking-wide text-xs">Date</p>
                         <p className="text-[#1a0f0a] font-medium">
@@ -272,6 +281,10 @@ END:VCALENDAR`;
                       <div>
                         <p className="text-[#a0704a] uppercase tracking-wide text-xs">Facilitator</p>
                         <p className="text-[#1a0f0a] font-medium">{event.facilitator}</p>
+                      </div>
+                      <div>
+                        <p className="text-[#a0704a] uppercase tracking-wide text-xs">Price</p>
+                        <p className="text-[#1a0f0a] font-medium">{formatPrice(event.priceCents, event.currency)}</p>
                       </div>
                       <div>
                         <p className="text-[#a0704a] uppercase tracking-wide text-xs">Interested</p>

@@ -18,7 +18,7 @@ export function EventReminderBanner() {
       const profile = await getProfile();
       if (!profile) return;
 
-      const interestedEvents = getUserEventInterestsList(profile.id);
+      const interestedEvents = await getUserEventInterestsList(profile.id);
       const pending = getPendingReminders(profile.id, interestedEvents);
       setReminders(pending);
       setMounted(true);

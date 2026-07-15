@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { getEvent, updateEvent } from "@/lib/admin/events";
+import { datetimeLocalToISO, isoToDatetimeLocal } from "@/lib/utils/datetime-local";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -50,8 +51,8 @@ export default function EditEventPage() {
           title: event.title || "",
           shortDescription: event.shortDescription || "",
           description: event.description || "",
-          startAt: event.startAt || "",
-          endAt: event.endAt || "",
+          startAt: isoToDatetimeLocal(event.startAt),
+          endAt: isoToDatetimeLocal(event.endAt),
           location: event.locationName || "",
           facilitator: event.hostName || "",
           format: (event.eventType === "online" || event.eventType === "in-person" || event.eventType === "hybrid" ? event.eventType : "online") as "online" | "in-person" | "hybrid",
@@ -123,8 +124,8 @@ export default function EditEventPage() {
         title: formData.title,
         shortDescription: formData.shortDescription,
         description: formData.description,
-        startAt: formData.startAt,
-        endAt: formData.endAt,
+        startAt: datetimeLocalToISO(formData.startAt),
+        endAt: datetimeLocalToISO(formData.endAt),
         locationName: formData.location,
         hostName: formData.facilitator,
         eventType: formData.format,
@@ -135,6 +136,7 @@ export default function EditEventPage() {
         currency: formData.price ? formData.currency : undefined,
       };
 
+      console.log("[DEBUG] Sending to Supabase:", JSON.stringify(eventData, null, 2));
       const result = await updateEvent(eventId, eventData);
 
       if (result) {
@@ -255,6 +257,7 @@ export default function EditEventPage() {
                 name="startAt"
                 value={formData.startAt}
                 onChange={handleChange}
+                
                 className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
               />
             </div>
@@ -267,6 +270,7 @@ export default function EditEventPage() {
                 name="endAt"
                 value={formData.endAt}
                 onChange={handleChange}
+                
                 className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
               />
             </div>

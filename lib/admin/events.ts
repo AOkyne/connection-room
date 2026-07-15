@@ -65,7 +65,7 @@ export async function getAdminEvents(): Promise<Event[]> {
         .select("*")
         .order("start_at", { ascending: false });
 
-      const { data, error } = await withTimeout(supabasePromise, 5000);
+      const { data, error } = await withTimeout(supabasePromise, 15000);
 
       if (error) throw error;
 
@@ -129,7 +129,7 @@ export async function getPublicEvents(): Promise<Event[]> {
         .in("visibility", ["public", "members"])
         .order("start_at", { ascending: false });
 
-      const { data, error } = await withTimeout(supabasePromise, 5000);
+      const { data, error } = await withTimeout(supabasePromise, 15000);
 
       if (error) throw error;
 
@@ -175,10 +175,7 @@ export async function getEvent(id: string): Promise<Event | null> {
     try {
       const { data, error } = await supabase
         .from("events")
-        .select(
-          `*,
-          event_registrations(count)`
-        )
+        .select("*")
         .eq("id", id)
         .single();
 
@@ -218,7 +215,7 @@ export async function createEvent(event: Partial<Event>): Promise<Event | null> 
         .single();
 
       console.log("[createEvent] Waiting for Supabase response (5s timeout)...");
-      const { data, error } = await withTimeout(supabasePromise, 5000);
+      const { data, error } = await withTimeout(supabasePromise, 15000);
 
       if (error) {
         console.error("[createEvent] Supabase returned error:", error);
@@ -374,14 +371,14 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
         .select()
         .single();
 
-      const { data, error } = await withTimeout(supabasePromise, 5000);
+      const { data, error } = await withTimeout(supabasePromise, 15000);
 
       if (error) throw error;
       if (data) {
         updatedEvent = mapEventFromDb(data);
       }
     } catch (err) {
-      console.error("Error updating event in Supabase:", err);
+      console.error("Error updating event in Supabase:", err instanceof Error ? err.message : JSON.stringify(err));
       // Don't return yet - try localStorage as fallback
     }
   }
@@ -616,6 +613,7 @@ function mapEventFromDb(dbEvent: any): Event {
 
 function mapEventToDb(event: Partial<Event>): any {
   return {
+    id: event.id || `event-${Date.now()}`,
     title: event.title,
     slug: event.slug,
     subtitle: event.subtitle,
@@ -624,6 +622,7 @@ function mapEventToDb(event: Partial<Event>): any {
     event_type: event.eventType,
     status: event.status,
     visibility: event.visibility,
+    date: event.startAt || new Date().toISOString(),
     start_at: event.startAt,
     end_at: event.endAt,
     timezone: event.timezone,

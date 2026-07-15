@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
+import { demoSafeWrite } from "@/lib/demo/demo-mode-guard";
 import { withTimeout } from "@/lib/utils/with-timeout";
 import {
   dailyThemes,
@@ -393,17 +394,21 @@ export async function saveUserReflection(
   }
 
   try {
-    const { data, error } = await supabase
-      .from("user_reflections")
-      .insert({
-        user_id: userId,
-        content_id: contentId,
-        prompt_text: promptText,
-        response,
-        privacy_setting: "private" as const,
-      })
-      .select()
-      .single();
+    const client = supabase;
+    const { data, error } = await demoSafeWrite(
+      () => client
+        .from("user_reflections")
+        .insert({
+          user_id: userId,
+          content_id: contentId,
+          prompt_text: promptText,
+          response,
+          privacy_setting: "private" as const,
+        })
+        .select()
+        .single(),
+      { context: "saveUserReflection" }
+    );
 
     if (error) {
       console.warn("Error saving reflection:", error);
@@ -505,7 +510,11 @@ export async function deleteUserReflection(reflectionId: string): Promise<boolea
   }
 
   try {
-    const { error } = await supabase.from("user_reflections").delete().eq("id", reflectionId);
+    const client = supabase;
+    const { error } = await demoSafeWrite(
+      () => client.from("user_reflections").delete().eq("id", reflectionId),
+      { context: "deleteUserReflection" }
+    );
 
     if (error) {
       console.warn("Error deleting reflection:", error);

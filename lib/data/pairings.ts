@@ -2,13 +2,13 @@
 
 import type { Profile } from "./profiles";
 
-export interface PairingPreferences {
+export interface ConnectionPreferences {
   frequency: "weekly" | "monthly" | "pause";
   contactMode: "text" | "voice-video" | "local";
   optInToExchangeContact: boolean;
 }
 
-export interface Pairing {
+export interface Connection {
   id: string;
   userId: string;
   partnerId: string;
@@ -23,12 +23,12 @@ export interface Pairing {
   mutualContactOptIn: boolean;
 }
 
-const PREFERENCES_STORAGE_KEY = "connection-room:pairing-preferences";
-const PAIRINGS_STORAGE_KEY = "connection-room:pairings";
-const CURRENT_PAIRING_KEY = "connection-room:current-pairing";
+const PREFERENCES_STORAGE_KEY = "connection-room:connection-preferences";
+const CONNECTIONS_STORAGE_KEY = "connection-room:connections";
+const CURRENT_CONNECTION_KEY = "connection-room:current-connection";
 
-// Get pairing preferences
-export function getPairingPreferences(userId: string): PairingPreferences {
+// Get connection preferences
+export function getConnectionPreferences(userId: string): ConnectionPreferences {
   if (typeof window === "undefined") {
     return { frequency: "weekly", contactMode: "text", optInToExchangeContact: false };
   }
@@ -41,14 +41,14 @@ export function getPairingPreferences(userId: string): PairingPreferences {
   return { frequency: "weekly", contactMode: "text", optInToExchangeContact: false };
 }
 
-// Update pairing preferences
-export function updatePairingPreferences(userId: string, preferences: PairingPreferences): void {
+// Update connection preferences
+export function updateConnectionPreferences(userId: string, preferences: ConnectionPreferences): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(`${PREFERENCES_STORAGE_KEY}:${userId}`, JSON.stringify(preferences));
 }
 
-// Generate demo pairing (simple matching based on interests)
-export function generateDemoPairing(userProfile: Profile): Pairing | null {
+// Generate demo connection (simple matching based on interests)
+export function generateDemoConnection(userProfile: Profile): Connection | null {
   // Demo partners with different interest profiles
   const demoPartners = [
     {
@@ -100,8 +100,8 @@ export function generateDemoPairing(userProfile: Profile): Pairing | null {
     "What would it take to feel more safe in vulnerability?",
   ];
 
-  const pairing: Pairing = {
-    id: `pairing-${Date.now()}`,
+  const connection: Connection = {
+    id: `connection-${Date.now()}`,
     userId: userProfile.id,
     partnerId: `demo-${partner.name.toLowerCase()}`,
     partnerName: partner.name,
@@ -114,7 +114,7 @@ export function generateDemoPairing(userProfile: Profile): Pairing | null {
     mutualContactOptIn: false,
   };
 
-  return pairing;
+  return connection;
 }
 
 // Helper to generate avatar SVG
@@ -132,62 +132,62 @@ function generateDemoAvatar(initial: string): string {
   return `data:image/svg+xml;base64,${typeof btoa !== "undefined" ? btoa(svg) : Buffer.from(svg).toString("base64")}`;
 }
 
-// Get current pairing
-export function getCurrentPairing(userId: string): Pairing | null {
+// Get current connection
+export function getCurrentConnection(userId: string): Connection | null {
   if (typeof window === "undefined") return null;
 
-  const stored = localStorage.getItem(`${CURRENT_PAIRING_KEY}:${userId}`);
+  const stored = localStorage.getItem(`${CURRENT_CONNECTION_KEY}:${userId}`);
   return stored ? JSON.parse(stored) : null;
 }
 
-// Save current pairing
-export function setCurrentPairing(userId: string, pairing: Pairing | null): void {
+// Save current connection
+export function setCurrentConnection(userId: string, connection: Connection | null): void {
   if (typeof window === "undefined") return;
 
-  if (pairing) {
-    localStorage.setItem(`${CURRENT_PAIRING_KEY}:${userId}`, JSON.stringify(pairing));
+  if (connection) {
+    localStorage.setItem(`${CURRENT_CONNECTION_KEY}:${userId}`, JSON.stringify(connection));
   } else {
-    localStorage.removeItem(`${CURRENT_PAIRING_KEY}:${userId}`);
+    localStorage.removeItem(`${CURRENT_CONNECTION_KEY}:${userId}`);
   }
 }
 
-// Mark pairing as complete
-export function completePairing(userId: string, pairingId: string): void {
+// Mark connection as complete
+export function completeConnection(userId: string, connectionId: string): void {
   if (typeof window === "undefined") return;
 
-  const pairing = getCurrentPairing(userId);
-  if (pairing && pairing.id === pairingId) {
-    pairing.status = "completed";
-    pairing.completedAt = new Date();
-    setCurrentPairing(userId, pairing);
+  const connection = getCurrentConnection(userId);
+  if (connection && connection.id === connectionId) {
+    connection.status = "completed";
+    connection.completedAt = new Date();
+    setCurrentConnection(userId, connection);
   }
 }
 
-// Skip current pairing
-export function skipPairing(userId: string): void {
+// Skip current connection
+export function skipConnection(userId: string): void {
   if (typeof window === "undefined") return;
-  setCurrentPairing(userId, null);
+  setCurrentConnection(userId, null);
 }
 
-// Report concern with pairing
-export function reportPairingConcern(userId: string, pairingId: string, concern: string): void {
+// Report concern with connection
+export function reportConnectionConcern(userId: string, connectionId: string, concern: string): void {
   if (typeof window === "undefined") return;
 
-  const reports = JSON.parse(localStorage.getItem("connection-room:pairing-reports") || "[]");
+  const reports = JSON.parse(localStorage.getItem("connection-room:connection-reports") || "[]");
   reports.push({
     id: `report-${Date.now()}`,
     userId,
-    pairingId,
+    connectionId,
     concern,
     createdAt: new Date(),
     status: "pending",
   });
 
-  localStorage.setItem("connection-room:pairing-reports", JSON.stringify(reports));
+  localStorage.setItem("connection-room:connection-reports", JSON.stringify(reports));
 }
 
-// Create pairing from matched profile
-export function createPairingFromMatch(userProfile: Profile, partnerProfile: Profile, sharedInterests: string[]): Pairing {
+// Create connection from matched profile
+export function createConnectionFromMatch(userProfile: Profile, partnerProfile: Profile, sharedInterests: string[]): Connection {
   const prompts = [
     "What brought you here and what kind of connection are you practicing?",
     "What has been challenging about intimacy or connection in your life?",
@@ -198,8 +198,8 @@ export function createPairingFromMatch(userProfile: Profile, partnerProfile: Pro
     "What would a meaningful connection look like for you?",
   ];
 
-  const pairing: Pairing = {
-    id: `pairing-${Date.now()}`,
+  const connection: Connection = {
+    id: `connection-${Date.now()}`,
     userId: userProfile.id,
     partnerId: partnerProfile.id,
     partnerName: partnerProfile.displayName,
@@ -212,13 +212,13 @@ export function createPairingFromMatch(userProfile: Profile, partnerProfile: Pro
     mutualContactOptIn: false,
   };
 
-  return pairing;
+  return connection;
 }
 
-// Get pairing history
-export function getPairingHistory(userId: string): Pairing[] {
+// Get connection history
+export function getConnectionHistory(userId: string): Connection[] {
   if (typeof window === "undefined") return [];
 
-  const stored = localStorage.getItem(`${PAIRINGS_STORAGE_KEY}:${userId}`);
+  const stored = localStorage.getItem(`${CONNECTIONS_STORAGE_KEY}:${userId}`);
   return stored ? JSON.parse(stored) : [];
 }

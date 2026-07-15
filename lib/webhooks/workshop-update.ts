@@ -1,8 +1,8 @@
 // Workshop update webhook integration
-// Fires when an event is updated to sync changes to the workshop
+// Fires when an event is updated to sync changes to the workshop,
+// via our own /api/webhooks/workshop-ops proxy which holds the real API key server-side.
 
-const WORKSHOP_UPDATE_URL = "https://workshops.trevorjamesla.com/api/workshops-update";
-const WORKSHOP_API_KEY = "Xensationx555";
+const PROXY_URL = "/api/webhooks/workshop-ops";
 
 export interface WorkshopUpdatePayload {
   eventId: string;
@@ -27,13 +27,10 @@ export async function sendWorkshopUpdateWebhook(
     if (payload.location !== undefined) body.location = payload.location;
     if (payload.description !== undefined) body.description = payload.description;
 
-    const response = await fetch(WORKSHOP_UPDATE_URL, {
+    const response = await fetch(PROXY_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${WORKSHOP_API_KEY}`,
-      },
-      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "update", payload: body }),
     });
 
     if (!response.ok) {

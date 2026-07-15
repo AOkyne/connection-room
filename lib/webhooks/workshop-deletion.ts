@@ -1,18 +1,15 @@
 // Workshop deletion webhook integration
-// Fires when an event is deleted to remove the matching workshop
+// Fires when an event is deleted to remove the matching workshop,
+// via our own /api/webhooks/workshop-ops proxy which holds the real API key server-side.
 
-const WORKSHOP_DELETE_URL = "https://workshops.trevorjamesla.com/api/workshops-delete";
-const WORKSHOP_API_KEY = "Xensationx555";
+const PROXY_URL = "/api/webhooks/workshop-ops";
 
 export async function sendWorkshopDeletionWebhook(eventId: string): Promise<boolean> {
   try {
-    const response = await fetch(WORKSHOP_DELETE_URL, {
+    const response = await fetch(PROXY_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${WORKSHOP_API_KEY}`,
-      },
-      body: JSON.stringify({ eventId }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete", payload: { eventId } }),
     });
 
     if (!response.ok) {

@@ -1,8 +1,8 @@
 // Workshop creation webhook integration
-// Fires when a new event is created to automatically create a matching workshop
+// Fires when a new event is created to automatically create a matching workshop,
+// via our own /api/webhooks/workshop-ops proxy which holds the real API key server-side.
 
-const WORKSHOP_API_URL = "https://workshops.trevorjamesla.com/api/workshops";
-const WORKSHOP_API_KEY = "Xensationx555";
+const PROXY_URL = "/api/webhooks/workshop-ops";
 
 export interface WorkshopCreationPayload {
   eventId: string;
@@ -24,13 +24,10 @@ export async function sendWorkshopCreationWebhook(
   payload: WorkshopCreationPayload
 ): Promise<WorkshopCreationResponse | null> {
   try {
-    const response = await fetch(WORKSHOP_API_URL, {
+    const response = await fetch(PROXY_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${WORKSHOP_API_KEY}`,
-      },
-      body: JSON.stringify(payload),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "create", payload }),
     });
 
     if (!response.ok) {

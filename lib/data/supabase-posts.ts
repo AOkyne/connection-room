@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
+import { demoSafeWrite } from "@/lib/demo/demo-mode-guard";
 import type { Post, Comment } from "./posts";
 
 // Get posts from Supabase
@@ -90,22 +91,26 @@ export async function createSupabasePost(
   authorPhoto?: string
 ): Promise<Post | null> {
   if (!supabase) return null;
+  const client = supabase;
 
   try {
-    const { data, error } = await supabase
-      .from("posts")
-      .insert({
-        user_id: userId,
-        space_id: spaceId,
-        author_name: authorName,
-        author_pronouns: authorPronouns,
-        author_photo: authorPhoto,
-        prompt_id: promptId,
-        content: content,
-        is_prompt_response: isPromptResponse || false,
-      })
-      .select("*")
-      .single();
+    const { data, error } = await demoSafeWrite(
+      () => client
+        .from("posts")
+        .insert({
+          user_id: userId,
+          space_id: spaceId,
+          author_name: authorName,
+          author_pronouns: authorPronouns,
+          author_photo: authorPhoto,
+          prompt_id: promptId,
+          content: content,
+          is_prompt_response: isPromptResponse || false,
+        })
+        .select("*")
+        .single(),
+      { context: "createSupabasePost" }
+    );
 
     if (error) {
       console.warn("Error creating post:", error);
@@ -140,17 +145,21 @@ export async function addSupabasePostReaction(
   reactionType: string
 ): Promise<boolean> {
   if (!supabase) return false;
+  const client = supabase;
 
   try {
     console.log("Adding reaction:", { postId, userId, reactionType });
-    // Try to insert the reaction
-    const { error } = await supabase
-      .from("reactions")
-      .insert({
-        user_id: userId,
-        post_id: postId,
-        reaction_type: reactionType,
-      });
+    // Try to insert the reaction with demo mode protection
+    const { error } = await demoSafeWrite(
+      () => client
+        .from("reactions")
+        .insert({
+          user_id: userId,
+          post_id: postId,
+          reaction_type: reactionType,
+        }),
+      { context: "addSupabasePostReaction" }
+    );
 
     // If unique constraint violation, the reaction already exists - that's fine
     if (error && error.code === "23505") {
@@ -223,20 +232,24 @@ export async function createSupabaseComment(
   authorPhoto?: string
 ): Promise<Comment | null> {
   if (!supabase) return null;
+  const client = supabase;
 
   try {
-    const { data, error } = await supabase
-      .from("comments")
-      .insert({
-        user_id: userId,
-        post_id: postId,
-        author_name: authorName,
-        author_pronouns: authorPronouns,
-        author_photo: authorPhoto,
-        content: content,
-      })
-      .select("*")
-      .single();
+    const { data, error } = await demoSafeWrite(
+      () => client
+        .from("comments")
+        .insert({
+          user_id: userId,
+          post_id: postId,
+          author_name: authorName,
+          author_pronouns: authorPronouns,
+          author_photo: authorPhoto,
+          content: content,
+        })
+        .select("*")
+        .single(),
+      { context: "createSupabaseComment" }
+    );
 
     if (error) {
       console.warn("Error creating comment:", error);
@@ -253,10 +266,13 @@ export async function createSupabaseComment(
         .single();
 
       if (post) {
-        await supabase
-          .from("posts")
-          .update({ comment_count: (post.comment_count || 0) + 1 })
-          .eq("id", postId);
+        await demoSafeWrite(
+          () => client
+            .from("posts")
+            .update({ comment_count: (post.comment_count || 0) + 1 })
+            .eq("id", postId),
+          { context: "updatePostCommentCount" }
+        );
       }
     } catch (err) {
       // Silently ignore - count is incremented optimistically in UI

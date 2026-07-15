@@ -1,8 +1,8 @@
 // Workshop Ops webhook integration
-// Sends registration data in real-time to workshops.trevorjamesla.com
+// Sends registration data in real-time to workshops.trevorjamesla.com via our
+// own /api/webhooks/workshop-ops proxy, which holds the real API key server-side.
 
-const WORKSHOP_API_URL = "https://workshops.trevorjamesla.com/api/registrations";
-const WORKSHOP_API_KEY = "Xensationx555";
+const PROXY_URL = "/api/webhooks/workshop-ops";
 
 export interface WorkshopRegistration {
   id: string;
@@ -34,13 +34,10 @@ export async function sendEventRegistrationsWebhook(
       registrations,
     };
 
-    const response = await fetch(WORKSHOP_API_URL, {
+    const response = await fetch(PROXY_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${WORKSHOP_API_KEY}`,
-      },
-      body: JSON.stringify(payload),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "registrations", payload }),
     });
 
     if (!response.ok) {

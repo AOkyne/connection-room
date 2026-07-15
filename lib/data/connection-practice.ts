@@ -1,5 +1,6 @@
 import { ConnectionInterest, ConnectionMilestone, ConnectionPracticeSummary } from "@/lib/types/connection";
 import { supabase } from "@/lib/supabase/client";
+import { demoSafeWrite } from "@/lib/demo/demo-mode-guard";
 
 const CONNECTION_INTERESTS_KEY = "connection-room:connection-interests";
 const CONNECTION_MILESTONES_KEY = "connection-room:connection-milestones";
@@ -22,15 +23,19 @@ export async function saveConnectionInterest(interest: ConnectionInterest): Prom
   if (typeof window === "undefined") return;
 
   const userId = await getCurrentUserId();
-  if (userId && supabase) {
+  const client = supabase;
+  if (userId && client) {
     try {
-      await supabase.from("connection_interests").insert({
-        user_id: userId,
-        theme: interest.theme,
-        space_id: interest.spaceId,
-        prompt_id: interest.promptId,
-        source_type: interest.sourceType,
-      });
+      await demoSafeWrite(
+        () => client.from("connection_interests").insert({
+          user_id: userId,
+          theme: interest.theme,
+          space_id: interest.spaceId,
+          prompt_id: interest.promptId,
+          source_type: interest.sourceType,
+        }),
+        { context: "saveConnectionInterest" }
+      );
     } catch (error) {
       console.warn("Error saving connection interest to Supabase:", error);
       // Fall back to localStorage
@@ -81,13 +86,17 @@ export async function addConnectionMilestone(milestone: ConnectionMilestone): Pr
   if (typeof window === "undefined") return;
 
   const userId = await getCurrentUserId();
-  if (userId && supabase) {
+  const client = supabase;
+  if (userId && client) {
     try {
-      await supabase.from("connection_milestones").insert({
-        user_id: userId,
-        milestone_type: milestone.milestoneType,
-        earned_at: new Date().toISOString(),
-      });
+      await demoSafeWrite(
+        () => client.from("connection_milestones").insert({
+          user_id: userId,
+          milestone_type: milestone.milestoneType,
+          earned_at: new Date().toISOString(),
+        }),
+        { context: "addConnectionMilestone" }
+      );
     } catch (error) {
       console.warn("Error saving milestone to Supabase:", error);
       // Fall back to localStorage

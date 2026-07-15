@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { createEvent } from "@/lib/admin/events";
+import { datetimeLocalToISO } from "@/lib/utils/datetime-local";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -116,8 +117,8 @@ export default function CreateEventPage() {
         title: formData.title,
         shortDescription: formData.shortDescription,
         description: formData.description,
-        startAt: formData.startAt,
-        endAt: formData.endAt,
+        startAt: datetimeLocalToISO(formData.startAt),
+        endAt: datetimeLocalToISO(formData.endAt),
         locationName: formData.location,
         hostName: formData.facilitator,
         eventType: formData.format,

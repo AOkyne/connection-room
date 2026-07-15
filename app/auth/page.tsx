@@ -362,7 +362,7 @@ function DemoAuthContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const ADMIN_SECRET = "connection2024"; // Admin secret key
+  const ADMIN_SECRET = process.env.NEXT_PUBLIC_DEMO_ADMIN_SECRET || "connection2024"; // Admin secret from env, fallback for local dev
 
   const handleContinueAsMember = async () => {
     setLoading(true);

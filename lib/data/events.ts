@@ -1,60 +1,95 @@
-// Events data access layer - demo mode with localStorage
-
+// Events data access layer - loads from Supabase
+import { createClient } from "@supabase/supabase-js";
 import { demoEvents } from "./demo-data";
 import type { Event } from "./demo-data";
 
 const EVENTS_STORAGE_KEY = "connection-room:event-interests";
-const CUSTOM_EVENTS_STORAGE_KEY = "connection-room:custom-events";
 
-// Helper to load and convert all events
-function getAllEvents(): Event[] {
-  let allEvents = [...demoEvents];
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+);
 
-  // Add custom events from localStorage
-  if (typeof window !== "undefined") {
-    const customEventsStr = localStorage.getItem(CUSTOM_EVENTS_STORAGE_KEY);
-    if (customEventsStr) {
-      try {
-        const customEvents = JSON.parse(customEventsStr);
-        // Convert ISO date strings to Date objects for custom events
-        const convertedCustomEvents = customEvents.map((e: any) => {
-          const eventDate = e.date ? new Date(e.date) : (e.startAt ? new Date(e.startAt) : new Date());
-          let time = e.time;
-          if (!time) {
-            const hours = String(eventDate.getHours()).padStart(2, "0");
-            const minutes = String(eventDate.getMinutes()).padStart(2, "0");
-            const hour12 = eventDate.getHours() % 12 || 12;
-            const ampm = eventDate.getHours() >= 12 ? "PM" : "AM";
-            time = `${hour12}:${minutes} ${ampm} PT`;
-          }
-          return {
-            ...e,
-            date: eventDate,
-            time: time,
-            facilitator: e.facilitator || e.hostName || "",
-            format: e.format || e.eventType || "online",
-            interested: false,
-          };
-        });
-        allEvents = [...allEvents, ...convertedCustomEvents];
-      } catch (e) {
-        console.error("Error parsing custom events:", e);
-      }
-    }
-  }
-
-  return allEvents;
+// Helper to load and convert all events from Supabase
+// Admin forms write "online" as the event_type; the public UI's format
+// filter buttons and badges use "virtual" — normalize here.
+function normalizeFormat(eventType: string | null | undefined): "virtual" | "in-person" | "hybrid" {
+  if (eventType === "in-person" || eventType === "hybrid") return eventType;
+  return "virtual";
 }
 
-// Get all upcoming events (demo + custom)
-export function getUpcomingEvents(): Event[] {
+async function getAllEventsFromSupabase(): Promise<Event[]> {
+  try {
+    const { data, error } = await supabase
+      .from("events")
+      .select("*, event_registrations(count)")
+      .order("start_at", { ascending: true });
+
+    if (error) {
+      console.error("Error loading events from Supabase:", error);
+      return [];
+    }
+
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // Convert Supabase events to Event interface.
+    // Admin writes location_name/event_type/host_name (not location/format/facilitator).
+    return data.map((e: any) => ({
+      id: e.id,
+      title: e.title,
+      description: e.description,
+      date: new Date(e.start_at),
+      time: e.start_at
+        ? new Date(e.start_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
+        : "TBD",
+      location: e.location_name || e.location_address || e.location,
+      format: normalizeFormat(e.event_type || e.format),
+      facilitator: e.host_name || e.facilitator,
+      interested: false,
+      attendeeCount: e.event_registrations?.[0]?.count ?? e.attendee_count ?? 0,
+      imageUrl: e.image_url,
+      priceCents: e.price_cents,
+      currency: e.currency,
+    }));
+  } catch (e) {
+    console.error("Error loading events from Supabase:", e);
+    return [];
+  }
+}
+
+// Fallback to sync version for SSR
+function getAllEvents(): Event[] {
+  return [...demoEvents];
+}
+
+// Get all upcoming events from Supabase
+export async function getUpcomingEvents(): Promise<Event[]> {
+  const allEvents = await getAllEventsFromSupabase();
+  return allEvents
+    .filter((event) => event.date > new Date())
+    .sort((a, b) => a.date.getTime() - b.date.getTime());
+}
+
+// Get all past events from Supabase
+export async function getPastEvents(): Promise<Event[]> {
+  const allEvents = await getAllEventsFromSupabase();
+  return allEvents
+    .filter((event) => event.date <= new Date())
+    .sort((a, b) => b.date.getTime() - a.date.getTime());
+}
+
+// Server-side version for SSR (uses demo data as fallback)
+export function getUpcomingEventsFallback(): Event[] {
   return getAllEvents()
     .filter((event) => event.date > new Date())
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 }
 
-// Get all past events (demo + custom)
-export function getPastEvents(): Event[] {
+// Server-side version for SSR (uses demo data as fallback)
+export function getPastEventsFallback(): Event[] {
   return getAllEvents()
     .filter((event) => event.date <= new Date())
     .sort((a, b) => b.date.getTime() - a.date.getTime());
@@ -86,7 +121,8 @@ export function toggleEventInterest(userId: string, eventId: string): boolean {
 }
 
 // Get events user is interested in
-export function getUserEventInterestsList(userId: string): Event[] {
+export async function getUserEventInterestsList(userId: string): Promise<Event[]> {
   const interests = getUserEventInterests(userId);
-  return getUpcomingEvents().filter((event) => interests.has(event.id));
+  const upcomingEvents = await getUpcomingEvents();
+  return upcomingEvents.filter((event) => interests.has(event.id));
 }

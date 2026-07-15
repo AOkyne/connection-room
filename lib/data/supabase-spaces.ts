@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
+import { demoSafeWrite } from "@/lib/demo/demo-mode-guard";
 
 export interface Space {
   id: string;
@@ -93,12 +94,16 @@ export async function getUserJoinedSpaces(userId: string): Promise<Space[]> {
 // Join a space
 export async function joinSpace(userId: string, spaceId: string): Promise<boolean> {
   if (!supabase) return false;
+  const client = supabase;
 
   try {
-    const { error } = await supabase.from("space_memberships").insert({
-      user_id: userId,
-      space_id: spaceId,
-    });
+    const { error } = await demoSafeWrite(
+      () => client.from("space_memberships").insert({
+        user_id: userId,
+        space_id: spaceId,
+      }),
+      { context: "joinSpace" }
+    );
 
     if (error) {
       console.warn("Error joining space:", error);
@@ -115,13 +120,17 @@ export async function joinSpace(userId: string, spaceId: string): Promise<boolea
 // Leave a space
 export async function leaveSpace(userId: string, spaceId: string): Promise<boolean> {
   if (!supabase) return false;
+  const client = supabase;
 
   try {
-    const { error } = await supabase
-      .from("space_memberships")
-      .delete()
-      .eq("user_id", userId)
-      .eq("space_id", spaceId);
+    const { error } = await demoSafeWrite(
+      () => client
+        .from("space_memberships")
+        .delete()
+        .eq("user_id", userId)
+        .eq("space_id", spaceId),
+      { context: "leaveSpace" }
+    );
 
     if (error) {
       console.warn("Error leaving space:", error);

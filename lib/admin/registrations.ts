@@ -13,6 +13,19 @@ export interface EventRegistration {
   registeredAt: string;
 }
 
+// Supabase returns snake_case columns; map to the camelCase interface above
+function mapRegistrationFromDb(row: any): EventRegistration {
+  return {
+    id: row.id,
+    eventId: row.event_id,
+    userId: row.profile_id,
+    name: row.name,
+    email: row.email,
+    status: row.status,
+    registeredAt: row.registered_at,
+  };
+}
+
 // Register user for an event
 export async function registerForEvent(
   eventId: string,
@@ -26,22 +39,28 @@ export async function registerForEvent(
     // Try Supabase first
     if (!isSupabaseConfigured || !supabase) throw new Error("Supabase not configured");
 
+    // Upsert, not insert: a user may already have a row for this event (e.g. they
+    // marked interested first), and event_id+profile_id is unique. A plain insert
+    // would fail with a duplicate key error in that case.
     const { data, error } = await supabase
       .from("event_registrations")
-      .insert({
-        event_id: eventId,
-        user_id: userId,
-        name,
-        email,
-        status: "registered",
-        registered_at: new Date().toISOString(),
-      })
+      .upsert(
+        {
+          event_id: eventId,
+          profile_id: userId,
+          name,
+          email,
+          status: "registered",
+          registered_at: new Date().toISOString(),
+        },
+        { onConflict: "event_id,profile_id" }
+      )
       .select()
       .single();
 
     if (error) throw error;
 
-    const registration = data as EventRegistration;
+    const registration = mapRegistrationFromDb(data);
 
     // Send webhook to workshop ops app if eventDate is provided
     if (eventDate) {
@@ -112,7 +131,7 @@ export async function updateRegistrationStatus(
       .from("event_registrations")
       .update({ status })
       .eq("event_id", eventId)
-      .eq("user_id", userId);
+      .eq("profile_id", userId);
 
     if (error) throw error;
 
@@ -192,20 +211,20 @@ export async function markAsInterested(
       .upsert(
         {
           event_id: eventId,
-          user_id: userId,
+          profile_id: userId,
           name,
           email,
           status: "interested",
           registered_at: new Date().toISOString(),
         },
-        { onConflict: "event_id,user_id" }
+        { onConflict: "event_id,profile_id" }
       )
       .select()
       .single();
 
     if (error) throw error;
 
-    const registration = data as EventRegistration;
+    const registration = mapRegistrationFromDb(data);
 
     // Send webhook for interest if eventDate is provided
     if (eventDate) {
@@ -270,7 +289,7 @@ export async function getEventRegistrations(eventId: string): Promise<EventRegis
       .neq("status", "cancelled");
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map(mapRegistrationFromDb);
   } catch (err) {
     console.warn("Supabase registration fetch failed, falling back to localStorage:", err);
 
@@ -311,11 +330,11 @@ export async function getUserRegistrations(userId: string): Promise<EventRegistr
     const { data, error } = await supabase
       .from("event_registrations")
       .select("*")
-      .eq("user_id", userId)
+      .eq("profile_id", userId)
       .neq("status", "cancelled");
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map(mapRegistrationFromDb);
   } catch (err) {
     console.warn("Supabase user registrations fetch failed, falling back to localStorage:", err);
 
@@ -366,30 +385,41 @@ export async function syncEventRegistrationsToWorkshop(
   eventDate: string
 ): Promise<boolean> {
   try {
-    // Query localStorage directly (bypass getEventRegistrations which has a bug)
+    // Registrations now write to Supabase successfully (see getEventRegistrations),
+    // so that's the source of truth. Fall back to localStorage only if that fails,
+    // matching the same fallback pattern the rest of this file uses.
     let workshopRegistrations: WorkshopRegistration[] = [];
 
-    if (typeof window !== "undefined") {
-      try {
-        const allRegs = JSON.parse(localStorage.getItem(REGISTRATIONS_STORAGE_KEY) || "[]");
-        console.log(`[syncEventRegistrationsToWorkshop] Found ${allRegs.length} total registrations in localStorage`);
+    try {
+      const regs = await getEventRegistrations(eventId);
+      workshopRegistrations = regs.map((reg) => ({
+        id: reg.id,
+        name: reg.name,
+        email: reg.email,
+        status: reg.status,
+        registeredAt: reg.registeredAt,
+      }));
+      console.log(`[syncEventRegistrationsToWorkshop] Found ${workshopRegistrations.length} active registrations in Supabase for event ${eventId}`);
+    } catch (e) {
+      console.warn(`[syncEventRegistrationsToWorkshop] Supabase fetch failed, falling back to localStorage:`, e);
 
-        // Filter for this event and active statuses (not cancelled)
-        const filtered = allRegs.filter(
-          (reg: EventRegistration) => reg.eventId === eventId && reg.status !== "cancelled"
-        );
-        console.log(`[syncEventRegistrationsToWorkshop] Filtered to ${filtered.length} active registrations for event ${eventId}`);
-
-        workshopRegistrations = filtered.map((reg: EventRegistration) => ({
-          id: reg.id,
-          name: reg.name,
-          email: reg.email,
-          status: reg.status,
-          registeredAt: reg.registeredAt,
-        }));
-      } catch (e) {
-        console.error(`[syncEventRegistrationsToWorkshop] Error parsing localStorage:`, e);
-        return false;
+      if (typeof window !== "undefined") {
+        try {
+          const allRegs = JSON.parse(localStorage.getItem(REGISTRATIONS_STORAGE_KEY) || "[]");
+          const filtered = allRegs.filter(
+            (reg: EventRegistration) => reg.eventId === eventId && reg.status !== "cancelled"
+          );
+          workshopRegistrations = filtered.map((reg: EventRegistration) => ({
+            id: reg.id,
+            name: reg.name,
+            email: reg.email,
+            status: reg.status,
+            registeredAt: reg.registeredAt,
+          }));
+        } catch (e2) {
+          console.error(`[syncEventRegistrationsToWorkshop] Error parsing localStorage:`, e2);
+          return false;
+        }
       }
     }
 
@@ -409,6 +439,35 @@ export async function syncEventRegistrationsToWorkshop(
   }
 }
 
+// Delete a registration (admin)
+export async function deleteEventRegistration(registrationId: string): Promise<boolean> {
+  try {
+    if (!isSupabaseConfigured || !supabase) throw new Error("Supabase not configured");
+
+    const { error } = await supabase
+      .from("event_registrations")
+      .delete()
+      .eq("id", registrationId);
+
+    if (error) throw error;
+    return true;
+  } catch (err) {
+    console.warn("Supabase registration delete failed, falling back to localStorage:", err);
+
+    if (typeof window === "undefined") return false;
+
+    try {
+      const existing = JSON.parse(localStorage.getItem(REGISTRATIONS_STORAGE_KEY) || "[]");
+      const filtered = existing.filter((reg: EventRegistration) => reg.id !== registrationId);
+      localStorage.setItem(REGISTRATIONS_STORAGE_KEY, JSON.stringify(filtered));
+      return true;
+    } catch (e) {
+      console.error("localStorage registration delete failed:", e);
+      return false;
+    }
+  }
+}
+
 // Get all registrations including cancelled (for admin view)
 export async function getAllEventRegistrations(eventId: string): Promise<EventRegistration[]> {
   try {
@@ -421,7 +480,7 @@ export async function getAllEventRegistrations(eventId: string): Promise<EventRe
       .eq("event_id", eventId);
 
     if (error) throw error;
-    return data || [];
+    return (data || []).map(mapRegistrationFromDb);
   } catch (err) {
     console.warn("Supabase all registrations fetch failed, falling back to localStorage:", err);
 

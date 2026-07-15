@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
+import { demoSafeWrite } from "@/lib/demo/demo-mode-guard";
 
 export interface Message {
   id: string;
@@ -49,17 +50,21 @@ export async function sendMessage(
   if (!supabase) return null;
 
   try {
-    const { data, error } = await supabase
-      .from("connection_messages")
-      .insert({
-        connection_id: connectionId,
-        from_user_id: fromUserId,
-        from_user_name: fromUserName,
-        text,
-        created_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
+    const client = supabase;
+    const { data, error } = await demoSafeWrite(
+      () => client
+        .from("connection_messages")
+        .insert({
+          connection_id: connectionId,
+          from_user_id: fromUserId,
+          from_user_name: fromUserName,
+          text,
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .single(),
+      { context: "sendMessage" }
+    );
 
     if (error) {
       console.error("Error sending message:", error);

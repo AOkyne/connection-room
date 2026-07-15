@@ -87,6 +87,9 @@ export interface Event {
   facilitator: string;
   interested: boolean;
   attendeeCount: number;
+  imageUrl?: string;
+  priceCents?: number;
+  currency?: string;
 }
 
 export const demoSpaces: Space[] = [
@@ -2021,42 +2024,7 @@ export const demoBadges: Badge[] = [
   },
 ];
 
-export const demoEvents: Event[] = [
-  {
-    id: "event-001",
-    title: "Monthly Connection Circle",
-    description: "A gentle guided circle for authentic sharing and connection",
-    date: new Date(Date.now() + 604800000), // 1 week away
-    time: "7:00 PM PT",
-    format: "virtual",
-    facilitator: "Trevor James",
-    interested: false,
-    attendeeCount: 24,
-  },
-  {
-    id: "event-002",
-    title: "Embodiment Practice Lab",
-    description: "Breath work, body awareness, and coming home to presence",
-    date: new Date(Date.now() + 1209600000), // 2 weeks away
-    time: "6:00 PM PT",
-    format: "virtual",
-    facilitator: "Dr. Somatic",
-    interested: false,
-    attendeeCount: 18,
-  },
-  {
-    id: "event-003",
-    title: "Touch, Affection & Receiving Workshop",
-    description: "Exploring non-sexual touch, giving, and receiving in safe ways",
-    date: new Date(Date.now() + 2419200000), // 4 weeks away
-    time: "2:00 PM PT",
-    format: "in-person",
-    location: "Los Angeles, CA",
-    facilitator: "Trevor James",
-    interested: false,
-    attendeeCount: 12,
-  },
-];
+export const demoEvents: Event[] = [];
 
 interface Offer {
   id: string;

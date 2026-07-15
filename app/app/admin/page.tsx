@@ -44,10 +44,12 @@ export default function AdminPage() {
       setIsAdmin(true);
 
       setBadges(getAllBadges());
-      setEvents(getUpcomingEvents());
       setOffers(getAllOffers());
       setRecentSignups(getRecentSignups());
       setAllMembers(demoMembers);
+
+      const upcomingEvents = await getUpcomingEvents();
+      setEvents(upcomingEvents);
 
       // Load real analytics data
       try {

@@ -5,16 +5,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { getAdminEvents, deleteEvent, type Event } from "@/lib/admin/events";
+import { getEventCapacity, setEventCapacity, sendEventNotification } from "@/lib/admin/event-management";
 import {
-  getEventCapacity,
-  setEventCapacity,
-  getEventRegistrants,
-  updateRegistrantStatus,
-  removeRegistrant,
-  sendEventNotification,
-  getEventStats,
-  type EventRegistrant,
-} from "@/lib/admin/event-management";
+  getAllEventRegistrations,
+  getEventRegistrationStats,
+  updateRegistrationStatus,
+  deleteEventRegistration,
+  type EventRegistration,
+} from "@/lib/admin/registrations";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { Breadcrumb } from "@/components/Breadcrumb";
@@ -31,7 +29,7 @@ export default function AdminEventsPage() {
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [showRegistrants, setShowRegistrants] = useState(false);
-  const [registrants, setRegistrants] = useState<EventRegistrant[]>([]);
+  const [registrants, setRegistrants] = useState<EventRegistration[]>([]);
   const [capacity, setCapacity] = useState<number | undefined>(undefined);
   const [newCapacity, setNewCapacity] = useState<string>("");
   const [eventStats, setEventStats] = useState<any>(null);
@@ -77,9 +75,11 @@ export default function AdminEventsPage() {
     setDeleting(null);
   };
 
-  const handleViewRegistrants = (eventId: string) => {
-    const regs = getEventRegistrants(eventId);
-    const stats = getEventStats(eventId);
+  const handleViewRegistrants = async (eventId: string) => {
+    const [regs, stats] = await Promise.all([
+      getAllEventRegistrations(eventId),
+      getEventRegistrationStats(eventId),
+    ]);
     const cap = getEventCapacity(eventId);
 
     setSelectedEventId(eventId);
@@ -104,13 +104,20 @@ export default function AdminEventsPage() {
     showToast(`Capacity updated to ${newCap}`, "success");
   };
 
-  const handleUpdateRegistrantStatus = (
+  const handleUpdateRegistrantStatus = async (
     registrantId: string,
     status: "registered" | "interested" | "attended" | "cancelled"
   ) => {
     if (!selectedEventId) return;
 
-    updateRegistrantStatus(selectedEventId, registrantId, status);
+    const registrant = registrants.find((r) => r.id === registrantId);
+    if (!registrant) return;
+
+    const success = await updateRegistrationStatus(selectedEventId, registrant.userId, status);
+    if (!success) {
+      showToast("Failed to update status", "error");
+      return;
+    }
     const updated = registrants.map((r) =>
       r.id === registrantId ? { ...r, status } : r
     );
@@ -118,10 +125,14 @@ export default function AdminEventsPage() {
     showToast(`Status updated to ${status}`, "success");
   };
 
-  const handleRemoveRegistrant = (registrantId: string) => {
+  const handleRemoveRegistrant = async (registrantId: string) => {
     if (!selectedEventId) return;
 
-    removeRegistrant(selectedEventId, registrantId);
+    const success = await deleteEventRegistration(registrantId);
+    if (!success) {
+      showToast("Failed to remove registrant", "error");
+      return;
+    }
     setRegistrants(registrants.filter((r) => r.id !== registrantId));
     showToast("Registrant removed", "success");
   };
@@ -190,6 +201,13 @@ export default function AdminEventsPage() {
           filteredEvents.map((event) => (
             <Card key={event.id} className="p-4 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between gap-4">
+                {event.imageUrl && (
+                  <img
+                    src={event.imageUrl}
+                    alt={event.title}
+                    className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                  />
+                )}
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="text-lg font-bold text-[#1a0f0a]">
@@ -354,7 +372,7 @@ export default function AdminEventsPage() {
                       >
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-[#1a0f0a] truncate">
-                            {reg.userName}
+                            {reg.name || "Unknown"}
                           </p>
                           <p className="text-xs text-[#a0704a]">
                             {new Date(reg.registeredAt).toLocaleDateString()}
