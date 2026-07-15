@@ -111,49 +111,22 @@ export async function getInvitedFriends(): Promise<Profile[]> {
     const {
       data: { session },
     } = await supabase.auth.getSession();
-    if (!session?.user?.id) return [];
+    const token = session?.access_token;
+    if (!token) return [];
 
-    // Get current user's profile to find their ID in profiles table
-    const { data: currentProfile } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("user_id", session.user.id)
-      .single();
+    // Resolved server-side (service-role key) via /api/invites/friends --
+    // invite_relationships keys off profiles.id, which ordinary members can
+    // no longer look up directly now that profiles is locked to owner+admin
+    // SELECT (migration 039).
+    const response = await fetch("/api/invites/friends", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) return [];
 
-    if (!currentProfile?.id) return [];
+    const { friends } = await response.json();
+    if (!friends) return [];
 
-    // Get all invite relationships where current user is the inviter
-    const { data: relationships } = await supabase
-      .from("invite_relationships")
-      .select("invited_profile_id")
-      .eq("inviter_profile_id", currentProfile.id);
-
-    if (!relationships || relationships.length === 0) return [];
-
-    // Get profile details for each invited friend
-    const invitedProfileIds = relationships.map((r) => r.invited_profile_id);
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select(
-        `
-        id,
-        user_id,
-        display_name,
-        pronouns,
-        profile_photo,
-        profile_tagline,
-        created_at,
-        profile_visibility,
-        show_in_member_lists
-      `
-      )
-      .in("id", invitedProfileIds)
-      .eq("completed_onboarding", true);
-
-    if (!profiles) return [];
-
-    // Transform to Profile interface
-    return profiles.map((p: any) => {
+    return friends.map((p: any) => {
       const displayName = p.display_name || "";
       const nameParts = displayName.split(" ");
       return {
@@ -163,14 +136,11 @@ export async function getInvitedFriends(): Promise<Profile[]> {
         displayName: p.display_name,
         pronouns: p.pronouns,
         profilePhoto: p.profile_photo,
-        profile_tagline: p.profile_tagline,
         memberType: "individual",
         interests: [],
         completedOnboarding: true,
         spacesJoined: [],
         joinedAt: new Date(p.created_at),
-        profile_visibility: p.profile_visibility,
-        show_in_member_lists: p.show_in_member_lists,
       };
     });
   } catch (err) {

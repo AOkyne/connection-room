@@ -1,5 +1,7 @@
 # Row Level Security (RLS) Policies for Connection Room
 
+> **Stale as of migration 039.** The `profiles` section below (all-authenticated-users-can-read) describes the pre-launch, never-locked-down state and is no longer accurate — see [`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md) for the current model. The rest of this document (spaces, posts, etc.) is unaffected and still describes the intended policies.
+
 This document outlines the recommended RLS policies for each table in the Supabase database. These policies ensure users can only access the data they're allowed to see and modify.
 
 ## Implementation Steps

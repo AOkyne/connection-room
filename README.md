@@ -2,6 +2,14 @@
 
 A beautiful, intentional community web app for men and couples practicing honest connection, embodied intimacy, spirituality, sexuality, and integration.
 
+## 🔒 Privacy & Security
+
+Member profile data is split across a private `profiles` table (owner +
+admin only) and a public `public_profiles` table (safe fields, with
+per-field visibility controls) — see [`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md)
+for the full model, including RLS behavior, what's public vs. private, and
+known limitations.
+
 ## 🎯 Project Status
 
 **Phase 1 - MVP (Demo Mode Complete)**

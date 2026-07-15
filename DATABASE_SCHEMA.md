@@ -45,9 +45,39 @@ spaces_joined: TEXT[] - Array of space IDs user has joined
 joined_at: TIMESTAMP - Account creation date
 ```
 
-**RLS Policies:**
-- SELECT: Users can read public profiles, own profile fully visible
-- UPDATE: Users can only update their own profile
+**RLS Policies (as of migration 039 — see [`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md)):**
+- SELECT: owner only (`user_id = auth.uid()`), or caller is an admin
+- INSERT/UPDATE: owner only
+- UPDATE (admin): caller is an admin
+- No other member can read another member's row here — see `public_profiles` below
+
+---
+
+### 2a. `public.public_profiles`
+**Safe, cross-member-readable subset of profile data** (added in migration 039)
+
+```sql
+user_id: UUID (Primary Key) - References auth.users.id
+display_name: TEXT
+profile_photo: TEXT
+tagline: TEXT
+pronouns: TEXT
+location: TEXT
+interests: JSONB
+spaces_joined: JSONB
+is_seeded: BOOLEAN
+profile_visibility: TEXT - hidden | members_only | shared_spaces | member_discovery
+show_in_discovery: BOOLEAN
+show_general_location: BOOLEAN
+show_interests: BOOLEAN
+show_recent_posts: BOOLEAN
+show_pronouns: BOOLEAN
+```
+
+Kept in sync with `profiles` automatically via the `profiles_sync_public`
+trigger. Application code reads `public_profiles_view` (a column-masking
+view over this table), not this table directly, for any cross-member
+display. Full detail in [`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md).
 
 ---
 

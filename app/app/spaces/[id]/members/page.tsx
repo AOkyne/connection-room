@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { getProfile, Profile, getProfilesBySpace } from "@/lib/data/profiles";
+import { getProfile, Profile, getPublicProfilesBySpace } from "@/lib/data/profiles";
 import { getSpace, Space } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
 
@@ -21,7 +21,7 @@ export default function SpaceMembersPage() {
     const loadData = async () => {
       const spaceData = await getSpace(spaceId);
       const profileData = await getProfile();
-      const spaceMembers = await getProfilesBySpace(spaceId);
+      const spaceMembers = await getPublicProfilesBySpace(spaceId);
 
       setSpace(spaceData);
       setUserProfile(profileData);

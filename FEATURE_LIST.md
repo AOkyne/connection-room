@@ -1,5 +1,18 @@
 # The Connection Room - Feature List
 
+## Privacy & Security
+
+- **Private profile fields** (orientation, relationship status, connection
+  comfort/boundaries, quiz results, onboarding responses) are visible only
+  to the profile owner and admins.
+- **Public member profile** (display name, photo, tagline, pronouns,
+  general location, interests) is a separate table with its own
+  per-field visibility toggles and row-level visibility states
+  (hidden / members-only / shared-spaces / discovery).
+- **Server-side connection matching** — private fields used for match
+  scoring never reach the browser; only safe match results do.
+- See [`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md) for full detail.
+
 ## Core Features
 
 ### Authentication & Onboarding

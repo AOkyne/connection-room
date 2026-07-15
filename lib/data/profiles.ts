@@ -430,7 +430,12 @@ export function deleteProfile(): void {
   localStorage.removeItem(COUPLE_PROFILE_STORAGE_KEY);
 }
 
-// Fetch all profiles from database (seeded and real)
+// ADMIN ONLY. Fetches full profiles rows (all fields, all members) from the
+// private profiles table. As of migration 039, profiles RLS only allows an
+// authenticated caller to read their own row or, if their role is 'admin',
+// any row. Calling this as a non-admin member will simply return only that
+// member's own row, not an error -- do not use this for any member-facing
+// cross-user display; use getPublicProfile/getPublicProfilesBySpace instead.
 export async function getAllProfiles(): Promise<Profile[]> {
   if (!supabase) return [];
 
@@ -482,7 +487,8 @@ export async function getAllProfiles(): Promise<Profile[]> {
   }
 }
 
-// Fetch profiles that joined a specific space
+// ADMIN ONLY (see getAllProfiles). Use getPublicProfilesBySpace for any
+// member-facing space member list.
 export async function getProfilesBySpace(spaceId: string): Promise<Profile[]> {
   if (!supabase) return [];
 
@@ -535,6 +541,85 @@ export async function getProfilesBySpace(spaceId: string): Promise<Profile[]> {
       }));
   } catch (err) {
     console.error("Error fetching space members:", err);
+    return [];
+  }
+}
+
+// Fetch a single member's PUBLIC profile (safe fields only) by user_id.
+// Sourced from public_profiles_view, not profiles -- profiles is locked to
+// owner+admin as of migration 039. Use this for any page rendering another
+// member's profile; never fall back to getAllProfiles/getProfilesBySpace
+// for cross-member reads, those remain admin-only (they read the private
+// profiles table, which ordinary members can no longer SELECT for other
+// users).
+export async function getPublicProfile(userId: string): Promise<Profile | null> {
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from("public_profiles_view")
+      .select("*")
+      .eq("user_id", userId)
+      .single();
+
+    if (error || !data) return null;
+
+    return {
+      id: data.user_id,
+      firstName: data.display_name?.split(" ")[0] || "",
+      lastName: data.display_name?.split(" ").slice(1).join(" ") || "",
+      displayName: data.display_name || "",
+      pronouns: data.pronouns,
+      location: data.location,
+      profilePhoto: data.profile_photo || "",
+      memberType: "individual",
+      interests: Array.isArray(data.interests) ? data.interests : [],
+      completedOnboarding: true,
+      spacesJoined: Array.isArray(data.spaces_joined) ? data.spaces_joined : [],
+      joinedAt: new Date(),
+      profile_tagline: data.tagline,
+      is_demo_profile: data.is_seeded,
+    };
+  } catch (err) {
+    console.error("Error fetching public profile:", err);
+    return null;
+  }
+}
+
+// Fetch PUBLIC profiles (safe fields only) of members who joined a space.
+export async function getPublicProfilesBySpace(spaceId: string): Promise<Profile[]> {
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("public_profiles_view")
+      .select("*")
+      .contains("spaces_joined", [spaceId])
+      .order("display_name");
+
+    if (error) {
+      console.error("Error fetching public space members:", error);
+      return [];
+    }
+
+    return (data || []).map((p) => ({
+      id: p.user_id,
+      firstName: p.display_name?.split(" ")[0] || "",
+      lastName: p.display_name?.split(" ").slice(1).join(" ") || "",
+      displayName: p.display_name || "",
+      pronouns: p.pronouns,
+      location: p.location,
+      profilePhoto: p.profile_photo || "",
+      memberType: "individual",
+      interests: Array.isArray(p.interests) ? p.interests : [],
+      completedOnboarding: true,
+      spacesJoined: Array.isArray(p.spaces_joined) ? p.spaces_joined : [],
+      joinedAt: new Date(),
+      profile_tagline: p.tagline,
+      is_demo_profile: p.is_seeded,
+    }));
+  } catch (err) {
+    console.error("Error fetching public space members:", err);
     return [];
   }
 }

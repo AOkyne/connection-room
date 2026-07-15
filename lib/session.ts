@@ -64,7 +64,7 @@ export async function getSession(): Promise<AppSession | null> {
           const { data: profile } = await supabase
             .from("profiles")
             .select("display_name")
-            .eq("id", session.user.id)
+            .eq("user_id", session.user.id)
             .single();
 
           if (profile?.display_name) {

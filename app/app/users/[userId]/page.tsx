@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase/client";
+import { getPublicProfile } from "@/lib/data/profiles";
 
 interface UserProfile {
   id: string;
@@ -14,9 +14,6 @@ interface UserProfile {
   location?: string;
   profilePhoto?: string;
   interests?: string[];
-  whatBroughtYouHere?: string;
-  connectionComfortLevel?: string;
-  memberType?: string;
   joinedAt?: Date;
 }
 
@@ -31,33 +28,19 @@ export default function UserProfilePage() {
 
   useEffect(() => {
     const loadProfile = async () => {
-      if (!supabase) {
-        setNotFound(true);
-        setLoading(false);
-        return;
-      }
-
       try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", userId)
-          .single();
+        const data = await getPublicProfile(userId);
 
-        if (error || !data) {
+        if (!data) {
           setNotFound(true);
         } else {
           setProfile({
             id: data.id,
-            displayName: data.display_name,
+            displayName: data.displayName,
             pronouns: data.pronouns,
             location: data.location,
-            profilePhoto: data.profile_photo,
+            profilePhoto: data.profilePhoto,
             interests: data.interests || [],
-            whatBroughtYouHere: data.what_brought_you_here,
-            connectionComfortLevel: data.connection_comfort_level,
-            memberType: data.member_type,
-            joinedAt: data.joined_at ? new Date(data.joined_at) : undefined,
           });
         }
       } catch (err) {
@@ -121,14 +104,6 @@ export default function UserProfilePage() {
         </div>
       </Card>
 
-      {/* About */}
-      {profile.whatBroughtYouHere && (
-        <Card>
-          <CardHeader title="What Brought Them Here" />
-          <p className="text-[#1a0f0a]">{profile.whatBroughtYouHere}</p>
-        </Card>
-      )}
-
       {/* Interests */}
       {profile.interests && profile.interests.length > 0 && (
         <Card>
@@ -143,14 +118,6 @@ export default function UserProfilePage() {
               </span>
             ))}
           </div>
-        </Card>
-      )}
-
-      {/* Pairing Preferences */}
-      {profile.connectionComfortLevel && (
-        <Card>
-          <CardHeader title="Connection Comfort Level" />
-          <p className="text-[#1a0f0a] capitalize">{profile.connectionComfortLevel.replace(/-/g, " ")}</p>
         </Card>
       )}
     </div>

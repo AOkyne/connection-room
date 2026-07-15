@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { getProfile, Profile, getAllProfiles } from "@/lib/data/profiles";
+import { getProfile, Profile, getPublicProfile } from "@/lib/data/profiles";
+import { getSession } from "@/lib/session";
 import { getSpaces, Space } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
 
@@ -19,19 +20,24 @@ export default function MemberProfilePage() {
 
   useEffect(() => {
     const loadData = async () => {
-      const allMembers = await getAllProfiles();
-      const memberData = allMembers.find((m) => m.id === memberId);
+      const session = await getSession();
+      if (!session) {
+        router.push("/auth");
+        return;
+      }
+
+      const memberData = await getPublicProfile(memberId);
       const profileData = await getProfile();
       const spacesData = await getSpaces();
 
-      setMember(memberData || null);
+      setMember(memberData);
       setUserProfile(profileData);
       setSpaces(spacesData);
       setLoading(false);
     };
 
     loadData();
-  }, [memberId]);
+  }, [memberId, router]);
 
   if (loading) {
     return (
@@ -118,18 +124,6 @@ export default function MemberProfilePage() {
                     {member.location}
                   </p>
                 )}
-                {member.ageRange && (
-                  <p className="text-[#1a0f0a]">
-                    <strong className="text-[#1a0f0a]">Age:</strong>{" "}
-                    {member.ageRange}
-                  </p>
-                )}
-                {member.relationshipStatus && (
-                  <p className="text-[#1a0f0a]">
-                    <strong className="text-[#1a0f0a]">Relationship:</strong>{" "}
-                    {member.relationshipStatus}
-                  </p>
-                )}
               </div>
 
               {sharedSpaces.length > 0 && (
@@ -143,30 +137,6 @@ export default function MemberProfilePage() {
             </div>
           </div>
         </div>
-
-        {/* About Section */}
-        {member.whatBroughtYouHere && (
-          <section className="bg-white rounded-lg p-6 sm:p-8 space-y-4">
-            <h2 className="text-2xl font-semibold text-[#1a0f0a]">
-              What Brought Them Here
-            </h2>
-            <p className="text-[#1a0f0a] leading-relaxed">
-              {member.whatBroughtYouHere}
-            </p>
-          </section>
-        )}
-
-        {/* Connection Hoping */}
-        {member.connectionHoping && (
-          <section className="bg-white rounded-lg p-6 sm:p-8 space-y-4">
-            <h2 className="text-2xl font-semibold text-[#1a0f0a]">
-              What They're Looking For
-            </h2>
-            <p className="text-[#1a0f0a] leading-relaxed">
-              {member.connectionHoping}
-            </p>
-          </section>
-        )}
 
         {/* Interests */}
         {member.interests && member.interests.length > 0 && (
@@ -207,19 +177,6 @@ export default function MemberProfilePage() {
                 </Link>
               ))}
             </div>
-          </section>
-        )}
-
-        {/* Connection Profile */}
-        {member.quizResult && (
-          <section className="bg-[#f3ede5] rounded-lg p-6 sm:p-8 space-y-4">
-            <h2 className="text-lg font-semibold text-[#1a0f0a]">
-              Connection Profile
-            </h2>
-            <p className="text-[#1a0f0a]">
-              Their connection profile is{" "}
-              <strong className="text-[#1a0f0a]">{member.quizResult}</strong>
-            </p>
           </section>
         )}
       </div>

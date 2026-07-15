@@ -160,7 +160,15 @@ Is User Authenticated? (getCurrentUserId)
 
 ### 4. Row Level Security (RLS)
 - Supabase policies enforce:
-  - Users can only read their own profiles
+  - Full profile data (`profiles`): owner and admins only — no other
+    member can read another member's row
+  - Cross-member profile display uses a separate `public_profiles` table
+    (safe fields only, per-field visibility toggles) plus a column-masking
+    view, `public_profiles_view` — never the private `profiles` table.
+    See [`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md).
+  - Connection matching runs server-side (`app/api/matching/find`) with
+    the service-role key, since scoring needs private fields — only safe
+    match results are returned to the client.
   - Space members can read/write posts
   - Comments follow post visibility rules
   - Reactions are visible to space members

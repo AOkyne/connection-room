@@ -69,30 +69,6 @@ export function ConnectionProfileModal({
                 <p className="text-[#1a0f0a]">{profile.location}</p>
               </div>
             )}
-            {profile.ageRange && (
-              <div>
-                <p className="text-xs text-[#a0704a] uppercase tracking-wide mb-1">
-                  Age Range
-                </p>
-                <p className="text-[#1a0f0a]">{profile.ageRange}</p>
-              </div>
-            )}
-            {profile.relationshipStatus && (
-              <div>
-                <p className="text-xs text-[#a0704a] uppercase tracking-wide mb-1">
-                  Relationship Status
-                </p>
-                <p className="text-[#1a0f0a]">{profile.relationshipStatus}</p>
-              </div>
-            )}
-            {profile.orientation && (
-              <div>
-                <p className="text-xs text-[#a0704a] uppercase tracking-wide mb-1">
-                  Orientation
-                </p>
-                <p className="text-[#1a0f0a]">{profile.orientation}</p>
-              </div>
-            )}
           </div>
 
           {/* Member Since */}
@@ -109,30 +85,6 @@ export function ConnectionProfileModal({
             </p>
           </div>
 
-          {/* What Brought Them Here */}
-          {profile.whatBroughtYouHere && (
-            <div>
-              <p className="text-sm font-medium text-[#1a0f0a] mb-2">
-                What brought them here
-              </p>
-              <p className="text-[#1a0f0a] leading-relaxed">
-                {profile.whatBroughtYouHere}
-              </p>
-            </div>
-          )}
-
-          {/* Connection Hopes */}
-          {profile.connectionHoping && (
-            <div>
-              <p className="text-sm font-medium text-[#1a0f0a] mb-2">
-                Kind of connection they're seeking
-              </p>
-              <p className="text-[#1a0f0a] leading-relaxed">
-                {profile.connectionHoping}
-              </p>
-            </div>
-          )}
-
           {/* Interests */}
           {profile.interests && profile.interests.length > 0 && (
             <div>
@@ -147,30 +99,6 @@ export function ConnectionProfileModal({
                   </span>
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* Connection Comfort Level */}
-          {profile.connectionComfortLevel && (
-            <div>
-              <p className="text-sm font-medium text-[#1a0f0a] mb-2">
-                Connection comfort level
-              </p>
-              <p className="text-[#1a0f0a] leading-relaxed">
-                {profile.connectionComfortLevel}
-              </p>
-            </div>
-          )}
-
-          {/* Connection Boundaries */}
-          {profile.connectionBoundaries && (
-            <div>
-              <p className="text-sm font-medium text-[#1a0f0a] mb-2">
-                Connection boundaries
-              </p>
-              <p className="text-[#1a0f0a] leading-relaxed">
-                {profile.connectionBoundaries}
-              </p>
             </div>
           )}
 
