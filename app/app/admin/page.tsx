@@ -9,7 +9,7 @@ import { getAllOffers } from "@/lib/data/offers";
 import { getRecentSignups, getSession } from "@/lib/session";
 import { getMemberStats, getActivityStats, getSpaceStats, getMemberTypeBreakdown, type MemberStats, type ActivityStats, type SpaceStats, type MemberTypeBreakdown } from "@/lib/admin/analytics";
 import { supabase } from "@/lib/supabase/client";
-import { demoMembers } from "@/lib/seed/demo-members";
+import { getAllProfiles } from "@/lib/data/profiles";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { IconConnection, IconDemo, IconSpaces, IconBadges, IconProgress, IconUpcoming, IconAlert, IconForYou, IconChat, IconProfileNav } from "@/components/Icons";
@@ -49,7 +49,20 @@ export default function AdminPage() {
       setBadges(getAllBadges());
       setOffers(getAllOffers());
       setRecentSignups(getRecentSignups());
-      setAllMembers(demoMembers);
+      // getAllProfiles() was never called here -- this table was showing
+      // hardcoded seed data (lib/seed/demo-members) instead of real
+      // members, so real signups never appeared regardless of how many
+      // people actually joined. getAllProfiles() is admin-only (profiles
+      // is locked to owner+admin SELECT), which this page already gates
+      // on via the session.type === "admin" check above.
+      try {
+        const realProfiles = await getAllProfiles();
+        setAllMembers(
+          realProfiles.filter((p) => !p.is_demo_profile)
+        );
+      } catch (error) {
+        console.error("Error loading members:", error);
+      }
 
       const upcomingEvents = await getUpcomingEvents();
       setEvents(upcomingEvents);
