@@ -624,27 +624,27 @@ export async function getPublicProfilesBySpace(spaceId: string): Promise<Profile
   }
 }
 
-// Get member count for a specific space
+// Get member count for a specific space. Counts space_memberships rather
+// than profiles.spaces_joined -- profiles is locked to owner+admin SELECT
+// as of migration 039, so a non-admin member would only ever see their
+// own row here and get a wrong (0 or 1) count. space_memberships has its
+// own, broader read policy and was never part of the private-profile
+// lockdown.
 export async function getMemberCountBySpace(spaceId: string): Promise<number> {
   if (!supabase) return 0;
 
   try {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, spaces_joined");
+    const { count, error } = await supabase
+      .from("space_memberships")
+      .select("id", { count: "exact", head: true })
+      .eq("space_id", spaceId);
 
     if (error) {
       console.error("Error getting member count:", error);
       return 0;
     }
 
-    // Count profiles that have this space in spaces_joined
-    const count = (data || []).filter((p) => {
-      const spaces = Array.isArray(p.spaces_joined) ? p.spaces_joined : [];
-      return spaces.includes(spaceId);
-    }).length;
-
-    return count;
+    return count || 0;
   } catch (err) {
     console.error("Error getting member count:", err);
     return 0;

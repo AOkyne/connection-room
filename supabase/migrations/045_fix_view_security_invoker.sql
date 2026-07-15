@@ -1,0 +1,38 @@
+-- CRITICAL FIX: public_profiles_view was not enforcing row-level
+-- visibility at all.
+--
+-- 039's comment claimed "views run with the querying user's own RLS
+-- permissions on the underlying table by default" -- this is wrong for
+-- standard Postgres views. By default, a view executes using the VIEW
+-- OWNER's privileges for permission/RLS checks, not the querying user's
+-- (this only changed with the opt-in `security_invoker` view option added
+-- in Postgres 15). Since public_profiles_view was created without that
+-- option, it ran as its owner (the migration-applying role), which is not
+-- subject to the same RLS restrictions an ordinary authenticated member
+-- is -- so the view returned every row in public_profiles regardless of
+-- profile_visibility, completely bypassing the "hidden" state.
+--
+-- Confirmed live during two-account verification testing: querying
+-- public_profiles directly (the raw table) for a row set to
+-- profile_visibility = 'hidden' correctly returned zero rows for a
+-- non-owner, non-admin caller -- RLS on the table itself was correct. The
+-- identical query through public_profiles_view returned the row anyway.
+-- Column-level masking (nulling pronouns/location per show_* flags) was
+-- unaffected by this bug, since that's plain SQL logic in the view, not
+-- an RLS enforcement question -- only the row-level hidden/members_only/
+-- shared_spaces restriction was silently bypassed. Every piece of
+-- application code that reads another member's profile goes through this
+-- view (see PRIVACY_SECURITY_MODEL.md), so this affected the real app,
+-- not just direct API testing.
+
+ALTER VIEW public_profiles_view SET (security_invoker = true);
+
+-- =====================================================================
+-- ROLLBACK NOTES
+--
+-- Rolling back (ALTER VIEW public_profiles_view SET (security_invoker =
+-- false)) reintroduces the bug this migration fixes -- every member's
+-- public_profiles row, including ones set to hidden, would again be
+-- visible to any authenticated member through the view. Do not roll this
+-- back.
+-- =====================================================================
