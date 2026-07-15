@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { getEvent, updateEvent } from "@/lib/admin/events";
-import { datetimeLocalToISO, isoToDatetimeLocal } from "@/lib/utils/datetime-local";
+import { zonedDatetimeLocalToISO, isoToZonedDatetimeLocal, EVENT_TIMEZONES, DEFAULT_EVENT_TIMEZONE } from "@/lib/utils/timezone";
 import { createZoomMeetingLink } from "@/lib/admin/zoom-client";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -27,6 +27,7 @@ export default function EditEventPage() {
     description: "",
     startAt: "",
     endAt: "",
+    timezone: DEFAULT_EVENT_TIMEZONE,
     location: "",
     facilitator: "",
     format: "online" as "online" | "in-person" | "hybrid",
@@ -49,12 +50,14 @@ export default function EditEventPage() {
 
       const event = await getEvent(eventId);
       if (event) {
+        const eventTimezone = event.timezone || DEFAULT_EVENT_TIMEZONE;
         setFormData({
           title: event.title || "",
           shortDescription: event.shortDescription || "",
           description: event.description || "",
-          startAt: isoToDatetimeLocal(event.startAt),
-          endAt: isoToDatetimeLocal(event.endAt),
+          startAt: isoToZonedDatetimeLocal(event.startAt, eventTimezone),
+          endAt: isoToZonedDatetimeLocal(event.endAt, eventTimezone),
+          timezone: eventTimezone,
           location: event.locationName || "",
           facilitator: event.hostName || "",
           format: (event.eventType === "online" || event.eventType === "in-person" || event.eventType === "hybrid" ? event.eventType : "online") as "online" | "in-person" | "hybrid",
@@ -123,15 +126,15 @@ export default function EditEventPage() {
 
     setSaving(true);
     try {
-      const startAtISO = datetimeLocalToISO(formData.startAt);
-      const endAtISO = datetimeLocalToISO(formData.endAt);
+      const startAtISO = zonedDatetimeLocalToISO(formData.startAt, formData.timezone);
+      const endAtISO = zonedDatetimeLocalToISO(formData.endAt, formData.timezone);
 
       // Only auto-create a Zoom meeting if this event doesn't already have
       // one -- otherwise every unrelated edit (fixing a typo, etc.) would
       // spawn a brand new Zoom meeting each time.
       let onlineUrl = existingOnlineUrl;
       if (!onlineUrl && (formData.format === "online" || formData.format === "hybrid") && startAtISO) {
-        onlineUrl = await createZoomMeetingLink(formData.title, startAtISO, endAtISO, showToast);
+        onlineUrl = await createZoomMeetingLink(formData.title, startAtISO, endAtISO, showToast, formData.timezone);
       }
 
       const eventData = {
@@ -140,6 +143,7 @@ export default function EditEventPage() {
         description: formData.description,
         startAt: startAtISO,
         endAt: endAtISO,
+        timezone: formData.timezone,
         locationName: formData.location,
         locationType:
           formData.format === "in-person" ? ("in_person" as const) : (formData.format as "online" | "hybrid"),
@@ -291,6 +295,25 @@ export default function EditEventPage() {
                 className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-[#1a0f0a] block mb-1">
+              Event Timezone
+            </label>
+            <select
+              name="timezone"
+              value={formData.timezone}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
+            >
+              {EVENT_TIMEZONES.map((tz) => (
+                <option key={tz.value} value={tz.value}>{tz.label}</option>
+              ))}
+            </select>
+            <p className="text-xs text-[#a0704a] mt-1">
+              The Start/End times above are in this timezone, regardless of your own device's timezone.
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

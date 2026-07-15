@@ -9,7 +9,8 @@ export async function createZoomMeetingLink(
   title: string,
   startAtISO: string,
   endAtISO: string | undefined,
-  showToast: (message: string, type: "success" | "error") => void
+  showToast: (message: string, type: "success" | "error") => void,
+  timezone?: string
 ): Promise<string | undefined> {
   if (!supabase) return undefined;
 
@@ -31,7 +32,7 @@ export async function createZoomMeetingLink(
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ topic: title || "Connection Room Event", startAt: startAtISO, durationMinutes }),
+      body: JSON.stringify({ topic: title || "Connection Room Event", startAt: startAtISO, durationMinutes, timezone }),
     });
 
     if (!response.ok) {

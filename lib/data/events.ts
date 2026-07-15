@@ -2,6 +2,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { demoEvents } from "./demo-data";
 import type { Event } from "./demo-data";
+import { formatTimeWithZone } from "@/lib/utils/timezone";
 
 const EVENTS_STORAGE_KEY = "connection-room:event-interests";
 
@@ -42,12 +43,21 @@ async function getAllEventsFromSupabase(): Promise<Event[]> {
       title: e.title,
       description: e.description,
       date: new Date(e.start_at),
+      // Show the explicit event timezone (e.g. "6:00 PM PDT") when one was
+      // set, rather than silently converting to the viewer's own device
+      // timezone -- for a scheduled group call, everyone needs to agree on
+      // what "6:00 PM" means, not each see a different unlabeled time.
+      // Falls back to the viewer's local time for older events saved
+      // before timezone was captured.
       time: e.start_at
-        ? new Date(e.start_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
+        ? e.timezone
+          ? formatTimeWithZone(e.start_at, e.timezone)
+          : new Date(e.start_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
         : "TBD",
       location: e.location_name || e.location_address || e.location,
       format: normalizeFormat(e.event_type || e.format),
       onlineUrl: e.online_url,
+      timezone: e.timezone,
       facilitator: e.host_name || e.facilitator,
       interested: false,
       attendeeCount: e.event_registrations?.[0]?.count ?? e.attendee_count ?? 0,
