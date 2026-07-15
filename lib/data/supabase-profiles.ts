@@ -10,6 +10,17 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
   const client = supabase;
 
   // Wrap with demo mode protection
+  //
+  // profile_photo is only included when truthy. getProfile() stopped
+  // fetching this column (some photos are multi-megabyte base64 strings
+  // that were slow enough to cause real profiles to time out and show as
+  // "Guest" -- see its own comment), so any updateProfile() call that
+  // merges onto a getProfile() snapshot now carries profilePhoto: "" by
+  // default. Including that unconditionally in the upsert would overwrite
+  // a real, already-saved photo with nothing on the next unrelated save
+  // (editing bio, completing onboarding, etc.) -- omitting the key
+  // entirely when there's nothing new to write leaves the existing
+  // column untouched instead.
   const { data, error } = await demoSafeWrite(
     async () => client
       .from("profiles")
@@ -22,7 +33,7 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
           age_range: profile.ageRange,
           relationship_status: profile.relationshipStatus,
           orientation: profile.orientation,
-          profile_photo: profile.profilePhoto,
+          ...(profile.profilePhoto ? { profile_photo: profile.profilePhoto } : {}),
           member_type: profile.memberType,
           what_brought_you_here: profile.whatBroughtYouHere,
           connection_hoping: profile.connectionHoping,

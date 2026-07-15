@@ -60,10 +60,16 @@ function BetaAuthContent() {
         data: { user },
       } = await supabase.auth.getUser();
 
+      // profile_photo is excluded deliberately -- some members' photos are
+      // multi-megabyte base64 strings stored directly in the row (found
+      // live: Trevor's own is 4.3MB), and pulling that just to create a
+      // login session was slow enough to affect this flow. createAdminSession
+      // below falls back to a generated initials avatar when no photo is
+      // passed, same as it already does for any session with no photo.
       const { data: profile } = user
         ? await supabase
             .from("profiles")
-            .select("role, display_name, profile_photo")
+            .select("role, display_name")
             .eq("user_id", user.id)
             .maybeSingle()
         : { data: null };
@@ -75,7 +81,7 @@ function BetaAuthContent() {
         return;
       }
 
-      createAdminSession(profile.display_name || "Admin", profile.profile_photo || undefined);
+      createAdminSession(profile.display_name || "Admin");
       setTimeout(() => {
         router.push("/app/admin");
       }, 100);

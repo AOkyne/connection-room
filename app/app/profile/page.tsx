@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getProfile, updateProfile, type Profile } from "@/lib/data/profiles";
+import { getProfile, getProfilePhoto, updateProfile, type Profile } from "@/lib/data/profiles";
 import { ensureInviteCode } from "@/lib/data/invites";
 import { uploadProfilePhoto } from "@/lib/utils/storage";
 import { supabase } from "@/lib/supabase/client";
@@ -54,6 +54,16 @@ export default function ProfilePage() {
         }
 
         setProfile(p);
+
+        // getProfile() no longer includes the photo itself (see its own
+        // comment -- some photos are multi-megabyte and were causing real
+        // profiles to time out and show as "Guest"). Fetch it separately,
+        // non-blocking, so the rest of this page doesn't wait on it either.
+        if (p?.id) {
+          getProfilePhoto().then((photo) => {
+            if (photo) setProfile((prev) => (prev ? { ...prev, profilePhoto: photo } : prev));
+          });
+        }
 
         // Ensure invite code is generated
         if (p?.id && p?.displayName) {

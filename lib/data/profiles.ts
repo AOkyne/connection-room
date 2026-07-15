@@ -95,9 +95,22 @@ export async function getProfile(): Promise<Profile | null> {
 
   if (userId && supabase) {
     try {
+      // profile_photo excluded deliberately -- some members' photos are
+      // multi-megabyte base64 strings stored directly in the row (found
+      // live: Trevor's own is 4.3MB). Pulling that on every single page
+      // load that calls getProfile() (the nav, every dashboard section,
+      // 8+ pages) was slow enough to blow past this function's own 3s
+      // timeout and fall through to the hardcoded "Guest User" fallback
+      // below -- a real, correctly-persisted profile, just one whose own
+      // fetch couldn't finish in time. Callers that actually need to show
+      // the real photo (the profile edit page's preview) fetch it
+      // separately via getProfilePhoto(), so only that one place pays the
+      // cost of the large transfer.
       const queryPromise = supabase
         .from("profiles")
-        .select("*")
+        .select(
+          "user_id, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, first_prompt_response, first_prompt_is_public, completed_onboarding, spaces_joined, created_at, welcome_video_watched, welcome_video_watched_at, onboarding_completed_at"
+        )
         .eq("user_id", userId)
         .single();
 
@@ -120,7 +133,7 @@ export async function getProfile(): Promise<Profile | null> {
           ageRange: data.age_range,
           relationshipStatus: data.relationship_status,
           orientation: data.orientation,
-          profilePhoto: data.profile_photo || "",
+          profilePhoto: "",
           memberType: data.member_type || "individual",
           whatBroughtYouHere: data.what_brought_you_here,
           connectionHoping: data.connection_hoping,
@@ -161,6 +174,35 @@ export async function getProfile(): Promise<Profile | null> {
     completedOnboarding: true,
     joinedAt: new Date(),
   };
+}
+
+// Fetches just the current user's photo -- separated out of getProfile()
+// because some members' photos are multi-megabyte base64 strings, and
+// including that in the main profile fetch (used on every page load) was
+// slow enough to cause real, correctly-saved profiles to hit getProfile()'s
+// timeout and fall back to the generic "Guest User" placeholder. Use this
+// only where the actual image needs to be shown (e.g. the profile edit
+// page's photo preview) -- most callers only need displayName/etc and
+// should not pay for this.
+export async function getProfilePhoto(): Promise<string> {
+  if (typeof window === "undefined" || !supabase) return "";
+
+  const userId = await getCurrentSupabaseUserId();
+  if (!userId) return "";
+
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("profile_photo")
+      .eq("user_id", userId)
+      .single();
+
+    if (error || !data) return "";
+    return data.profile_photo || "";
+  } catch (err) {
+    console.warn("Error fetching profile photo:", err);
+    return "";
+  }
 }
 
 // Save profile to Supabase (if authenticated) or localStorage
