@@ -44,6 +44,9 @@ export async function GET(request: NextRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        // cronSecret was already validated above; forward it so /api/sync-substack
+        // recognizes this as a trusted internal call rather than requiring admin auth
+        Authorization: `Bearer ${cronSecret}`,
       },
     });
 

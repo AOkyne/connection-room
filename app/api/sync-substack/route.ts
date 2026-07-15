@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 interface SubstackItem {
   title: string;
@@ -73,6 +74,19 @@ function stripHtml(html: string): string {
 
 export async function GET(request: NextRequest) {
   try {
+    // Accept either a trusted internal call from the cron route (CRON_SECRET)
+    // or a real signed-in admin (for manual triggering from the dashboard).
+    const authHeader = request.headers.get("authorization");
+    const cronSecret = process.env.CRON_SECRET;
+    const isCronCall = cronSecret && authHeader === `Bearer ${cronSecret}`;
+
+    if (!isCronCall) {
+      const auth = await requireAdmin(request);
+      if (!auth.ok) {
+        return NextResponse.json({ error: auth.error }, { status: auth.status });
+      }
+    }
+
     // Initialize Supabase with service role (for server-side operations)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

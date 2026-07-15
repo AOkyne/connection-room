@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/Button";
 import { Card, CardHeader } from "@/components/Card";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
+import { getSession } from "@/lib/session";
 import { IconConnection } from "@/components/Icons";
 
 interface InviteRelationship {
@@ -21,14 +24,26 @@ interface InviteRelationship {
 }
 
 export default function InvitesAdmin() {
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [invites, setInvites] = useState<InviteRelationship[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"recent" | "name">("recent");
 
   useEffect(() => {
-    loadInvites();
-  }, []);
+    const checkAdminAndLoad = async () => {
+      const session = await getSession();
+      if (!session || session.type !== "admin") {
+        router.push("/app");
+        return;
+      }
+      setMounted(true);
+      loadInvites();
+    };
+
+    checkAdminAndLoad();
+  }, [router]);
 
   const loadInvites = async () => {
     setLoading(true);
@@ -136,6 +151,10 @@ export default function InvitesAdmin() {
     }
     return 0;
   });
+
+  if (!mounted) {
+    return <LoadingScreen message="Loading" subtitle="Checking admin access..." />;
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">

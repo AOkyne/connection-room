@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
+import { getSession } from "@/lib/session";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 
@@ -37,6 +38,17 @@ export default function EditDailyContent() {
 
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(!isNew);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const session = await getSession();
+      if (!session || session.type !== "admin") {
+        router.push("/app");
+      }
+    };
+
+    checkAdmin();
+  }, [router]);
 
   useEffect(() => {
     if (isNew) return;
@@ -120,7 +132,7 @@ export default function EditDailyContent() {
             {isNew ? "Add a new piece of daily content" : "Update this content"}
           </p>
         </div>
-        <Link href="/admin/daily-companion">
+        <Link href="/app/admin/daily-companion">
           <Button variant="ghost" size="sm">
             ← Back
           </Button>

@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase/client";
 import { saveProfileToSupabase, getProfileFromSupabase } from "@/lib/data/supabase-profiles";
+import { waitForAuthReady } from "@/lib/supabase/auth-ready";
 
 export interface Profile {
   id: string;
@@ -74,6 +75,11 @@ async function getCurrentSupabaseUserId(): Promise<string | null> {
 // Get current profile from Supabase (if authenticated) or localStorage
 export async function getProfile(): Promise<Profile | null> {
   if (typeof window === "undefined") return null;
+
+  // Wait for the Supabase client to finish restoring the session from storage
+  // before checking who's signed in — otherwise a real signed-in user can lose
+  // the race on a slow/cold page load and get treated as logged out.
+  await waitForAuthReady(3000);
 
   // Try to get from Supabase first (for authenticated users) with 5-second timeout
   let userId: string | null = null;

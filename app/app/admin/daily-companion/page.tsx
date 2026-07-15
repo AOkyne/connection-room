@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
+import { getSession } from "@/lib/session";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import Link from "next/link";
@@ -27,6 +29,7 @@ interface WeeklyNote {
 }
 
 export default function AdminDailyCompanion() {
+  const router = useRouter();
   const [dailyContent, setDailyContent] = useState<DailyContent[]>([]);
   const [weeklyNotes, setWeeklyNotes] = useState<WeeklyNote[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,8 +37,17 @@ export default function AdminDailyCompanion() {
   const [contentStats, setContentStats] = useState({ total: 0, active: 0, byType: {} as Record<string, number> });
 
   useEffect(() => {
-    loadData();
-  }, []);
+    const checkAdminAndLoad = async () => {
+      const session = await getSession();
+      if (!session || session.type !== "admin") {
+        router.push("/app");
+        return;
+      }
+      loadData();
+    };
+
+    checkAdminAndLoad();
+  }, [router]);
 
   const loadData = async () => {
     try {
@@ -232,12 +244,12 @@ export default function AdminDailyCompanion() {
             <div className="space-y-3">
               <h3 className="font-semibold text-[#1a0f0a]">Quick Actions</h3>
               <div className="grid sm:grid-cols-2 gap-3">
-                <Link href="/admin/daily-companion/content/new">
+                <Link href="/app/admin/daily-companion/content/new">
                   <Button variant="primary">
                     Create New Content
                   </Button>
                 </Link>
-                <Link href="/admin/daily-companion/notes/new">
+                <Link href="/app/admin/daily-companion/notes/new">
                   <Button variant="outline">
                     Create New Note
                   </Button>
@@ -253,7 +265,7 @@ export default function AdminDailyCompanion() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-semibold text-[#1a0f0a]">Daily Content</h2>
-            <Link href="/admin/daily-companion/content/new">
+            <Link href="/app/admin/daily-companion/content/new">
               <Button>Add Content</Button>
             </Link>
           </div>
@@ -318,7 +330,7 @@ export default function AdminDailyCompanion() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-semibold text-[#1a0f0a]">Weekly Notes</h2>
-            <Link href="/admin/daily-companion/notes/new">
+            <Link href="/app/admin/daily-companion/notes/new">
               <Button>Add Note</Button>
             </Link>
           </div>

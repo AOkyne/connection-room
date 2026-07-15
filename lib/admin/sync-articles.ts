@@ -3,6 +3,8 @@
  * Allows admins to trigger article syncing from the dashboard
  */
 
+import { supabase } from "@/lib/supabase/client";
+
 interface SyncResult {
   success: boolean;
   message: string;
@@ -18,10 +20,23 @@ interface SyncResult {
  */
 export async function syncSubstackArticles(): Promise<SyncResult> {
   try {
+    const { data: sessionData } = supabase
+      ? await supabase.auth.getSession()
+      : { data: { session: null } };
+    const accessToken = sessionData.session?.access_token;
+    if (!accessToken) {
+      return {
+        success: false,
+        message: "Not signed in with a real admin account. This action requires a real Supabase sign-in, not a demo session.",
+        timestamp: new Date().toISOString(),
+      };
+    }
+
     const response = await fetch("/api/sync-substack", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
       },
     });
 

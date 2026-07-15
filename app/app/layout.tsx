@@ -165,25 +165,26 @@ export default function AppLayout({ children }: AppLayoutProps) {
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">{children}</div>
         </main>
 
-        {/* Mobile Bottom Navigation - Fixed to Bottom */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-[#e8e3db] bg-white z-50 px-0 py-2 flex gap-0 justify-around overflow-visible">
+        {/* Mobile Bottom Navigation - Fixed to Bottom, scrolls horizontally
+            if all items don't fit rather than wrapping/cutting items off */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-[#e8e3db] bg-white z-50 px-2 py-2 flex gap-1 overflow-x-auto">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center justify-center gap-1 px-3 py-2 flex-1 text-[#6b6460] hover:text-[#8b6f47] text-xs"
+              className="flex flex-col items-center justify-center gap-1 px-3 py-2 flex-shrink-0 text-[#6b6460] hover:text-[#8b6f47] text-xs"
             >
               {item.icon ? <item.icon size={20} /> : <IconSpaces size={20} />}
-              <span className="text-center leading-tight">{item.label}</span>
+              <span className="text-center leading-tight whitespace-nowrap">{item.label}</span>
             </Link>
           ))}
           {session?.type === "admin" && (
             <Link
               href="/app/admin"
-              className="flex flex-col items-center justify-center gap-1 px-3 py-2 flex-1 text-[#8b6f47] text-xs"
+              className="flex flex-col items-center justify-center gap-1 px-3 py-2 flex-shrink-0 text-[#8b6f47] text-xs"
             >
               <IconAdmin size={20} />
-              <span className="text-center leading-tight">Admin</span>
+              <span className="text-center leading-tight whitespace-nowrap">Admin</span>
             </Link>
           )}
         </nav>

@@ -127,7 +127,7 @@ export default function AdminPage() {
             ⚠️ Reported Concerns
           </Button>
         </Link>
-        <Link href="/admin/daily-companion">
+        <Link href="/app/admin/daily-companion">
           <Button variant="outline" size="sm">
             ✨ Daily Content
           </Button>
@@ -135,6 +135,11 @@ export default function AdminPage() {
         <Link href="/app/admin/emails">
           <Button variant="outline" size="sm">
             ✉️ Automated Emails
+          </Button>
+        </Link>
+        <Link href="/app/admin/sync-articles">
+          <Button variant="outline" size="sm">
+            🔄 Sync Substack Articles
           </Button>
         </Link>
       </div>

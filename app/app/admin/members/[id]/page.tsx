@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/Button";
 import { Card, CardHeader } from "@/components/Card";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { supabase } from "@/lib/supabase/client";
+import { getSession } from "@/lib/session";
 import { IconProfile, IconConnection, IconAlert } from "@/components/Icons";
 
 interface MemberProfile {
@@ -33,6 +35,7 @@ export default function MemberDetailPage() {
   const params = useParams();
   const memberId = params.id as string;
 
+  const [mounted, setMounted] = useState(false);
   const [member, setMember] = useState<MemberProfile | null>(null);
   const [invitedCount, setInvitedCount] = useState(0);
   const [invitedByName, setInvitedByName] = useState<string | null>(null);
@@ -41,8 +44,18 @@ export default function MemberDetailPage() {
   const [suspensionReason, setSuspensionReason] = useState("");
 
   useEffect(() => {
-    loadMemberDetails();
-  }, [memberId]);
+    const checkAdminAndLoad = async () => {
+      const session = await getSession();
+      if (!session || session.type !== "admin") {
+        router.push("/app");
+        return;
+      }
+      setMounted(true);
+      loadMemberDetails();
+    };
+
+    checkAdminAndLoad();
+  }, [memberId, router]);
 
   const loadMemberDetails = async () => {
     setLoading(true);

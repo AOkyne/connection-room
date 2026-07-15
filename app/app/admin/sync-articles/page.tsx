@@ -1,13 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getSession } from "@/lib/session";
 import { syncSubstackArticles } from "@/lib/admin/sync-articles";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export default function SyncArticlesAdmin() {
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const session = await getSession();
+      if (!session || session.type !== "admin") {
+        router.push("/app");
+        return;
+      }
+      setMounted(true);
+    };
+
+    checkAdmin();
+  }, [router]);
+
+  if (!mounted) {
+    return <LoadingScreen message="Loading" subtitle="Checking admin access..." />;
+  }
 
   const handleSync = async () => {
     setIsLoading(true);
@@ -33,7 +55,7 @@ export default function SyncArticlesAdmin() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/admin" className="text-[#c97a2a] hover:text-[#1a0f0a] mb-4 inline-block">
+          <Link href="/app/admin" className="text-[#c97a2a] hover:text-[#1a0f0a] mb-4 inline-block">
             ← Back to Admin
           </Link>
           <h1 className="text-3xl font-bold text-[#1a0f0a] mb-2">

@@ -392,7 +392,13 @@ export default function OnboardingPage() {
                 <Button variant="ghost" size="md" onClick={handleBack} className="flex-1">
                   Back
                 </Button>
-                <Button variant="primary" size="md" onClick={handleNext} className="flex-1">
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={handleNext}
+                  disabled={!profile.firstName?.trim() || !profile.lastName?.trim()}
+                  className="flex-1"
+                >
                   Continue
                 </Button>
               </div>
