@@ -5,21 +5,28 @@ import { useRouter } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { getAllProfilesLite, type Profile } from "@/lib/data/profiles";
 import { sendBroadcastEmail } from "@/lib/admin/broadcast";
+import { getAdminEvents } from "@/lib/admin/events";
+import { substituteMergeTags } from "@/lib/email/render-template";
+import { styleBroadcastBodyHtml } from "@/lib/email/template";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import { RichTextEditor } from "@/components/RichTextEditor";
+import { BroadcastRichTextEditor, type BroadcastEventOption } from "@/components/BroadcastRichTextEditor";
 import { useToast } from "@/lib/hooks/useToast";
 import { ToastContainer } from "@/components/Toast";
 
 type RecipientMode = "all" | "select";
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://community.trevorjamesla.com";
 
 export default function AdminBroadcastPage() {
   const router = useRouter();
   const { toasts, showToast, removeToast } = useToast();
   const [mounted, setMounted] = useState(false);
   const [members, setMembers] = useState<Profile[]>([]);
+  const [adminUserId, setAdminUserId] = useState("");
+  const [events, setEvents] = useState<BroadcastEventOption[]>([]);
   const [recipientMode, setRecipientMode] = useState<RecipientMode>("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [memberSearch, setMemberSearch] = useState("");
@@ -37,10 +44,17 @@ export default function AdminBroadcastPage() {
         return;
       }
 
-      const profiles = await getAllProfilesLite();
+      setAdminUserId(session.supabaseUserId || "");
+
+      const [profiles, adminEvents] = await Promise.all([getAllProfilesLite(), getAdminEvents()]);
       // Broadcasts should never go to seeded demo profiles -- they have no
       // real inbox behind them.
       setMembers(profiles.filter((p) => !p.is_demo_profile));
+      setEvents(
+        adminEvents
+          .filter((e) => e.status === "published")
+          .map((e) => ({ id: e.id, title: e.title, startAt: e.startAt, locationName: e.locationName }))
+      );
       setMounted(true);
     };
 
@@ -195,7 +209,14 @@ export default function AdminBroadcastPage() {
         </div>
         <div>
           <label className="text-sm font-medium text-[#1a0f0a] block mb-1">Body</label>
-          <RichTextEditor value={bodyHtml} onChange={setBodyHtml} placeholder="Write your announcement..." />
+          <BroadcastRichTextEditor
+            value={bodyHtml}
+            onChange={setBodyHtml}
+            placeholder="Write your announcement..."
+            adminUserId={adminUserId}
+            events={events}
+            appUrl={APP_URL}
+          />
         </div>
         <p className="text-xs text-[#a0704a]">
           The Connection Room logo is added automatically at the top, and every email is signed with your
@@ -233,7 +254,14 @@ export default function AdminBroadcastPage() {
               <img src="/email/welcome-logo.png" alt="The Connection Room" className="max-w-[240px] h-auto" />
             </div>
             <div className="px-8 pt-2 pb-8">
-              <div className="text-[#1a0f0a] text-base leading-relaxed" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+              <div
+                className="text-[#1a0f0a] text-base leading-relaxed"
+                dangerouslySetInnerHTML={{
+                  __html: styleBroadcastBodyHtml(
+                    substituteMergeTags(bodyHtml, { firstName: "Alex", appUrl: APP_URL })
+                  ),
+                }}
+              />
               <div className="flex items-center gap-4 mt-6">
                 <img
                   src="/email/welcome-signature-photo.jpg"

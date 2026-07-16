@@ -37,6 +37,27 @@ Trevor James
 Founder, The Connection Room`;
 }
 
+// The broadcast composer's contentEditable editor produces plain,
+// class-less tags (document.execCommand("formatBlock") etc. don't attach
+// styles), but email clients largely ignore <style> blocks and strip
+// external stylesheets -- every element needs its own inline style to
+// render consistently. This patches the handful of block-level tags the
+// composer's toolbar can produce; inline tags (b/i/a) already come out
+// looking fine with default styles, and <a> from createLink additionally
+// gets the brand accent color.
+export function styleBroadcastBodyHtml(html: string): string {
+  return html
+    .replace(/<h2(?![^>]*style=)/gi, '<h2 style="font-size:22px;font-weight:700;color:#1a0f0a;margin:24px 0 12px;"')
+    .replace(/<h3(?![^>]*style=)/gi, '<h3 style="font-size:18px;font-weight:700;color:#1a0f0a;margin:20px 0 10px;"')
+    .replace(
+      /<blockquote(?![^>]*style=)/gi,
+      '<blockquote style="border-left:3px solid #d4a348;padding-left:16px;margin:16px 0;color:#a0704a;font-style:italic;"'
+    )
+    .replace(/<hr\s*\/?>/gi, '<hr style="border:none;border-top:1px solid #e8ddd2;margin:24px 0;" />')
+    .replace(/<img(?![^>]*style=)/gi, '<img style="max-width:100%;height:auto;border-radius:8px;"')
+    .replace(/<a(?![^>]*style=)(?=[^>]*href)/gi, '<a style="color:#B8892F;"');
+}
+
 // Wraps an admin-authored rich-text body (raw HTML from the broadcast
 // composer's contentEditable editor) in the same branded shell as the
 // automated emails, but with a fixed, fuller signature instead of the
@@ -56,7 +77,7 @@ export function buildBroadcastEmailHtml(bodyHtml: string): string {
             </tr>
             <tr>
               <td style="padding:24px 32px 8px;">
-                <div style="font-size:16px;line-height:1.6;color:#1a0f0a;">${bodyHtml}</div>
+                <div style="font-size:16px;line-height:1.6;color:#1a0f0a;">${styleBroadcastBodyHtml(bodyHtml)}</div>
                 <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:24px;">
                   <tr>
                     <td style="padding-right:16px;vertical-align:middle;">

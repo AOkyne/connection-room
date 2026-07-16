@@ -178,3 +178,62 @@ export async function uploadEventImage(
     return null; // Return null to trigger base64 fallback in components
   }
 }
+
+const BROADCAST_IMAGES_BUCKET = "broadcast-images";
+
+/**
+ * Upload an image inserted into an admin broadcast email to Supabase
+ * Storage (migration 051). Emails need a real hosted URL for images --
+ * unlike profile/event photos there's no base64 fallback here, since a
+ * multi-MB data URI inline in every recipient's email would be both huge
+ * and likely to get the message flagged as spam.
+ * @param file File to upload
+ * @param adminUserId The composing admin's Supabase user id, to namespace uploads
+ * @returns Public URL of the uploaded image, or null if upload fails
+ */
+export async function uploadBroadcastImage(
+  file: File,
+  adminUserId: string
+): Promise<string | null> {
+  if (!supabase) {
+    console.warn("Supabase not configured, cannot upload image");
+    return null;
+  }
+
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error(
+      `File too large. Max size is 5MB (your file is ${(file.size / 1024 / 1024).toFixed(1)}MB)`
+    );
+  }
+
+  if (!["image/jpeg", "image/png", "image/gif"].includes(file.type)) {
+    throw new Error("File must be JPG, PNG, or GIF");
+  }
+
+  try {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${adminUserId}-${Date.now()}.${fileExt}`;
+    const filePath = `${adminUserId}/${fileName}`;
+
+    const { data, error } = await supabase.storage
+      .from(BROADCAST_IMAGES_BUCKET)
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (error) {
+      console.error("Storage upload error:", error);
+      throw new Error(`Failed to upload image: ${error.message}`);
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from(BROADCAST_IMAGES_BUCKET).getPublicUrl(data.path);
+
+    return publicUrl;
+  } catch (err) {
+    console.error("Error uploading broadcast image:", err);
+    return null;
+  }
+}

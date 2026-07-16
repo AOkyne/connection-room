@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { hasSmtpConfig, sendBroadcastEmail } from "@/lib/email/send";
+import { substituteMergeTags } from "@/lib/email/render-template";
 
 export const maxDuration = 60;
 
@@ -71,12 +72,13 @@ export async function POST(request: NextRequest) {
   }
 
   // Resolve the target profile ids: either every real (non-seeded) member,
-  // or exactly the ids the admin selected.
-  let targetProfiles: { id: string; user_id: string | null }[];
+  // or exactly the ids the admin selected. display_name is included to
+  // resolve the {{firstName}} merge tag per recipient below.
+  let targetProfiles: { id: string; user_id: string | null; display_name: string | null }[];
   if (isAll) {
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, user_id")
+      .select("id, user_id, display_name")
       .eq("is_seeded", false);
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -85,13 +87,15 @@ export async function POST(request: NextRequest) {
   } else {
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, user_id")
+      .select("id, user_id, display_name")
       .in("id", recipientIds as string[]);
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
     targetProfiles = data || [];
   }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://community.trevorjamesla.com";
 
   let emailByUserId: Map<string, string>;
   try {
@@ -113,7 +117,9 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      await sendBroadcastEmail({ to: email, subject, bodyHtml });
+      const firstName = profile.display_name?.split(" ")[0];
+      const personalizedBody = substituteMergeTags(bodyHtml, { firstName, appUrl });
+      await sendBroadcastEmail({ to: email, subject, bodyHtml: personalizedBody });
       results.push({ id: profile.id, success: true });
     } catch (err) {
       results.push({ id: profile.id, success: false, error: err instanceof Error ? err.message : String(err) });
