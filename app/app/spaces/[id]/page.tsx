@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getSpace, trackSpaceVisit } from "@/lib/data/spaces";
 import { getPosts, createPost, addPostReaction, getComments, createComment, getUserReactionForPost, updatePost, deletePost, updateComment, deleteComment, type Post, type Comment } from "@/lib/data/posts";
-import { getProfile } from "@/lib/data/profiles";
+import { getProfile, getPublicProfilesBySpace } from "@/lib/data/profiles";
 import { getSession } from "@/lib/session";
 import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
@@ -54,6 +54,7 @@ export default function SpaceDetailPage() {
   const { toasts, showToast, removeToast } = useToast();
 
   const [space, setSpace] = useState<any>(null);
+  const [spaceMembers, setSpaceMembers] = useState<Profile[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -136,6 +137,11 @@ export default function SpaceDetailPage() {
       // Load posts
       const spacePosts = await getPosts(spaceId);
       setPosts(spacePosts);
+
+      // Real space members (safe/public fields only) -- this used to be
+      // demoMembers.filter(...), a hardcoded seed roster completely
+      // disconnected from who's actually in the space.
+      getPublicProfilesBySpace(spaceId).then(setSpaceMembers);
 
       setMounted(true);
     };
@@ -435,7 +441,7 @@ export default function SpaceDetailPage() {
             <h1 className="text-4xl text-[#1a0f0a]">{space.name}</h1>
           </div>
           <p className="text-lg text-[#1a0f0a]">{space.description}</p>
-          <p className="text-sm text-[#a0704a] mt-2">{demoMembers.filter(m => m.spacesJoined?.includes(spaceId)).length} members</p>
+          <p className="text-sm text-[#a0704a] mt-2">{spaceMembers.length} members</p>
         </div>
         <div className="flex flex-col gap-2 items-end">
           {/* Compact Search Bar */}
@@ -459,39 +465,37 @@ export default function SpaceDetailPage() {
       </div>
 
       {/* People in This Space - Small Thumbnails at Top */}
-      {(() => {
-        const memberIds = Object.keys(demoSpaceMemberships).filter(id =>
-          demoSpaceMemberships[id].includes(spaceId)
-        );
-        const spaceMembers = demoMembers.filter(m => memberIds.includes(m.id));
-        return spaceMembers.length > 0 ? (
-          <div className="flex flex-wrap gap-2 items-center bg-[#f3ede5] p-3 rounded-lg">
-            <span className="text-xs font-medium text-[#1a0f0a] mr-2">People:</span>
-            {spaceMembers.slice(0, 12).map((member) => (
-              <button
-                key={member.id}
-                onClick={() => setSelectedProfile(member)}
-                className="flex-shrink-0 group cursor-pointer"
-                title={member.displayName}
-              >
+      {spaceMembers.length > 0 && (
+        <div className="flex flex-wrap gap-2 items-center bg-[#f3ede5] p-3 rounded-lg">
+          <span className="text-xs font-medium text-[#1a0f0a] mr-2">People:</span>
+          {spaceMembers.slice(0, 12).map((member) => (
+            <button
+              key={member.id}
+              onClick={() => setSelectedProfile(member)}
+              className="flex-shrink-0 group cursor-pointer"
+              title={member.displayName}
+            >
+              {member.profilePhoto ? (
                 <img
                   src={member.profilePhoto}
                   alt={member.displayName}
                   className="w-6 h-6 rounded-full hover:ring-2 hover:ring-[#d4a348] transition-all"
                 />
-              </button>
-            ))}
-            {spaceMembers.length > 12 && (
-              <Link href={`/app/spaces/${spaceId}/members`}>
-                <span className="text-xs text-[#d4a348] hover:underline font-medium">+{spaceMembers.length - 12}</span>
-              </Link>
-            )}
-            <Link href={`/app/spaces/${spaceId}/members`} className="ml-auto">
-              <span className="text-xs text-[#d4a348] hover:underline font-medium">See all</span>
+              ) : (
+                <Avatar name={member.displayName} size="sm" />
+              )}
+            </button>
+          ))}
+          {spaceMembers.length > 12 && (
+            <Link href={`/app/spaces/${spaceId}/members`}>
+              <span className="text-xs text-[#d4a348] hover:underline font-medium">+{spaceMembers.length - 12}</span>
             </Link>
-          </div>
-        ) : null;
-      })()}
+          )}
+          <Link href={`/app/spaces/${spaceId}/members`} className="ml-auto">
+            <span className="text-xs text-[#d4a348] hover:underline font-medium">See all</span>
+          </Link>
+        </div>
+      )}
 
       {/* Space Introduction */}
 

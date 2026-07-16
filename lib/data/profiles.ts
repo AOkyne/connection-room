@@ -676,10 +676,32 @@ export async function getPublicProfilesBySpace(spaceId: string): Promise<Profile
   if (!supabase) return [];
 
   try {
+    // profiles.spaces_joined (and public_profiles.spaces_joined, synced
+    // from it) is never actually kept up to date for real members -- found
+    // live: Trevor has 8 rows in space_memberships (the real source of
+    // truth for who's in a space, already used by getMemberCountBySpace()/
+    // getSpaceStats()) but an empty spaces_joined array. Filtering on that
+    // column here meant this function has returned zero members for every
+    // real space, for every real member, since it was introduced -- fixed
+    // by looking up membership from space_memberships first, matching the
+    // pattern already used elsewhere.
+    const { data: memberships, error: membershipsError } = await supabase
+      .from("space_memberships")
+      .select("user_id")
+      .eq("space_id", spaceId);
+
+    if (membershipsError) {
+      console.error("Error fetching space memberships:", membershipsError);
+      return [];
+    }
+
+    const memberUserIds = (memberships || []).map((m: any) => m.user_id);
+    if (memberUserIds.length === 0) return [];
+
     const { data, error } = await supabase
       .from("public_profiles_view")
       .select("*")
-      .contains("spaces_joined", [spaceId])
+      .in("user_id", memberUserIds)
       .order("display_name");
 
     if (error) {
