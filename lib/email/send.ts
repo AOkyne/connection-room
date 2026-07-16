@@ -65,12 +65,12 @@ export async function sendBroadcastEmail(options: {
 }): Promise<void> {
   const transporter = getTransporter();
   await transporter.sendMail({
-    from: process.env.SMTP_FROM || "noreply@trevorjamesla.com",
+    from: "Trevor James <trevor@trevorjamesla.com>",
     to: options.to,
     subject: options.subject,
     text: buildBroadcastEmailText(options.bodyHtml),
     html: buildBroadcastEmailHtml(options.bodyHtml),
-    replyTo: "support@trevorjamesla.com",
+    replyTo: "trevor@trevorjamesla.com",
     attachments: getBrandedAttachments(),
   });
 }
