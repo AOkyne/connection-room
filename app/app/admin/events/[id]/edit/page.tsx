@@ -11,6 +11,7 @@ import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { useToast } from "@/lib/hooks/useToast";
 
 export default function EditEventPage() {
@@ -196,6 +197,13 @@ export default function EditEventPage() {
 
   return (
     <div className="space-y-6 max-w-2xl">
+      <Breadcrumb
+        items={[
+          { label: "Admin", href: "/app/admin" },
+          { label: "Events", href: "/app/admin/events" },
+          { label: "Edit Event", isActive: true },
+        ]}
+      />
       <div>
         <h1 className="text-3xl font-bold text-[#1a0f0a]">Edit Event</h1>
         <p className="text-[#a0704a] mt-1">Update event details</p>

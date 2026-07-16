@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/Button";
 import { Card, CardHeader } from "@/components/Card";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { supabase } from "@/lib/supabase/client";
 import { getSession } from "@/lib/session";
 import { IconProfile, IconConnection, IconAlert } from "@/components/Icons";
@@ -239,12 +240,14 @@ export default function MemberDetailPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl text-[#1a0f0a]">{member.display_name}</h1>
-        <Button variant="ghost" size="sm" onClick={() => router.push("/app/admin")}>
-          ← Back
-        </Button>
-      </div>
+      <Breadcrumb
+        items={[
+          { label: "Admin", href: "/app/admin" },
+          { label: "Members", href: "/app/admin/members" },
+          { label: member.display_name, isActive: true },
+        ]}
+      />
+      <h1 className="text-3xl text-[#1a0f0a]">{member.display_name}</h1>
 
       {member.suspended && (
         <div className="p-4 bg-[#a84a2a] rounded-lg border-2 border-[#7a2a1a]">

@@ -7,6 +7,7 @@ import { getSession } from "@/lib/session";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import Link from "next/link";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 interface DailyContent {
   id: string;
@@ -157,16 +158,15 @@ export default function AdminDailyCompanion() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-4xl font-bold text-[#1a0f0a]">Daily Companion Admin</h1>
-          <p className="text-[#1a0f0a] mt-2">Manage daily content and weekly notes</p>
-        </div>
-        <Link href="/app/admin">
-          <Button variant="ghost" size="sm">
-            ← Back
-          </Button>
-        </Link>
+      <Breadcrumb
+        items={[
+          { label: "Admin", href: "/app/admin" },
+          { label: "Daily Companion", isActive: true },
+        ]}
+      />
+      <div>
+        <h1 className="text-4xl font-bold text-[#1a0f0a]">Daily Companion Admin</h1>
+        <p className="text-[#1a0f0a] mt-2">Manage daily content and weekly notes</p>
       </div>
 
       {/* Tabs */}

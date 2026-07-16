@@ -11,6 +11,7 @@ import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { RichTextEditor } from "@/components/RichTextEditor";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { useToast } from "@/lib/hooks/useToast";
 
 export default function CreateEventPage() {
@@ -211,6 +212,13 @@ export default function CreateEventPage() {
 
   return (
     <div className="space-y-6 max-w-2xl">
+      <Breadcrumb
+        items={[
+          { label: "Admin", href: "/app/admin" },
+          { label: "Events", href: "/app/admin/events" },
+          { label: "New Event", isActive: true },
+        ]}
+      />
       <div>
         <h1 className="text-3xl font-bold text-[#1a0f0a]">Create Event</h1>
         <p className="text-[#a0704a] mt-1">Add a new community event</p>

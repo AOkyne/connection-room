@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -166,16 +165,15 @@ export default function ModerationPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Link href="/app/admin">
-          <button className="text-[#d4a348] hover:text-[#8b6f47] font-medium transition-colors">
-            ← Back
-          </button>
-        </Link>
-        <div>
-          <h1 className="text-3xl font-bold text-[#1a0f0a]">Moderation</h1>
-          <p className="text-[#a0704a] mt-2">Review and delete posts and comments</p>
-        </div>
+      <Breadcrumb
+        items={[
+          { label: "Admin", href: "/app/admin" },
+          { label: "Moderation", isActive: true },
+        ]}
+      />
+      <div>
+        <h1 className="text-3xl font-bold text-[#1a0f0a]">Moderation</h1>
+        <p className="text-[#a0704a] mt-2">Review and delete posts and comments</p>
       </div>
 
       {/* Tabs */}

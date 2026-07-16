@@ -19,6 +19,7 @@ import { RhythmContentAlert } from "@/components/admin/RhythmContentAlert";
 import { RhythmContentEditor } from "@/components/admin/RhythmContentEditor";
 import { DailyCompanionEditor } from "@/components/admin/DailyCompanionEditor";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -144,6 +145,12 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-8">
+      <Breadcrumb
+        items={[
+          { label: "Home", href: "/app" },
+          { label: "Admin Dashboard", isActive: true },
+        ]}
+      />
       <div>
         <h1 className="text-4xl text-[#1a0f0a]">Admin Dashboard</h1>
         <p className="text-lg text-[#1a0f0a] mt-2">

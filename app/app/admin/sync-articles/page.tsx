@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { getSession } from "@/lib/session";
 import { syncSubstackArticles } from "@/lib/admin/sync-articles";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 export default function SyncArticlesAdmin() {
   const router = useRouter();
@@ -55,10 +55,13 @@ export default function SyncArticlesAdmin() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/app/admin" className="text-[#c97a2a] hover:text-[#1a0f0a] mb-4 inline-block">
-            ← Back to Admin
-          </Link>
-          <h1 className="text-3xl font-bold text-[#1a0f0a] mb-2">
+          <Breadcrumb
+            items={[
+              { label: "Admin", href: "/app/admin" },
+              { label: "Sync Substack Articles", isActive: true },
+            ]}
+          />
+          <h1 className="text-3xl font-bold text-[#1a0f0a] mb-2 mt-4">
             Sync Substack Articles
           </h1>
           <p className="text-[#a0704a]">
