@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import { readFileSync } from "fs";
 import path from "path";
-import { buildBrandedEmailHtml, buildBrandedEmailText } from "./template";
+import { buildBrandedEmailHtml, buildBrandedEmailText, buildBroadcastEmailHtml, buildBroadcastEmailText } from "./template";
 
 export function hasSmtpConfig(): boolean {
   return !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
@@ -48,6 +48,28 @@ export async function sendBrandedEmail(options: {
     subject: options.subject,
     text: buildBrandedEmailText(options.paragraphs, options.appUrl, options.signOff),
     html: buildBrandedEmailHtml(options.paragraphs, options.appUrl, options.signOff),
+    replyTo: "support@trevorjamesla.com",
+    attachments: getBrandedAttachments(),
+  });
+}
+
+// Admin broadcast composer (announcements to some or all members) -- same
+// branded shell and attachments as sendBrandedEmail, but the body is
+// arbitrary rich-text HTML from the admin's editor rather than a fixed
+// paragraphs array, and the signature is the fuller admin-authored one
+// (name, founder title, and credential line) instead of a short sign-off.
+export async function sendBroadcastEmail(options: {
+  to: string;
+  subject: string;
+  bodyHtml: string;
+}): Promise<void> {
+  const transporter = getTransporter();
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || "noreply@trevorjamesla.com",
+    to: options.to,
+    subject: options.subject,
+    text: buildBroadcastEmailText(options.bodyHtml),
+    html: buildBroadcastEmailHtml(options.bodyHtml),
     replyTo: "support@trevorjamesla.com",
     attachments: getBrandedAttachments(),
   });

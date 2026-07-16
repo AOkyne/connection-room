@@ -198,6 +198,11 @@ export default function AdminPage() {
             ✉️ Automated Emails
           </Button>
         </Link>
+        <Link href="/app/admin/broadcast">
+          <Button variant="outline" size="sm">
+            📣 Broadcast Email
+          </Button>
+        </Link>
         <Link href="/app/admin/sync-articles">
           <Button variant="outline" size="sm">
             🔄 Sync Substack Articles
