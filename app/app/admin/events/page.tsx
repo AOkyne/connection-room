@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
-import { getAdminEvents, deleteEvent, type Event } from "@/lib/admin/events";
+import { getAdminEvents, deleteEvent, cancelEvent, type Event } from "@/lib/admin/events";
 import { getEventCapacity, setEventCapacity, sendEventNotification } from "@/lib/admin/event-management";
 import {
   getAllEventRegistrations,
@@ -26,6 +26,7 @@ export default function AdminEventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [showRegistrants, setShowRegistrants] = useState(false);
@@ -73,6 +74,23 @@ export default function AdminEventsPage() {
       showToast("Failed to delete event", "error");
     }
     setDeleting(null);
+  };
+
+  const handleCancel = async (id: string) => {
+    if (!confirm("Cancel this event? It stays on record as cancelled and its Workshop Ops workshop (if any) is removed.")) {
+      return;
+    }
+
+    setCancelling(id);
+    const updated = await cancelEvent(id);
+
+    if (updated) {
+      setEvents(events.map((e) => (e.id === id ? updated : e)));
+      showToast("Event cancelled", "success");
+    } else {
+      showToast("Failed to cancel event", "error");
+    }
+    setCancelling(null);
   };
 
   const handleViewRegistrants = async (eventId: string) => {
@@ -217,7 +235,9 @@ export default function AdminEventsPage() {
                       className={`px-2 py-1 text-xs font-medium rounded ${
                         event.status === "published"
                           ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-800"
+                          : event.status === "cancelled"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-gray-100 text-gray-800"
                       }`}
                     >
                       {event.status}
@@ -265,6 +285,15 @@ export default function AdminEventsPage() {
                       ✎ Edit
                     </Button>
                   </Link>
+                  {event.status !== "cancelled" && (
+                    <button
+                      onClick={() => handleCancel(event.id)}
+                      disabled={cancelling === event.id}
+                      className="px-3 py-2 text-xs font-medium rounded border border-orange-200 text-orange-600 hover:bg-orange-50 transition-colors disabled:opacity-50"
+                    >
+                      {cancelling === event.id ? "Cancelling..." : "⊘ Cancel"}
+                    </button>
+                  )}
                   <button
                     onClick={() => handleDelete(event.id)}
                     disabled={deleting === event.id}

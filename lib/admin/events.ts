@@ -14,6 +14,21 @@ function withTimeout<T>(promise: Promise<T> | PromiseLike<T>, timeoutMs: number 
   ]);
 }
 
+// Workshop Ops only runs in-person and hybrid workshops -- purely online
+// events have nothing for it to track, so they're excluded from sync.
+function shouldSyncEventToWorkshopOps(locationType?: Event["locationType"]): boolean {
+  return locationType === "in_person" || locationType === "hybrid";
+}
+
+function toWorkshopDateTimeFields(startAt: string, endAt?: string) {
+  const dateString = new Date(startAt).toISOString().split("T")[0];
+  const startTime = new Date(startAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+  const endTime = endAt
+    ? new Date(endAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
+    : undefined;
+  return { dateString, startTime, endTime };
+}
+
 export interface Event {
   id: string;
   title: string;
@@ -278,18 +293,11 @@ export async function createEvent(event: Partial<Event>): Promise<Event | null> 
       console.warn("[createEvent] Could not cache event in localStorage:", err instanceof Error ? err.message : err);
     }
 
-    // Fire workshop creation webhook asynchronously (non-blocking)
-    if (createdEvent.startAt) {
-      const eventDate = new Date(createdEvent.startAt);
-      const dateString = eventDate.toISOString().split("T")[0];
-
-      const startTime = createdEvent.startAt
-        ? new Date(createdEvent.startAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
-        : undefined;
-
-      const endTime = createdEvent.endAt
-        ? new Date(createdEvent.endAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
-        : undefined;
+    // Fire workshop creation webhook asynchronously (non-blocking) -- only
+    // for in-person/hybrid events; a purely online event has no Workshop
+    // Ops counterpart.
+    if (createdEvent.startAt && shouldSyncEventToWorkshopOps(createdEvent.locationType)) {
+      const { dateString, startTime, endTime } = toWorkshopDateTimeFields(createdEvent.startAt, createdEvent.endAt);
 
       const workshopPayload: WorkshopCreationPayload = {
         eventId: createdEvent.id,
@@ -458,31 +466,72 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
     console.warn("[updateEvent] Could not cache event in localStorage:", err instanceof Error ? err.message : err);
   }
 
-  // Fire workshop update webhook if event was successfully updated
+  // Sync the change to Workshop Ops if the event was successfully updated.
+  // Cancelling always removes the workshop over there rather than updating
+  // it (a cancelled event, if it still passed the location-type check
+  // below, would otherwise send a confusing "update" right before removal).
   if (updatedEvent && updatedEvent.startAt) {
-    const eventDate = new Date(updatedEvent.startAt);
-    const dateString = eventDate.toISOString().split("T")[0];
+    if (updatedEvent.status === "cancelled") {
+      if (updatedEvent.workshopId || shouldSyncEventToWorkshopOps(updatedEvent.locationType)) {
+        console.log(`[updateEvent] Event cancelled -- removing its workshop from Workshop Ops (${updatedEvent.id})`);
+        fireWorkshopDeletionWebhook(updatedEvent.id);
+      }
+    } else {
+      const shouldSync = shouldSyncEventToWorkshopOps(updatedEvent.locationType);
+      const { dateString, startTime, endTime } = toWorkshopDateTimeFields(updatedEvent.startAt, updatedEvent.endAt);
 
-    const startTime = updatedEvent.startAt
-      ? new Date(updatedEvent.startAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
-      : undefined;
+      if (shouldSync && !updatedEvent.workshopId) {
+        // Location type just changed to in-person/hybrid and no workshop
+        // exists yet on Workshop Ops -- create one now instead of updating.
+        const creationPayload: WorkshopCreationPayload = {
+          eventId: updatedEvent.id,
+          eventTitle: updatedEvent.title,
+          eventDate: dateString,
+          startTime,
+          endTime,
+          location: updatedEvent.locationName || updatedEvent.locationAddress,
+          description: updatedEvent.description || updatedEvent.shortDescription,
+        };
 
-    const endTime = updatedEvent.endAt
-      ? new Date(updatedEvent.endAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
-      : undefined;
+        const handleWorkshopResponse = async (workshopData: WorkshopCreationResponse) => {
+          if (supabase) {
+            try {
+              await supabase
+                .from("events")
+                .update({
+                  workshop_id: workshopData.workshopId,
+                  checkin_url: workshopData.checkinUrl,
+                  feedback_url: workshopData.feedbackUrl,
+                })
+                .eq("id", updatedEvent!.id);
+            } catch (err) {
+              console.warn("[updateEvent] Could not save new workshop data:", err);
+            }
+          }
+        };
 
-    const workshopPayload: WorkshopUpdatePayload = {
-      eventId: updatedEvent.id,
-      eventTitle: updatedEvent.title,
-      eventDate: dateString,
-      startTime,
-      endTime,
-      location: updatedEvent.locationName || updatedEvent.locationAddress,
-      description: updatedEvent.description || updatedEvent.shortDescription,
-    };
+        console.log("[updateEvent] Event now qualifies for Workshop Ops but has no workshop yet -- creating one:", updatedEvent.id);
+        fireWorkshopCreationWebhook(creationPayload, handleWorkshopResponse);
+      } else if (shouldSync && updatedEvent.workshopId) {
+        const workshopPayload: WorkshopUpdatePayload = {
+          eventId: updatedEvent.id,
+          eventTitle: updatedEvent.title,
+          eventDate: dateString,
+          startTime,
+          endTime,
+          location: updatedEvent.locationName || updatedEvent.locationAddress,
+          description: updatedEvent.description || updatedEvent.shortDescription,
+        };
 
-    console.log("[updateEvent] Firing workshop update webhook for event", updatedEvent.id);
-    fireWorkshopUpdateWebhook(workshopPayload);
+        console.log("[updateEvent] Firing workshop update webhook for event", updatedEvent.id);
+        fireWorkshopUpdateWebhook(workshopPayload);
+      } else if (!shouldSync && updatedEvent.workshopId) {
+        // Switched to online -- the workshop should no longer exist on
+        // Workshop Ops.
+        console.log("[updateEvent] Event switched to online -- removing its workshop from Workshop Ops:", updatedEvent.id);
+        fireWorkshopDeletionWebhook(updatedEvent.id);
+      }
+    }
   }
 
   console.log("[updateEvent] Returning updated event:", updatedEvent ? updatedEvent.id : "null");
@@ -529,10 +578,13 @@ export async function deleteEvent(id: string): Promise<boolean> {
     console.error("[deleteEvent] Error deleting from localStorage:", err);
   }
 
-  // Fire deletion webhook after successful deletion
+  // Fire deletion webhook after successful deletion -- only when a workshop
+  // could plausibly exist over there (online-only events are never synced).
   if (eventToDelete) {
-    console.log(`[deleteEvent] Firing workshop deletion webhook for event ${id}`);
-    fireWorkshopDeletionWebhook(id);
+    if (eventToDelete.workshopId || shouldSyncEventToWorkshopOps(eventToDelete.locationType)) {
+      console.log(`[deleteEvent] Firing workshop deletion webhook for event ${id}`);
+      fireWorkshopDeletionWebhook(id);
+    }
 
     if (eventToDelete.onlineUrl) {
       deleteZoomMeetingForEvent(eventToDelete.onlineUrl);
@@ -541,6 +593,14 @@ export async function deleteEvent(id: string): Promise<boolean> {
 
   // Return true if deleted from at least one source
   return deletedFromSupabase || (typeof window !== "undefined");
+}
+
+// Cancel event: sets status to "cancelled" (keeps the record here, unlike
+// deleteEvent) and removes the matching workshop from Workshop Ops, if one
+// exists there. updateEvent() handles the actual Workshop Ops call once
+// status is "cancelled".
+export async function cancelEvent(id: string): Promise<Event | null> {
+  return updateEvent(id, { status: "cancelled" });
 }
 
 // Register for event
