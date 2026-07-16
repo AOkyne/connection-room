@@ -1,14 +1,22 @@
 "use client";
 
-import { useMemo } from "react";
-import { demoMembers } from "@/lib/seed/demo-members";
+import { useEffect, useState } from "react";
+import { getDiscoverableMembers, type Profile } from "@/lib/data/profiles";
 
 export function CommunityMembersGrid() {
-  // Get 10 random seeded members
-  const members = useMemo(() => {
-    const shuffled = [...demoMembers].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 10);
+  // Real, discoverable members -- this was hardcoded to a random sample of
+  // lib/seed/demo-members and never queried the database at all, so real
+  // members never appeared here regardless of how many actually joined.
+  const [members, setMembers] = useState<Profile[]>([]);
+
+  useEffect(() => {
+    getDiscoverableMembers(10).then((all) => {
+      // Shuffle client-side so the same 10 aren't always shown first.
+      setMembers([...all].sort(() => Math.random() - 0.5).slice(0, 10));
+    });
   }, []);
+
+  if (members.length === 0) return null;
 
   return (
     <div className="space-y-3">

@@ -731,6 +731,49 @@ export async function getPublicProfilesBySpace(spaceId: string): Promise<Profile
   }
 }
 
+// Fetch a sample of real, discoverable members (safe fields only) for
+// general "community" widgets that aren't scoped to one space -- e.g. the
+// dashboard's CommunityMembersGrid, which was hardcoded to a demo seed
+// array (lib/seed/demo-members) and never queried real members at all.
+// Respects each member's own show_in_discovery opt-out in addition to the
+// row-level visibility public_profiles_view already enforces.
+export async function getDiscoverableMembers(limit: number = 20): Promise<Profile[]> {
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("public_profiles_view")
+      .select("*")
+      .eq("show_in_discovery", true)
+      .limit(limit);
+
+    if (error) {
+      console.error("Error fetching discoverable members:", error);
+      return [];
+    }
+
+    return (data || []).map((p) => ({
+      id: p.user_id,
+      firstName: p.display_name?.split(" ")[0] || "",
+      lastName: p.display_name?.split(" ").slice(1).join(" ") || "",
+      displayName: p.display_name || "",
+      pronouns: p.pronouns,
+      location: p.location,
+      profilePhoto: p.profile_photo || "",
+      memberType: "individual",
+      interests: Array.isArray(p.interests) ? p.interests : [],
+      completedOnboarding: true,
+      spacesJoined: Array.isArray(p.spaces_joined) ? p.spaces_joined : [],
+      joinedAt: new Date(),
+      profile_tagline: p.tagline,
+      is_demo_profile: p.is_seeded,
+    }));
+  } catch (err) {
+    console.error("Error fetching discoverable members:", err);
+    return [];
+  }
+}
+
 // Get member count for a specific space. Counts space_memberships rather
 // than profiles.spaces_joined -- profiles is locked to owner+admin SELECT
 // as of migration 039, so a non-admin member would only ever see their
