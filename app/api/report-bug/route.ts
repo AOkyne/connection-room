@@ -69,11 +69,11 @@ Submitted from The Connection Room Beta Testing Widget
       });
 
       await transporter.sendMail({
-        from: process.env.SMTP_FROM || "noreply@trevorjamesla.com",
+        from: "Trevor James <trevor@trevorjamesla.com>",
         to: "support@trevorjamesla.com",
         subject: `[Beta Bug Report] ${data.title}`,
         text: emailText,
-        replyTo: process.env.SMTP_FROM || "noreply@trevorjamesla.com",
+        replyTo: "trevor@trevorjamesla.com",
       });
     } else {
       // Development: Log to console

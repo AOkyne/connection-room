@@ -81,11 +81,11 @@ export async function POST(request: NextRequest) {
       }
 
       await transporter.sendMail({
-        from: process.env.SMTP_FROM || "noreply@trevorjamesla.com",
+        from: "Trevor James <trevor@trevorjamesla.com>",
         to: email,
         subject,
         text: message,
-        replyTo: "support@trevorjamesla.com",
+        replyTo: "trevor@trevorjamesla.com",
       });
 
       results.push({ id, success: true });

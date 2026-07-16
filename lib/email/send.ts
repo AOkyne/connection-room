@@ -7,6 +7,12 @@ export function hasSmtpConfig(): boolean {
   return !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
 }
 
+// Every outbound email sends as Trevor personally -- SMTP2GO only
+// authorizes this address anyway, and it reads more personal than a
+// generic noreply@ sender.
+const FROM_ADDRESS = "Trevor James <trevor@trevorjamesla.com>";
+const REPLY_TO_ADDRESS = "trevor@trevorjamesla.com";
+
 function getTransporter() {
   return nodemailer.createTransport({
     host: process.env.SMTP_HOST,
@@ -43,12 +49,12 @@ export async function sendBrandedEmail(options: {
 }): Promise<void> {
   const transporter = getTransporter();
   await transporter.sendMail({
-    from: process.env.SMTP_FROM || "noreply@trevorjamesla.com",
+    from: FROM_ADDRESS,
     to: options.to,
     subject: options.subject,
     text: buildBrandedEmailText(options.paragraphs, options.appUrl, options.signOff),
     html: buildBrandedEmailHtml(options.paragraphs, options.appUrl, options.signOff),
-    replyTo: "support@trevorjamesla.com",
+    replyTo: REPLY_TO_ADDRESS,
     attachments: getBrandedAttachments(),
   });
 }
@@ -65,12 +71,12 @@ export async function sendBroadcastEmail(options: {
 }): Promise<void> {
   const transporter = getTransporter();
   await transporter.sendMail({
-    from: "Trevor James <trevor@trevorjamesla.com>",
+    from: FROM_ADDRESS,
     to: options.to,
     subject: options.subject,
     text: buildBroadcastEmailText(options.bodyHtml),
     html: buildBroadcastEmailHtml(options.bodyHtml),
-    replyTo: "trevor@trevorjamesla.com",
+    replyTo: REPLY_TO_ADDRESS,
     attachments: getBrandedAttachments(),
   });
 }
