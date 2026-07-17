@@ -304,7 +304,7 @@ export default function AdminDailyCompanion() {
                         >
                           {content.active ? "Active" : "Inactive"}
                         </button>
-                        <Link href={`/admin/daily-companion/content/${content.id}`}>
+                        <Link href={`/app/admin/daily-companion/content/${content.id}`}>
                           <button className="text-xs text-[#d4a348] hover:text-[#c09560] font-medium">
                             Edit
                           </button>
@@ -369,7 +369,7 @@ export default function AdminDailyCompanion() {
                         >
                           {note.active ? "Active" : "Inactive"}
                         </button>
-                        <Link href={`/admin/daily-companion/notes/${note.id}`}>
+                        <Link href={`/app/admin/daily-companion/notes/${note.id}`}>
                           <button className="text-xs text-[#d4a348] hover:text-[#c09560] font-medium">
                             Edit
                           </button>

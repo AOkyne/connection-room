@@ -113,7 +113,7 @@ export default function EditWeeklyNote() {
         if (error) throw error;
       }
 
-      router.push("/admin/daily-companion");
+      router.push("/app/admin/daily-companion");
     } catch (error) {
       console.warn("Error saving note:", error);
       alert("Error saving note. Check console for details.");
