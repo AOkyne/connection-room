@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getDiscoverableMembers, type Profile } from "@/lib/data/profiles";
+import { getDiscoverableMembers, type CommunityProfile } from "@/lib/data/profiles";
 import { ProfileModal } from "@/components/ProfileModal";
 
 export function CommunityMembersGrid() {
   // Real, discoverable members -- this was hardcoded to a random sample of
   // lib/seed/demo-members and never queried the database at all, so real
   // members never appeared here regardless of how many actually joined.
-  const [members, setMembers] = useState<Profile[]>([]);
+  const [members, setMembers] = useState<CommunityProfile[]>([]);
   // Thumbnails already had cursor-pointer + hover styling suggesting
   // they're clickable, but had no onClick at all -- clicking did nothing.
-  const [selectedMember, setSelectedMember] = useState<Profile | null>(null);
+  const [selectedMember, setSelectedMember] = useState<CommunityProfile | null>(null);
 
   useEffect(() => {
     getDiscoverableMembers(10).then((all) => {
@@ -72,6 +72,8 @@ export function CommunityMembersGrid() {
           orientation={selectedMember.orientation}
           relationshipStatus={selectedMember.relationshipStatus}
           quizResult={selectedMember.quizResult}
+          connectionComfortLevel={selectedMember.connectionComfortLevel}
+          selectedReflection={selectedMember.selectedReflection}
           isOpen={!!selectedMember}
           onClose={() => setSelectedMember(null)}
         />

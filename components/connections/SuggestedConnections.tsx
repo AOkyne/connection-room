@@ -5,8 +5,8 @@ import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { ConnectionProfileModal } from "./ConnectionProfileModal";
 import { sendConnectionRequest, hasRequestSent } from "@/lib/data/connectionRequests";
-import type { MatchScore } from "@/lib/utils/connectionMatching";
-import type { Profile } from "@/lib/data/profiles";
+import type { MatchScore } from "@/lib/matching";
+import type { CommunityProfile } from "@/lib/data/profiles";
 
 interface SuggestedConnectionsProps {
   matches: MatchScore[];
@@ -37,7 +37,7 @@ export function SuggestedConnections({
   currentUserName = "",
   currentUserPhoto = "",
 }: SuggestedConnectionsProps) {
-  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<CommunityProfile | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sentRequests, setSentRequests] = useState<Set<string>>(new Set());
 
@@ -60,7 +60,7 @@ export function SuggestedConnections({
     };
   }, [currentUserId, matches]);
 
-  const handleViewProfile = (profile: Profile) => {
+  const handleViewProfile = (profile: CommunityProfile) => {
     setSelectedProfile(profile);
     setIsModalOpen(true);
   };

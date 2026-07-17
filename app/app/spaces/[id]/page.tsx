@@ -40,7 +40,7 @@ import { demoSpaceMemberships } from "@/lib/seed/demo-space-memberships";
 import Link from "next/link";
 import { ProfileModal } from "@/components/ProfileModal";
 import { spaceImageMap } from "@/lib/constants/spaceImages";
-import type { Profile } from "@/lib/data/profiles";
+import type { CommunityProfile } from "@/lib/data/profiles";
 
 const MAX_POST_LENGTH = 2000;
 const MIN_POST_LENGTH = 10;
@@ -54,7 +54,7 @@ export default function SpaceDetailPage() {
   const { toasts, showToast, removeToast } = useToast();
 
   const [space, setSpace] = useState<any>(null);
-  const [spaceMembers, setSpaceMembers] = useState<Profile[]>([]);
+  const [spaceMembers, setSpaceMembers] = useState<CommunityProfile[]>([]);
   const [profile, setProfile] = useState<any>(null);
   // getProfile() deliberately omits profile_photo (a past perf/timeout
   // fix), so it's fetched separately here for the one place that actually
@@ -86,7 +86,7 @@ export default function SpaceDetailPage() {
     if (typeof window === "undefined") return "all";
     return (localStorage.getItem("connection-room:post-filter") as "all" | "recent" | "popular") || "all";
   });
-  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<CommunityProfile | null>(null);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [editingPostContent, setEditingPostContent] = useState("");
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
@@ -1009,6 +1009,8 @@ export default function SpaceDetailPage() {
           orientation={selectedProfile.orientation}
           relationshipStatus={selectedProfile.relationshipStatus}
           quizResult={selectedProfile.quizResult}
+          connectionComfortLevel={selectedProfile.connectionComfortLevel}
+          selectedReflection={selectedProfile.selectedReflection}
           isOpen={!!selectedProfile}
           onClose={() => setSelectedProfile(null)}
         />

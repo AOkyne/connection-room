@@ -163,12 +163,18 @@ Is User Authenticated? (getCurrentUserId)
   - Full profile data (`profiles`): owner and admins only — no other
     member can read another member's row
   - Cross-member profile display uses a separate `public_profiles` table
-    (safe fields only, per-field visibility toggles) plus a column-masking
-    view, `public_profiles_view` — never the private `profiles` table.
+    (a curated, member-controlled field set with per-field visibility
+    toggles — identity/story fields default visible, deeper fields default
+    hidden) plus a column-masking view, `public_profiles_view` — never the
+    private `profiles` table. The app-layer `CommunityProfile` TypeScript
+    type (in `lib/data/profiles.ts`) is structurally narrower than the
+    private `Profile` type for the same reason: it can't carry fields that
+    were never meant to leave the private table.
     See [`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md).
   - Connection matching runs server-side (`app/api/matching/find`) with
-    the service-role key, since scoring needs private fields — only safe
-    match results are returned to the client.
+    the service-role key, since scoring needs private fields — only safe,
+    visibility-respecting match results are returned to the client, and
+    hidden/shared-spaces-restricted profiles are excluded from suggestions.
   - Space members can read/write posts
   - Comments follow post visibility rules
   - Reactions are visible to space members

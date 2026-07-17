@@ -1,10 +1,10 @@
 "use client";
 
 import { Button } from "@/components/Button";
-import type { Profile } from "@/lib/data/profiles";
+import type { CommunityProfile } from "@/lib/data/profiles";
 
 interface ConnectionProfileModalProps {
-  profile: Profile | null;
+  profile: CommunityProfile | null;
   isOpen: boolean;
   onClose: () => void;
   onConnect?: () => void;
@@ -59,7 +59,7 @@ export function ConnectionProfileModal({
             />
           )}
 
-          {/* Basic Info */}
+          {/* About Me */}
           <div className="grid grid-cols-2 gap-4">
             {profile.location && (
               <div>
@@ -67,6 +67,24 @@ export function ConnectionProfileModal({
                   Location
                 </p>
                 <p className="text-[#1a0f0a]">{profile.location}</p>
+              </div>
+            )}
+            {profile.ageRange && (
+              <div>
+                <p className="text-xs text-[#a0704a] uppercase tracking-wide mb-1">Age</p>
+                <p className="text-[#1a0f0a]">{profile.ageRange}</p>
+              </div>
+            )}
+            {profile.orientation && (
+              <div>
+                <p className="text-xs text-[#a0704a] uppercase tracking-wide mb-1">Orientation</p>
+                <p className="text-[#1a0f0a]">{profile.orientation}</p>
+              </div>
+            )}
+            {profile.relationshipStatus && (
+              <div>
+                <p className="text-xs text-[#a0704a] uppercase tracking-wide mb-1">Relationship Status</p>
+                <p className="text-[#1a0f0a]">{profile.relationshipStatus}</p>
               </div>
             )}
           </div>
@@ -77,13 +95,55 @@ export function ConnectionProfileModal({
               Member Since
             </p>
             <p className="text-[#1a0f0a]">
-              {new Date(profile.joinedAt).toLocaleDateString("en-US", {
+              {new Date(profile.memberSince || profile.joinedAt).toLocaleDateString("en-US", {
                 month: "long",
                 day: "numeric",
                 year: "numeric",
               })}
             </p>
           </div>
+
+          {/* Why I&apos;m Here */}
+          {(profile.whatBroughtYouHere || profile.connectionHoping) && (
+            <div className="space-y-4">
+              {profile.whatBroughtYouHere && (
+                <div>
+                  <p className="text-sm font-medium text-[#1a0f0a] mb-1">Why I&apos;m Here</p>
+                  <p className="text-sm text-[#1a0f0a] leading-relaxed">{profile.whatBroughtYouHere}</p>
+                </div>
+              )}
+              {profile.connectionHoping && (
+                <div>
+                  <p className="text-sm font-medium text-[#1a0f0a] mb-1">Looking to Connect With</p>
+                  <p className="text-sm text-[#1a0f0a] leading-relaxed">{profile.connectionHoping}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* A Little Deeper -- only present when the member has opted in */}
+          {(profile.quizResult || profile.connectionComfortLevel || profile.selectedReflection) && (
+            <div className="space-y-4 border-t border-[#e8ddd2] pt-4">
+              {profile.quizResult && (
+                <div className="border-l-4 border-[#d4a348] pl-4">
+                  <p className="text-xs uppercase tracking-wide text-[#a0704a] mb-1">Connection Pattern</p>
+                  <p className="font-medium text-[#1a0f0a]">{profile.quizResult}</p>
+                </div>
+              )}
+              {profile.connectionComfortLevel && (
+                <div className="border-l-4 border-[#d4a348] pl-4">
+                  <p className="text-xs uppercase tracking-wide text-[#a0704a] mb-1">Preferred Ways to Connect</p>
+                  <p className="font-medium text-[#1a0f0a]">{profile.connectionComfortLevel}</p>
+                </div>
+              )}
+              {profile.selectedReflection && (
+                <div className="border-l-4 border-[#d4a348] pl-4">
+                  <p className="text-xs uppercase tracking-wide text-[#a0704a] mb-1">A Question They&apos;re Sitting With</p>
+                  <p className="text-sm text-[#1a0f0a] leading-relaxed italic">{profile.selectedReflection}</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Interests */}
           {profile.interests && profile.interests.length > 0 && (

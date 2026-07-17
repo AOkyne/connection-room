@@ -19,6 +19,7 @@ import { IconIntegration, IconConnection, IconProfileNav, IconProfile, IconBadge
 import { ProfileSavedFeedback } from "@/components/feedback";
 import { InvitePanel } from "@/components/invites/InvitePanel";
 import { FriendsInvited } from "@/components/invites/FriendsInvited";
+import { ProfileVisibilitySettings } from "@/components/members/ProfileVisibilitySettings";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -319,6 +320,16 @@ export default function ProfilePage() {
           </div>
         </Card>
       </div>
+
+      {/* Privacy & Visibility */}
+      <Card>
+        <CardHeader title="Privacy & Visibility" icon={<IconProfile size={20} />} />
+        <p className="text-sm text-[#6b6460] mb-3">
+          Identity can be visible. Vulnerability should be chosen. Decide who
+          sees your profile and which parts of your story you want to share.
+        </p>
+        <ProfileVisibilitySettings />
+      </Card>
 
       {/* Connection Preferences and Achievements Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

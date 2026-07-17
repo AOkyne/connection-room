@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase/client";
-import { saveProfileToSupabase, getProfileFromSupabase } from "@/lib/data/supabase-profiles";
+import { saveProfileToSupabase } from "@/lib/data/supabase-profiles";
+import { demoSafeWrite } from "@/lib/demo/demo-mode-guard";
 import { waitForAuthReady } from "@/lib/supabase/auth-ready";
 
 export interface Profile {
@@ -29,8 +30,6 @@ export interface Profile {
   photo_confirmed?: boolean;
   photo_confirmed_at?: Date;
   profile_tagline?: string;
-  show_in_member_lists?: boolean;
-  profile_visibility?: 'space_members' | 'all_authenticated_members' | 'limited';
   show_general_location?: boolean;
   show_recent_posts?: boolean;
   is_demo_profile?: boolean;
@@ -39,6 +38,62 @@ export interface Profile {
   welcomeVideoWatched?: boolean;
   welcomeVideoWatchedAt?: Date;
   onboardingCompletedAt?: Date;
+}
+
+// The member-visible slice of a profile -- everything public_profiles_view
+// can return, already masked server-side by each field's own show_* flag.
+// Structurally narrower than Profile on purpose: it has no connection
+// boundaries, no email, no unpublished quiz answers, etc, so a component
+// typed against CommunityProfile cannot accidentally be handed private data
+// for a cross-member render. Returned by getPublicProfile,
+// getPublicProfilesBySpace, and getDiscoverableMembers -- never construct
+// one from the private `profiles` table.
+export interface CommunityProfile {
+  id: string;
+  firstName: string;
+  lastName: string;
+  displayName: string;
+  pronouns?: string;
+  location?: string;
+  profilePhoto: string;
+  memberType: string;
+  interests: string[];
+  completedOnboarding: boolean;
+  spacesJoined?: string[];
+  joinedAt: Date;
+  memberSince?: Date;
+  profile_tagline?: string;
+  is_demo_profile?: boolean;
+  ageRange?: string;
+  orientation?: string;
+  relationshipStatus?: string;
+  whatBroughtYouHere?: string;
+  connectionHoping?: string;
+  quizResult?: string;
+  connectionComfortLevel?: string;
+  selectedReflection?: string;
+}
+
+// A member's own visibility preferences -- lives on public_profiles (not
+// profiles), edited via the profile-settings UI, never touched by
+// sync_public_profile() (that trigger only ever writes the derived story
+// columns, never the show_*/profile_visibility columns -- see migration
+// 039's and 053's comments).
+export interface ProfileVisibilitySettings {
+  profileVisibility: 'members_only' | 'shared_spaces' | 'hidden';
+  showInDiscovery: boolean;
+  showAge: boolean;
+  showGeneralLocation: boolean;
+  showPronouns: boolean;
+  showOrientation: boolean;
+  showRelationshipStatus: boolean;
+  showWhyJoined: boolean;
+  showConnectionIntentions: boolean;
+  showInterests: boolean;
+  showQuizResult: boolean;
+  showConnectionComfortLevel: boolean;
+  showSelectedReflection: boolean;
+  showRecentPosts: boolean;
 }
 
 export interface CoupleProfile {
@@ -517,8 +572,6 @@ export async function getAllProfiles(): Promise<Profile[]> {
       joinedAt: new Date(p.created_at),
       lastActive: p.updated_at ? new Date(p.updated_at) : undefined,
       profile_tagline: p.profile_tagline,
-      show_in_member_lists: p.show_in_member_lists,
-      profile_visibility: p.profile_visibility,
       show_general_location: p.show_general_location,
       show_recent_posts: p.show_recent_posts,
       is_demo_profile: p.is_seeded,
@@ -572,72 +625,45 @@ export async function getAllProfilesLite(): Promise<Profile[]> {
   }
 }
 
-// ADMIN ONLY (see getAllProfiles). Use getPublicProfilesBySpace for any
-// member-facing space member list.
-export async function getProfilesBySpace(spaceId: string): Promise<Profile[]> {
-  if (!supabase) return [];
-
-  try {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .order("display_name");
-
-    if (error) {
-      console.error("Error fetching space members:", error);
-      return [];
-    }
-
-    // Filter on client side for profiles that have this space in spaces_joined
-    return (data || [])
-      .filter((p) => {
-        const spaces = Array.isArray(p.spaces_joined) ? p.spaces_joined : [];
-        return spaces.includes(spaceId);
-      })
-      .map((p) => ({
-        id: p.id,
-        firstName: p.display_name?.split(" ")[0] || "",
-        lastName: p.display_name?.split(" ").slice(1).join(" ") || "",
-        displayName: p.display_name || "",
-        pronouns: p.pronouns,
-        location: p.location,
-        ageRange: p.age_range,
-        relationshipStatus: p.relationship_status,
-        orientation: p.orientation,
-        profilePhoto: p.profile_photo || "",
-        memberType: p.member_type || "individual",
-        whatBroughtYouHere: p.what_brought_you_here,
-        connectionHoping: p.connection_hoping,
-        interests: Array.isArray(p.interests) ? p.interests : [],
-        connectionComfortLevel: p.connection_comfort_level,
-        connectionBoundaries: p.connection_boundaries,
-        quizResult: p.quiz_result,
-        firstPromptResponse: p.first_prompt_response,
-        firstPromptIsPublic: p.first_prompt_is_public,
-        completedOnboarding: p.completed_onboarding || false,
-        spacesJoined: Array.isArray(p.spaces_joined) ? p.spaces_joined : [],
-        joinedAt: new Date(p.created_at),
-        profile_tagline: p.profile_tagline,
-        show_in_member_lists: p.show_in_member_lists,
-        profile_visibility: p.profile_visibility,
-        show_general_location: p.show_general_location,
-        show_recent_posts: p.show_recent_posts,
-        is_demo_profile: p.is_seeded,
-      }));
-  } catch (err) {
-    console.error("Error fetching space members:", err);
-    return [];
-  }
+// Maps a public_profiles_view row to the narrower CommunityProfile shape.
+// Shared by getPublicProfile/getPublicProfilesBySpace/getDiscoverableMembers
+// so the three stay consistent -- any field the view masked to NULL simply
+// comes through as undefined here, never a private value.
+function mapCommunityProfile(p: any): CommunityProfile {
+  return {
+    id: p.user_id,
+    firstName: p.display_name?.split(" ")[0] || "",
+    lastName: p.display_name?.split(" ").slice(1).join(" ") || "",
+    displayName: p.display_name || "",
+    pronouns: p.pronouns,
+    location: p.location,
+    profilePhoto: p.profile_photo || "",
+    memberType: "individual",
+    interests: Array.isArray(p.interests) ? p.interests : [],
+    completedOnboarding: true,
+    spacesJoined: Array.isArray(p.spaces_joined) ? p.spaces_joined : [],
+    joinedAt: new Date(),
+    memberSince: p.member_since ? new Date(p.member_since) : undefined,
+    profile_tagline: p.tagline,
+    is_demo_profile: p.is_seeded,
+    ageRange: p.age_range,
+    orientation: p.orientation,
+    relationshipStatus: p.relationship_status,
+    whatBroughtYouHere: p.why_joined,
+    connectionHoping: p.connection_intentions,
+    quizResult: p.quiz_result,
+    connectionComfortLevel: p.connection_comfort_level,
+    selectedReflection: p.selected_reflection,
+  };
 }
 
 // Fetch a single member's PUBLIC profile (safe fields only) by user_id.
 // Sourced from public_profiles_view, not profiles -- profiles is locked to
 // owner+admin as of migration 039. Use this for any page rendering another
-// member's profile; never fall back to getAllProfiles/getProfilesBySpace
-// for cross-member reads, those remain admin-only (they read the private
-// profiles table, which ordinary members can no longer SELECT for other
-// users).
-export async function getPublicProfile(userId: string): Promise<Profile | null> {
+// member's profile; never fall back to getAllProfiles for cross-member
+// reads, that remains admin-only (it reads the private profiles table,
+// which ordinary members can no longer SELECT for other users).
+export async function getPublicProfile(userId: string): Promise<CommunityProfile | null> {
   if (!supabase) return null;
 
   try {
@@ -649,22 +675,7 @@ export async function getPublicProfile(userId: string): Promise<Profile | null> 
 
     if (error || !data) return null;
 
-    return {
-      id: data.user_id,
-      firstName: data.display_name?.split(" ")[0] || "",
-      lastName: data.display_name?.split(" ").slice(1).join(" ") || "",
-      displayName: data.display_name || "",
-      pronouns: data.pronouns,
-      location: data.location,
-      profilePhoto: data.profile_photo || "",
-      memberType: "individual",
-      interests: Array.isArray(data.interests) ? data.interests : [],
-      completedOnboarding: true,
-      spacesJoined: Array.isArray(data.spaces_joined) ? data.spaces_joined : [],
-      joinedAt: new Date(),
-      profile_tagline: data.tagline,
-      is_demo_profile: data.is_seeded,
-    };
+    return mapCommunityProfile(data);
   } catch (err) {
     console.error("Error fetching public profile:", err);
     return null;
@@ -672,7 +683,7 @@ export async function getPublicProfile(userId: string): Promise<Profile | null> 
 }
 
 // Fetch PUBLIC profiles (safe fields only) of members who joined a space.
-export async function getPublicProfilesBySpace(spaceId: string): Promise<Profile[]> {
+export async function getPublicProfilesBySpace(spaceId: string): Promise<CommunityProfile[]> {
   if (!supabase) return [];
 
   try {
@@ -709,22 +720,7 @@ export async function getPublicProfilesBySpace(spaceId: string): Promise<Profile
       return [];
     }
 
-    return (data || []).map((p) => ({
-      id: p.user_id,
-      firstName: p.display_name?.split(" ")[0] || "",
-      lastName: p.display_name?.split(" ").slice(1).join(" ") || "",
-      displayName: p.display_name || "",
-      pronouns: p.pronouns,
-      location: p.location,
-      profilePhoto: p.profile_photo || "",
-      memberType: "individual",
-      interests: Array.isArray(p.interests) ? p.interests : [],
-      completedOnboarding: true,
-      spacesJoined: Array.isArray(p.spaces_joined) ? p.spaces_joined : [],
-      joinedAt: new Date(),
-      profile_tagline: p.tagline,
-      is_demo_profile: p.is_seeded,
-    }));
+    return (data || []).map(mapCommunityProfile);
   } catch (err) {
     console.error("Error fetching public space members:", err);
     return [];
@@ -737,7 +733,7 @@ export async function getPublicProfilesBySpace(spaceId: string): Promise<Profile
 // array (lib/seed/demo-members) and never queried real members at all.
 // Respects each member's own show_in_discovery opt-out in addition to the
 // row-level visibility public_profiles_view already enforces.
-export async function getDiscoverableMembers(limit: number = 20): Promise<Profile[]> {
+export async function getDiscoverableMembers(limit: number = 20): Promise<CommunityProfile[]> {
   if (!supabase) return [];
 
   try {
@@ -752,26 +748,95 @@ export async function getDiscoverableMembers(limit: number = 20): Promise<Profil
       return [];
     }
 
-    return (data || []).map((p) => ({
-      id: p.user_id,
-      firstName: p.display_name?.split(" ")[0] || "",
-      lastName: p.display_name?.split(" ").slice(1).join(" ") || "",
-      displayName: p.display_name || "",
-      pronouns: p.pronouns,
-      location: p.location,
-      profilePhoto: p.profile_photo || "",
-      memberType: "individual",
-      interests: Array.isArray(p.interests) ? p.interests : [],
-      completedOnboarding: true,
-      spacesJoined: Array.isArray(p.spaces_joined) ? p.spaces_joined : [],
-      joinedAt: new Date(),
-      profile_tagline: p.tagline,
-      is_demo_profile: p.is_seeded,
-    }));
+    return (data || []).map(mapCommunityProfile);
   } catch (err) {
     console.error("Error fetching discoverable members:", err);
     return [];
   }
+}
+
+// Self-only: read the caller's own visibility preferences from
+// public_profiles. Separate from getProfile() (which reads profiles) --
+// visibility flags live on the public table, not the private one.
+export async function getProfileVisibilitySettings(): Promise<ProfileVisibilitySettings | null> {
+  if (typeof window === "undefined" || !supabase) return null;
+
+  const userId = await getCurrentSupabaseUserId();
+  if (!userId) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from("public_profiles")
+      .select(
+        "profile_visibility, show_in_discovery, show_age, show_general_location, show_pronouns, show_orientation, show_relationship_status, show_why_joined, show_connection_intentions, show_interests, show_quiz_result, show_connection_comfort_level, show_selected_reflection, show_recent_posts"
+      )
+      .eq("user_id", userId)
+      .single();
+
+    if (error || !data) return null;
+
+    return {
+      profileVisibility: (data.profile_visibility as ProfileVisibilitySettings["profileVisibility"]) || "members_only",
+      showInDiscovery: data.show_in_discovery ?? true,
+      showAge: data.show_age ?? true,
+      showGeneralLocation: data.show_general_location ?? true,
+      showPronouns: data.show_pronouns ?? true,
+      showOrientation: data.show_orientation ?? true,
+      showRelationshipStatus: data.show_relationship_status ?? true,
+      showWhyJoined: data.show_why_joined ?? true,
+      showConnectionIntentions: data.show_connection_intentions ?? true,
+      showInterests: data.show_interests ?? true,
+      showQuizResult: data.show_quiz_result ?? false,
+      showConnectionComfortLevel: data.show_connection_comfort_level ?? false,
+      showSelectedReflection: data.show_selected_reflection ?? false,
+      showRecentPosts: data.show_recent_posts ?? false,
+    };
+  } catch (err) {
+    console.warn("Error fetching profile visibility settings:", err);
+    return null;
+  }
+}
+
+// Self-only: write visibility preferences straight to public_profiles.
+// Deliberately does NOT go through saveProfile()/profiles -- these flags
+// live on the public table (public_profiles_owner_update RLS policy already
+// allows the owner to write them directly), and sync_public_profile() never
+// touches them, so there's no trigger to fight with.
+export async function updateProfileVisibilitySettings(
+  settings: Partial<ProfileVisibilitySettings>
+): Promise<boolean> {
+  if (typeof window === "undefined" || !supabase) return false;
+  const client = supabase;
+
+  const userId = await getCurrentSupabaseUserId();
+  if (!userId) return false;
+
+  const payload: Record<string, unknown> = {};
+  if (settings.profileVisibility !== undefined) payload.profile_visibility = settings.profileVisibility;
+  if (settings.showInDiscovery !== undefined) payload.show_in_discovery = settings.showInDiscovery;
+  if (settings.showAge !== undefined) payload.show_age = settings.showAge;
+  if (settings.showGeneralLocation !== undefined) payload.show_general_location = settings.showGeneralLocation;
+  if (settings.showPronouns !== undefined) payload.show_pronouns = settings.showPronouns;
+  if (settings.showOrientation !== undefined) payload.show_orientation = settings.showOrientation;
+  if (settings.showRelationshipStatus !== undefined) payload.show_relationship_status = settings.showRelationshipStatus;
+  if (settings.showWhyJoined !== undefined) payload.show_why_joined = settings.showWhyJoined;
+  if (settings.showConnectionIntentions !== undefined) payload.show_connection_intentions = settings.showConnectionIntentions;
+  if (settings.showInterests !== undefined) payload.show_interests = settings.showInterests;
+  if (settings.showQuizResult !== undefined) payload.show_quiz_result = settings.showQuizResult;
+  if (settings.showConnectionComfortLevel !== undefined) payload.show_connection_comfort_level = settings.showConnectionComfortLevel;
+  if (settings.showSelectedReflection !== undefined) payload.show_selected_reflection = settings.showSelectedReflection;
+  if (settings.showRecentPosts !== undefined) payload.show_recent_posts = settings.showRecentPosts;
+
+  const { error } = await demoSafeWrite(
+    async () => client.from("public_profiles").update(payload).eq("user_id", userId),
+    { context: "updateProfileVisibilitySettings" }
+  );
+
+  if (error) {
+    console.error("Error updating profile visibility settings:", error);
+    return false;
+  }
+  return true;
 }
 
 // Get member count for a specific space. Counts space_memberships rather

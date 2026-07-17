@@ -2,15 +2,26 @@
 
 ## Privacy & Security
 
-- **Private profile fields** (orientation, relationship status, connection
-  comfort/boundaries, quiz results, onboarding responses) are visible only
-  to the profile owner and admins.
-- **Public member profile** (display name, photo, tagline, pronouns,
-  general location, interests) is a separate table with its own
-  per-field visibility toggles and row-level visibility states
-  (hidden / members-only / shared-spaces / discovery).
+- **Member-controlled profile visibility.** Identity can be visible,
+  vulnerability should be chosen, safety information stays private. Members
+  set overall visibility (all members / only shared spaces / hidden from
+  discovery) and individually toggle which fields show: age, location,
+  pronouns, orientation, relationship status, why they joined, preferred
+  kinds of connection, and interests default **visible**; quiz result,
+  preferred ways to connect, and a selected personal reflection default
+  **hidden** until the member opts in.
+- **Permanently private fields** — connection boundaries, detailed matching
+  preferences, unpublished quiz answers, onboarding responses not selected
+  for display, moderation/safety data, and all account/billing data — are
+  visible only to the profile owner and admins, with no sharing path.
+- **Public member profile** (`public_profiles`) is a separate table/view
+  from the private `profiles` table, with its own per-field visibility
+  flags and row-level visibility states (hidden / members-only /
+  shared-spaces / discovery).
 - **Server-side connection matching** — private fields used for match
-  scoring never reach the browser; only safe match results do.
+  scoring never reach the browser; only each candidate's own visibility-
+  respecting safe profile does. Hidden profiles and shared-spaces profiles
+  outside a shared space are excluded from suggestions entirely.
 - See [`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md) for full detail.
 
 ## Core Features

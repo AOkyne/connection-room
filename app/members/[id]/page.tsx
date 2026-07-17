@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { getProfile, Profile, getPublicProfile } from "@/lib/data/profiles";
+import { getProfile, Profile, CommunityProfile, getPublicProfile } from "@/lib/data/profiles";
 import { getSession } from "@/lib/session";
 import { getSpaces, Space } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
@@ -13,7 +13,7 @@ export default function MemberProfilePage() {
   const router = useRouter();
   const memberId = params.id as string;
 
-  const [member, setMember] = useState<Profile | null>(null);
+  const [member, setMember] = useState<CommunityProfile | null>(null);
   const [userProfile, setUserProfile] = useState<Profile | null>(null);
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,6 +124,30 @@ export default function MemberProfilePage() {
                     {member.location}
                   </p>
                 )}
+                {member.ageRange && (
+                  <p className="text-[#1a0f0a]">
+                    <strong className="text-[#1a0f0a]">Age:</strong> {member.ageRange}
+                  </p>
+                )}
+                {member.orientation && (
+                  <p className="text-[#1a0f0a]">
+                    <strong className="text-[#1a0f0a]">Orientation:</strong> {member.orientation}
+                  </p>
+                )}
+                {member.relationshipStatus && (
+                  <p className="text-[#1a0f0a]">
+                    <strong className="text-[#1a0f0a]">Relationship Status:</strong> {member.relationshipStatus}
+                  </p>
+                )}
+                {(member.memberSince || member.joinedAt) && (
+                  <p className="text-[#1a0f0a]">
+                    <strong className="text-[#1a0f0a]">Member Since:</strong>{" "}
+                    {new Date(member.memberSince || member.joinedAt).toLocaleDateString("en-US", {
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </p>
+                )}
               </div>
 
               {sharedSpaces.length > 0 && (
@@ -137,6 +161,50 @@ export default function MemberProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* Why I&apos;m Here */}
+        {(member.whatBroughtYouHere || member.connectionHoping) && (
+          <section className="bg-white rounded-lg p-6 sm:p-8 space-y-4">
+            <h2 className="text-2xl font-semibold text-[#1a0f0a]">Why I&apos;m Here</h2>
+            {member.whatBroughtYouHere && (
+              <div>
+                <p className="text-sm text-[#a0704a] mb-1">What brought them here</p>
+                <p className="text-[#1a0f0a] leading-relaxed">{member.whatBroughtYouHere}</p>
+              </div>
+            )}
+            {member.connectionHoping && (
+              <div>
+                <p className="text-sm text-[#a0704a] mb-1">Looking to connect with</p>
+                <p className="text-[#1a0f0a] leading-relaxed">{member.connectionHoping}</p>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* A Little Deeper -- only present when the member has opted in */}
+        {(member.quizResult || member.connectionComfortLevel || member.selectedReflection) && (
+          <section className="bg-white rounded-lg p-6 sm:p-8 space-y-4">
+            <h2 className="text-2xl font-semibold text-[#1a0f0a]">A Little Deeper</h2>
+            {member.quizResult && (
+              <div className="border-l-4 border-[#d4a348] pl-4">
+                <p className="text-xs uppercase tracking-wide text-[#a0704a] mb-1">Connection Pattern</p>
+                <p className="font-medium text-[#1a0f0a]">{member.quizResult}</p>
+              </div>
+            )}
+            {member.connectionComfortLevel && (
+              <div className="border-l-4 border-[#d4a348] pl-4">
+                <p className="text-xs uppercase tracking-wide text-[#a0704a] mb-1">Preferred Ways to Connect</p>
+                <p className="font-medium text-[#1a0f0a]">{member.connectionComfortLevel}</p>
+              </div>
+            )}
+            {member.selectedReflection && (
+              <div className="border-l-4 border-[#d4a348] pl-4">
+                <p className="text-xs uppercase tracking-wide text-[#a0704a] mb-1">A Question They&apos;re Sitting With</p>
+                <p className="text-[#1a0f0a] leading-relaxed italic">{member.selectedReflection}</p>
+              </div>
+            )}
+          </section>
+        )}
 
         {/* Interests */}
         {member.interests && member.interests.length > 0 && (

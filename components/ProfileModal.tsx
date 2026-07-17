@@ -20,6 +20,8 @@ interface ProfileModalProps {
   orientation?: string;
   relationshipStatus?: string;
   quizResult?: string;
+  connectionComfortLevel?: string;
+  selectedReflection?: string;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -39,6 +41,8 @@ export function ProfileModal({
   orientation,
   relationshipStatus,
   quizResult,
+  connectionComfortLevel,
+  selectedReflection,
   isOpen,
   onClose,
 }: ProfileModalProps) {
@@ -123,11 +127,25 @@ export function ProfileModal({
             </div>
           )}
 
-          {/* Quiz Result */}
+          {/* A Little Deeper -- only shown when the member has opted in */}
           {quizResult && (
             <div className="border-l-4 border-[#d4a348] pl-4">
               <p className="text-xs uppercase tracking-wide text-[#a0704a] mb-1">Connection Pattern</p>
               <p className="font-medium text-[#1a0f0a]">{quizResult}</p>
+            </div>
+          )}
+
+          {connectionComfortLevel && (
+            <div className="border-l-4 border-[#d4a348] pl-4">
+              <p className="text-xs uppercase tracking-wide text-[#a0704a] mb-1">Preferred Ways to Connect</p>
+              <p className="font-medium text-[#1a0f0a]">{connectionComfortLevel}</p>
+            </div>
+          )}
+
+          {selectedReflection && (
+            <div className="border-l-4 border-[#d4a348] pl-4">
+              <p className="text-xs uppercase tracking-wide text-[#a0704a] mb-1">A Question They&apos;re Sitting With</p>
+              <p className="text-sm text-[#1a0f0a] leading-relaxed italic">{selectedReflection}</p>
             </div>
           )}
 

@@ -5,8 +5,11 @@ A beautiful, intentional community web app for men and couples practicing honest
 ## 🔒 Privacy & Security
 
 Member profile data is split across a private `profiles` table (owner +
-admin only) and a public `public_profiles` table (safe fields, with
-per-field visibility controls) — see [`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md)
+admin only) and a member-visible `public_profiles` table (a curated,
+individually-toggleable field set, plus overall visibility: all members /
+shared spaces only / hidden). Guiding principle: identity can be visible,
+vulnerability should be chosen, safety information stays private — privacy
+should create choice, not emptiness. See [`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md)
 for the full model, including RLS behavior, what's public vs. private, and
 known limitations.
 

@@ -1,8 +1,8 @@
-import type { Profile } from "./data/profiles";
+import type { Profile, CommunityProfile } from "./data/profiles";
 import { supabase } from "@/lib/supabase/client";
 
-interface MatchScore {
-  profile: Profile;
+export interface MatchScore {
+  profile: CommunityProfile;
   score: number;
   sharedInterests: string[];
 }

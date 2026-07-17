@@ -52,6 +52,40 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Failed to load candidates" }, { status: 500 });
   }
 
+  // Scoring below deliberately reads the private profiles rows (needs
+  // relationship_status/age_range/location regardless of whether a
+  // candidate has chosen to display them). What's actually returned to the
+  // client comes from public_profiles_view instead (masked per each
+  // candidate's own show_* flags) -- this uses the service-role client, so
+  // RLS row-restrictions don't apply, but the view's CASE WHEN column
+  // masking isn't RLS, it's baked into the view's query itself and still
+  // runs regardless of role. A hidden profile must not appear as a
+  // suggestion at all (same rule as discovery/member lists), so those are
+  // filtered out of the candidate pool entirely, not just column-masked.
+  const { data: candidateViewRows, error: viewError } = await supabase
+    .from("public_profiles_view")
+    .select("*")
+    .neq("user_id", userId);
+
+  if (viewError) {
+    return NextResponse.json({ error: "Failed to load candidate visibility" }, { status: 500 });
+  }
+
+  const selfSpaces = new Set(Array.isArray(selfRow.spaces_joined) ? selfRow.spaces_joined : []);
+
+  const visibleProfileByUserId = new Map(
+    (candidateViewRows || [])
+      .filter((v) => {
+        if (v.profile_visibility === "hidden") return false;
+        if (v.profile_visibility === "shared_spaces") {
+          const candidateSpaces: string[] = Array.isArray(v.spaces_joined) ? v.spaces_joined : [];
+          return candidateSpaces.some((s) => selfSpaces.has(s));
+        }
+        return true;
+      })
+      .map((v) => [v.user_id, v])
+  );
+
   const connectedUserIds = new Set(
     (connectionHistory as any[])
       .filter((conn) => conn.status === "completed" || conn.status === "active")
@@ -70,6 +104,7 @@ export async function POST(request: NextRequest) {
       ) {
         return false;
       }
+      if (!visibleProfileByUserId.has(p.user_id)) return false;
       if (connectedUserIds.has(p.user_id)) return false;
       if (declinedSet.has(p.user_id)) return false;
       if (blockedSet.has(p.user_id)) return false;
@@ -85,7 +120,7 @@ export async function POST(request: NextRequest) {
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map((m) => ({
-      profile: toSafeProfile(m.candidate),
+      profile: toSafeProfile(visibleProfileByUserId.get(m.candidate.user_id)),
       score: m.score,
       sharedInterests: m.sharedInterests,
     }));
@@ -145,23 +180,34 @@ function extractMidpoint(ageRange: string): number {
   return 0;
 }
 
-// Only safe, public-profile-equivalent fields -- no relationship_status,
-// orientation, connection_comfort_level, connection_boundaries, quiz_result,
-// what_brought_you_here, connection_hoping, or age_range.
-function toSafeProfile(dbProfile: any) {
+// Built from a public_profiles_view row, not the raw private profiles row --
+// every field here has already been masked per the candidate's own show_*
+// flags (a hidden orientation/relationship_status/etc comes through as
+// NULL from the view, not omitted here). This is a CommunityProfile.
+function toSafeProfile(viewRow: any) {
   return {
-    id: dbProfile.user_id,
-    firstName: dbProfile.display_name?.split(" ")[0] || "",
-    lastName: dbProfile.display_name?.split(" ").slice(1).join(" ") || "",
-    displayName: dbProfile.display_name || "",
-    pronouns: dbProfile.pronouns,
-    location: dbProfile.location,
-    profilePhoto: dbProfile.profile_photo || "",
-    memberType: dbProfile.member_type || "individual",
-    interests: Array.isArray(dbProfile.interests) ? dbProfile.interests : [],
-    completedOnboarding: dbProfile.completed_onboarding || false,
-    spacesJoined: Array.isArray(dbProfile.spaces_joined) ? dbProfile.spaces_joined : [],
-    joinedAt: dbProfile.created_at,
-    is_demo_profile: dbProfile.is_seeded,
+    id: viewRow.user_id,
+    firstName: viewRow.display_name?.split(" ")[0] || "",
+    lastName: viewRow.display_name?.split(" ").slice(1).join(" ") || "",
+    displayName: viewRow.display_name || "",
+    pronouns: viewRow.pronouns,
+    location: viewRow.location,
+    profilePhoto: viewRow.profile_photo || "",
+    memberType: "individual",
+    interests: Array.isArray(viewRow.interests) ? viewRow.interests : [],
+    completedOnboarding: true,
+    spacesJoined: Array.isArray(viewRow.spaces_joined) ? viewRow.spaces_joined : [],
+    joinedAt: viewRow.member_since,
+    memberSince: viewRow.member_since,
+    profile_tagline: viewRow.tagline,
+    is_demo_profile: viewRow.is_seeded,
+    ageRange: viewRow.age_range,
+    orientation: viewRow.orientation,
+    relationshipStatus: viewRow.relationship_status,
+    whatBroughtYouHere: viewRow.why_joined,
+    connectionHoping: viewRow.connection_intentions,
+    quizResult: viewRow.quiz_result,
+    connectionComfortLevel: viewRow.connection_comfort_level,
+    selectedReflection: viewRow.selected_reflection,
   };
 }

@@ -1,9 +1,19 @@
 # Privacy & Security Model
 
-This document describes how member profile data is protected as of migration
-`039_profile_privacy_overhaul.sql`. It supersedes the profile-related
-sections of `RLS_POLICIES.md`, which described the pre-launch, never-locked-
-down model and is now stale.
+This document describes how member profile data is protected. It was
+originally written for migration `039_profile_privacy_overhaul.sql`, and
+extended by migration `053_profile_visibility_expansion.sql`. It supersedes
+the profile-related sections of `RLS_POLICIES.md`, which described the
+pre-launch, never-locked-down model and is now stale.
+
+**Guiding principle: identity can be visible, vulnerability should be
+chosen, safety information stays private.** Migration 039 fixed a real leak
+by locking `profiles` down, but the member-visible layer it shipped
+(`public_profiles`) only carried enough fields to make a profile feel
+half-empty -- no age, orientation, relationship status, or story. Migration
+053 brings a curated set of those fields back, individually toggleable, with
+sensible defaults: identity/story fields default visible, deeper/vulnerable
+fields default hidden. Privacy should create choice, not emptiness.
 
 ## Status
 
@@ -101,22 +111,61 @@ what a caller sees, never widen it.
 | Field | Default | Owner can hide? |
 |---|---|---|
 | `pronouns` | shown | `show_pronouns` |
-| `location` (general) | **hidden** | `show_general_location` |
+| `location` (general) | shown (since migration 053; was hidden in 039) | `show_general_location` |
 | `interests` | shown | `show_interests` |
+| `age_range` | shown | `show_age` |
+| `orientation` | shown | `show_orientation` |
+| `relationship_status` | shown | `show_relationship_status` |
+| `why_joined` (why they joined) | shown | `show_why_joined` |
+| `connection_intentions` (what they're hoping to find) | shown | `show_connection_intentions` |
+| `quiz_result` (also referred to as "intimacy pattern" -- same column, one concept) | **hidden** | `show_quiz_result` |
+| `connection_comfort_level` (preferred ways to connect) | **hidden** | `show_connection_comfort_level` |
+| `selected_reflection` (first prompt response, opted in) | **hidden** | `show_selected_reflection` |
 | recent posts (app-layer, not a column) | hidden | `show_recent_posts` |
 | discovery inclusion | shown | `show_in_discovery` |
+| `member_since` (`created_at`) | always shown when the profile itself is visible -- no toggle, same tier as display name/photo | n/a |
 
 Row-level visibility (`profile_visibility`): `hidden` (owner/admin only),
 `members_only`, `shared_spaces` (visible to members who share a space),
 `member_discovery`. `members_only` and `member_discovery` currently resolve
 identically (any authenticated member) — kept as separate states because a
 future release may want discovery-surfaced profiles to differ from
-directly-linkable ones, but no such distinction is implemented yet.
+directly-linkable ones, but no such distinction is implemented yet. The
+profile-settings UI only ever writes `members_only`, `shared_spaces`, or
+`hidden` -- `member_discovery` stays reserved/unused, unchanged from 039.
 
-`orientation` and `relationship_status` are **not** in `public_profiles` at
-all in this release — they remain fully private, with no opt-in sharing
-path yet. A later release may add field-level preferences for these two
-specifically, per product direction, but that is not built now.
+### What migration 053 changed
+
+`orientation` and `relationship_status` were **not** in `public_profiles` at
+all as of migration 039 — fully private, no opt-in path. As of migration
+053 they're back, member-controlled, default **visible** (per updated
+product direction: hiding the fields most relevant to real connection
+worked against the app's purpose). Same for `age_range`, why-joined, and
+connection intentions. `quiz_result`/`connection_comfort_level`/
+`selected_reflection` are new too, but default **hidden** — these are
+"a little deeper" fields, shown only when a member opts in.
+
+`connection_boundaries`, detailed matching preferences, private
+reflections/onboarding answers not explicitly selected for display,
+moderation/safety data, and all account/billing/admin data are **untouched**
+by migration 053 — never copied into `public_profiles`, never exposed
+through the view. Confirmed by direct schema/RLS audit before writing the
+migration, not assumed.
+
+### Known limitations (not built, no backing data or no consuming feature)
+
+- **Badges, event attendance, journey progress**: no member-facing
+  cross-user display surface exists anywhere in the app today (verified: the
+  only code paths that read these read the caller's own data). No columns
+  or `show_*` flags were added for them — there's nothing to gate yet.
+  Add them when the corresponding display feature is actually built.
+- **"Current exploration," "relationship goals" (as distinct from
+  `relationship_status`), "open to one-to-one connections"**: no backing
+  column exists anywhere in this schema. Not invented for this migration.
+- **Spiritual interests / sexuality-related interests**: already covered by
+  the existing `interests`/`show_interests` column — the interest tag list
+  already includes "Spirituality" and "Sexuality" (see `lib/config.ts`). No
+  new columns needed.
 
 ## Application refactor
 
@@ -140,7 +189,33 @@ new server route (`app/api/matching/find/route.ts`). The route runs with
 the service-role key (needed because scoring legitimately uses
 `relationship_status`/`age_range`/`location` for compatibility), but only
 ever returns a safe field subset — the private fields used for scoring
-never reach the browser.
+never reach the browser. As of migration 053, that safe subset is built
+from a `public_profiles_view` lookup (not hand-picked from the private row),
+so a match card respects each candidate's own visibility flags exactly like
+every other surface. The route also now excludes `hidden` candidates from
+the pool entirely, and `shared_spaces` candidates unless the caller actually
+shares a space with them — matching suggestions are a form of "cross-member
+profile view," so the same hidden/shared_spaces rules apply as everywhere
+else.
+
+### Types (added in migration 053's app-code refactor)
+
+`lib/data/profiles.ts` now exports three distinct types instead of one flat
+`Profile`:
+
+- `Profile` — private, self/admin only.
+- `CommunityProfile` — everything `public_profiles_view` can return.
+  Structurally narrower than `Profile` on purpose (no `connection_boundaries`,
+  no unpublished quiz answers, etc.) — a component typed against
+  `CommunityProfile` cannot be handed private data for a cross-member
+  render, even by mistake. `getPublicProfile`, `getPublicProfilesBySpace`,
+  `getDiscoverableMembers`, and the matching route's safe subset all return
+  this type now.
+- `ProfileVisibilitySettings` — the member's own `show_*`/`profile_visibility`
+  flags, read/written straight to `public_profiles` via
+  `getProfileVisibilitySettings()`/`updateProfileVisibilitySettings()` (not
+  through `profiles` — visibility flags were never synced by the trigger and
+  still aren't).
 
 The invited-friends list (`lib/data/invites.ts`'s `getInvitedFriends()`)
 had the same problem one level removed: `invite_relationships` keys off

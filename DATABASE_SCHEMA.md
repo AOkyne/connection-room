@@ -23,7 +23,8 @@ updated_at: TIMESTAMP
 **User profile information and preferences**
 
 ```sql
-id: TEXT (Primary Key) - References auth.users.id
+id: UUID (Primary Key)
+user_id: UUID (Unique) - References auth.users.id
 display_name: TEXT - User's chosen name
 pronouns: TEXT - Optional (e.g., "he/him", "they/them")
 location: TEXT - Optional city/location
@@ -34,16 +35,36 @@ profile_photo: TEXT - URL to profile image (SVG or uploaded)
 member_type: TEXT - 'individual', 'partnered-individual', or 'couple'
 what_brought_you_here: TEXT - Open-ended intro
 connection_hoping: TEXT - What they seek in community
-interests: TEXT[] - Array of interest tags
-pairing_comfort_level: TEXT - Optional comfort level
-pairing_boundaries: TEXT - Optional boundaries
-quiz_result: TEXT - Latest quiz result
+interests: JSONB - Array of interest tags
+connection_comfort_level: TEXT - Optional comfort level (added migration 036;
+  note the file this schema doc previously referenced,
+  pairing_comfort_level/pairing_boundaries, never actually existed on this
+  table live -- see migration 036's own header comment)
+connection_boundaries: TEXT - Optional boundaries. Permanently private --
+  never copied to public_profiles, no opt-in sharing path (see
+  PRIVACY_SECURITY_MODEL.md section 4)
+quiz_result: TEXT - Latest quiz result (values are archetypes, e.g. "Armored
+  Achiever" -- see lib/config.ts; also referred to as "intimacy pattern")
 first_prompt_response: TEXT - First response to daily prompt
 first_prompt_is_public: BOOLEAN - Whether to share response
 completed_onboarding: BOOLEAN - Onboarding completion flag
-spaces_joined: TEXT[] - Array of space IDs user has joined
-joined_at: TIMESTAMP - Account creation date
+spaces_joined: JSONB - Array of space IDs user has joined (kept in sync from
+  space_memberships by a migration-050 trigger)
+role: TEXT - 'member' | 'admin' (migrations 012, 019)
+invite_code: TEXT (Unique) - migration 011
+invited_by_profile_id: UUID - migration 011
+invite_code_created_at: TIMESTAMPTZ - migration 011
+is_seeded: BOOLEAN - migration 013
+welcome_video_watched: BOOLEAN - migration 018
+welcome_video_watched_at: TIMESTAMPTZ - migration 018
+onboarding_completed_at: TIMESTAMPTZ - migration 020
+created_at: TIMESTAMPTZ - Account creation date
+updated_at: TIMESTAMPTZ
 ```
+
+No `email`, `phone`, or `birth_date` column exists on this table -- email
+lives only in `auth.users`; only bucketed `age_range` exists, never an exact
+birth date.
 
 **RLS Policies (as of migration 039 — see [`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md)):**
 - SELECT: owner only (`user_id = auth.uid()`), or caller is an admin
@@ -54,7 +75,8 @@ joined_at: TIMESTAMP - Account creation date
 ---
 
 ### 2a. `public.public_profiles`
-**Safe, cross-member-readable subset of profile data** (added in migration 039)
+**Safe, cross-member-readable subset of profile data** (added in migration
+039, extended in migration 053)
 
 ```sql
 user_id: UUID (Primary Key) - References auth.users.id
@@ -68,16 +90,37 @@ spaces_joined: JSONB
 is_seeded: BOOLEAN
 profile_visibility: TEXT - hidden | members_only | shared_spaces | member_discovery
 show_in_discovery: BOOLEAN
-show_general_location: BOOLEAN
+show_general_location: BOOLEAN (default TRUE as of migration 053; was FALSE)
 show_interests: BOOLEAN
 show_recent_posts: BOOLEAN
 show_pronouns: BOOLEAN
+age_range: TEXT -- migration 053
+orientation: TEXT -- migration 053
+relationship_status: TEXT -- migration 053
+why_joined: TEXT -- migration 053 (from profiles.what_brought_you_here)
+connection_intentions: TEXT -- migration 053 (from profiles.connection_hoping)
+quiz_result: TEXT -- migration 053
+connection_comfort_level: TEXT -- migration 053
+selected_reflection: TEXT -- migration 053 (from profiles.first_prompt_response)
+show_age: BOOLEAN (default TRUE) -- migration 053
+show_orientation: BOOLEAN (default TRUE) -- migration 053
+show_relationship_status: BOOLEAN (default TRUE) -- migration 053
+show_why_joined: BOOLEAN (default TRUE) -- migration 053
+show_connection_intentions: BOOLEAN (default TRUE) -- migration 053
+show_quiz_result: BOOLEAN (default FALSE) -- migration 053
+show_connection_comfort_level: BOOLEAN (default FALSE) -- migration 053
+show_selected_reflection: BOOLEAN (default FALSE) -- migration 053
+created_at: TIMESTAMPTZ - exposed via public_profiles_view as member_since
 ```
 
-Kept in sync with `profiles` automatically via the `profiles_sync_public`
-trigger. Application code reads `public_profiles_view` (a column-masking
-view over this table), not this table directly, for any cross-member
-display. Full detail in [`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md).
+Kept in sync with `profiles` automatically via the `sync_public_profile`
+trigger (dynamic SQL -- see the trigger's own comments for why). Application
+code reads `public_profiles_view` (a column-masking view over this table),
+not this table directly, for any cross-member display, except the owner's
+own visibility settings (`getProfileVisibilitySettings`/
+`updateProfileVisibilitySettings` in `lib/data/profiles.ts` read/write
+`public_profiles` directly, since the trigger never touches `show_*`
+columns). Full detail in [`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md).
 
 ---
 
@@ -343,6 +386,17 @@ All schema changes tracked in `supabase/migrations/`:
 2. `002_seed_example_content.sql` - Demo posts and comments
 3. `003_add_reactions_policies.sql` - Reaction RLS policies
 4. `004_add_new_spaces.sql` - New community spaces
+
+This list stops tracking individual migrations after the first few (it was
+already out of date before this edit) — treat `supabase/migrations/` itself
+as the authoritative, current list, not this section. Two migrations worth
+calling out specifically since they define the current profile privacy
+model described above: `039_profile_privacy_overhaul.sql` (locked `profiles`
+down, introduced `public_profiles`) and
+`053_profile_visibility_expansion.sql` (added the age/orientation/
+relationship-status/quiz-result/etc. fields and their `show_*` flags
+described in the tables above). Full narrative in
+[`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md).
 
 ---
 

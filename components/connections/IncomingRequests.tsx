@@ -5,14 +5,14 @@ import { Button } from "@/components/Button";
 import { Card, CardHeader } from "@/components/Card";
 import { ConnectionProfileModal } from "./ConnectionProfileModal";
 import type { ConnectionRequest } from "@/lib/data/connectionRequests";
-import type { Profile } from "@/lib/data/profiles";
+import type { CommunityProfile } from "@/lib/data/profiles";
 
 interface IncomingRequestsProps {
   requests: ConnectionRequest[];
   onAccept: (requestId: string) => void;
   onDecline: (requestId: string) => void;
   currentUserId?: string;
-  requesterProfiles?: Record<string, Profile>;
+  requesterProfiles?: Record<string, CommunityProfile>;
   mutualUserIds?: Set<string>;
 }
 
@@ -24,7 +24,7 @@ export function IncomingRequests({
   requesterProfiles = {},
   mutualUserIds = new Set(),
 }: IncomingRequestsProps) {
-  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<CommunityProfile | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   if (requests.length === 0) {

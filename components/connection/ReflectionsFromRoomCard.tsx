@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/Card";
 import Link from "next/link";
-import { getPublicProfile, type Profile } from "@/lib/data/profiles";
+import { getPublicProfile, type CommunityProfile } from "@/lib/data/profiles";
 import { ProfileModal } from "@/components/ProfileModal";
 
 interface RecentReflection {
@@ -32,7 +32,7 @@ export function ReflectionsFromRoomCard({
   const hasReflections = recentReflections.length > 0;
   const visibleReflections = recentReflections.slice(0, MAX_VISIBLE);
   const hasMore = recentReflections.length > MAX_VISIBLE;
-  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<CommunityProfile | null>(null);
 
   const handleAuthorClick = async (authorId: string) => {
     if (!authorId) return;
@@ -138,6 +138,8 @@ export function ReflectionsFromRoomCard({
           orientation={selectedProfile.orientation}
           relationshipStatus={selectedProfile.relationshipStatus}
           quizResult={selectedProfile.quizResult}
+          connectionComfortLevel={selectedProfile.connectionComfortLevel}
+          selectedReflection={selectedProfile.selectedReflection}
           isOpen={!!selectedProfile}
           onClose={() => setSelectedProfile(null)}
         />

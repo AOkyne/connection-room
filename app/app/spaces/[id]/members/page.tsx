@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { getProfile, Profile, getPublicProfilesBySpace } from "@/lib/data/profiles";
+import { getProfile, Profile, CommunityProfile, getPublicProfilesBySpace } from "@/lib/data/profiles";
 import { getSpace, Space } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
 
@@ -13,7 +13,7 @@ export default function SpaceMembersPage() {
   const spaceId = params.id as string;
 
   const [space, setSpace] = useState<Space | null>(null);
-  const [members, setMembers] = useState<Profile[]>([]);
+  const [members, setMembers] = useState<CommunityProfile[]>([]);
   const [userProfile, setUserProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -120,9 +120,9 @@ export default function SpaceMembersPage() {
                       </p>
                     )}
 
-                    {member.location && (
+                    {(member.location || member.ageRange) && (
                       <p className="text-xs text-[#a0704a]">
-                        {member.location}
+                        {[member.location, member.ageRange].filter(Boolean).join(" · ")}
                       </p>
                     )}
 
