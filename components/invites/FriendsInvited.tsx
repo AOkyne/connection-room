@@ -73,7 +73,7 @@ export function FriendsInvited({ onOpenInvite }: FriendsInvitedProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {friends.map((friend) => (
-          <Link key={friend.id} href={`/app/members/${friend.id}`}>
+          <Link key={friend.id} href={`/members/${friend.id}`}>
             <div
               className="p-4 rounded-lg border cursor-pointer hover:shadow-md transition-shadow"
               style={{

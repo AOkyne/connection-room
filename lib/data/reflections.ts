@@ -1,6 +1,6 @@
 // Reflections data layer - fetch recent reflections from The Commons
 
-import { demoPosts } from "./demo-data";
+import { getPosts } from "./posts";
 
 export interface RecentReflection {
   id: string;
@@ -10,41 +10,27 @@ export interface RecentReflection {
   excerpt: string;
   authorName: string;
   authorPhoto?: string;
+  authorId: string;
   createdAt: Date;
 }
 
 const COMMONS_SPACE_ID = "commons";
 const COMMONS_SPACE_NAME = "The Commons";
 
-// Get recent reflections (posts) from The Commons space only - lightweight version
+// Get recent reflections (posts) from The Commons space only - lightweight version.
+// This previously read only localStorage("connection-room:posts")/demoPosts directly,
+// never Supabase -- so on a fresh browser (no localStorage) it silently showed the
+// hardcoded demo seed roster forever, and even with localStorage populated it never
+// picked up any post actually saved to the real database. Now goes through
+// getPosts(), the same real-data path every other feature in the app uses.
 export async function getRecentReflections(limit: number = 5): Promise<RecentReflection[]> {
   if (typeof window === "undefined") return [];
 
   try {
-    // Get posts from localStorage (demo mode) or use demo data
-    let posts = [];
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("connection-room:posts");
-      if (stored) {
-        try {
-          posts = JSON.parse(stored);
-        } catch (e) {
-          posts = demoPosts;
-        }
-      } else {
-        posts = demoPosts;
-      }
-    } else {
-      posts = demoPosts;
-    }
+    const posts = await getPosts(COMMONS_SPACE_ID);
 
-    // Filter for Commons space and get recent posts
-    const commonsPosts = posts
-      .filter((p: any) => p.spaceId === COMMONS_SPACE_ID)
-      .slice(0, limit);
-
-    // Convert to reflections (no reaction migration needed)
-    const reflections = commonsPosts.map((post: any) => {
+    // Convert to reflections (already sorted newest-first by getPosts)
+    const reflections = posts.slice(0, limit).map((post) => {
       // Get first sentence as title
       const sentences = post.content.match(/[^.!?]+[.!?]+/g) || [post.content];
       const title = sentences[0].trim().substring(0, 80);
@@ -61,11 +47,12 @@ export async function getRecentReflections(limit: number = 5): Promise<RecentRef
         excerpt,
         authorName: post.authorName,
         authorPhoto: post.authorPhoto,
+        authorId: post.userId,
         createdAt: post.createdAt instanceof Date ? post.createdAt : new Date(post.createdAt),
       };
     });
 
-    return reflections.sort((a: RecentReflection, b: RecentReflection) => b.createdAt.getTime() - a.createdAt.getTime());
+    return reflections;
   } catch (error) {
     console.error("Error fetching recent reflections:", error);
     return [];

@@ -427,24 +427,26 @@ export default function AdminMembersPage() {
                     onChange={() => toggleSelected(member.id)}
                     className="w-4 h-4 mt-1"
                   />
-                  <Avatar
-                    name={member.displayName}
-                    photo={member.profilePhoto}
-                    size="md"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-[#1a0f0a] truncate">
-                      {member.displayName}
-                    </h3>
-                    {member.pronouns && (
-                      <p className="text-xs text-[#a0704a]">{member.pronouns}</p>
-                    )}
-                    {member.is_demo_profile && (
-                      <span className="inline-block text-xs bg-[#e8ddd2] text-[#a0704a] px-2 py-0.5 rounded mt-1">
-                        Sample
-                      </span>
-                    )}
-                  </div>
+                  <Link href={`/app/admin/members/${member.id}`} className="flex items-start gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity">
+                    <Avatar
+                      name={member.displayName}
+                      photo={member.profilePhoto}
+                      size="md"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-[#1a0f0a] truncate">
+                        {member.displayName}
+                      </h3>
+                      {member.pronouns && (
+                        <p className="text-xs text-[#a0704a]">{member.pronouns}</p>
+                      )}
+                      {member.is_demo_profile && (
+                        <span className="inline-block text-xs bg-[#e8ddd2] text-[#a0704a] px-2 py-0.5 rounded mt-1">
+                          Sample
+                        </span>
+                      )}
+                    </div>
+                  </Link>
                 </div>
 
                 {/* Status */}

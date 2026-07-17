@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/Card";
 import Link from "next/link";
+import { getPublicProfile, type Profile } from "@/lib/data/profiles";
+import { ProfileModal } from "@/components/ProfileModal";
 
 interface RecentReflection {
   id: string;
@@ -12,6 +14,7 @@ interface RecentReflection {
   excerpt: string;
   authorName: string;
   authorPhoto?: string;
+  authorId: string;
   createdAt: Date;
 }
 
@@ -29,6 +32,13 @@ export function ReflectionsFromRoomCard({
   const hasReflections = recentReflections.length > 0;
   const visibleReflections = recentReflections.slice(0, MAX_VISIBLE);
   const hasMore = recentReflections.length > MAX_VISIBLE;
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+
+  const handleAuthorClick = async (authorId: string) => {
+    if (!authorId) return;
+    const profile = await getPublicProfile(authorId);
+    if (profile) setSelectedProfile(profile);
+  };
 
   return (
     <Card className="bg-gradient-to-br from-[#f3ede5] to-white">
@@ -63,7 +73,11 @@ export function ReflectionsFromRoomCard({
                     <p className="text-xs text-[#1a0f0a] mt-1 line-clamp-2">
                       {reflection.excerpt}
                     </p>
-                    <div className="flex items-center gap-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={() => handleAuthorClick(reflection.authorId)}
+                      className="flex items-center gap-2 mt-2 hover:opacity-80 transition-opacity"
+                    >
                       {reflection.authorPhoto && (
                         <img
                           src={reflection.authorPhoto}
@@ -74,7 +88,7 @@ export function ReflectionsFromRoomCard({
                       <p className="text-xs text-[#a0704a]">
                         — {reflection.authorName}
                       </p>
-                    </div>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -106,6 +120,28 @@ export function ReflectionsFromRoomCard({
           </div>
         )}
       </div>
+
+      {selectedProfile && (
+        <ProfileModal
+          userId={selectedProfile.id}
+          firstName={selectedProfile.firstName}
+          lastName={selectedProfile.lastName}
+          displayName={selectedProfile.displayName}
+          pronouns={selectedProfile.pronouns}
+          profilePhoto={selectedProfile.profilePhoto}
+          location={selectedProfile.location}
+          profile_tagline={selectedProfile.profile_tagline}
+          interests={selectedProfile.interests}
+          whatBroughtYouHere={selectedProfile.whatBroughtYouHere}
+          connectionHoping={selectedProfile.connectionHoping}
+          ageRange={selectedProfile.ageRange}
+          orientation={selectedProfile.orientation}
+          relationshipStatus={selectedProfile.relationshipStatus}
+          quizResult={selectedProfile.quizResult}
+          isOpen={!!selectedProfile}
+          onClose={() => setSelectedProfile(null)}
+        />
+      )}
     </Card>
   );
 }
