@@ -2,12 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { getDiscoverableMembers, type Profile } from "@/lib/data/profiles";
+import { ProfileModal } from "@/components/ProfileModal";
 
 export function CommunityMembersGrid() {
   // Real, discoverable members -- this was hardcoded to a random sample of
   // lib/seed/demo-members and never queried the database at all, so real
   // members never appeared here regardless of how many actually joined.
   const [members, setMembers] = useState<Profile[]>([]);
+  // Thumbnails already had cursor-pointer + hover styling suggesting
+  // they're clickable, but had no onClick at all -- clicking did nothing.
+  const [selectedMember, setSelectedMember] = useState<Profile | null>(null);
 
   useEffect(() => {
     getDiscoverableMembers(10).then((all) => {
@@ -26,6 +30,7 @@ export function CommunityMembersGrid() {
           <div
             key={member.id}
             className="flex flex-col items-center gap-1 group cursor-pointer"
+            onClick={() => setSelectedMember(member)}
           >
             {member.profilePhoto ? (
               <img
@@ -49,6 +54,28 @@ export function CommunityMembersGrid() {
           </div>
         ))}
       </div>
+
+      {selectedMember && (
+        <ProfileModal
+          userId={selectedMember.id}
+          firstName={selectedMember.firstName}
+          lastName={selectedMember.lastName}
+          displayName={selectedMember.displayName}
+          pronouns={selectedMember.pronouns}
+          profilePhoto={selectedMember.profilePhoto}
+          location={selectedMember.location}
+          profile_tagline={selectedMember.profile_tagline}
+          interests={selectedMember.interests}
+          whatBroughtYouHere={selectedMember.whatBroughtYouHere}
+          connectionHoping={selectedMember.connectionHoping}
+          ageRange={selectedMember.ageRange}
+          orientation={selectedMember.orientation}
+          relationshipStatus={selectedMember.relationshipStatus}
+          quizResult={selectedMember.quizResult}
+          isOpen={!!selectedMember}
+          onClose={() => setSelectedMember(null)}
+        />
+      )}
     </div>
   );
 }
