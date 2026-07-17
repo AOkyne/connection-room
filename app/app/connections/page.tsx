@@ -68,6 +68,10 @@ export default function ConnectionsPage() {
   const [connectionHistory, setConnectionHistory] = useState<any[]>([]);
   const [activeConnections, setActiveConnections] = useState<Connection[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [randomMatch, setRandomMatch] = useState<any>(null);
+  const [isRandomModalOpen, setIsRandomModalOpen] = useState(false);
+  const [randomRequestSent, setRandomRequestSent] = useState(false);
+  const [loadingRandomMatch, setLoadingRandomMatch] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -133,7 +137,10 @@ export default function ConnectionsPage() {
       setMounted(true);
     };
 
-    loadData();
+    loadData().catch((err) => {
+      console.error("[connections] loadData threw:", err);
+      setMounted(true);
+    });
   }, []);
 
   if (!mounted || !profile || !preferences) {
@@ -152,24 +159,52 @@ export default function ConnectionsPage() {
     updateConnectionPreferences(profile.id, updated);
   };
 
+  // Picks one random real, eligible profile (from a wider pool than just
+  // the 5 shown under Suggested Connections -- it can be one of those 5,
+  // but isn't limited to them) and shows it in the same profile-view modal
+  // Suggested Connections uses. No request is sent yet; that only happens
+  // if the member clicks "Send Connection Request" inside the modal.
   const handleGenerateConnection = async () => {
-    if (suggestedMatches.length === 0) {
-      showToast("No eligible members to connect with right now.", "info");
-      return;
-    }
+    if (!profile) return;
 
-    const randomMatch = suggestedMatches[Math.floor(Math.random() * suggestedMatches.length)];
+    setLoadingRandomMatch(true);
+    try {
+      const declined = Array.from(getDeclinedUsers(profile.id));
+      const blocked = Array.from(getBlockedUsers(profile.id));
+      const pool = await findMatches(profile, preferences, connectionHistory, declined, blocked, 50);
+
+      if (pool.length === 0) {
+        showToast("No eligible members to connect with right now.", "info");
+        return;
+      }
+
+      const picked = pool[Math.floor(Math.random() * pool.length)];
+      setRandomMatch(picked);
+      setRandomRequestSent(false);
+      setIsRandomModalOpen(true);
+    } catch (err) {
+      console.error("Error finding a random match:", err);
+      showToast("Could not find a random match right now. Please try again.", "error");
+    } finally {
+      setLoadingRandomMatch(false);
+    }
+  };
+
+  const handleSendRandomRequest = async (partnerId: string) => {
+    if (!randomMatch || !profile) return;
+
     const sent = await sendConnectionRequest(
       profile.id,
       profile.displayName,
       profilePhoto,
-      randomMatch.profile.id,
+      partnerId,
       randomMatch.profile.interests || [],
       "What brought you here and what kind of connection are you practicing?"
     );
 
     if (sent) {
-      setSuggestedMatches(suggestedMatches.filter((m) => m.profile.id !== randomMatch.profile.id));
+      setRandomRequestSent(true);
+      setSuggestedMatches((prev) => prev.filter((m) => m.profile.id !== partnerId));
       showToast(`Request sent to ${randomMatch.profile.displayName}! You'll be able to chat once they accept.`, "success");
     } else {
       showToast("Could not send a connection request. Please try again.", "error");
@@ -602,11 +637,11 @@ export default function ConnectionsPage() {
             <div className="space-y-3">
               <p className="text-sm text-[#a0704a]">
                 {suggestedMatches.length > 0
-                  ? "Browse the suggested connections above or send a random connection request."
-                  : "Select a match from suggestions above, or check back soon for eligible members."}
+                  ? "Browse the suggested connections above, or view a random member's profile."
+                  : "Select a match from suggestions above, or view a random member's profile."}
               </p>
-              <Button variant="primary" size="md" onClick={handleGenerateConnection}>
-                Random Connection
+              <Button variant="primary" size="md" onClick={handleGenerateConnection} disabled={loadingRandomMatch}>
+                {loadingRandomMatch ? "Finding someone..." : "Random Connection"}
               </Button>
             </div>
           ) : (
@@ -660,6 +695,20 @@ export default function ConnectionsPage() {
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
       />
+
+      {/* Random Connection Modal -- same view used by Suggested Connections;
+          sending a request only happens if the member clicks the button
+          inside it. */}
+      {randomMatch && (
+        <ConnectionProfileModal
+          profile={randomMatch.profile}
+          isOpen={isRandomModalOpen}
+          onClose={() => setIsRandomModalOpen(false)}
+          currentUserId={profile.id}
+          onSendRequest={handleSendRandomRequest}
+          requestPending={randomRequestSent}
+        />
+      )}
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
