@@ -201,6 +201,13 @@ export async function createPost(
   if (userId && supabase) {
     const post = await createSupabasePost(spaceId, userId, authorName, content, isPromptResponse, promptId, authorPronouns, authorPhoto);
     if (post) return post;
+    // A real, signed-in member's post failed to reach Supabase and is
+    // about to silently fall back to localStorage (invisible to every
+    // other member). createSupabasePost() already logged the underlying
+    // error -- this just makes the fallback itself loud, since the last
+    // time this triggered silently (content vs body column mismatch), it
+    // went unnoticed for who knows how long.
+    console.warn("createPost: Supabase write failed for a real user, falling back to localStorage -- this post will not be visible to other members.");
   }
 
   // Demo mode fallback
@@ -340,6 +347,7 @@ export async function createComment(
   if (userId && supabase) {
     const comment = await createSupabaseComment(postId, userId, authorName, content, authorPronouns, authorPhoto);
     if (comment) return comment;
+    console.warn("createComment: Supabase write failed for a real user, falling back to localStorage -- this comment will not be visible to other members.");
   }
 
   // Demo mode fallback

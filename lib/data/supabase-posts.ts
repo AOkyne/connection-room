@@ -65,7 +65,7 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
           // Remove Tom Sawyer's seeded photo, show real user photos only
           authorPhoto: isTomSawyerPhoto ? undefined : authorPhoto,
           promptId: post.prompt_id,
-          content: post.body || post.content,
+          content: post.body,
           isPromptResponse: !!post.is_prompt_response,
           createdAt: new Date(post.created_at),
           reactions: reactionsMap[post.id] || {},
@@ -104,7 +104,7 @@ export async function createSupabasePost(
           author_pronouns: authorPronouns,
           author_photo: authorPhoto,
           prompt_id: promptId,
-          content: content,
+          body: content,
           is_prompt_response: isPromptResponse || false,
         })
         .select("*")
@@ -126,7 +126,7 @@ export async function createSupabasePost(
       authorPronouns: data.author_pronouns,
       authorPhoto: data.author_photo,
       promptId: data.prompt_id,
-      content: data.content,
+      content: data.body,
       isPromptResponse: !!data.is_prompt_response,
       createdAt: new Date(data.created_at),
       reactions: {},
@@ -210,7 +210,7 @@ export async function getSupabaseComments(postId: string): Promise<Comment[]> {
           authorPronouns: comment.author_pronouns,
           // Remove Tom Sawyer's seeded photo, show real user photos only
           authorPhoto: isTomSawyerPhoto ? undefined : authorPhoto,
-          content: comment.body || comment.content,
+          content: comment.body,
           createdAt: new Date(comment.created_at),
           reactions: {},
         };
@@ -244,7 +244,7 @@ export async function createSupabaseComment(
           author_name: authorName,
           author_pronouns: authorPronouns,
           author_photo: authorPhoto,
-          content: content,
+          body: content,
         })
         .select("*")
         .single(),
@@ -285,7 +285,7 @@ export async function createSupabaseComment(
       authorName: data.author_name || data.user_id,
       authorPronouns: data.author_pronouns,
       authorPhoto: data.author_photo,
-      content: data.content,
+      content: data.body,
       createdAt: new Date(data.created_at),
       reactions: {},
     };
