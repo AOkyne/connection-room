@@ -99,12 +99,25 @@ function calculateSharedInterests(userInterests: string[], profileInterests: str
   );
 }
 
+// Returns a 0-100 percentage, never more -- the previous version added
+// sharedInterests.length * 30 with no cap, so 11 shared interests scored
+// 330 and rendered as "330% match" (SuggestedConnections.tsx displays the
+// score directly as `${score}% match`). Interest overlap is scaled by how
+// much of the smaller person's interest list is shared, rather than the
+// raw shared count, so someone with many interests can't blow past 100%
+// just by having a lot of them; the remaining signals (location,
+// relationship status, age) are capped bonus points on top.
 function calculateMatchScore(selfRow: any, candidate: any, sharedInterests: string[]): number {
   let score = 0;
-  score += sharedInterests.length * 30;
+
+  const selfInterestCount = Array.isArray(selfRow.interests) ? selfRow.interests.length : 0;
+  const candidateInterestCount = Array.isArray(candidate.interests) ? candidate.interests.length : 0;
+  const smallerInterestCount = Math.min(selfInterestCount, candidateInterestCount) || 1;
+  const interestOverlapRatio = Math.min(sharedInterests.length / smallerInterestCount, 1);
+  score += interestOverlapRatio * 60;
 
   if (selfRow.location && candidate.location && selfRow.location.toLowerCase() === candidate.location.toLowerCase()) {
-    score += 20;
+    score += 15;
   }
 
   if (selfRow.relationship_status && candidate.relationship_status) {
@@ -118,10 +131,10 @@ function calculateMatchScore(selfRow: any, candidate: any, sharedInterests: stri
 
   if (selfRow.age_range && candidate.age_range) {
     const ageProximity = Math.abs(extractMidpoint(selfRow.age_range) - extractMidpoint(candidate.age_range));
-    if (ageProximity <= 10) score += 10;
+    if (ageProximity <= 10) score += 15;
   }
 
-  return score;
+  return Math.min(Math.round(score), 100);
 }
 
 function extractMidpoint(ageRange: string): number {
