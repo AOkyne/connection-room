@@ -36,10 +36,10 @@ export function CommunityMembersGrid() {
               <img
                 src={member.profilePhoto}
                 alt={member.displayName}
-                className="w-12 h-12 rounded-full object-cover border-2 border-[#e8ddd2] group-hover:border-[#d4a348] transition-colors"
+                className="w-24 h-24 rounded-full object-cover border-2 border-[#e8ddd2] group-hover:border-[#d4a348] transition-colors"
               />
             ) : (
-              <div className="w-12 h-12 rounded-full bg-[#f3ede5] border-2 border-[#e8ddd2] flex items-center justify-center text-xs font-bold text-[#d4a348]">
+              <div className="w-24 h-24 rounded-full bg-[#f3ede5] border-2 border-[#e8ddd2] flex items-center justify-center text-base font-bold text-[#d4a348]">
                 {member.displayName
                   .split(" ")
                   .map((n) => n[0])

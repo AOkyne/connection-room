@@ -75,24 +75,66 @@ export default function ConnectionsPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      const p = await getProfile();
+      // getProfile() and getProfilePhoto() are independent (photo resolves
+      // its own current-user session internally) -- fetched in parallel
+      // rather than sequentially.
+      const [p, realPhoto] = await Promise.all([getProfile(), getProfilePhoto()]);
       setProfile(p);
+      setProfilePhoto(realPhoto);
 
       if (p) {
-        const realPhoto = await getProfilePhoto();
-        setProfilePhoto(realPhoto);
-
         const prefs = getConnectionPreferences(p.id);
         setPreferences(prefs);
 
         const connection = getCurrentConnection(p.id);
         setCurrentConnectionState(connection);
 
-        const [requests, sent, active] = await Promise.all([
-          getIncomingRequests(p.id),
-          getSentRequests(p.id),
-          getActiveConnections(p.id),
+        const history = getConnectionHistory(p.id);
+        setConnectionHistory(history);
+
+        // Load suggested matches if no current connection and profile is
+        // complete. Gate on the real photo (fetched above), not
+        // p.profilePhoto -- that field is always "" on the object
+        // getProfile() returns, so this condition was never true for
+        // anyone; matching silently never ran.
+        const shouldFindMatches = !connection && p.completedOnboarding && realPhoto && p.interests?.length > 0;
+        if (shouldFindMatches) setLoadingMatches(true);
+
+        // The incoming-requests chain (requests -> sent/active -> each
+        // requester's profile) and the suggested-matches server call don't
+        // depend on each other at all -- previously run strictly
+        // sequentially (matches always last), now run in parallel so the
+        // page's total load time is roughly the slower of the two, not
+        // the sum of both.
+        const [requestsChain, matches] = await Promise.all([
+          (async () => {
+            const [requests, sent, active] = await Promise.all([
+              getIncomingRequests(p.id),
+              getSentRequests(p.id),
+              getActiveConnections(p.id),
+            ]);
+            const resolvedProfiles = await Promise.all(
+              requests.map(async (r) => [r.fromUserId, await getPublicProfile(r.fromUserId)] as const)
+            );
+            return { requests, sent, active, resolvedProfiles };
+          })(),
+          shouldFindMatches
+            ? (async () => {
+                const declined = Array.from(getDeclinedUsers(p.id));
+                const blocked = Array.from(getBlockedUsers(p.id));
+                try {
+                  return await findMatches(p, prefs, history, declined, blocked, 5);
+                } catch (err) {
+                  console.error("Error loading matches:", err);
+                  return [] as Awaited<ReturnType<typeof findMatches>>;
+                }
+              })()
+            : Promise.resolve(null),
         ]);
+
+        if (shouldFindMatches) setLoadingMatches(false);
+
+        const { requests, sent, active, resolvedProfiles } = requestsChain;
         setIncomingRequests(requests);
         setActiveConnections(active);
 
@@ -101,36 +143,14 @@ export default function ConnectionsPage() {
         setMutualUserIds(new Set(requests.filter((r) => sentToIds.has(r.fromUserId)).map((r) => r.fromUserId)));
 
         // Real profiles for each requester's card/modal
-        const resolvedProfiles = await Promise.all(
-          requests.map(async (r) => [r.fromUserId, await getPublicProfile(r.fromUserId)] as const)
-        );
         const profilesMap: Record<string, Profile> = {};
         for (const [id, prof] of resolvedProfiles) {
           if (prof) profilesMap[id] = prof;
         }
         setRequesterProfiles(profilesMap);
 
-        // Load connection history
-        const history = getConnectionHistory(p.id);
-        setConnectionHistory(history);
-
-        // Load suggested matches if no current connection and profile is complete.
-        // Gate on the real photo (fetched above), not p.profilePhoto -- that field
-        // is always "" on the object getProfile() returns, so this condition was
-        // never true for anyone; matching silently never ran.
-        if (!connection && p.completedOnboarding && realPhoto && p.interests?.length > 0) {
-          setLoadingMatches(true);
-          try {
-            const declined = Array.from(getDeclinedUsers(p.id));
-            const blocked = Array.from(getBlockedUsers(p.id));
-            const matches = await findMatches(p, prefs, history, declined, blocked, 5);
-            setSuggestedMatches(matches);
-          } catch (err) {
-            console.error("Error loading matches:", err);
-            setSuggestedMatches([]);
-          } finally {
-            setLoadingMatches(false);
-          }
+        if (matches !== null) {
+          setSuggestedMatches(matches);
         }
       }
 

@@ -33,47 +33,59 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ matches: [] });
   }
 
-  const { data: selfRow, error: selfError } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("user_id", userId)
-    .single();
+  // Self, candidates, and the visibility-only view lookup are all
+  // independent of each other -- fetched in parallel rather than three
+  // sequential round-trips. Both profiles selects are also narrowed to just
+  // the columns scoring/filtering actually use (previously select("*"),
+  // which pulled every private field -- connection_boundaries, quiz_result,
+  // first_prompt_response, etc -- for every single member on every page
+  // load, for no reason: none of it is used here or ever leaves the
+  // server). The view lookup is similarly narrowed to just what's needed to
+  // decide visibility; the full masked row is fetched separately below, only
+  // for the handful of candidates that actually end up in the results.
+  const PROFILE_SCORING_COLUMNS = "user_id, interests, location, relationship_status, age_range, spaces_joined";
+  const CANDIDATE_COLUMNS = `${PROFILE_SCORING_COLUMNS}, completed_onboarding, profile_photo, connection_frequency`;
 
+  const [selfResult, candidatesResult, viewResult] = await Promise.all([
+    supabase.from("profiles").select(PROFILE_SCORING_COLUMNS).eq("user_id", userId).single(),
+    supabase.from("profiles").select(CANDIDATE_COLUMNS).neq("user_id", userId)
+      .eq("completed_onboarding", true)
+      .not("profile_photo", "is", null)
+      .neq("profile_photo", ""),
+    // Scoring below deliberately reads the private profiles rows (needs
+    // relationship_status/age_range/location regardless of whether a
+    // candidate has chosen to display them). What's actually returned to
+    // the client comes from public_profiles_view instead (masked per each
+    // candidate's own show_* flags) -- this uses the service-role client,
+    // so RLS row-restrictions don't apply, but the view's CASE WHEN column
+    // masking isn't RLS, it's baked into the view's query itself and still
+    // runs regardless of role. A hidden profile must not appear as a
+    // suggestion at all (same rule as discovery/member lists), so those are
+    // filtered out of the candidate pool entirely, not just column-masked.
+    supabase.from("public_profiles_view").select("user_id, profile_visibility, spaces_joined").neq("user_id", userId),
+  ]);
+
+  const { data: selfRow, error: selfError } = selfResult;
   if (selfError || !selfRow) {
     return NextResponse.json({ error: "Profile not found" }, { status: 404 });
   }
 
-  const { data: candidates, error: candidatesError } = await supabase
-    .from("profiles")
-    .select("*")
-    .neq("user_id", userId);
-
+  const { data: candidates, error: candidatesError } = candidatesResult;
   if (candidatesError) {
     return NextResponse.json({ error: "Failed to load candidates" }, { status: 500 });
   }
 
-  // Scoring below deliberately reads the private profiles rows (needs
-  // relationship_status/age_range/location regardless of whether a
-  // candidate has chosen to display them). What's actually returned to the
-  // client comes from public_profiles_view instead (masked per each
-  // candidate's own show_* flags) -- this uses the service-role client, so
-  // RLS row-restrictions don't apply, but the view's CASE WHEN column
-  // masking isn't RLS, it's baked into the view's query itself and still
-  // runs regardless of role. A hidden profile must not appear as a
-  // suggestion at all (same rule as discovery/member lists), so those are
-  // filtered out of the candidate pool entirely, not just column-masked.
-  const { data: candidateViewRows, error: viewError } = await supabase
-    .from("public_profiles_view")
-    .select("*")
-    .neq("user_id", userId);
-
+  const { data: candidateViewRows, error: viewError } = viewResult;
   if (viewError) {
     return NextResponse.json({ error: "Failed to load candidate visibility" }, { status: 500 });
   }
 
   const selfSpaces = new Set(Array.isArray(selfRow.spaces_joined) ? selfRow.spaces_joined : []);
 
-  const visibleProfileByUserId = new Map(
+  // Only need which candidates are visible at all here -- the full masked
+  // row (needed for the response) is fetched separately below, only for
+  // whichever candidates actually make the final cut.
+  const visibleUserIds = new Set(
     (candidateViewRows || [])
       .filter((v) => {
         if (v.profile_visibility === "hidden") return false;
@@ -83,7 +95,7 @@ export async function POST(request: NextRequest) {
         }
         return true;
       })
-      .map((v) => [v.user_id, v])
+      .map((v) => v.user_id)
   );
 
   const connectedUserIds = new Set(
@@ -94,17 +106,12 @@ export async function POST(request: NextRequest) {
   const declinedSet = new Set(declinedUserIds as string[]);
   const blockedSet = new Set(blockedUserIds as string[]);
 
-  const scored = (candidates || [])
+  // completed_onboarding/profile_photo are already filtered in SQL above;
+  // interests emptiness and everything else here still needs the row.
+  const topMatches = (candidates || [])
     .filter((p) => {
-      if (
-        !p.completed_onboarding ||
-        !p.profile_photo ||
-        !Array.isArray(p.interests) ||
-        p.interests.length === 0
-      ) {
-        return false;
-      }
-      if (!visibleProfileByUserId.has(p.user_id)) return false;
+      if (!Array.isArray(p.interests) || p.interests.length === 0) return false;
+      if (!visibleUserIds.has(p.user_id)) return false;
       if (connectedUserIds.has(p.user_id)) return false;
       if (declinedSet.has(p.user_id)) return false;
       if (blockedSet.has(p.user_id)) return false;
@@ -114,16 +121,34 @@ export async function POST(request: NextRequest) {
     .map((p) => {
       const sharedInterests = calculateSharedInterests(selfRow.interests || [], p.interests || []);
       const score = calculateMatchScore(selfRow, p, sharedInterests);
-      return { candidate: p, score, sharedInterests };
+      return { userId: p.user_id, score, sharedInterests };
     })
     .filter((m) => m.score > 0)
     .sort((a, b) => b.score - a.score)
-    .slice(0, limit)
-    .map((m) => ({
-      profile: toSafeProfile(visibleProfileByUserId.get(m.candidate.user_id)),
-      score: m.score,
-      sharedInterests: m.sharedInterests,
-    }));
+    .slice(0, limit);
+
+  if (topMatches.length === 0) {
+    return NextResponse.json({ matches: [] });
+  }
+
+  const { data: winnerRows, error: winnersError } = await supabase
+    .from("public_profiles_view")
+    .select("*")
+    .in("user_id", topMatches.map((m) => m.userId));
+
+  if (winnersError) {
+    return NextResponse.json({ error: "Failed to load match profiles" }, { status: 500 });
+  }
+
+  const winnerByUserId = new Map((winnerRows || []).map((w) => [w.user_id, w]));
+
+  const scored = topMatches
+    .map((m) => {
+      const winnerRow = winnerByUserId.get(m.userId);
+      if (!winnerRow) return null;
+      return { profile: toSafeProfile(winnerRow), score: m.score, sharedInterests: m.sharedInterests };
+    })
+    .filter((m): m is NonNullable<typeof m> => m !== null);
 
   return NextResponse.json({ matches: scored });
 }

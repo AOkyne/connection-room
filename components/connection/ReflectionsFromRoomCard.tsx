@@ -82,7 +82,7 @@ export function ReflectionsFromRoomCard({
                         <img
                           src={reflection.authorPhoto}
                           alt={reflection.authorName}
-                          className="w-5 h-5 rounded-full object-cover border border-[#e8ddd2]"
+                          className="w-10 h-10 rounded-full object-cover border border-[#e8ddd2]"
                         />
                       )}
                       <p className="text-xs text-[#a0704a]">

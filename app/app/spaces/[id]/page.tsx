@@ -508,7 +508,7 @@ export default function SpaceDetailPage() {
                 <img
                   src={member.profilePhoto}
                   alt={member.displayName}
-                  className="w-6 h-6 rounded-full hover:ring-2 hover:ring-[#d4a348] transition-all"
+                  className="w-12 h-12 rounded-full hover:ring-2 hover:ring-[#d4a348] transition-all object-cover"
                 />
               ) : (
                 <Avatar name={member.displayName} size="sm" />

@@ -27,11 +27,16 @@ export function Avatar({ name, photo, size = "md" }: AvatarProps) {
   ];
   const color = colors[initials.charCodeAt(0) % colors.length];
 
+  // sm/md/lg/xl doubled from their original size (member thumbnails in
+  // space banners/posts/comments/grids were too small to recognize faces
+  // at a glance). 2xl is deliberately left unchanged -- it's only used for
+  // the Connections page's main partner photo, which is already the right
+  // size.
   const sizeClasses = {
-    sm: "w-6 h-6 text-xs",
-    md: "w-8 h-8 text-sm",
-    lg: "w-12 h-12 text-base",
-    xl: "w-20 h-20 text-lg",
+    sm: "w-12 h-12 text-sm",
+    md: "w-16 h-16 text-base",
+    lg: "w-24 h-24 text-xl",
+    xl: "w-40 h-40 text-3xl",
     "2xl": "w-28 h-28 text-2xl",
   };
 

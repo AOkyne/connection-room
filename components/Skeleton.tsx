@@ -27,7 +27,7 @@ export function SkeletonPost() {
     <div className="bg-white rounded-lg p-4 border border-[#e8ddd2] space-y-4">
       {/* Author info */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-[#f3ede5] rounded-full animate-pulse" />
+        <div className="w-16 h-16 bg-[#f3ede5] rounded-full animate-pulse" />
         <div className="flex-1 space-y-2">
           <div className="h-4 w-32 bg-[#f3ede5] rounded animate-pulse" />
           <div className="h-3 w-24 bg-[#f3ede5] rounded animate-pulse" />
