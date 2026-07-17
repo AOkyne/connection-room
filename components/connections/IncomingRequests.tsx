@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Button } from "@/components/Button";
 import { Card, CardHeader } from "@/components/Card";
 import { ConnectionProfileModal } from "./ConnectionProfileModal";
-import { checkMutualRequest } from "@/lib/data/connectionRequests";
 import type { ConnectionRequest } from "@/lib/data/connectionRequests";
 import type { Profile } from "@/lib/data/profiles";
 
@@ -14,6 +13,7 @@ interface IncomingRequestsProps {
   onDecline: (requestId: string) => void;
   currentUserId?: string;
   requesterProfiles?: Record<string, Profile>;
+  mutualUserIds?: Set<string>;
 }
 
 export function IncomingRequests({
@@ -22,6 +22,7 @@ export function IncomingRequests({
   onDecline,
   currentUserId,
   requesterProfiles = {},
+  mutualUserIds = new Set(),
 }: IncomingRequestsProps) {
   const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,9 +31,7 @@ export function IncomingRequests({
     return null;
   }
 
-  const mutualRequests = requests.filter(
-    (r) => currentUserId && checkMutualRequest(currentUserId, r.fromUserId)
-  );
+  const mutualRequests = requests.filter((r) => mutualUserIds.has(r.fromUserId));
 
   const handleViewProfile = (request: ConnectionRequest) => {
     const profile = requesterProfiles[request.fromUserId];
@@ -68,7 +67,7 @@ export function IncomingRequests({
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {requests.map((request) => {
-          const isMutual = currentUserId && checkMutualRequest(currentUserId, request.fromUserId);
+          const isMutual = mutualUserIds.has(request.fromUserId);
           return (
             <div
               key={request.id}

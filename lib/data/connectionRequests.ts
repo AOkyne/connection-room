@@ -1,4 +1,13 @@
-// Connection requests data access layer
+// Connection requests data access layer -- backed by the real
+// connection_requests Supabase table (migration 010), which already had
+// correct RLS (sender can insert, either party can select, only the
+// recipient can update to accept/decline) but was never actually used by
+// the app: this file previously stored everything in a single, unscoped
+// localStorage key, so a request never reached the recipient's own
+// browser/device at all.
+
+import { supabase } from "@/lib/supabase/client";
+import { demoSafeWrite } from "@/lib/demo/demo-mode-guard";
 
 export interface ConnectionRequest {
   id: string;
@@ -8,180 +17,175 @@ export interface ConnectionRequest {
   toUserId: string;
   createdAt: Date;
   status: "pending" | "accepted" | "declined";
-  fromUserInterests?: string[];
+  fromUserInterests: string[];
   sharedPrompt?: string;
 }
 
-const REQUESTS_STORAGE_KEY = "connection-room:connection-requests";
+function mapRequest(row: any): ConnectionRequest {
+  return {
+    id: row.id,
+    fromUserId: row.from_user_id,
+    fromUserName: row.from_user_name,
+    fromUserPhoto: row.from_user_photo || "",
+    toUserId: row.to_user_id,
+    createdAt: new Date(row.created_at),
+    status: row.status,
+    fromUserInterests: row.from_user_interests || [],
+    sharedPrompt: row.shared_prompt || undefined,
+  };
+}
 
-export function sendConnectionRequest(
+export async function sendConnectionRequest(
   fromUserId: string,
   fromUserName: string,
   fromUserPhoto: string,
-  toUserId: string
-): ConnectionRequest {
-  if (typeof window === "undefined") {
-    throw new Error("Connection requests require browser environment");
-  }
+  toUserId: string,
+  fromUserInterests: string[] = [],
+  sharedPrompt?: string
+): Promise<ConnectionRequest | null> {
+  if (!supabase) return null;
+  const client = supabase;
 
-  const request: ConnectionRequest = {
-    id: `request-${Date.now()}`,
-    fromUserId,
-    fromUserName,
-    fromUserPhoto,
-    toUserId,
-    createdAt: new Date(),
-    status: "pending",
-  };
+  try {
+    const { data, error } = await demoSafeWrite(
+      () =>
+        client
+          .from("connection_requests")
+          .insert({
+            from_user_id: fromUserId,
+            from_user_name: fromUserName,
+            from_user_photo: fromUserPhoto || null,
+            to_user_id: toUserId,
+            from_user_interests: fromUserInterests,
+            shared_prompt: sharedPrompt || null,
+          })
+          .select()
+          .single(),
+      { context: "sendConnectionRequest" }
+    );
 
-  const allRequests = getAllRequests();
-  allRequests.push(request);
-  localStorage.setItem(REQUESTS_STORAGE_KEY, JSON.stringify(allRequests));
+    if (error) {
+      console.error("Error sending connection request:", error);
+      return null;
+    }
 
-  return request;
-}
-
-export function getIncomingRequests(toUserId: string): ConnectionRequest[] {
-  if (typeof window === "undefined") return [];
-
-  const allRequests = getAllRequests();
-  return allRequests.filter(
-    (r) => r.toUserId === toUserId && r.status === "pending"
-  );
-}
-
-export function getSentRequests(fromUserId: string): ConnectionRequest[] {
-  if (typeof window === "undefined") return [];
-
-  const allRequests = getAllRequests();
-  return allRequests.filter(
-    (r) => r.fromUserId === fromUserId && r.status === "pending"
-  );
-}
-
-export function getAcceptedConnections(userId: string): ConnectionRequest[] {
-  if (typeof window === "undefined") return [];
-
-  const allRequests = getAllRequests();
-  return allRequests.filter(
-    (r) => (r.toUserId === userId || r.fromUserId === userId) && r.status === "accepted"
-  );
-}
-
-export function acceptConnectionRequest(
-  requestId: string,
-  userId: string
-): ConnectionRequest | null {
-  if (typeof window === "undefined") return null;
-
-  const allRequests = getAllRequests();
-  const request = allRequests.find((r) => r.id === requestId);
-
-  if (!request || request.toUserId !== userId) {
+    return mapRequest(data);
+  } catch (err) {
+    console.error("Error sending connection request:", err);
     return null;
   }
-
-  request.status = "accepted";
-  localStorage.setItem(REQUESTS_STORAGE_KEY, JSON.stringify(allRequests));
-
-  return request;
 }
 
-export function declineConnectionRequest(
+export async function getIncomingRequests(toUserId: string): Promise<ConnectionRequest[]> {
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("connection_requests")
+      .select("*")
+      .eq("to_user_id", toUserId)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching incoming requests:", error);
+      return [];
+    }
+
+    return (data || []).map(mapRequest);
+  } catch (err) {
+    console.error("Error fetching incoming requests:", err);
+    return [];
+  }
+}
+
+export async function getSentRequests(fromUserId: string): Promise<ConnectionRequest[]> {
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from("connection_requests")
+      .select("*")
+      .eq("from_user_id", fromUserId)
+      .eq("status", "pending")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching sent requests:", error);
+      return [];
+    }
+
+    return (data || []).map(mapRequest);
+  } catch (err) {
+    console.error("Error fetching sent requests:", err);
+    return [];
+  }
+}
+
+export async function acceptConnectionRequest(
   requestId: string,
   userId: string
-): boolean {
-  if (typeof window === "undefined") return false;
+): Promise<ConnectionRequest | null> {
+  if (!supabase) return null;
 
-  const allRequests = getAllRequests();
-  const index = allRequests.findIndex((r) => r.id === requestId);
+  try {
+    const { data, error } = await supabase
+      .from("connection_requests")
+      .update({ status: "accepted", responded_at: new Date().toISOString() })
+      .eq("id", requestId)
+      .eq("to_user_id", userId)
+      .select()
+      .single();
 
-  if (index === -1 || allRequests[index].toUserId !== userId) {
+    if (error || !data) {
+      console.error("Error accepting connection request:", error);
+      return null;
+    }
+
+    return mapRequest(data);
+  } catch (err) {
+    console.error("Error accepting connection request:", err);
+    return null;
+  }
+}
+
+export async function declineConnectionRequest(requestId: string, userId: string): Promise<boolean> {
+  if (!supabase) return false;
+
+  try {
+    const { error } = await supabase
+      .from("connection_requests")
+      .update({ status: "declined", responded_at: new Date().toISOString() })
+      .eq("id", requestId)
+      .eq("to_user_id", userId);
+
+    if (error) {
+      console.error("Error declining connection request:", error);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error("Error declining connection request:", err);
     return false;
   }
-
-  allRequests.splice(index, 1);
-  localStorage.setItem(REQUESTS_STORAGE_KEY, JSON.stringify(allRequests));
-
-  return true;
 }
 
-export function hasRequestSent(
-  fromUserId: string,
-  toUserId: string
-): boolean {
-  if (typeof window === "undefined") return false;
+export async function hasRequestSent(fromUserId: string, toUserId: string): Promise<boolean> {
+  if (!supabase) return false;
 
-  const allRequests = getAllRequests();
-  return allRequests.some(
-    (r) =>
-      r.fromUserId === fromUserId &&
-      r.toUserId === toUserId &&
-      r.status === "pending"
-  );
-}
+  try {
+    const { data, error } = await supabase
+      .from("connection_requests")
+      .select("id")
+      .eq("from_user_id", fromUserId)
+      .eq("to_user_id", toUserId)
+      .eq("status", "pending")
+      .maybeSingle();
 
-export function checkMutualRequest(
-  userId1: string,
-  userId2: string
-): boolean {
-  if (typeof window === "undefined") return false;
-
-  const allRequests = getAllRequests();
-  const user1ToUser2 = allRequests.some(
-    (r) =>
-      r.fromUserId === userId1 &&
-      r.toUserId === userId2 &&
-      r.status === "pending"
-  );
-  const user2ToUser1 = allRequests.some(
-    (r) =>
-      r.fromUserId === userId2 &&
-      r.toUserId === userId1 &&
-      r.status === "pending"
-  );
-
-  return user1ToUser2 && user2ToUser1;
-}
-
-// Demo helper: Create test incoming requests
-export function createDemoIncomingRequests(toUserId: string): void {
-  if (typeof window === "undefined") return;
-
-  const demoRequests: ConnectionRequest[] = [
-    {
-      id: `request-demo-1`,
-      fromUserId: "demo-alex",
-      fromUserName: "Alex",
-      fromUserPhoto: "/demo-members/seed-man-04.png",
-      toUserId,
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-      status: "pending",
-    },
-    {
-      id: `request-demo-2`,
-      fromUserId: "demo-sam",
-      fromUserName: "Sam",
-      fromUserPhoto: "/demo-members/seed-man-16.png",
-      toUserId,
-      createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hour ago
-      status: "pending",
-    },
-  ];
-
-  const allRequests = getAllRequests();
-  const existingDemoRequests = allRequests.filter((r) => r.id.includes("demo"));
-  const filteredRequests = allRequests.filter((r) => !r.id.includes("demo"));
-
-  localStorage.setItem(
-    REQUESTS_STORAGE_KEY,
-    JSON.stringify([...filteredRequests, ...demoRequests])
-  );
-}
-
-function getAllRequests(): ConnectionRequest[] {
-  if (typeof window === "undefined") return [];
-
-  const stored = localStorage.getItem(REQUESTS_STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
+    if (error) return false;
+    return !!data;
+  } catch {
+    return false;
+  }
 }

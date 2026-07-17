@@ -43,15 +43,21 @@ export function SuggestedConnections({
 
   useEffect(() => {
     // Track which requests have been sent
-    if (currentUserId) {
-      const requestedIds = new Set<string>();
-      matches.forEach((match) => {
-        if (hasRequestSent(currentUserId, match.profile.id)) {
-          requestedIds.add(match.profile.id);
-        }
-      });
+    if (!currentUserId) return;
+
+    let cancelled = false;
+    (async () => {
+      const results = await Promise.all(
+        matches.map(async (match) => [match.profile.id, await hasRequestSent(currentUserId, match.profile.id)] as const)
+      );
+      if (cancelled) return;
+      const requestedIds = new Set(results.filter(([, sent]) => sent).map(([id]) => id));
       setSentRequests(requestedIds);
-    }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [currentUserId, matches]);
 
   const handleViewProfile = (profile: Profile) => {
@@ -59,10 +65,12 @@ export function SuggestedConnections({
     setIsModalOpen(true);
   };
 
-  const handleSendRequest = (profileId: string) => {
+  const handleSendRequest = async (profileId: string) => {
     if (currentUserId && currentUserName && currentUserPhoto) {
-      sendConnectionRequest(currentUserId, currentUserName, currentUserPhoto, profileId);
-      setSentRequests((prev) => new Set([...prev, profileId]));
+      const sent = await sendConnectionRequest(currentUserId, currentUserName, currentUserPhoto, profileId);
+      if (sent) {
+        setSentRequests((prev) => new Set([...prev, profileId]));
+      }
     }
   };
 

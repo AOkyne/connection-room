@@ -1,24 +1,27 @@
-// Connections data access layer - demo mode with localStorage
+// Connections data access layer.
+//
+// Confirmed/active connections are backed by the real `connections`
+// Supabase table (migration 010, RLS already correct: either party can
+// select, only the row's own user_id can insert/update). A single row
+// (user_id = whoever accepted the request, partner_id = the requester)
+// is enough for BOTH people to read/write via the RLS OR-check -- but
+// only the row's user_id knows their own partner's name/photo without an
+// extra lookup, so mapConnectionRow() below resolves the "partner" fields
+// from whichever side the current viewer is on, fetching the other
+// person's public profile when the viewer is partner_id rather than
+// user_id.
+//
+// Preferences/history/declined/blocked lists remain localStorage --
+// out of scope for the real-data pass that added the functions below.
 
-import type { Profile } from "./profiles";
+import { supabase } from "@/lib/supabase/client";
+import { getPublicProfile } from "./profiles";
+import type { ConnectionRequest } from "./connectionRequests";
 
 export interface ConnectionPreferences {
   frequency: "weekly" | "monthly" | "pause";
   contactMode: "text" | "voice-video" | "local";
   optInToExchangeContact: boolean;
-}
-
-export interface ConnectionRequest {
-  id: string;
-  fromUserId: string;
-  toUserId: string;
-  fromUserName: string;
-  fromUserPhoto: string;
-  fromUserInterests: string[];
-  status: "pending" | "accepted" | "declined";
-  sharedPrompt: string;
-  createdAt: Date;
-  respondedAt?: Date;
 }
 
 export interface Connection {
@@ -41,7 +44,6 @@ export interface Connection {
 }
 
 const PREFERENCES_STORAGE_KEY = "connection-room:connection-preferences";
-const CONNECTIONS_STORAGE_KEY = "connection-room:connections";
 const CURRENT_CONNECTION_KEY = "connection-room:current-connection";
 const HISTORY_STORAGE_KEY = "connection-room:connection-history";
 
@@ -63,127 +65,6 @@ export function getConnectionPreferences(userId: string): ConnectionPreferences 
 export function updateConnectionPreferences(userId: string, preferences: ConnectionPreferences): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(`${PREFERENCES_STORAGE_KEY}:${userId}`, JSON.stringify(preferences));
-}
-
-// Generate demo connection (simple matching based on interests)
-export function generateDemoConnection(userProfile: Profile, randomize = true): Connection | null {
-  // Demo partners with different interest profiles
-  const demoPartners = [
-    {
-      firstName: "Alex",
-      lastName: "Chen",
-      pronouns: "he/him",
-      photo: "/demo-members/seed-man-04.png",
-      interests: ["Embodiment", "Authentic connection", "Touch and affection"],
-    },
-    {
-      firstName: "Jordan",
-      lastName: "Williams",
-      pronouns: "they/them",
-      photo: "/demo-members/seed-man-08.png",
-      interests: ["Spirituality", "Sexuality", "Relationships"],
-    },
-    {
-      firstName: "Marcus",
-      lastName: "Johnson",
-      pronouns: "he/him",
-      photo: "/demo-members/seed-man-12.png",
-      interests: ["Communication and repair", "Couples intimacy", "Shame and self-acceptance"],
-    },
-    {
-      firstName: "Sam",
-      lastName: "Martinez",
-      pronouns: "he/him",
-      photo: "/demo-members/seed-man-16.png",
-      interests: ["Authentic connection", "Dating and desire", "Embodiment"],
-    },
-    {
-      firstName: "David",
-      lastName: "Lee",
-      pronouns: "he/him",
-      photo: "/demo-members/seed-man-20.png",
-      interests: ["Spirituality", "Touch and affection", "Authentic connection"],
-    },
-  ];
-
-  const prompts = [
-    "What brought you here and what kind of connection are you practicing?",
-    "What has been challenging about intimacy or connection in your life?",
-    "What would it take to feel more safe in vulnerability?",
-    "What does a good conversation feel like to you?",
-    "What's something you've been curious about lately?",
-    "Tell me about a time you felt truly heard by someone.",
-    "What usually stops you from opening up to people?",
-    "What's one thing you'd like someone to know about you?",
-    "What's something small that made you smile this week?",
-    "How do you usually know when you need connection with someone?",
-    "What's a quality you admire in people you feel close to?",
-    "What would it take for you to feel more relaxed right now?",
-    "Tell me about someone who really gets you.",
-    "What's something you've changed your mind about recently?",
-    "When do you feel most like yourself?",
-    "What's a conversation that stuck with you?",
-    "How do you usually celebrate or acknowledge good things in your life?",
-    "What's something you're learning about yourself right now?",
-    "What would a perfect 20 minutes with someone look like for you?",
-    "What makes you feel most alive or energized?",
-    "What helps you feel grounded when things are chaotic?",
-    "What's something you've had to learn the hard way?",
-    "Who inspires you and why?",
-    "What does rest mean to you?",
-  ];
-
-  // Select partner: random if button clicked, or week-based if initial load
-  let partner;
-  let promptIndex;
-
-  if (randomize) {
-    // True random selection for each button click
-    const randomIndex = Math.floor(Math.random() * demoPartners.length);
-    partner = demoPartners[randomIndex];
-    promptIndex = Math.floor(Math.random() * prompts.length);
-  } else {
-    // Deterministic week-based selection for initial load
-    const weekNumber = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
-    const userIdNum = userProfile.id.charCodeAt(0) || 0;
-    const partnerIndex = (weekNumber + userIdNum) % demoPartners.length;
-    partner = demoPartners[partnerIndex];
-    promptIndex = weekNumber % prompts.length;
-  }
-
-  const connection: Connection = {
-    id: `connection-${Date.now()}`,
-    userId: userProfile.id,
-    partnerId: `demo-${partner.firstName.toLowerCase()}`,
-    partnerName: `${partner.firstName} ${partner.lastName}`,
-    partnerFirstName: partner.firstName,
-    partnerLastName: partner.lastName,
-    partnerPronouns: partner.pronouns,
-    partnerPhoto: partner.photo,
-    partnerInterests: partner.interests,
-    status: "confirmed",
-    createdAt: new Date(),
-    confirmedAt: new Date(),
-    sharedPrompt: prompts[promptIndex],
-    mutualContactOptIn: false,
-  };
-
-  return connection;
-}
-
-// Helper to generate avatar SVG
-function generateDemoAvatar(initial: string): string {
-  const colors = ["#d4a348", "#8b6f47", "#c97a2a", "#a84a2a", "#1a0f0a", "#a0704a"];
-  const color = colors[initial.charCodeAt(0) % colors.length];
-
-  const svg = `
-    <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
-      <rect width="200" height="200" fill="${color}"/>
-      <text x="100" y="120" font-size="80" font-weight="bold" fill="white" text-anchor="middle" font-family="system-ui">${initial}</text>
-    </svg>
-  `;
-
-  return `data:image/svg+xml;base64,${typeof btoa !== "undefined" ? btoa(svg) : Buffer.from(svg).toString("base64")}`;
 }
 
 // Get current connection
@@ -278,38 +159,6 @@ export function getBlockedUsers(userId: string): Set<string> {
   return new Set(blocked);
 }
 
-// Create connection from matched profile
-export function createConnectionFromMatch(userProfile: Profile, partnerProfile: Profile, sharedInterests: string[]): Connection {
-  const prompts = [
-    "What brought you here and what kind of connection are you practicing?",
-    "What has been challenging about intimacy or connection in your life?",
-    "What does it feel like to slow down and be present with someone?",
-    "Where do you feel yourself in your body right now?",
-    "What would it take to feel more safe in vulnerability?",
-    "How do you experience the interests you both share?",
-    "What would a meaningful connection look like for you?",
-  ];
-
-  const connection: Connection = {
-    id: `connection-${Date.now()}`,
-    userId: userProfile.id,
-    partnerId: partnerProfile.id,
-    partnerName: partnerProfile.displayName,
-    partnerFirstName: partnerProfile.firstName,
-    partnerLastName: partnerProfile.lastName,
-    partnerPronouns: partnerProfile.pronouns,
-    partnerPhoto: partnerProfile.profilePhoto,
-    partnerInterests: partnerProfile.interests || [],
-    status: "confirmed",
-    createdAt: new Date(),
-    confirmedAt: new Date(),
-    sharedPrompt: prompts[Math.floor(Math.random() * prompts.length)],
-    mutualContactOptIn: false,
-  };
-
-  return connection;
-}
-
 // Get completed connection history
 export function getConnectionHistory(userId: string): Connection[] {
   if (typeof window === "undefined") return [];
@@ -351,115 +200,147 @@ export function addToDeclinedUsers(userId: string, declinedUserId: string): void
   }
 }
 
-// Connection Request Management (localStorage)
-const REQUEST_STORAGE_KEY = "connection-room:connection-requests";
-const OUTGOING_REQUEST_KEY = "connection-room:outgoing-requests";
+// Maps a real `connections` row into the Connection shape the UI expects,
+// resolving "partner" from whichever side the viewer is on. If the viewer
+// is the row's partner_id (i.e. they're viewing a connection the OTHER
+// person accepted/created), the row has no field describing the viewer's
+// own counterpart -- fetch the row owner's public profile instead.
+async function mapConnectionRow(row: any, viewerId: string): Promise<Connection> {
+  const viewerIsOwner = row.user_id === viewerId;
 
-export function createConnectionRequest(
-  fromUserId: string,
-  fromUserName: string,
-  fromUserPhoto: string,
-  fromUserInterests: string[],
-  toUserId: string,
-  sharedPrompt: string
-): ConnectionRequest {
-  const request: ConnectionRequest = {
-    id: `request-${Date.now()}`,
-    fromUserId,
-    toUserId,
-    fromUserName,
-    fromUserPhoto,
-    fromUserInterests,
-    status: "pending",
-    sharedPrompt,
-    createdAt: new Date(),
+  let partnerId: string;
+  let partnerName: string;
+  let partnerFirstName: string | undefined;
+  let partnerLastName: string | undefined;
+  let partnerPronouns: string | undefined;
+  let partnerPhoto: string;
+  let partnerInterests: string[];
+
+  if (viewerIsOwner) {
+    partnerId = row.partner_id;
+    partnerName = row.partner_name;
+    partnerFirstName = row.partner_first_name || undefined;
+    partnerLastName = row.partner_last_name || undefined;
+    partnerPronouns = row.partner_pronouns || undefined;
+    partnerPhoto = row.partner_photo || "";
+    partnerInterests = row.partner_interests || [];
+  } else {
+    partnerId = row.user_id;
+    const ownerProfile = await getPublicProfile(row.user_id);
+    partnerName = ownerProfile?.displayName || "Member";
+    partnerFirstName = ownerProfile?.firstName;
+    partnerLastName = ownerProfile?.lastName;
+    partnerPronouns = ownerProfile?.pronouns;
+    partnerPhoto = ownerProfile?.profilePhoto || "";
+    partnerInterests = ownerProfile?.interests || [];
+  }
+
+  return {
+    id: row.id,
+    userId: viewerId,
+    partnerId,
+    partnerName,
+    partnerFirstName,
+    partnerLastName,
+    partnerPronouns,
+    partnerPhoto,
+    partnerInterests,
+    status: row.status,
+    createdAt: new Date(row.created_at),
+    confirmedAt: row.confirmed_at ? new Date(row.confirmed_at) : undefined,
+    completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
+    sharedPrompt: row.shared_prompt || "",
+    mutualContactOptIn: row.mutual_contact_opt_in || false,
   };
-
-  if (typeof window === "undefined") return request;
-
-  // Save to recipient's incoming requests
-  const incomingKey = `${REQUEST_STORAGE_KEY}:${toUserId}`;
-  const incoming = JSON.parse(localStorage.getItem(incomingKey) || "[]");
-  incoming.push(request);
-  localStorage.setItem(incomingKey, JSON.stringify(incoming));
-
-  // Save to sender's outgoing requests
-  const outgoingKey = `${OUTGOING_REQUEST_KEY}:${fromUserId}`;
-  const outgoing = JSON.parse(localStorage.getItem(outgoingKey) || "[]");
-  outgoing.push(request);
-  localStorage.setItem(outgoingKey, JSON.stringify(outgoing));
-
-  return request;
 }
 
-export function getIncomingRequests(userId: string): ConnectionRequest[] {
-  if (typeof window === "undefined") return [];
+// Creates the real `connections` row when a request is accepted. The
+// accepting user becomes the row's user_id (required by RLS -- only
+// auth.uid() = user_id can insert); the original requester becomes
+// partner_id, using the name/photo/interests already captured on their
+// request.
+export async function createConfirmedConnection(
+  acceptingUserId: string,
+  request: ConnectionRequest
+): Promise<Connection | null> {
+  if (!supabase) return null;
 
-  const stored = localStorage.getItem(`${REQUEST_STORAGE_KEY}:${userId}`);
-  const requests = stored ? JSON.parse(stored) : [];
-  return requests.filter((r: ConnectionRequest) => r.status === "pending");
+  try {
+    const { data, error } = await supabase
+      .from("connections")
+      .insert({
+        user_id: acceptingUserId,
+        partner_id: request.fromUserId,
+        partner_name: request.fromUserName,
+        partner_first_name: request.fromUserName.split(" ")[0],
+        partner_last_name: request.fromUserName.split(" ").slice(1).join(" ") || null,
+        partner_photo: request.fromUserPhoto || null,
+        partner_interests: request.fromUserInterests || [],
+        status: "confirmed",
+        shared_prompt: request.sharedPrompt || null,
+        confirmed_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.error("Error creating confirmed connection:", error);
+      return null;
+    }
+
+    return mapConnectionRow(data, acceptingUserId);
+  } catch (err) {
+    console.error("Error creating confirmed connection:", err);
+    return null;
+  }
 }
 
-export function getOutgoingRequests(userId: string): ConnectionRequest[] {
-  if (typeof window === "undefined") return [];
+// Real, active (confirmed/active) connections for a member -- either side
+// of the pairing. Drives the "Active Conversations" list; each returned
+// Connection's `id` is a real `connections.id`, valid as the
+// connection_messages foreign key ConnectionChat needs.
+export async function getActiveConnections(userId: string): Promise<Connection[]> {
+  if (!supabase) return [];
 
-  const stored = localStorage.getItem(`${OUTGOING_REQUEST_KEY}:${userId}`);
-  const requests = stored ? JSON.parse(stored) : [];
-  return requests.filter((r: ConnectionRequest) => r.status === "pending");
+  try {
+    const { data, error } = await supabase
+      .from("connections")
+      .select("*")
+      .or(`user_id.eq.${userId},partner_id.eq.${userId}`)
+      .in("status", ["confirmed", "active"])
+      .order("confirmed_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching active connections:", error);
+      return [];
+    }
+
+    return Promise.all((data || []).map((row) => mapConnectionRow(row, userId)));
+  } catch (err) {
+    console.error("Error fetching active connections:", err);
+    return [];
+  }
 }
 
-export function acceptConnectionRequest(
-  requestId: string,
-  userId: string,
-  partnerProfile: Profile,
-  sharedPrompt: string
-): Connection | null {
-  if (typeof window === "undefined") return null;
+// Best-effort sync of a status change (complete/skip) to the shared
+// connections row. Only succeeds when the caller is the row's user_id --
+// RLS restricts UPDATE to that (a schema constraint of the single-owner
+// row model, not something this function can work around) -- so this can
+// silently no-op for the non-owning side; callers should still update
+// their own local view regardless of whether this succeeds.
+export async function updateConnectionStatus(
+  connectionId: string,
+  status: "active" | "completed" | "declined"
+): Promise<void> {
+  if (!supabase) return;
 
-  const incomingKey = `${REQUEST_STORAGE_KEY}:${userId}`;
-  const requests = JSON.parse(localStorage.getItem(incomingKey) || "[]");
-  const request = requests.find((r: ConnectionRequest) => r.id === requestId);
+  try {
+    const updates: Record<string, unknown> = { status };
+    if (status === "completed") updates.completed_at = new Date().toISOString();
 
-  if (!request) return null;
-
-  // Mark request as accepted
-  request.status = "accepted";
-  request.respondedAt = new Date();
-  localStorage.setItem(incomingKey, JSON.stringify(requests));
-
-  // Create connection
-  const connection: Connection = {
-    id: `connection-${Date.now()}`,
-    userId,
-    partnerId: request.fromUserId,
-    partnerName: request.fromUserName,
-    partnerFirstName: request.fromUserName.split(" ")[0],
-    partnerLastName: request.fromUserName.split(" ")[1] || "",
-    partnerPhoto: request.fromUserPhoto,
-    partnerInterests: request.fromUserInterests,
-    status: "confirmed",
-    createdAt: new Date(),
-    confirmedAt: new Date(),
-    sharedPrompt,
-    mutualContactOptIn: false,
-  };
-
-  setCurrentConnection(userId, connection);
-  return connection;
-}
-
-export function declineConnectionRequest(requestId: string, userId: string): boolean {
-  if (typeof window === "undefined") return false;
-
-  const incomingKey = `${REQUEST_STORAGE_KEY}:${userId}`;
-  const requests = JSON.parse(localStorage.getItem(incomingKey) || "[]");
-  const request = requests.find((r: ConnectionRequest) => r.id === requestId);
-
-  if (!request) return false;
-
-  // Just remove the request (silent decline)
-  const updated = requests.filter((r: ConnectionRequest) => r.id !== requestId);
-  localStorage.setItem(incomingKey, JSON.stringify(updated));
-
-  return true;
+    const { error } = await supabase.from("connections").update(updates).eq("id", connectionId);
+    if (error) console.warn("Could not sync connection status (may not be the row owner):", error);
+  } catch (err) {
+    console.warn("Error syncing connection status:", err);
+  }
 }

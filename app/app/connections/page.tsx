@@ -4,22 +4,24 @@ import { useRouter } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
-import { getProfile, getDemoProfiles } from "@/lib/data/profiles";
+import { getProfile, getPublicProfile, type Profile } from "@/lib/data/profiles";
 import {
   getConnectionPreferences,
   updateConnectionPreferences,
-  generateDemoConnection,
   getCurrentConnection,
   setCurrentConnection,
   completeConnection,
   skipConnection,
   reportConnectionConcern,
-  createConnectionFromMatch,
   getConnectionHistory,
   addToConnectionHistory,
   addToDeclinedUsers,
   getDeclinedUsers,
   getBlockedUsers,
+  createConfirmedConnection,
+  getActiveConnections,
+  updateConnectionStatus,
+  type Connection,
 } from "@/lib/data/connections";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -31,30 +33,35 @@ import { SuggestedConnections } from "@/components/connections/SuggestedConnecti
 import { IncomingRequests } from "@/components/connections/IncomingRequests";
 import { ConnectionProfileModal } from "@/components/connections/ConnectionProfileModal";
 import { ConnectionChat } from "@/components/connections/ConnectionChat";
+import { useToast } from "@/lib/hooks/useToast";
+import { ToastContainer } from "@/components/Toast";
 import {
   getIncomingRequests,
+  getSentRequests,
   acceptConnectionRequest,
   declineConnectionRequest,
   sendConnectionRequest,
-  getAcceptedConnections,
   type ConnectionRequest,
 } from "@/lib/data/connectionRequests";
 
 export default function ConnectionsPage() {
   const router = useRouter();
+  const { toasts, showToast, removeToast } = useToast();
   const [profile, setProfile] = useState<any>(null);
   const [preferences, setPreferences] = useState<any>(null);
-  const [currentConnection, setCurrentConnectionState] = useState<any>(null);
+  const [currentConnection, setCurrentConnectionState] = useState<Connection | null>(null);
   const [suggestedMatches, setSuggestedMatches] = useState<any[]>([]);
   const [showReportForm, setShowReportForm] = useState(false);
   const [reportConcern, setReportConcern] = useState("");
   const [mounted, setMounted] = useState(false);
   const [incomingRequests, setIncomingRequests] = useState<ConnectionRequest[]>([]);
+  const [requesterProfiles, setRequesterProfiles] = useState<Record<string, Profile>>({});
+  const [mutualUserIds, setMutualUserIds] = useState<Set<string>>(new Set());
   const [loadingMatches, setLoadingMatches] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [connectionHistory, setConnectionHistory] = useState<any[]>([]);
-  const [acceptedConnections, setAcceptedConnections] = useState<ConnectionRequest[]>([]);
+  const [activeConnections, setActiveConnections] = useState<Connection[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -69,13 +76,27 @@ export default function ConnectionsPage() {
         const connection = getCurrentConnection(p.id);
         setCurrentConnectionState(connection);
 
-        // Load incoming requests
-        const requests = getIncomingRequests(p.id);
+        const [requests, sent, active] = await Promise.all([
+          getIncomingRequests(p.id),
+          getSentRequests(p.id),
+          getActiveConnections(p.id),
+        ]);
         setIncomingRequests(requests);
+        setActiveConnections(active);
 
-        // Load accepted connections (active chats)
-        const accepted = getAcceptedConnections(p.id);
-        setAcceptedConnections(accepted);
+        // Mutual: someone I already sent a pending request to also sent me one
+        const sentToIds = new Set(sent.map((r) => r.toUserId));
+        setMutualUserIds(new Set(requests.filter((r) => sentToIds.has(r.fromUserId)).map((r) => r.fromUserId)));
+
+        // Real profiles for each requester's card/modal
+        const resolvedProfiles = await Promise.all(
+          requests.map(async (r) => [r.fromUserId, await getPublicProfile(r.fromUserId)] as const)
+        );
+        const profilesMap: Record<string, Profile> = {};
+        for (const [id, prof] of resolvedProfiles) {
+          if (prof) profilesMap[id] = prof;
+        }
+        setRequesterProfiles(profilesMap);
 
         // Load connection history
         const history = getConnectionHistory(p.id);
@@ -91,32 +112,10 @@ export default function ConnectionsPage() {
             setSuggestedMatches(matches);
           } catch (err) {
             console.error("Error loading matches:", err);
-            // Fall back to demo profiles if real matching fails
-            const allProfiles = getDemoProfiles();
-            const demoMatches = allProfiles
-              .filter(prof => prof.id !== p.id)
-              .slice(0, 5)
-              .map((profile) => ({
-                profile,
-                score: 50,
-                sharedInterests: [],
-              }));
-            setSuggestedMatches(demoMatches);
+            setSuggestedMatches([]);
           } finally {
             setLoadingMatches(false);
           }
-        } else if (!connection) {
-          // Use demo profiles if profile not complete
-          const allProfiles = getDemoProfiles();
-          const demoMatches = allProfiles
-            .filter(prof => prof.id !== p.id)
-            .slice(0, 5)
-            .map((profile) => ({
-              profile,
-              score: 50,
-              sharedInterests: [],
-            }));
-          setSuggestedMatches(demoMatches);
         }
       }
 
@@ -142,132 +141,113 @@ export default function ConnectionsPage() {
     updateConnectionPreferences(profile.id, updated);
   };
 
-  const handleGenerateConnection = () => {
-    const connection = generateDemoConnection(profile);
-    if (connection) {
-      setCurrentConnectionState(connection);
-      setCurrentConnection(profile.id, connection);
+  const handleGenerateConnection = async () => {
+    if (suggestedMatches.length === 0) {
+      showToast("No eligible members to connect with right now.", "info");
+      return;
+    }
+
+    const randomMatch = suggestedMatches[Math.floor(Math.random() * suggestedMatches.length)];
+    const sent = await sendConnectionRequest(
+      profile.id,
+      profile.displayName,
+      profile.profilePhoto,
+      randomMatch.profile.id,
+      randomMatch.profile.interests || [],
+      "What brought you here and what kind of connection are you practicing?"
+    );
+
+    if (sent) {
+      setSuggestedMatches(suggestedMatches.filter((m) => m.profile.id !== randomMatch.profile.id));
+      showToast(`Request sent to ${randomMatch.profile.displayName}! You'll be able to chat once they accept.`, "success");
+    } else {
+      showToast("Could not send a connection request. Please try again.", "error");
     }
   };
 
-  const handleRequestConnection = (partnerId: string) => {
+  const handleRequestConnection = async (partnerId: string) => {
     const match = suggestedMatches.find((m) => m.profile.id === partnerId);
     if (match && profile) {
-      // Send connection request
-      sendConnectionRequest(
-        profile.id,
-        profile.displayName,
-        profile.profilePhoto,
-        partnerId
-      );
-
-      // Remove from suggested matches
-      setSuggestedMatches(suggestedMatches.filter(m => m.profile.id !== partnerId));
+      await sendConnectionRequest(profile.id, profile.displayName, profile.profilePhoto, partnerId, match.profile.interests || []);
+      setSuggestedMatches(suggestedMatches.filter((m) => m.profile.id !== partnerId));
     }
   };
 
-  const handleAcceptRequest = (requestId: string) => {
-    const request = incomingRequests.find(r => r.id === requestId);
-    if (request && profile) {
-      // Accept the request
-      const accepted = acceptConnectionRequest(requestId, profile.id);
-      if (accepted) {
-        // Add to accepted connections for chat
-        setAcceptedConnections([...acceptedConnections, { ...request, status: "accepted" }]);
-        setSelectedChatId(requestId); // Open chat immediately
+  const handleAcceptRequest = async (requestId: string) => {
+    const request = incomingRequests.find((r) => r.id === requestId);
+    if (!request || !profile) return;
 
-        // Create confirmed connection
-        const connection: any = {
-          id: `connection-${Date.now()}`,
-          userId: profile.id,
-          partnerId: request.fromUserId,
-          partnerName: request.fromUserName,
-          partnerFirstName: request.fromUserName.split(' ')[0],
-          partnerLastName: request.fromUserName.split(' ')[1] || '',
-          partnerPhoto: request.fromUserPhoto,
-          partnerInterests: [],
-          status: "confirmed" as const,
-          createdAt: new Date(),
-          confirmedAt: new Date(),
-          sharedPrompt: "What brought you here and what kind of connection are you practicing?",
-          mutualContactOptIn: false,
-        };
+    const accepted = await acceptConnectionRequest(requestId, profile.id);
+    if (!accepted) {
+      showToast("Could not accept this request. Please try again.", "error");
+      return;
+    }
 
-        setCurrentConnectionState(connection);
-        setCurrentConnection(profile.id, connection);
-        setIncomingRequests(incomingRequests.filter(r => r.id !== requestId));
-      }
+    setIncomingRequests(incomingRequests.filter((r) => r.id !== requestId));
+
+    const connection = await createConfirmedConnection(profile.id, accepted);
+    if (connection) {
+      setActiveConnections((prev) => [connection, ...prev]);
+      setSelectedChatId(connection.id);
+      setCurrentConnectionState(connection);
+      setCurrentConnection(profile.id, connection);
+      showToast(`Connected with ${request.fromUserName}!`, "success");
+    } else {
+      showToast("Request accepted, but the connection couldn't be fully set up. Please refresh.", "error");
     }
   };
 
-  const handleDeclineRequest = (requestId: string) => {
-    const request = incomingRequests.find(r => r.id === requestId);
-    if (declineConnectionRequest(requestId, profile.id)) {
-      // Add to declined users so we don't match again
-      if (request) {
-        addToDeclinedUsers(profile.id, request.fromUserId);
-      }
-      setIncomingRequests(incomingRequests.filter(r => r.id !== requestId));
+  const handleDeclineRequest = async (requestId: string) => {
+    const request = incomingRequests.find((r) => r.id === requestId);
+    if (!profile) return;
+
+    const ok = await declineConnectionRequest(requestId, profile.id);
+    if (ok) {
+      if (request) addToDeclinedUsers(profile.id, request.fromUserId);
+      setIncomingRequests(incomingRequests.filter((r) => r.id !== requestId));
+    } else {
+      showToast("Could not decline this request. Please try again.", "error");
     }
   };
 
-  const handleViewPartnerProfile = () => {
-    if (currentConnection) {
-      const allProfiles = getDemoProfiles();
-      const partnerProfile = allProfiles.find((p) => p.id === currentConnection.partnerId);
-      if (partnerProfile) {
-        setSelectedProfile(partnerProfile);
-        setIsProfileModalOpen(true);
-      }
+  const handleViewPartnerProfile = async () => {
+    if (!currentConnection) return;
+    const partnerProfile = await getPublicProfile(currentConnection.partnerId);
+    if (partnerProfile) {
+      setSelectedProfile(partnerProfile);
+      setIsProfileModalOpen(true);
     }
   };
 
   const handleMarkComplete = async () => {
-    if (currentConnection) {
-      completeConnection(profile.id, currentConnection.id);
-      // Add to connection history
-      addToConnectionHistory(profile.id, currentConnection);
-      setCurrentConnectionState(null);
+    if (!currentConnection || !profile) return;
 
-      // Reload suggested matches with updated history
-      const updatedHistory = getConnectionHistory(profile.id);
-      setConnectionHistory(updatedHistory);
+    completeConnection(profile.id, currentConnection.id);
+    updateConnectionStatus(currentConnection.id, "completed");
+    addToConnectionHistory(profile.id, currentConnection);
+    setActiveConnections((prev) => prev.filter((c) => c.id !== currentConnection.id));
+    setCurrentConnectionState(null);
 
-      // Try to load real matches, fallback to demo
-      try {
-        const declined = Array.from(getDeclinedUsers(profile.id));
-        const blocked = Array.from(getBlockedUsers(profile.id));
-        const realMatches = await findMatches(profile, preferences, updatedHistory, declined, blocked, 5);
-        setSuggestedMatches(realMatches);
-      } catch (err) {
-        const allProfiles = getDemoProfiles();
-        const demoMatches = allProfiles
-          .filter(prof => prof.id !== profile.id)
-          .slice(0, 5)
-          .map((p) => ({
-            profile: p,
-            score: 50,
-            sharedInterests: [],
-          }));
-        setSuggestedMatches(demoMatches);
-      }
+    const updatedHistory = getConnectionHistory(profile.id);
+    setConnectionHistory(updatedHistory);
+
+    try {
+      const declined = Array.from(getDeclinedUsers(profile.id));
+      const blocked = Array.from(getBlockedUsers(profile.id));
+      const realMatches = await findMatches(profile, preferences, updatedHistory, declined, blocked, 5);
+      setSuggestedMatches(realMatches);
+    } catch (err) {
+      console.error("Error refreshing matches:", err);
+      setSuggestedMatches([]);
     }
   };
 
   const handleSkipConnection = () => {
+    if (!profile || !currentConnection) return;
+    updateConnectionStatus(currentConnection.id, "declined");
     skipConnection(profile.id);
+    setActiveConnections((prev) => prev.filter((c) => c.id !== currentConnection.id));
     setCurrentConnectionState(null);
-    // Reload suggested matches
-    const allProfiles = getDemoProfiles();
-    const demoMatches = allProfiles
-      .filter(prof => prof.id !== profile.id)
-      .slice(0, 5)
-      .map((p) => ({
-        profile: p,
-        score: 50,
-        sharedInterests: [],
-      }));
-    setSuggestedMatches(demoMatches);
   };
 
   const handleReportConcern = () => {
@@ -335,42 +315,39 @@ export default function ConnectionsPage() {
           onAccept={handleAcceptRequest}
           onDecline={handleDeclineRequest}
           currentUserId={profile.id}
-          requesterProfiles={Object.fromEntries(
-            getDemoProfiles()
-              .filter((p) => incomingRequests.some((r) => r.fromUserId === p.id))
-              .map((p) => [p.id, p])
-          )}
+          requesterProfiles={requesterProfiles}
+          mutualUserIds={mutualUserIds}
         />
       )}
 
       {/* Active Conversations */}
-      {acceptedConnections.length > 0 && (
+      {activeConnections.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold text-[#1a0f0a]">Active Conversations</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {acceptedConnections.map((connection) => (
+            {activeConnections.map((connection) => (
               <div key={connection.id} className="space-y-3">
                 {selectedChatId === connection.id ? (
                   <ConnectionChat
                     connectionId={connection.id}
-                    partnerId={connection.fromUserId}
-                    partnerName={connection.fromUserName}
+                    partnerId={connection.partnerId}
+                    partnerName={connection.partnerName}
                     userId={profile.id}
                     userName={profile.displayName}
                   />
                 ) : (
                   <Card className="space-y-3">
                     <div className="flex items-start gap-3">
-                      {connection.fromUserPhoto && (
+                      {connection.partnerPhoto && (
                         <img
-                          src={connection.fromUserPhoto}
-                          alt={connection.fromUserName}
+                          src={connection.partnerPhoto}
+                          alt={connection.partnerName}
                           className="w-12 h-12 rounded-full object-cover"
                         />
                       )}
                       <div className="flex-1">
-                        <h3 className="font-semibold text-[#1a0f0a]">{connection.fromUserName}</h3>
-                        <p className="text-xs text-[#a0704a]">Accepted • Ready to chat</p>
+                        <h3 className="font-semibold text-[#1a0f0a]">{connection.partnerName}</h3>
+                        <p className="text-xs text-[#a0704a]">Connected • Ready to chat</p>
                       </div>
                     </div>
                     <Button
@@ -614,8 +591,8 @@ export default function ConnectionsPage() {
             <div className="space-y-3">
               <p className="text-sm text-[#a0704a]">
                 {suggestedMatches.length > 0
-                  ? "Browse the suggested connections above or generate a random match."
-                  : "Select a match from suggestions above or generate a random connection."}
+                  ? "Browse the suggested connections above or send a random connection request."
+                  : "Select a match from suggestions above, or check back soon for eligible members."}
               </p>
               <Button variant="primary" size="md" onClick={handleGenerateConnection}>
                 Random Connection
@@ -663,8 +640,6 @@ export default function ConnectionsPage() {
         <ul className="space-y-2 text-sm text-[#1a0f0a]">
           <li>✓ Mutual contact exchange (email, phone, Zoom link)</li>
           <li>✓ Couples connections (couples-to-couples, individual-to-couple options)</li>
-          <li>✓ Connection history and notes</li>
-          <li>✓ In-app messaging (limited to active connections only)</li>
         </ul>
       </Card>
 
@@ -674,6 +649,8 @@ export default function ConnectionsPage() {
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
       />
+
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }
