@@ -289,6 +289,55 @@ export default function ProfilePage() {
               />
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-[#1a1714] mb-2">
+                  Age Range
+                </label>
+                <select
+                  value={profile.ageRange || ""}
+                  onChange={(e) => setProfile({ ...profile, ageRange: e.target.value })}
+                  className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
+                >
+                  <option value="">Prefer not to say</option>
+                  {appConfig.ageRanges.map((range) => (
+                    <option key={range} value={range}>{range}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#1a1714] mb-2">
+                  Orientation
+                </label>
+                <select
+                  value={profile.orientation || ""}
+                  onChange={(e) => setProfile({ ...profile, orientation: e.target.value })}
+                  className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
+                >
+                  <option value="">Prefer not to say</option>
+                  {appConfig.orientations.map((o) => (
+                    <option key={o} value={o}>{o}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#1a1714] mb-2">
+                Relationship Status
+              </label>
+              <select
+                value={profile.relationshipStatus || ""}
+                onChange={(e) => setProfile({ ...profile, relationshipStatus: e.target.value })}
+                className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
+              >
+                <option value="">Prefer not to say</option>
+                {appConfig.relationshipStatuses.map((status) => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-[#1a1714] mb-2">
                 What brought you here?
@@ -297,6 +346,19 @@ export default function ProfilePage() {
                 placeholder="Share what drew you to this community..."
                 value={profile.whatBroughtYouHere || ""}
                 onChange={(e) => setProfile({ ...profile, whatBroughtYouHere: e.target.value })}
+                rows={3}
+                className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#1a1714] mb-2">
+                What are you hoping to find or experience?
+              </label>
+              <textarea
+                placeholder="The kinds of connection or conversations you're looking for..."
+                value={profile.connectionHoping || ""}
+                onChange={(e) => setProfile({ ...profile, connectionHoping: e.target.value })}
                 rows={3}
                 className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
               />

@@ -113,6 +113,38 @@ export const appConfig = {
     "I have not taken the quiz yet",
   ],
 
+  // Age Range Options
+  ageRanges: [
+    "18-24",
+    "25-34",
+    "35-44",
+    "45-54",
+    "55-64",
+    "65+",
+  ],
+
+  // Orientation Options
+  orientations: [
+    "Gay",
+    "Bisexual",
+    "Curious",
+    "Straight",
+    "Queer",
+    "Prefer to self-describe",
+    "Prefer not to say",
+  ],
+
+  // Relationship Status Options
+  relationshipStatuses: [
+    "Single",
+    "In a relationship",
+    "Partnered",
+    "Married",
+    "Divorced",
+    "It's complicated",
+    "Prefer not to say",
+  ],
+
   // Relationship Structure Options
   relationshipStructures: [
     "Monogamous",
