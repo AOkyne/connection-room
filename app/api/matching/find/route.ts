@@ -44,7 +44,13 @@ export async function POST(request: NextRequest) {
   // decide visibility; the full masked row is fetched separately below, only
   // for the handful of candidates that actually end up in the results.
   const PROFILE_SCORING_COLUMNS = "user_id, interests, location, relationship_status, age_range, spaces_joined";
-  const CANDIDATE_COLUMNS = `${PROFILE_SCORING_COLUMNS}, completed_onboarding, profile_photo, connection_frequency`;
+  // No connection_frequency column exists on profiles at all (confirmed
+  // live) -- the old code's `p.connection_frequency === "pause"` check via
+  // select("*") was always silently comparing against undefined, a no-op
+  // that's been dead since this route was written. Not resurrected here;
+  // connection-frequency pause is already handled by the
+  // userPreferences?.frequency check below.
+  const CANDIDATE_COLUMNS = `${PROFILE_SCORING_COLUMNS}, completed_onboarding, profile_photo`;
 
   const [selfResult, candidatesResult, viewResult] = await Promise.all([
     supabase.from("profiles").select(PROFILE_SCORING_COLUMNS).eq("user_id", userId).single(),
@@ -115,7 +121,7 @@ export async function POST(request: NextRequest) {
       if (connectedUserIds.has(p.user_id)) return false;
       if (declinedSet.has(p.user_id)) return false;
       if (blockedSet.has(p.user_id)) return false;
-      if (userPreferences?.frequency === "pause" || p.connection_frequency === "pause") return false;
+      if (userPreferences?.frequency === "pause") return false;
       return true;
     })
     .map((p) => {
