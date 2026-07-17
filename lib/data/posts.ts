@@ -41,6 +41,15 @@ const COMMENTS_STORAGE_KEY = "connection-room:comments";
 const USER_REACTIONS_KEY = "connection-room:user-reactions"; // Stores user's selected reaction per post
 const DELETED_POSTS_KEY = "connection-room:deleted-posts"; // Track deleted post IDs
 
+// Real posts/comments get a Supabase-generated UUID; the demo/offline
+// fallback path (createPost/createComment when Supabase was unavailable)
+// instead used "post-<timestamp>"/"comment-<timestamp>" ids. posts.id and
+// comments.id are UUID columns, so attempting a Supabase delete with one
+// of these legacy ids throws a Postgres type-cast error (22P02) rather
+// than just matching zero rows -- check first and skip straight to
+// localStorage cleanup for these.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 // Get current authenticated user ID
 async function getCurrentUserId(): Promise<string | null> {
   if (typeof window === "undefined" || !supabase) return null;
@@ -449,7 +458,7 @@ export async function updatePost(postId: string, content: string): Promise<void>
 export async function deletePost(postId: string): Promise<void> {
   if (typeof window === "undefined") return;
 
-  if (supabase) {
+  if (supabase && UUID_RE.test(postId)) {
     const { error: commentsError } = await supabase.from("comments").delete().eq("post_id", postId);
     if (commentsError) console.error("Error deleting post's comments:", commentsError);
 
@@ -464,17 +473,12 @@ export async function deletePost(postId: string): Promise<void> {
       throw postError;
     }
 
-    // A real Supabase post that genuinely got deleted lands here with a
-    // row back. If neither that nor a localStorage entry exists below,
-    // there's nothing to clean up and nothing to complain about -- just a
-    // no-op delete of an already-gone post.
-    if (deletedRows && deletedRows.length > 0) {
-      const deletedPostsStored = localStorage.getItem(DELETED_POSTS_KEY);
-      const deletedPostIds = deletedPostsStored ? JSON.parse(deletedPostsStored) : [];
-      if (!deletedPostIds.includes(postId)) {
-        deletedPostIds.push(postId);
-        localStorage.setItem(DELETED_POSTS_KEY, JSON.stringify(deletedPostIds));
-      }
+    // A real post that exists but didn't come back deleted means RLS
+    // silently filtered the delete to zero rows -- no error, but nothing
+    // actually happened either. Surface that as a real failure rather than
+    // reporting success.
+    if (!deletedRows || deletedRows.length === 0) {
+      throw new Error("Post not deleted -- you may not have permission to delete this post.");
     }
   }
 
@@ -542,15 +546,20 @@ export async function updateComment(commentId: string, content: string): Promise
 export async function deleteComment(commentId: string): Promise<void> {
   if (typeof window === "undefined") return;
 
-  if (supabase) {
-    const { error } = await supabase
+  if (supabase && UUID_RE.test(commentId)) {
+    const { data: deletedRows, error } = await supabase
       .from("comments")
       .delete()
-      .eq("id", commentId);
+      .eq("id", commentId)
+      .select("id");
 
     if (error) {
       console.error("Error deleting comment:", error);
       throw error;
+    }
+
+    if (!deletedRows || deletedRows.length === 0) {
+      throw new Error("Comment not deleted -- you may not have permission to delete this comment.");
     }
   }
 
