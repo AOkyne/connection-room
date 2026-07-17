@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
 
   const { data: post, error: postError } = await supabase
     .from("posts")
-    .select("content, author_name")
+    .select("body, author_name")
     .eq("id", postId)
     .single();
 
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
   }
 
   const excerpt =
-    post.content && post.content.length > 200 ? `${post.content.slice(0, 200)}...` : post.content || "";
+    post.body && post.body.length > 200 ? `${post.body.slice(0, 200)}...` : post.body || "";
   const authorName = post.author_name || "A member";
   const spaceUrl = `${appUrl}/app/spaces/${spaceId}`;
 
