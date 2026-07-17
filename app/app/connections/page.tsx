@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
-import { getProfile, getPublicProfile, type Profile } from "@/lib/data/profiles";
+import { getProfile, getProfilePhoto, getPublicProfile, type Profile } from "@/lib/data/profiles";
 import {
   getConnectionPreferences,
   updateConnectionPreferences,
@@ -48,6 +48,11 @@ export default function ConnectionsPage() {
   const router = useRouter();
   const { toasts, showToast, removeToast } = useToast();
   const [profile, setProfile] = useState<any>(null);
+  // getProfile() deliberately omits profile_photo (a past perf/timeout
+  // fix), so it's always "" there -- fetched separately here since it's
+  // needed for real use: gating whether matching runs, and what gets
+  // attached to a sent connection request's from_user_photo.
+  const [profilePhoto, setProfilePhoto] = useState("");
   const [preferences, setPreferences] = useState<any>(null);
   const [currentConnection, setCurrentConnectionState] = useState<Connection | null>(null);
   const [suggestedMatches, setSuggestedMatches] = useState<any[]>([]);
@@ -70,6 +75,9 @@ export default function ConnectionsPage() {
       setProfile(p);
 
       if (p) {
+        const realPhoto = await getProfilePhoto();
+        setProfilePhoto(realPhoto);
+
         const prefs = getConnectionPreferences(p.id);
         setPreferences(prefs);
 
@@ -102,8 +110,11 @@ export default function ConnectionsPage() {
         const history = getConnectionHistory(p.id);
         setConnectionHistory(history);
 
-        // Load suggested matches if no current connection and profile is complete
-        if (!connection && p.completedOnboarding && p.profilePhoto && p.interests?.length > 0) {
+        // Load suggested matches if no current connection and profile is complete.
+        // Gate on the real photo (fetched above), not p.profilePhoto -- that field
+        // is always "" on the object getProfile() returns, so this condition was
+        // never true for anyone; matching silently never ran.
+        if (!connection && p.completedOnboarding && realPhoto && p.interests?.length > 0) {
           setLoadingMatches(true);
           try {
             const declined = Array.from(getDeclinedUsers(p.id));
@@ -151,7 +162,7 @@ export default function ConnectionsPage() {
     const sent = await sendConnectionRequest(
       profile.id,
       profile.displayName,
-      profile.profilePhoto,
+      profilePhoto,
       randomMatch.profile.id,
       randomMatch.profile.interests || [],
       "What brought you here and what kind of connection are you practicing?"
@@ -168,7 +179,7 @@ export default function ConnectionsPage() {
   const handleRequestConnection = async (partnerId: string) => {
     const match = suggestedMatches.find((m) => m.profile.id === partnerId);
     if (match && profile) {
-      await sendConnectionRequest(profile.id, profile.displayName, profile.profilePhoto, partnerId, match.profile.interests || []);
+      await sendConnectionRequest(profile.id, profile.displayName, profilePhoto, partnerId, match.profile.interests || []);
       setSuggestedMatches(suggestedMatches.filter((m) => m.profile.id !== partnerId));
     }
   };
@@ -383,7 +394,7 @@ export default function ConnectionsPage() {
             loading={loadingMatches}
             currentUserId={profile.id}
             currentUserName={profile.displayName}
-            currentUserPhoto={profile.profilePhoto}
+            currentUserPhoto={profilePhoto}
           />
         </div>
       )}
