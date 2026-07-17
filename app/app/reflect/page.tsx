@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getProfile, type Profile } from "@/lib/data/profiles";
+import { getProfile, getProfilePhoto, type Profile } from "@/lib/data/profiles";
 import { getSpaces } from "@/lib/data/spaces";
 import { getTodaysPrompt } from "@/lib/data/recommendations";
 import { createPost } from "@/lib/data/posts";
@@ -15,6 +15,7 @@ import { PublicReflectionFeedback } from "@/components/feedback";
 export default function ReflectPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [profilePhoto, setProfilePhoto] = useState("");
   const [spaces, setSpaces] = useState<any[]>([]);
   const [todaysPrompt, setTodaysPrompt] = useState("");
   const [response, setResponse] = useState("");
@@ -33,6 +34,7 @@ export default function ReflectPage() {
           return;
         }
         setProfile(p);
+        getProfilePhoto().then(setProfilePhoto);
 
         const s = await getSpaces();
         setSpaces(s);
@@ -71,7 +73,7 @@ export default function ReflectPage() {
         true,
         undefined,
         profile.pronouns,
-        profile.profilePhoto
+        profilePhoto || profile.profilePhoto
       );
       setReflectionShared(true);
     } catch (error) {

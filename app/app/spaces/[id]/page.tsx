@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getSpace, trackSpaceVisit } from "@/lib/data/spaces";
 import { getPosts, createPost, addPostReaction, getComments, createComment, getUserReactionForPost, updatePost, deletePost, updateComment, deleteComment, type Post, type Comment } from "@/lib/data/posts";
-import { getProfile, getPublicProfilesBySpace } from "@/lib/data/profiles";
+import { getProfile, getProfilePhoto, getPublicProfilesBySpace } from "@/lib/data/profiles";
 import { getSession } from "@/lib/session";
 import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
@@ -56,6 +56,10 @@ export default function SpaceDetailPage() {
   const [space, setSpace] = useState<any>(null);
   const [spaceMembers, setSpaceMembers] = useState<Profile[]>([]);
   const [profile, setProfile] = useState<any>(null);
+  // getProfile() deliberately omits profile_photo (a past perf/timeout
+  // fix), so it's fetched separately here for the one place that actually
+  // needs it: writing the real photo onto a new post/comment instead of "".
+  const [profilePhoto, setProfilePhoto] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [expandedPost, setExpandedPost] = useState<string | null>(null);
@@ -142,6 +146,7 @@ export default function SpaceDetailPage() {
       // demoMembers.filter(...), a hardcoded seed roster completely
       // disconnected from who's actually in the space.
       getPublicProfilesBySpace(spaceId).then(setSpaceMembers);
+      getProfilePhoto().then(setProfilePhoto);
 
       setMounted(true);
     };
@@ -156,6 +161,18 @@ export default function SpaceDetailPage() {
   if (!space || !profile) {
     return null;
   }
+
+  // Resolves a post/comment's author against real, live space members
+  // first (spaceMembers -- real profile photos included), falling back to
+  // the hardcoded demoMembers seed roster for old seeded posts whose
+  // author isn't a real member of this space.
+  const findAuthor = (authorName: string) => {
+    const realMember = spaceMembers.find((m) => m.displayName === authorName);
+    if (realMember) return realMember;
+
+    const authorFirstName = authorName.split(" ")[0];
+    return demoMembers.find((m) => m.displayName === authorFirstName || m.firstName === authorFirstName);
+  };
 
   const handleCreatePost = async () => {
     const trimmedContent = newPostContent.trim();
@@ -179,7 +196,7 @@ export default function SpaceDetailPage() {
     try {
       setIsSubmitting(true);
       setPostError(null);
-      const newPost = await createPost(spaceId, profile.displayName, trimmedContent, false, undefined, profile.pronouns, profile.profilePhoto);
+      const newPost = await createPost(spaceId, profile.displayName, trimmedContent, false, undefined, profile.pronouns, profilePhoto || profile.profilePhoto);
       setPosts([newPost, ...posts]);
       setNewPostContent("");
       setPendingPostContent(null);
@@ -225,7 +242,7 @@ export default function SpaceDetailPage() {
     try {
       setIsSubmitting(true);
       setCommentError({ ...commentError, [postId]: null });
-      await createComment(postId, profile.displayName, trimmedContent, profile.pronouns, profile.profilePhoto);
+      await createComment(postId, profile.displayName, trimmedContent, profile.pronouns, profilePhoto || profile.profilePhoto);
       setNewCommentContent({ ...newCommentContent, [postId]: "" });
       setPendingCommentContent({ ...pendingCommentContent, [postId]: "" });
       const previewText = trimmedContent.length > 50 ? trimmedContent.substring(0, 47) + "..." : trimmedContent;
@@ -742,17 +759,12 @@ export default function SpaceDetailPage() {
               <div className="flex items-start justify-between mb-3">
                 <button
                   onClick={() => {
-                    const authorFirstName = post.authorName.split(' ')[0];
-                    const author = demoMembers.find(m => m.displayName === authorFirstName || m.firstName === authorFirstName);
+                    const author = findAuthor(post.authorName);
                     if (author) setSelectedProfile(author);
                   }}
                   className="flex items-start gap-3 flex-1 hover:opacity-80 transition-opacity text-left"
                 >
-                  {(() => {
-                    const authorFirstName = post.authorName.split(' ')[0];
-                    const author = demoMembers.find(m => m.displayName === authorFirstName || m.firstName === authorFirstName);
-                    return <Avatar name={post.authorName} photo={author?.profilePhoto || post.authorPhoto} size="md" />;
-                  })()}
+                  <Avatar name={post.authorName} photo={findAuthor(post.authorName)?.profilePhoto || post.authorPhoto} size="md" />
                   <div className="cursor-pointer">
                     <p className="font-medium text-[#1a0f0a]">
                       {post.authorName} {post.authorPronouns && `(${post.authorPronouns})`}
@@ -849,17 +861,12 @@ export default function SpaceDetailPage() {
                       <div className="flex items-start justify-between gap-2">
                         <button
                           onClick={() => {
-                            const authorFirstName = comment.authorName.split(' ')[0];
-                            const author = demoMembers.find(m => m.displayName === authorFirstName || m.firstName === authorFirstName);
+                            const author = findAuthor(comment.authorName);
                             if (author) setSelectedProfile(author);
                           }}
                           className="flex items-start gap-2 flex-1 hover:opacity-80 transition-opacity text-left"
                         >
-                          {(() => {
-                            const authorFirstName = comment.authorName.split(' ')[0];
-                            const author = demoMembers.find(m => m.displayName === authorFirstName || m.firstName === authorFirstName);
-                            return <Avatar name={comment.authorName} photo={author?.profilePhoto || comment.authorPhoto} size="sm" />;
-                          })()}
+                          <Avatar name={comment.authorName} photo={findAuthor(comment.authorName)?.profilePhoto || comment.authorPhoto} size="sm" />
                           <div className="flex-1 cursor-pointer">
                             <p className="text-sm font-medium text-[#1a0f0a]">
                               {comment.authorName} {comment.authorPronouns && `(${comment.authorPronouns})`}
