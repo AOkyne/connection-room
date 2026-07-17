@@ -380,7 +380,13 @@ export default function SpaceDetailPage() {
 
   const handleDeletePost = async (postId: string) => {
     if (confirm("Are you sure you want to delete this post? This action cannot be undone.")) {
-      await deletePost(postId);
+      try {
+        await deletePost(postId);
+      } catch (error) {
+        console.error("Error deleting post:", error);
+        showToast("Failed to delete post. You may not have permission to delete this.", "error");
+        return;
+      }
       const updatedPosts = posts.filter(p => p.id !== postId);
       setPosts(updatedPosts);
       // Also remove comments for this post from state
@@ -429,7 +435,13 @@ export default function SpaceDetailPage() {
 
   const handleDeleteComment = async (postId: string, commentId: string) => {
     if (confirm("Are you sure you want to delete this comment?")) {
-      await deleteComment(commentId);
+      try {
+        await deleteComment(commentId);
+      } catch (error) {
+        console.error("Error deleting comment:", error);
+        showToast("Failed to delete comment. You may not have permission to delete this.", "error");
+        return;
+      }
       const updatedComments = comments[postId]?.filter(c => c.id !== commentId) || [];
       setComments(prev => ({ ...prev, [postId]: updatedComments }));
       showToast("Comment deleted", "success", 2000);

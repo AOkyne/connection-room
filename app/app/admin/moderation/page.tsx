@@ -7,6 +7,7 @@ import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { getSession } from "@/lib/session";
+import { deletePost as deletePostRecord, deleteComment as deleteCommentRecord } from "@/lib/data/posts";
 
 interface Post {
   id: string;
@@ -98,31 +99,20 @@ export default function ModerationPage() {
     }
 
     setDeleting(postId);
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      try {
-        // Fallback: delete from local state
-        setPosts(posts.filter((p) => p.id !== postId));
-        setComments(comments.filter((c) => c.postId !== postId));
-      } finally {
-        setDeleting(null);
-      }
-      return;
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
     try {
-      await supabase.from("comments").delete().eq("post_id", postId);
-      await supabase.from("posts").delete().eq("id", postId);
-
+      // Uses the same client-side deletePost() as the space pages
+      // (anon-key client, subject to RLS) rather than trying to build a
+      // service-role client here -- SUPABASE_SERVICE_ROLE_KEY is a
+      // server-only secret and is always undefined in browser code, which
+      // silently made every moderation-page delete a no-op against the
+      // real database (falling back to removing it from local React state
+      // only, so it looked deleted here but reappeared on next load).
+      await deletePostRecord(postId);
       setPosts(posts.filter((p) => p.id !== postId));
       setComments(comments.filter((c) => c.postId !== postId));
     } catch (error) {
       console.error("Error deleting post:", error);
-      alert("Failed to delete post");
+      alert("Failed to delete post. You may not have permission to delete this.");
     } finally {
       setDeleting(null);
     }
@@ -134,26 +124,12 @@ export default function ModerationPage() {
     }
 
     setDeleting(commentId);
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      try {
-        setComments(comments.filter((c) => c.id !== commentId));
-      } finally {
-        setDeleting(null);
-      }
-      return;
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
     try {
-      await supabase.from("comments").delete().eq("id", commentId);
+      await deleteCommentRecord(commentId);
       setComments(comments.filter((c) => c.id !== commentId));
     } catch (error) {
       console.error("Error deleting comment:", error);
-      alert("Failed to delete comment");
+      alert("Failed to delete comment. You may not have permission to delete this.");
     } finally {
       setDeleting(null);
     }

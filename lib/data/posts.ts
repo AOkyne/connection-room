@@ -146,6 +146,12 @@ export async function getPosts(spaceId?: string): Promise<Post[]> {
     posts = posts.filter((p: Post) => p.spaceId === spaceId);
   }
 
+  // getSupabasePosts() already orders newest-first, but merging in
+  // localStorage-only posts (demo/offline-created) just appends them at
+  // the end regardless of their actual date, so re-sort explicitly rather
+  // than relying on merge order.
+  posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
   return posts;
 }
 
@@ -430,33 +436,71 @@ export async function updatePost(postId: string, content: string): Promise<void>
   localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(updatedPosts));
 }
 
-// Delete post and its comments
+// Delete post and its comments. Previously this silently "succeeded" even
+// when nothing was actually deleted: Supabase RLS blocks a DELETE by
+// filtering it to zero matching rows rather than raising an error (so
+// admin-deleting someone else's post -- there was no admin-bypass DELETE
+// policy -- looked identical to a real success), and separately, if the
+// post only ever existed in localStorage (leftover test/demo data) the
+// Supabase branch would run, match nothing, and return early without ever
+// reaching the localStorage cleanup below. Both looked like "deleted" in
+// the UI (optimistic local state update) but the post reappeared on the
+// next fetch either way.
 export async function deletePost(postId: string): Promise<void> {
   if (typeof window === "undefined") return;
 
   if (supabase) {
-    try {
-      await supabase.from("comments").delete().eq("post_id", postId);
-      await supabase.from("posts").delete().eq("id", postId);
-      return;
-    } catch (err) {
-      console.error("Error deleting post:", err);
+    const { error: commentsError } = await supabase.from("comments").delete().eq("post_id", postId);
+    if (commentsError) console.error("Error deleting post's comments:", commentsError);
+
+    const { data: deletedRows, error: postError } = await supabase
+      .from("posts")
+      .delete()
+      .eq("id", postId)
+      .select("id");
+
+    if (postError) {
+      console.error("Error deleting post:", postError);
+      throw postError;
+    }
+
+    // A real Supabase post that genuinely got deleted lands here with a
+    // row back. If neither that nor a localStorage entry exists below,
+    // there's nothing to clean up and nothing to complain about -- just a
+    // no-op delete of an already-gone post.
+    if (deletedRows && deletedRows.length > 0) {
+      const deletedPostsStored = localStorage.getItem(DELETED_POSTS_KEY);
+      const deletedPostIds = deletedPostsStored ? JSON.parse(deletedPostsStored) : [];
+      if (!deletedPostIds.includes(postId)) {
+        deletedPostIds.push(postId);
+        localStorage.setItem(DELETED_POSTS_KEY, JSON.stringify(deletedPostIds));
+      }
     }
   }
 
-  // Demo mode fallback - remove from stored posts
+  // Always also clean up any localStorage copy, regardless of whether the
+  // Supabase branch above ran or found anything -- a locally-created
+  // demo/test post never existed in Supabase at all, so its only copy is
+  // here.
   const stored = localStorage.getItem(POSTS_STORAGE_KEY);
-  const posts = stored ? JSON.parse(stored) : demoPosts;
-  const updatedPosts = posts.filter((p: Post) => p.id !== postId);
-  localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(updatedPosts));
+  if (stored) {
+    const posts = JSON.parse(stored);
+    const updatedPosts = posts.filter((p: Post) => p.id !== postId);
+    if (updatedPosts.length !== posts.length) {
+      localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(updatedPosts));
+    }
+  }
 
-  // Remove comments
   const commentsStored = localStorage.getItem(COMMENTS_STORAGE_KEY);
-  const comments = commentsStored ? JSON.parse(commentsStored) : demoComments;
-  const updatedComments = comments.filter((c: Comment) => c.postId !== postId);
-  localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(updatedComments));
+  if (commentsStored) {
+    const comments = JSON.parse(commentsStored);
+    const updatedComments = comments.filter((c: Comment) => c.postId !== postId);
+    if (updatedComments.length !== comments.length) {
+      localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(updatedComments));
+    }
+  }
 
-  // Track deleted post ID so demo data doesn't bring it back
+  // Track deleted post ID so demo/seed data doesn't bring it back either.
   const deletedPostsStored = localStorage.getItem(DELETED_POSTS_KEY);
   const deletedPostIds = deletedPostsStored ? JSON.parse(deletedPostsStored) : [];
   if (!deletedPostIds.includes(postId)) {
@@ -492,27 +536,30 @@ export async function updateComment(commentId: string, content: string): Promise
   localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(updatedComments));
 }
 
-// Delete comment
+// Delete comment. Same fix as deletePost: verify a row was actually
+// removed (RLS silently matches zero rows rather than erroring) and always
+// also clean up any localStorage copy instead of returning early.
 export async function deleteComment(commentId: string): Promise<void> {
   if (typeof window === "undefined") return;
 
   if (supabase) {
-    try {
-      const { error } = await supabase
-        .from("comments")
-        .delete()
-        .eq("id", commentId);
+    const { error } = await supabase
+      .from("comments")
+      .delete()
+      .eq("id", commentId);
 
-      if (error) throw error;
-      return;
-    } catch (err) {
-      console.error("Error deleting comment:", err);
+    if (error) {
+      console.error("Error deleting comment:", error);
+      throw error;
     }
   }
 
-  // Demo mode fallback
   const stored = localStorage.getItem(COMMENTS_STORAGE_KEY);
-  const comments = stored ? JSON.parse(stored) : demoComments;
-  const updatedComments = comments.filter((c: Comment) => c.id !== commentId);
-  localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(updatedComments));
+  if (stored) {
+    const comments = JSON.parse(stored);
+    const updatedComments = comments.filter((c: Comment) => c.id !== commentId);
+    if (updatedComments.length !== comments.length) {
+      localStorage.setItem(COMMENTS_STORAGE_KEY, JSON.stringify(updatedComments));
+    }
+  }
 }
