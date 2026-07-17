@@ -96,6 +96,14 @@ export interface ProfileVisibilitySettings {
   showRecentPosts: boolean;
 }
 
+// A member's own email notification frequency for new space activity --
+// lives on `profiles` (not public_profiles), same convention as other
+// private per-user settings with no visibility dimension (e.g.
+// welcome_video_watched). Nobody else ever needs to see this.
+export interface NotificationPreferences {
+  frequency: 'immediate' | 'daily' | 'weekly' | 'off';
+}
+
 export interface CoupleProfile {
   id: string;
   userId: string; // primary member
@@ -834,6 +842,59 @@ export async function updateProfileVisibilitySettings(
 
   if (error) {
     console.error("Error updating profile visibility settings:", error);
+    return false;
+  }
+  return true;
+}
+
+// Self-only: read the caller's own notification frequency from profiles
+// (not public_profiles -- this has no visibility dimension, nobody else
+// ever needs to see it).
+export async function getNotificationPreferences(): Promise<NotificationPreferences | null> {
+  if (typeof window === "undefined" || !supabase) return null;
+
+  const userId = await getCurrentSupabaseUserId();
+  if (!userId) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("notification_frequency")
+      .eq("user_id", userId)
+      .single();
+
+    if (error || !data) return null;
+
+    return {
+      frequency: (data.notification_frequency as NotificationPreferences["frequency"]) || "daily",
+    };
+  } catch (err) {
+    console.warn("Error fetching notification preferences:", err);
+    return null;
+  }
+}
+
+// Self-only: write the caller's notification frequency straight to
+// profiles (owner-update RLS already allows this).
+export async function updateNotificationPreferences(
+  settings: Partial<NotificationPreferences>
+): Promise<boolean> {
+  if (typeof window === "undefined" || !supabase) return false;
+  const client = supabase;
+
+  const userId = await getCurrentSupabaseUserId();
+  if (!userId) return false;
+
+  if (settings.frequency === undefined) return true;
+
+  const { error } = await demoSafeWrite(
+    async () =>
+      client.from("profiles").update({ notification_frequency: settings.frequency }).eq("user_id", userId),
+    { context: "updateNotificationPreferences" }
+  );
+
+  if (error) {
+    console.error("Error updating notification preferences:", error);
     return false;
   }
   return true;

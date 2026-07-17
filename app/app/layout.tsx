@@ -174,7 +174,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
               href={item.href}
               className="flex flex-col items-center justify-center gap-1 px-3 py-2 flex-shrink-0 text-[#6b6460] hover:text-[#8b6f47] text-xs"
             >
-              {item.icon ? <item.icon size={20} /> : <IconSpaces size={20} />}
+              <span className="relative">
+                {item.icon ? <item.icon size={20} /> : <IconSpaces size={20} />}
+                {item.label === "Spaces" && totalUnread > 0 && (
+                  <span className="absolute -top-1.5 -right-2 bg-[#d4a348] text-white rounded-full text-[10px] font-medium leading-none min-w-[16px] h-4 px-1 flex items-center justify-center">
+                    {totalUnread > 99 ? "99+" : totalUnread}
+                  </span>
+                )}
+              </span>
               <span className="text-center leading-tight whitespace-nowrap">{item.label}</span>
             </Link>
           ))}

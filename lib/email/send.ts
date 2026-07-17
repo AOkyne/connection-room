@@ -59,6 +59,58 @@ export async function sendBrandedEmail(options: {
   });
 }
 
+// Immediate space-activity notification -- one email per new post, sent
+// only to members whose notification_frequency is "immediate" for the
+// space the post landed in. Same branded shell as sendBrandedEmail; the
+// CTA button (via appUrl) links straight to the space that got the new
+// post, not just the app root, so the click lands where the content is.
+export async function sendPostNotificationEmail(options: {
+  to: string;
+  spaceName: string;
+  spaceUrl: string;
+  authorName: string;
+  excerpt: string;
+}): Promise<void> {
+  await sendBrandedEmail({
+    to: options.to,
+    subject: `New post in ${options.spaceName}`,
+    paragraphs: [
+      `${options.authorName} just shared something new in ${options.spaceName}.`,
+      options.excerpt,
+      "Manage how often you hear about new posts anytime from your profile settings.",
+    ],
+    appUrl: options.spaceUrl,
+  });
+}
+
+// Daily/weekly digest -- one email summarizing all new posts across every
+// space a member has joined since their last digest. Sent only when there
+// is at least one new post to report (callers should skip sending
+// entirely otherwise, not call this with an empty list).
+export async function sendDigestEmail(options: {
+  to: string;
+  frequency: "daily" | "weekly";
+  appUrl: string;
+  spaceBreakdown: Array<{ spaceName: string; count: number }>;
+}): Promise<void> {
+  const totalCount = options.spaceBreakdown.reduce((sum, s) => sum + s.count, 0);
+  const period = options.frequency === "daily" ? "today" : "this week";
+  const breakdownLines = options.spaceBreakdown
+    .map((s) => `${s.spaceName}: ${s.count} new post${s.count === 1 ? "" : "s"}`)
+    .join("\n");
+
+  await sendBrandedEmail({
+    to: options.to,
+    subject: `${totalCount} new post${totalCount === 1 ? "" : "s"} in your spaces`,
+    paragraphs: [
+      `Here's what's new in your spaces ${period}:`,
+      breakdownLines,
+      "Manage how often you hear about new posts anytime from your profile settings.",
+    ],
+    appUrl: `${options.appUrl}/app/spaces`,
+  });
+}
+
 // Admin broadcast composer (announcements to some or all members) -- same
 // branded shell and attachments as sendBrandedEmail, but the body is
 // arbitrary rich-text HTML from the admin's editor rather than a fixed

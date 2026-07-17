@@ -20,6 +20,7 @@ import { ProfileSavedFeedback } from "@/components/feedback";
 import { InvitePanel } from "@/components/invites/InvitePanel";
 import { FriendsInvited } from "@/components/invites/FriendsInvited";
 import { ProfileVisibilitySettings } from "@/components/members/ProfileVisibilitySettings";
+import { NotificationPreferencesSettings } from "@/components/members/NotificationPreferencesSettings";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -391,6 +392,15 @@ export default function ProfilePage() {
           sees your profile and which parts of your story you want to share.
         </p>
         <ProfileVisibilitySettings />
+      </Card>
+
+      {/* Notification Preferences */}
+      <Card>
+        <CardHeader title="Notification Preferences" icon={<IconConnection size={20} />} />
+        <p className="text-sm text-[#6b6460] mb-3">
+          Choose how often we email you about new posts in your spaces.
+        </p>
+        <NotificationPreferencesSettings />
       </Card>
 
       {/* Connection Preferences and Achievements Row */}

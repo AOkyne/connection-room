@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { getProfile, type Profile } from "@/lib/data/profiles";
 import { getSpaces, sortSpacesByPreference } from "@/lib/data/spaces";
 import { DashboardTodaySection } from "@/components/dashboard/DashboardTodaySection";
+import { WelcomeBackBanner } from "@/components/dashboard/WelcomeBackBanner";
 import { DashboardContinueSection } from "@/components/dashboard/DashboardContinueSection";
 import { DashboardExploreSection } from "@/components/dashboard/DashboardExploreSection";
 import { useDashboardPrimaryData } from "@/lib/hooks/useDashboardPrimaryData";
@@ -90,6 +91,9 @@ export default function AppHome() {
     <div className="space-y-8">
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />
+
+      {/* Welcome back -- surfaces the same unread count already shown in the nav badges */}
+      <WelcomeBackBanner firstName={profile.firstName} />
 
       {/* THREE-TIER DASHBOARD HIERARCHY */}
 
