@@ -199,7 +199,7 @@ export async function createPost(
 
   const userId = await getCurrentUserId();
   if (userId && supabase) {
-    const post = await createSupabasePost(spaceId, userId, authorName, content, isPromptResponse, promptId, authorPronouns, authorPhoto);
+    const post = await createSupabasePost(spaceId, userId, authorName, content, promptId, authorPronouns, authorPhoto);
     if (post) return post;
     // A real, signed-in member's post failed to reach Supabase and is
     // about to silently fall back to localStorage (invisible to every

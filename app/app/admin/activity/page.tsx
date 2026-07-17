@@ -64,14 +64,14 @@ export default function ActivityFeedPage() {
         // Get new posts
         const { data: postsData } = await supabase
           .from("posts")
-          .select("id, space_id, author_name, content, created_at")
+          .select("id, space_id, author_name, body, created_at")
           .gt("created_at", sinceTime)
           .order("created_at", { ascending: false });
 
         // Get new comments with post info
         const { data: commentsData } = await supabase
           .from("comments")
-          .select("id, post_id, author_name, content, created_at, posts(space_id)")
+          .select("id, post_id, author_name, body, created_at, posts(space_id)")
           .gt("created_at", sinceTime)
           .order("created_at", { ascending: false });
 
@@ -82,7 +82,7 @@ export default function ActivityFeedPage() {
             type: "post" as const,
             spaceId: p.space_id,
             authorName: p.author_name,
-            content: p.content,
+            content: p.body,
             createdAt: p.created_at,
           })) || []),
           ...(commentsData?.map((c: any) => ({
@@ -90,7 +90,7 @@ export default function ActivityFeedPage() {
             type: "comment" as const,
             spaceId: (c.posts as any)?.space_id || "unknown",
             authorName: c.author_name,
-            content: c.content,
+            content: c.body,
             createdAt: c.created_at,
             postId: c.post_id,
           })) || []),

@@ -68,7 +68,7 @@ export default function ModerationPage() {
             id: p.id,
             spaceId: p.space_id,
             authorName: p.author_name,
-            content: p.content,
+            content: p.body,
             createdAt: p.created_at,
             commentCount: p.comment_count || 0,
           })) || []
@@ -79,7 +79,7 @@ export default function ModerationPage() {
             id: c.id,
             postId: c.post_id,
             authorName: c.author_name,
-            content: c.content,
+            content: c.body,
             createdAt: c.created_at,
           })) || []
         );

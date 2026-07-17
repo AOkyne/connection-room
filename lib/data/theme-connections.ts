@@ -62,8 +62,8 @@ export async function getThemeRelatedPosts(
       authorPronouns: post.author_pronouns,
       authorPhoto: post.author_photo,
       promptId: post.prompt_id,
-      content: post.body || post.content,
-      isPromptResponse: !!post.is_prompt_response,
+      content: post.body,
+      isPromptResponse: !!post.prompt_id,
       createdAt: new Date(post.created_at),
       reactions: {},
       commentCount: post.comment_count || 0,
@@ -252,7 +252,7 @@ export async function searchContentByThemes(
       (async () => {
         const { data } = await supabase
           .from("posts")
-          .select("id, author_name, content, created_at")
+          .select("id, author_name, body, created_at")
           .or(themeNames.map((t) => `theme_tags.cs.["${t}"]`).join(","))
           .order("created_at", { ascending: false })
           .limit(limit);
@@ -268,7 +268,7 @@ export async function searchContentByThemes(
           type: "post" as const,
           id: p.id,
           title: p.author_name || "Anonymous",
-          description: p.content?.substring(0, 100),
+          description: p.body?.substring(0, 100),
           createdAt: new Date(p.created_at),
         }))
       );

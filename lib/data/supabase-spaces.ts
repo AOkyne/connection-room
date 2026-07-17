@@ -238,7 +238,7 @@ export async function getAllNewContent(sinceMinutesAgo: number = 1440): Promise<
     // Get new posts
     const { data: posts, error: postsError } = await supabase
       .from("posts")
-      .select("id, space_id, user_id, author_name, content, created_at")
+      .select("id, space_id, user_id, author_name, body, created_at")
       .gt("created_at", sinceTime)
       .order("created_at", { ascending: false });
 
@@ -250,7 +250,7 @@ export async function getAllNewContent(sinceMinutesAgo: number = 1440): Promise<
     // Get new comments
     const { data: comments, error: commentsError } = await supabase
       .from("comments")
-      .select("id, post_id, user_id, author_name, content, created_at, posts(space_id)")
+      .select("id, post_id, user_id, author_name, body, created_at, posts(space_id)")
       .gt("created_at", sinceTime)
       .order("created_at", { ascending: false });
 

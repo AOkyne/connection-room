@@ -66,7 +66,7 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
           authorPhoto: isTomSawyerPhoto ? undefined : authorPhoto,
           promptId: post.prompt_id,
           content: post.body,
-          isPromptResponse: !!post.is_prompt_response,
+          isPromptResponse: !!post.prompt_id,
           createdAt: new Date(post.created_at),
           reactions: reactionsMap[post.id] || {},
           commentCount: commentCountMap[post.id] || 0,
@@ -85,7 +85,6 @@ export async function createSupabasePost(
   userId: string,
   authorName: string,
   content: string,
-  isPromptResponse: boolean = false,
   promptId?: string,
   authorPronouns?: string,
   authorPhoto?: string
@@ -105,7 +104,6 @@ export async function createSupabasePost(
           author_photo: authorPhoto,
           prompt_id: promptId,
           body: content,
-          is_prompt_response: isPromptResponse || false,
         })
         .select("*")
         .single(),
@@ -127,7 +125,7 @@ export async function createSupabasePost(
       authorPhoto: data.author_photo,
       promptId: data.prompt_id,
       content: data.body,
-      isPromptResponse: !!data.is_prompt_response,
+      isPromptResponse: !!data.prompt_id,
       createdAt: new Date(data.created_at),
       reactions: {},
       commentCount: data.comment_count || 0,
