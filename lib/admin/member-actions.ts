@@ -34,17 +34,34 @@ export async function resetMemberProgress(userId: string): Promise<boolean> {
   }
 
   try {
-    // Update profiles table
+    // Update profiles table -- completed_onboarding is snake_case in the DB
+    // (this previously sent "completedOnboarding", a column that doesn't
+    // exist, so every reset silently failed with a Postgres error). Also
+    // clears onboarding_completed_at, since the day5/14/30 drip cron
+    // (app/api/cron/drip-emails/route.ts) keys off that being non-null --
+    // leaving it set would keep sending drip emails to a member who's
+    // supposed to be starting onboarding over.
     const { error } = await supabase
       .from("profiles")
       .update({
-        completedOnboarding: false,
+        completed_onboarding: false,
+        onboarding_completed_at: null,
       })
       .eq("id", userId);
 
     if (error) {
       console.error("Error resetting member progress:", error);
       return false;
+    }
+
+    // Clear earned badges to match what this action tells the admin it does.
+    const { error: badgesError } = await supabase
+      .from("user_badges")
+      .delete()
+      .eq("user_id", userId);
+
+    if (badgesError) {
+      console.error("Error clearing member badges:", badgesError);
     }
 
     // Log action
