@@ -6,6 +6,7 @@ import { Button } from "@/components/Button";
 import { Card, CardHeader } from "@/components/Card";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import { Avatar } from "@/components/Avatar";
 import { supabase } from "@/lib/supabase/client";
 import { getSession } from "@/lib/session";
 import { deleteMembers } from "@/lib/admin/member-actions";
@@ -261,7 +262,16 @@ export default function MemberDetailPage() {
         ]}
       />
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl text-[#1a0f0a]">{member.display_name}</h1>
+        <div className="flex items-center gap-4">
+          {/* This single-row select("*") fetch already includes
+              profile_photo (unlike the bulk Members list, a single row's
+              photo -- even a multi-megabyte legacy base64 one -- transfers
+              fast; the slow/timeout risk was specific to sorting and
+              transferring that column across every row at once) -- it was
+              just never rendered anywhere on this page. */}
+          <Avatar name={member.display_name} photo={member.profile_photo} size="lg" />
+          <h1 className="text-3xl text-[#1a0f0a]">{member.display_name}</h1>
+        </div>
         {/* The breadcrumb's "Members" link always goes to the dedicated
             Members list, but this page is also reached from the main
             Admin Dashboard's own member table -- router.back() returns to

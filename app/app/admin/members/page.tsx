@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
-import { getAllProfilesLite, type Profile } from "@/lib/data/profiles";
+import { getAllProfilesLite, getProfilePhotosByIds, type Profile } from "@/lib/data/profiles";
 import { resetMemberProgress, sendAdminMessage, deleteMembers, emailMembers } from "@/lib/admin/member-actions";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -26,6 +26,9 @@ export default function AdminMembersPage() {
   const [filteredMembers, setFilteredMembers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  // Loaded separately from `members`, in the background, after the fast
+  // photo-less list already rendered -- see loadMembers()'s comment.
+  const [photosById, setPhotosById] = useState<Record<string, string>>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<SortBy>("joinDate");
   const [filterOnboarding, setFilterOnboarding] = useState<FilterOnboarding>("all");
@@ -69,6 +72,14 @@ export default function AdminMembersPage() {
         ),
       ]);
       setMembers(profiles);
+
+      // Fire-and-forget: photos load in small chunks after the list is
+      // already visible, so a slow/large chunk (some real members' photos
+      // are still multi-megabyte base64 text) delays only that member's
+      // Avatar swapping in, never the initial render.
+      getProfilePhotosByIds(profiles.map((p) => p.id))
+        .then(setPhotosById)
+        .catch((err) => console.error("Error loading member photos:", err));
     } catch (err) {
       console.error("Error loading members:", err);
       setLoadError(err instanceof Error ? err.message : "Failed to load members. Please try again.");
@@ -470,7 +481,7 @@ export default function AdminMembersPage() {
                   <Link href={`/app/admin/members/${member.id}`} className="flex items-start gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity">
                     <Avatar
                       name={member.displayName}
-                      photo={member.profilePhoto}
+                      photo={photosById[member.id] || member.profilePhoto}
                       size="md"
                     />
                     <div className="flex-1 min-w-0">

@@ -649,6 +649,53 @@ export async function getAllProfilesLite(): Promise<Profile[]> {
   }
 }
 
+// ADMIN ONLY. Fetches profile_photo for a specific set of profile ids, in
+// small chunks rather than one bulk query -- getAllProfiles()'s single
+// select("*") for every member measured 11+ seconds and has hit Postgres's
+// statement timeout outright (confirmed live), because roughly half of
+// real members' photos are still multi-megabyte base64 text stored
+// directly in the row rather than a Storage URL. A single request for
+// ~10 rows stays fast regardless of how many of those 10 happen to be
+// base64, so callers (e.g. the Members list) should call this *after*
+// already rendering getAllProfilesLite()'s fast, photo-less list, and
+// merge photos in as each chunk resolves -- not block the initial render
+// on it.
+export async function getProfilePhotosByIds(ids: string[]): Promise<Record<string, string>> {
+  if (!supabase || ids.length === 0) return {};
+
+  const CHUNK_SIZE = 10;
+  const chunks: string[][] = [];
+  for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
+    chunks.push(ids.slice(i, i + CHUNK_SIZE));
+  }
+
+  const photosById: Record<string, string> = {};
+
+  // A few chunks at a time, not all at once -- caps how many of these
+  // queries can be competing for the same statement-timeout budget
+  // concurrently.
+  const CONCURRENCY = 3;
+  for (let i = 0; i < chunks.length; i += CONCURRENCY) {
+    const batch = chunks.slice(i, i + CONCURRENCY);
+    const results = await Promise.all(
+      batch.map((chunk) =>
+        supabase!.from("profiles").select("id, profile_photo").in("id", chunk)
+      )
+    );
+    for (const { data, error } of results) {
+      if (error) {
+        console.error("Error fetching a profile photo chunk:", error);
+        continue;
+      }
+      (data || []).forEach((p: any) => {
+        if (p.profile_photo) photosById[p.id] = p.profile_photo;
+      });
+    }
+  }
+
+  return photosById;
+}
+
 // Maps a public_profiles_view row to the narrower CommunityProfile shape.
 // Shared by getPublicProfile/getPublicProfilesBySpace/getDiscoverableMembers
 // so the three stay consistent -- any field the view masked to NULL simply
@@ -733,10 +780,14 @@ export async function getPublicProfilesBySpace(spaceId: string): Promise<Communi
     const memberUserIds = (memberships || []).map((m: any) => m.user_id);
     if (memberUserIds.length === 0) return [];
 
+    // Excludes members who haven't completed onboarding (migration 059) --
+    // an unfinished profile shouldn't be shown to other members as if it
+    // were a real, present community member yet.
     const { data, error } = await supabase
       .from("public_profiles_view")
       .select("*")
       .in("user_id", memberUserIds)
+      .eq("completed_onboarding", true)
       .order("display_name");
 
     if (error) {
@@ -761,10 +812,13 @@ export async function getDiscoverableMembers(limit: number = 20): Promise<Commun
   if (!supabase) return [];
 
   try {
+    // Excludes members who haven't completed onboarding (migration 059) --
+    // same rationale as getPublicProfilesBySpace().
     const { data, error } = await supabase
       .from("public_profiles_view")
       .select("*")
       .eq("show_in_discovery", true)
+      .eq("completed_onboarding", true)
       .limit(limit);
 
     if (error) {

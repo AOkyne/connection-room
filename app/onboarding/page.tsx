@@ -83,6 +83,18 @@ export default function OnboardingPage() {
   const handleComplete = async () => {
     if (!profile || isSubmitting || hasAttemptedCompletion) return;
 
+    // Defense in depth: the "basics" step's Continue button already
+    // requires both, so the normal linear flow can't reach here without
+    // them -- but this is the point where completedOnboarding actually
+    // gets set to true, so it shouldn't trust that no other path (a future
+    // change to the step order, a resumed/stale session, etc.) could ever
+    // reach it with either blank.
+    if (!profile.firstName?.trim() || !profile.lastName?.trim()) {
+      setSubmitError("Please provide both a first and last name before completing your profile.");
+      setCurrentStep("basics");
+      return;
+    }
+
     setIsSubmitting(true);
     setHasAttemptedCompletion(true);
     setSubmitError(null);
