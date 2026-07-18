@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
+import { isAdminSessionCached } from "@/lib/session";
 import { demoSpaces } from "./demo-data";
 import {
   getSupabaseSpaces,
@@ -220,6 +221,13 @@ export function getSpaceOrder(): string[] {
 // Check if Start Here is still required
 export function isStartHereRequired(): boolean {
   if (typeof window === "undefined") return true;
+
+  // Admins are exempt from the visit-count auto-hide below -- they
+  // legitimately revisit the app far more than 5 times as part of their
+  // own admin work, which isn't the same signal as a real member having
+  // actually finished onboarding. Keeps Start Here permanently visible
+  // for admin sessions instead of it disappearing after normal admin use.
+  if (isAdminSessionCached()) return true;
 
   // Check if marked as complete
   const isComplete = localStorage.getItem(START_HERE_COMPLETE_KEY);

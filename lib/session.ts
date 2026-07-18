@@ -194,3 +194,21 @@ export async function isAdmin(): Promise<boolean> {
   return session?.type === "admin";
 }
 
+// Synchronous admin check for call sites that can't await getSession()'s
+// async Supabase round trip (e.g. lib/data/spaces.ts's isStartHereRequired(),
+// called during render). Both the demo and real admin login flows
+// (createAdminSession(), used by the "Login as Admin" tab on
+// app/auth/page.tsx) write type: "admin" to this same localStorage key
+// synchronously, so reading it directly is safe here -- this is a
+// client-only display hint, not an authorization check.
+export function isAdminSessionCached(): boolean {
+  if (typeof window === "undefined") return false;
+  const stored = localStorage.getItem(SESSION_STORAGE_KEY);
+  if (!stored) return false;
+  try {
+    return (JSON.parse(stored) as AppSession).type === "admin";
+  } catch {
+    return false;
+  }
+}
+
