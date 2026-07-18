@@ -49,14 +49,17 @@ export interface UserReflection {
 
 // Get days since app launch (fallback for rotation)
 export function getDaysSinceLaunch(): number {
-  const launchDate = new Date("2024-01-01"); // App launch date
+  const launchDate = new Date("2026-07-20"); // Week 1 / Day 1 of the content journey (a Monday)
   // Get current date in Pacific Time
   const now = new Date();
   const pacificDate = new Date(now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
   const pacificToday = new Date(pacificDate.getFullYear(), pacificDate.getMonth(), pacificDate.getDate());
   const launchDay = new Date(launchDate.getFullYear(), launchDate.getMonth(), launchDate.getDate());
   const diff = pacificToday.getTime() - launchDay.getTime();
-  return Math.floor(diff / (1000 * 60 * 60 * 24));
+  // Clamp to 0 for anyone visiting before launch day, so the rotation index
+  // never goes negative (weeklyTrevorNotes[-1] etc. is undefined) -- shows
+  // Day 1 / Week 1 content instead of nothing until launch day arrives.
+  return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
 }
 
 export function getWeekSinceLaunch(): number {
