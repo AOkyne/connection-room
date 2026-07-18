@@ -27,6 +27,8 @@ export function ConnectionChat({
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [notified, setNotified] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const prevMessageCountRef = useRef(0);
 
   // Load messages on mount
   useEffect(() => {
@@ -35,9 +37,23 @@ export function ConnectionChat({
     return () => clearInterval(interval);
   }, [connectionId]);
 
-  // Scroll to bottom when messages change
+  // 2s polling replaces `messages` with a new array reference every tick even
+  // when its contents are unchanged, so scrolling on every `messages` change
+  // fought the user's own scroll position every 2 seconds. Only auto-scroll
+  // when a message was actually appended, and only if the user was already
+  // near the bottom (so reading up through history doesn't get yanked away).
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const isNewMessage = messages.length > prevMessageCountRef.current;
+    prevMessageCountRef.current = messages.length;
+    if (!isNewMessage) return;
+
+    const container = messagesContainerRef.current;
+    const wasNearBottom =
+      !container || container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+
+    if (wasNearBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   // Timer effect
@@ -126,7 +142,7 @@ export function ConnectionChat({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto space-y-3 min-h-[300px]">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto space-y-3 min-h-[300px]">
         {messages.length === 0 ? (
           <p className="text-center text-[#a0704a] text-sm py-8">
             No messages yet. Start the conversation!
