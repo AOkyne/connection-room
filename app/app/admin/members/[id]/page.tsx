@@ -310,6 +310,12 @@ export default function MemberDetailPage() {
               <p className="text-xs text-[#a0704a] font-medium">Display Name</p>
               <p className="text-[#1a0f0a]">{member.display_name}</p>
             </div>
+            {(member.first_name || member.last_name) && (
+              <div>
+                <p className="text-xs text-[#a0704a] font-medium">Full Name</p>
+                <p className="text-[#1a0f0a]">{member.first_name} {member.last_name}</p>
+              </div>
+            )}
             <div>
               <p className="text-xs text-[#a0704a] font-medium">Email</p>
               <p className="text-[#1a0f0a]">{member.email || "—"}</p>

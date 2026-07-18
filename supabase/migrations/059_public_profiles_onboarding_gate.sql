@@ -95,8 +95,13 @@ SELECT
   CASE WHEN show_quiz_result THEN quiz_result ELSE NULL END AS quiz_result,
   CASE WHEN show_connection_comfort_level THEN connection_comfort_level ELSE NULL END AS connection_comfort_level,
   CASE WHEN show_selected_reflection THEN selected_reflection ELSE NULL END AS selected_reflection,
-  completed_onboarding,
-  created_at AS member_since
+  created_at AS member_since,
+  -- CREATE OR REPLACE VIEW only allows appending new columns at the very
+  -- end -- inserting this before member_since (as originally written)
+  -- made Postgres treat it as renaming the existing "member_since" column
+  -- to "completed_onboarding" instead of adding a new one, which errors:
+  -- "cannot change name of view column ... to ...". Must stay last.
+  completed_onboarding
 FROM public_profiles;
 
 ALTER VIEW public_profiles_view SET (security_invoker = true);

@@ -488,6 +488,11 @@ export default function AdminMembersPage() {
                       <h3 className="font-semibold text-[#1a0f0a] truncate">
                         {member.displayName}
                       </h3>
+                      {(member.firstName || member.lastName) && (
+                        <p className="text-xs text-[#a0704a] truncate">
+                          {member.firstName} {member.lastName}
+                        </p>
+                      )}
                       {member.pronouns && (
                         <p className="text-xs text-[#a0704a]">{member.pronouns}</p>
                       )}
@@ -632,6 +637,14 @@ export default function AdminMembersPage() {
                         {selectedMember.displayName}
                       </p>
                     </div>
+                    {(selectedMember.firstName || selectedMember.lastName) && (
+                      <div>
+                        <p className="text-sm text-[#a0704a]">Full Name</p>
+                        <p className="font-medium text-[#1a0f0a]">
+                          {selectedMember.firstName} {selectedMember.lastName}
+                        </p>
+                      </div>
+                    )}
                     <div>
                       <p className="text-sm text-[#a0704a]">Member ID</p>
                       <p className="text-xs font-mono text-[#1a0f0a] break-all">

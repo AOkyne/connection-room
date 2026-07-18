@@ -172,7 +172,7 @@ export async function getProfile(): Promise<Profile | null> {
       const queryPromise = supabase
         .from("profiles")
         .select(
-          "user_id, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, first_prompt_response, first_prompt_is_public, completed_onboarding, spaces_joined, created_at, welcome_video_watched, welcome_video_watched_at, onboarding_completed_at"
+          "user_id, first_name, last_name, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, first_prompt_response, first_prompt_is_public, completed_onboarding, spaces_joined, created_at, welcome_video_watched, welcome_video_watched_at, onboarding_completed_at"
         )
         .eq("user_id", userId)
         .single();
@@ -188,8 +188,11 @@ export async function getProfile(): Promise<Profile | null> {
         // Map Supabase profile to Profile interface
         return {
           id: data.user_id || data.id,
-          firstName: data.display_name?.split(" ")[0] || "",
-          lastName: data.display_name?.split(" ").slice(1).join(" ") || "",
+          // Migration 060 columns, falling back to splitting display_name
+          // for profiles saved before this migration (whose real last name
+          // was never stored -- see that migration's comment).
+          firstName: data.first_name || data.display_name?.split(" ")[0] || "",
+          lastName: data.last_name || data.display_name?.split(" ").slice(1).join(" ") || "",
           displayName: data.display_name || "",
           pronouns: data.pronouns,
           location: data.location,
@@ -557,8 +560,11 @@ export async function getAllProfiles(): Promise<Profile[]> {
 
     return (data || []).map((p) => ({
       id: p.id,
-      firstName: p.display_name?.split(" ")[0] || "",
-      lastName: p.display_name?.split(" ").slice(1).join(" ") || "",
+      // Migration 060 columns, falling back to splitting display_name for
+      // profiles saved before this migration existed (see that migration's
+      // comment -- their real full last name was never stored anywhere).
+      firstName: p.first_name || p.display_name?.split(" ")[0] || "",
+      lastName: p.last_name || p.display_name?.split(" ").slice(1).join(" ") || "",
       displayName: p.display_name || "",
       pronouns: p.pronouns,
       location: p.location,
@@ -610,7 +616,7 @@ export async function getAllProfilesLite(): Promise<Profile[]> {
     const { data, error } = await supabase
       .from("profiles")
       .select(
-        "id, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, completed_onboarding, spaces_joined, created_at, updated_at, is_seeded"
+        "id, first_name, last_name, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, completed_onboarding, spaces_joined, created_at, updated_at, is_seeded"
       )
       .order("display_name");
 
@@ -621,8 +627,11 @@ export async function getAllProfilesLite(): Promise<Profile[]> {
 
     return (data || []).map((p) => ({
       id: p.id,
-      firstName: p.display_name?.split(" ")[0] || "",
-      lastName: p.display_name?.split(" ").slice(1).join(" ") || "",
+      // Migration 060 columns, falling back to splitting display_name for
+      // profiles saved before this migration existed (see that migration's
+      // comment -- their real full last name was never stored anywhere).
+      firstName: p.first_name || p.display_name?.split(" ")[0] || "",
+      lastName: p.last_name || p.display_name?.split(" ").slice(1).join(" ") || "",
       displayName: p.display_name || "",
       pronouns: p.pronouns,
       location: p.location,

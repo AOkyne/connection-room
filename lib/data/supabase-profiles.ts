@@ -28,6 +28,13 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
         {
           user_id: profile.id,
           display_name: profile.displayName,
+          // Migration 060 -- previously never written at all, only
+          // display_name (deliberately truncated to "First L." for
+          // member-facing display), so the real full last name was
+          // discarded at save time and unrecoverable afterward, including
+          // by the member's own profile-edit page.
+          first_name: profile.firstName,
+          last_name: profile.lastName,
           pronouns: profile.pronouns,
           location: profile.location,
           age_range: profile.ageRange,
