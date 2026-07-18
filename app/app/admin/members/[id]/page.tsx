@@ -260,7 +260,22 @@ export default function MemberDetailPage() {
           { label: member.display_name, isActive: true },
         ]}
       />
-      <h1 className="text-3xl text-[#1a0f0a]">{member.display_name}</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-3xl text-[#1a0f0a]">{member.display_name}</h1>
+        {/* The breadcrumb's "Members" link always goes to the dedicated
+            Members list, but this page is also reached from the main
+            Admin Dashboard's own member table -- router.back() returns to
+            whichever page the admin actually came from, matching the
+            back-button pattern already used elsewhere in the app (e.g.
+            app/app/connections/page.tsx). */}
+        <button
+          onClick={() => router.back()}
+          className="text-[#d4a348] hover:text-[#c9956d] transition-colors text-sm whitespace-nowrap"
+          aria-label="Go back"
+        >
+          ← Back
+        </button>
+      </div>
 
       {member.suspended && (
         <div className="p-4 bg-[#a84a2a] rounded-lg border-2 border-[#7a2a1a]">
