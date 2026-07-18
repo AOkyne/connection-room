@@ -1,296 +1,310 @@
-# The Connection Room - Architecture Document
+# Architecture
 
-## Tech Stack
+System-level explanation of how The Connection Room is built. For product
+framing see [`README.md`](README.md); for the data model see
+[`DATABASE_SCHEMA.md`](DATABASE_SCHEMA.md); for privacy rules see
+[`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md).
 
-### Frontend
-- **Framework**: Next.js 16 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Components**: Custom React components
-- **Client State**: React hooks (useState, useEffect, useRef)
-- **Routing**: Next.js App Router with dynamic routes
+## High-level architecture
 
-### Backend
-- **Runtime**: Node.js (via Next.js)
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth (email/password)
-- **Storage**: Browser localStorage for demo mode
+```mermaid
+flowchart TB
+    subgraph Client["Browser (Next.js client components)"]
+        UI["App Router pages & components"]
+    end
 
-### Third-Party Services
-- **Quiz Platform**: ScoreApp (embedded quiz widgets)
-- **Icons**: Custom SVG icon components
-- **Analytics**: GitHub/Vercel deployment
+    subgraph Vercel["Vercel"]
+        UI
+        API["API routes (app/api/*)<br/>service-role or authenticated"]
+        Cron["Vercel Cron<br/>drip-emails, sync-substack"]
+    end
 
----
+    subgraph Supabase["Supabase"]
+        Auth["Supabase Auth"]
+        DB[(PostgreSQL + RLS)]
+        Storage["Storage buckets<br/>(photos, event/broadcast images)"]
+    end
 
-## Project Structure
+    External["External services:<br/>Zoom, ScoreApp, Substack,<br/>workshops.trevorjamesla.com"]
 
-```
-connection-room/
-├── app/                          # Next.js app directory
-│   ├── app/                      # Authenticated app routes
-│   │   ├── page.tsx             # Home/dashboard
-│   │   ├── layout.tsx           # App layout with navigation
-│   │   ├── spaces/              # Community spaces
-│   │   │   ├── page.tsx         # Spaces list/management
-│   │   │   └── [id]/            # Space detail pages
-│   │   ├── users/[userId]/      # User profile pages
-│   │   ├── quizzes/             # Quiz features
-│   │   ├── events/              # Events pages
-│   │   ├── admin/               # Admin features
-│   │   ├── profile/             # User profile settings
-│   │   ├── journey/             # User activity timeline
-│   │   ├── pairings/            # Pairing features
-│   │   └── reflect/             # Reflection response page
-│   ├── auth/                     # Authentication pages
-│   ├── onboarding/              # Signup flow
-│   ├── page.tsx                 # Public landing page
-│   └── layout.tsx               # Root layout
-│
-├── lib/                          # Shared utilities and data
-│   ├── data/                    # Data access layer
-│   │   ├── posts.ts            # Post CRUD operations
-│   │   ├── spaces.ts           # Space management
-│   │   ├── profiles.ts         # User profiles
-│   │   ├── comments.ts         # Comment operations
-│   │   ├── checklist.ts        # Onboarding checklist
-│   │   ├── events.ts           # Event data
-│   │   ├── demo-data.ts        # Demo/seed data
-│   │   └── recommendations.ts  # Daily prompts & suggestions
-│   ├── supabase/               # Database operations
-│   │   ├── client.ts           # Supabase client setup
-│   │   ├── supabase-posts.ts   # Post DB queries
-│   │   ├── supabase-spaces.ts  # Space DB queries
-│   │   ├── supabase-profiles.ts # Profile DB queries
-│   │   └── supabase-comments.ts # Comment DB queries
-│   ├── auth/                   # Authentication utilities
-│   │   └── supabase.ts         # Auth functions
-│   ├── session.ts              # Session management
-│   ├── config.ts               # App configuration
-│   └── app-mode.ts             # Demo vs beta mode
-│
-├── components/                  # Reusable React components
-│   ├── Card.tsx                # Card container
-│   ├── Button.tsx              # Button component
-│   ├── Icons.tsx               # Icon components
-│   ├── SpaceIconSVG.tsx        # Space-specific icons
-│   └── StartHereChecklist.tsx  # Onboarding checklist
-│
-├── public/                      # Static assets
-│   ├── favicon.ico             # Browser tab icon
-│   └── Connection-room-logo.png # Brand logo
-│
-├── supabase/                    # Database migrations
-│   └── migrations/             # SQL migrations
-│       ├── 001_beta_schema.sql # Core tables
-│       ├── 002_seed_example_content.sql
-│       ├── 003_add_reactions_policies.sql
-│       └── 004_add_new_spaces.sql
-│
-├── FEATURE_LIST.md             # Feature documentation
-├── ARCHITECTURE.md             # This file
-├── DATABASE_SCHEMA.md          # Database schema docs
-└── package.json                # Dependencies
+    UI -- "anon key, subject to RLS" --> DB
+    UI -- "sign-in / session" --> Auth
+    UI -- uploads --> Storage
+    API -- "service-role key,<br/>bypasses RLS" --> DB
+    Cron --> API
+    DB -- "pg_net trigger (migration 054)" --> API
+    API --> External
 ```
 
----
+Most reads and writes happen directly from client components using the
+Supabase anon key (`lib/supabase/client.ts`) and are governed entirely by
+Postgres Row Level Security. A small number of operations that legitimately
+need to see across members' private data — connection matching, invite
+resolution, admin actions, cron jobs, webhooks — go through a Next.js API
+route using the Supabase **service-role key**, which bypasses RLS. Those
+routes are responsible for only returning safe data back to the client; see
+[`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md).
 
-## Data Flow Architecture
+## Route structure
 
-### Authentication Flow
-```
-Login Page (auth/page.tsx)
-    ↓
-Supabase Auth API
-    ↓
-Session Token → Supabase
-    ↓
-User Profile Data
-    ↓
-App Dashboard (/app)
-```
+All routes below were confirmed to exist in `app/` at the time of this
+writing.
 
-### Post Creation Flow
-```
-Space Detail Page
-    ↓
-Create Post Form
-    ↓
-getCurrentUserId() → Supabase Auth
-    ↓
-createPost() → supabase-posts.ts
-    ↓
-Database Insert
-    ↓
-Refresh Posts List
-```
+**Public / marketing** (no auth): `/` (landing), `/faqs`, `/house-rules`,
+`/philosophy`, `/brand-vision`.
 
-### Data Access Pattern (Dual Mode)
-```
-getSpaces()
-    ↓
-Is User Authenticated? (getCurrentUserId)
-    ├─ YES → getSupabaseSpaces() → Database
-    └─ NO → localStorage check
-             ├─ Has cached data? → Return cached
-             └─ No cache → Return demoSpaces
-```
+**Auth**: `/auth` (sign-up/sign-in/admin-secret entry, all one page,
+`app/auth/page.tsx`), `/auth/callback` (OAuth/email-link callback route
+handler), `/auth/check-email`.
 
----
+**Onboarding**: `/onboarding` — the initial profile-setup flow for new
+members.
 
-## Key Design Patterns
+**Member app** (everything under `app/app/*`, wrapped by
+`app/app/layout.tsx`, which redirects to `/auth` if `getSession()` doesn't
+resolve to a signed-in user): the home dashboard (`/app`), `/app/spaces`
+and `/app/spaces/[id]`, `/app/connections`, `/app/events`, `/app/journey`,
+`/app/profile`, `/app/reflect`, `/app/articles`, `/app/quizzes` and its two
+quiz sub-pages, `/app/users/[userId]`, `/app/about`.
 
-### 1. Async-First Data Layer
-- All data functions are async
-- Supabase queries checked first
-- localStorage fallback for demo mode
-- Type-safe with TypeScript interfaces
+**Member profile (public-ish, member-gated)**: `/members/[id]` — outside
+the `/app` layout, but gated by its own auth check (added in migration
+039's application refactor; previously had none at all).
 
-### 2. Component Composition
-- Small, reusable components (Card, Button)
-- Separate concerns (UI vs data)
-- Props-based configuration
-- Minimal internal state
+**Admin** (`app/app/admin/*`, inside the member-app layout, additionally
+gated by a client-side `session.type === "admin"` check plus RLS/API-level
+checks — see "Admin architecture" below): `overview`, `members`, `events`,
+`invites`, `broadcast`, `emails`, `moderation`, `concerns`, `activity`,
+`daily-companion`, `sync-articles`.
 
-### 3. Server-First with Client Fallback
-- Supabase primary data source
-- localStorage backup for offline/demo
-- Demo mode for unauthenticated users
-- Beta mode for authenticated users
+**API routes** (`app/api/*`, all Route Handlers): `admin/broadcast-email`,
+`admin/email-templates`, `admin/members/delete`, `admin/members/email`,
+`admin/members/emails`, `admin/zoom/create-meeting`,
+`admin/zoom/delete-meeting`, `matching/find`, `invites/friends`,
+`report-bug`, `sync-substack`, `welcome-email`.
 
-### 4. Row Level Security (RLS)
-- Supabase policies enforce:
-  - Full profile data (`profiles`): owner and admins only — no other
-    member can read another member's row
-  - Cross-member profile display uses a separate `public_profiles` table
-    (a curated, member-controlled field set with per-field visibility
-    toggles — identity/story fields default visible, deeper fields default
-    hidden) plus a column-masking view, `public_profiles_view` — never the
-    private `profiles` table. The app-layer `CommunityProfile` TypeScript
-    type (in `lib/data/profiles.ts`) is structurally narrower than the
-    private `Profile` type for the same reason: it can't carry fields that
-    were never meant to leave the private table.
-    See [`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md).
-  - Connection matching runs server-side (`app/api/matching/find`) with
-    the service-role key, since scoring needs private fields — only safe,
-    visibility-respecting match results are returned to the client, and
-    hidden/shared-spaces-restricted profiles are excluded from suggestions.
-  - Space members can read/write posts
-  - Comments follow post visibility rules
-  - Reactions are visible to space members
+**Cron routes** (`app/api/cron/*`, called by Vercel Cron or an external
+scheduler): `drip-emails`, `sync-substack`, `space-digest-emails`.
 
----
+**Webhook routes** (`app/api/webhooks/*`): `new-post-notification` (called
+by a Postgres trigger via `pg_net`, migration 054), `workshop-ops` (called
+by the external workshop-ops app).
 
-## State Management
+There is no `app/preview/` directory in this repository — a `/preview`
+route does not currently exist.
 
-### Local Component State
-- `useState` for form inputs, UI state
-- `useEffect` for data loading
-- `useRef` for DOM elements (modal dialogs)
+## Dashboard architecture
 
-### Session State
-- Stored in `lib/session.ts`
-- Managed by Supabase Auth
-- Persists in browser session storage
+The home dashboard (`app/app/page.tsx`) is explicitly structured as three
+tiers, loaded progressively so the page renders useful content quickly
+instead of blocking on everything at once:
 
-### Data Caching
-- localStorage for demo data
-- In-memory for current session
-- No global state management (Redux, Context)
+1. **Today** — `DashboardTodaySection` (`components/dashboard/DashboardTodaySection.tsx`),
+   backed by `useDashboardPrimaryData`. Renders `DailyCompanionDashboard`:
+   today's theme, reflection prompt, embodiment practice, body check-in,
+   conversation invitation, quote, and hero image. This is the
+   above-the-fold, blocking content — the page shows its own loading state
+   until this is ready.
+2. **Continue** — `DashboardContinueSection`, backed by
+   `useDashboardContinueData`. Renders `ContinueWhereYouLeftOff`: recent
+   reflections and upcoming events, loaded non-blockingly.
+3. **Explore** — `DashboardExploreSection`, backed by
+   `useDashboardExploreData`. Renders journey progress (Seven Doors +
+   Guided Rhythm), the newest article, theme-related content, the
+   community members grid, an invite panel, "ways to connect," recent
+   room reflections, upcoming events, and badges — the below-the-fold,
+   optional/exploratory content.
 
----
+**Design intention**: the dashboard is a companion, not a control panel. It
+surfaces one thing to engage with today, then gently invites further
+exploration — it is not built around metrics, streak counters, or a grid of
+equally-weighted feature tiles.
 
-## Authentication & Security
+## Daily Companion
 
-### Auth Methods
-1. **Email/Password** - Traditional auth
-2. **Demo Mode** - Instant access, no login
+`lib/data/daily-companion.ts` is the data source. Content rotation is
+anchored to a single launch date (`getDaysSinceLaunch()`), hardcoded in that
+file (`new Date("2026-07-20")` as of this writing — see
+[`CHANGELOG.md`](CHANGELOG.md)), clamped to never go negative so a visit
+before launch day shows Day 1 content instead of nothing.
 
-### Security Measures
-- Supabase RLS enforces data privacy
-- SQL injection prevention (parameterized queries)
-- XSS prevention (React escaping)
-- CORS enabled for API access
-- Environment variables for secrets
+- **Production data source**: `daily_companion_content` and
+  `daily_companion_days` (migration 024), a 120-day rotation
+  (`dayIndex = getDaysSinceLaunch() % 120`), and `weekly_notes` (referred to
+  in code/content as `weeklyTrevorNotes`), a 16-week rotation
+  (`weekIndex = getWeekSinceLaunch() % 16`).
+- **Curated content model**: content is written once (seeded via migration
+  025, or authored through the admin Daily Companion editor,
+  `components/admin/DailyCompanionEditor.tsx` /
+  `app/app/admin/daily-companion/page.tsx`) and then simply rotates through
+  every member on the same schedule — it is not personalized per member.
+- **Fallback/offline behavior**: if the Supabase query fails or times out,
+  `getTrevorWeeklyNote()` and the daily-content equivalents fall back to the
+  same rotation logic applied to static arrays in `lib/seed/daily-companion-content.ts`
+  — this is a genuine fallback for outages, not the primary data path.
+- **User reflections**: `user_reflections` (migration 024) stores a
+  member's own responses; read/written only for the caller's own rows.
+- **Weekly notes**: see above — these are the "This Week from Trevor" card
+  and are surfaced through `WeeklyTrevorNoteCard`.
 
-### Session Management
-- `getSession()` checks Supabase auth status
-- `clearSession()` logs out and clears state
-- Auto-redirect to `/auth` if not authenticated
+Distinguish this from the separate "Guided Rhythm" system
+(`lib/data/guided-rhythm.ts`, `guided_rhythm_progress`,
+`custom_rhythm_content`), which is a slower, month/week-oriented cadence
+(monthly theme, weekly prompt, monthly integration) layered underneath the
+daily rotation, not the same thing as the Daily Companion.
 
----
+## Profile architecture
 
-## Database Approach
+See [`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md) for full
+detail; summarized here for system context.
 
-### Dual Mode Architecture
-1. **Beta Mode** (Authenticated)
-   - Uses Supabase PostgreSQL
-   - Real-time persistent data
-   - RLS enforced
-   
-2. **Demo Mode** (Unauthenticated)
-   - Uses browser localStorage
-   - Session-only persistence
-   - No RLS (all data visible)
-   - For testing and ChatGPT review
+- **Canonical private profile**: `profiles`. Every field a member has ever
+  entered, readable only by its owner or an admin.
+- **Community-visible profile**: `public_profiles`, a separate table holding
+  only a curated, per-field-toggleable subset, kept in sync automatically by
+  a trigger (`sync_public_profile`) that fires on every `profiles`
+  write — no application write path needs to remember to update both
+  tables.
+- **Safe cross-member reads**: all cross-member reads go through
+  `public_profiles_view`, a `security_invoker` view over `public_profiles`
+  that additionally nulls out individual columns per the row owner's own
+  `show_*` flags. Application code should never read `public_profiles` or
+  `profiles` directly for another member's data.
+- **Profile display controls**: `components/members/ProfileVisibilitySettings.tsx`
+  reads/writes `public_profiles` directly (the sync trigger doesn't manage
+  `show_*`/`profile_visibility`, since those are member-set preferences,
+  not derived from the private profile).
+- **RLS boundaries**: enforced at the table level on both `profiles` and
+  `public_profiles`; the view adds column-level masking on top, which RLS
+  itself cannot express.
 
----
+`lib/data/profiles.ts` exports three distinct TypeScript types reflecting
+this split: `Profile` (private), `CommunityProfile` (everything
+`public_profiles_view` can return — structurally narrower on purpose), and
+`ProfileVisibilitySettings` (the owner's own flags).
 
-## Performance Considerations
+## Authentication and authorization
 
-### Caching Strategy
-- Static assets cached with `?v=2` query params
-- Data cached in localStorage for demo mode
-- In-memory caching during session
-- Lazy-load comments on post expansion
+- **Sign-up/sign-in**: Supabase Auth, email/password (`app/auth/page.tsx`,
+  `lib/auth/supabase.ts`). The same page also has an admin-secret entry
+  path guarded by `NEXT_PUBLIC_DEMO_ADMIN_SECRET` (public env var, default
+  fallback `"connection2024"` if unset — treat this as a low-security,
+  legacy/demo affordance, not a real access control).
+- **Session handling**: `lib/session.ts` maintains a client-side
+  `AppSession` cached in `localStorage` (`connection-room:session`),
+  derived from the signed-in user's `profiles.role` at login time
+  (`"member"` or `"admin"`). This cached session drives client-side UI
+  gating; it is not itself a source of truth for data access — RLS and
+  server-side checks are.
+- **Protected routes**: `app/app/layout.tsx` redirects to `/auth` if
+  `getSession()` doesn't resolve to a signed-in user. This is a
+  client-side redirect, not middleware — the underlying data is still
+  protected by RLS regardless of whether this redirect fires.
+- **Admin access**: two independent layers. (1) Client-side: admin pages
+  check `session.type === "admin"` before rendering. (2) Server/data-side:
+  RLS policies using `is_profile_admin(auth.uid())` (a dedicated,
+  `STABLE`, non-inlinable SQL function — see
+  [`DATABASE_SCHEMA.md`](DATABASE_SCHEMA.md#migration-history-notes) for
+  why it went through several iterations), and API routes that need
+  privileged access call `requireAdmin()` (`lib/auth/require-admin.ts`),
+  which verifies the caller's Supabase access token server-side and checks
+  `profiles.role === 'admin'` before proceeding — never trusts a
+  client-sent flag.
+- **JWT/role checks**: `requireAuth()` (`lib/auth/require-auth.ts`) is the
+  weaker sibling of `requireAdmin()` — it verifies the caller is *any*
+  signed-in member (used by `app/api/matching/find` and
+  `app/api/invites/friends`, which need service-role access to private
+  fields but not admin privileges); the route itself is responsible for
+  only returning safe fields.
+- **Anonymous restrictions**: RLS on `profiles`/`public_profiles` grants no
+  policy to the `anon`/unauthenticated role — access defaults to deny.
 
-### Loading Patterns
-- Mount-check to prevent hydration mismatch
-- Loading spinners during data fetch
-- Disabled buttons during submission
-- Optimistic UI updates
+## Admin architecture
 
-### Asset Optimization
-- SVG icons (no image files)
-- Minimal external dependencies
-- Tailwind CSS for styling (no extra CSS files)
-- Responsive images (logos)
+Admin capabilities are split across dedicated pages under
+`app/app/admin/*`: member management (including delete/email), events and
+offers CRUD, broadcast email composition (with a rich-text editor and
+image uploads to a dedicated Storage bucket), email template management,
+moderation (post/comment deletion with an admin-bypass RLS policy, migration
+052), a concerns/reports queue, an activity feed, Daily Companion content
+authoring, and manual Substack article sync.
 
----
+Every admin-only API route uses `requireAdmin()`. Admin pages themselves
+are also protected at the RLS layer for any direct Supabase queries they
+issue from the client (e.g. `profiles_admin_select`), so admin data access
+is not solely dependent on the client-side page guard.
 
-## Deployment
+## Demo and preview architecture
 
-### Hosting
-- **Deployed on**: Vercel (Next.js native)
-- **Auto-deploy**: On push to main branch
-- **Domain**: Connected to Vercel
+**There is no runtime demo/preview session in this codebase.** Demo mode
+(`lib/app-mode.ts`) is inferred purely from whether
+`NEXT_PUBLIC_SUPABASE_URL`/`NEXT_PUBLIC_SUPABASE_ANON_KEY` are configured —
+`isDemoMode()` returns `true` only when Supabase itself is unconfigured, not
+in response to any user action, URL, or session flag. In the deployed
+production environment, Supabase is always configured, so
+`isDemoMode()` is always `false` there.
 
-### Database
-- **Hosted on**: Supabase (PostgreSQL in cloud)
-- **Backups**: Supabase automated
-- **Migration**: Manual SQL migrations
+`lib/demo/demo-mode-guard.ts` provides `demoSafeWrite()` and related
+helpers, used across several data-layer files to skip a Supabase write and
+fall back to a `localStorage`/demo path — but this guard checks the exact
+same environment-based `isDemoMode()`, so it is not an independent runtime
+isolation mechanism; it's a consumer of the same signal.
 
-### Environment Variables
-```
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_KEY=
-```
+There is no `app/preview/` route, and the landing page's calls to action
+link to `/auth`, not a guest/demo bypass.
 
----
+**Known limitation**: because demo mode is environment-based rather than a
+runtime toggle, there is currently no way to give a specific visitor or
+session a sandboxed, isolated demo experience against production — the
+condition is all-or-nothing for the whole deployment. This has not caused a
+live production issue (there's no reachable path into it in the current
+production build), but if a `/preview` route or a runtime demo-session
+toggle is added later, this conclusion needs to be re-verified rather than
+assumed to still hold.
 
-## Extensibility & Future Improvements
+## Data access patterns
 
-### Planned Enhancements
-1. **Real-time Updates** - Supabase subscriptions
-2. **Search** - Full-text search in posts
-3. **Notifications** - Email/push notifications
-4. **Analytics** - User engagement metrics
-5. **Moderation** - Content review tools
-6. **Roles** - Admin/moderator permissions
+- **Self-profile reads/writes**: direct Supabase queries from client
+  components against `profiles`, scoped by RLS to `user_id = auth.uid()`.
+- **Cross-member reads**: always through `public_profiles_view` via helper
+  functions in `lib/data/profiles.ts` (`getPublicProfile`,
+  `getPublicProfilesBySpace`, `getDiscoverableMembers`) — never the raw
+  `profiles` or `public_profiles` tables.
+- **Admin reads**: either RLS-gated direct queries from admin pages (using
+  `is_profile_admin()`), or `requireAdmin()`-gated API routes using the
+  service-role key.
+- **Direct Supabase access vs. API routes**: most of the app talks to
+  Supabase directly from the client with the anon key. API routes exist
+  specifically where server-side privilege is genuinely required
+  (matching, invites, admin actions, cron, webhooks, Zoom/email
+  integrations) — they are the exception, not the default pattern.
+- **Data functions**: `lib/data/*.ts` — one file per feature area (posts,
+  spaces, profiles, events, connections, badges, articles, etc.), each
+  wrapping the relevant Supabase queries and, in several older files,
+  a `localStorage` fallback for demo mode.
+- **Hooks**: `lib/hooks/useDashboardPrimaryData.ts`,
+  `useDashboardContinueData.ts`, `useDashboardExploreData.ts` implement the
+  three-tier dashboard's progressive loading; `useAsyncData.ts` and
+  `useToast.ts` are general-purpose.
+- **Server-side vs. client-side boundaries**: anything using the
+  service-role key must run server-side (API routes only — it is never
+  exposed to the client). Everything else runs client-side against the
+  anon key, relying on RLS.
 
-### Architecture Readiness
-- Modular data layer supports new features
-- Component system allows UI expansion
-- Database schema allows new tables
-- Type system guides new development
+## Extension points
+
+- New profile fields that should be shareable follow the existing pattern:
+  add to `profiles`, extend `sync_public_profile()`, add a paired `show_*`
+  column and default, extend `public_profiles_view`'s masking, and extend
+  the `CommunityProfile` type — see migration 053 for the reference
+  implementation.
+- New admin-only data access should get its own API route using
+  `requireAdmin()` rather than relying solely on the client-side admin
+  page guard, consistent with the existing pattern.
+- New scheduled jobs beyond the two already in `vercel.json` may need an
+  external scheduler (see `space-digest-emails`) rather than Vercel Cron,
+  depending on the current Vercel plan's cron limits.
+- The theme-tagging system (`theme_tags` JSONB columns on posts, spaces,
+  events, articles, migration 028) is already in place as a generic
+  "related to today's theme" discovery mechanism and could be extended to
+  new content types without schema changes.

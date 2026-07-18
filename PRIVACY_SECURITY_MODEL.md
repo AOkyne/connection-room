@@ -1,29 +1,36 @@
 # Privacy & Security Model
 
-This document describes how member profile data is protected. It was
-originally written for migration `039_profile_privacy_overhaul.sql`, and
-extended by migration `053_profile_visibility_expansion.sql`. It supersedes
-the profile-related sections of `RLS_POLICIES.md`, which described the
+How member profile data is protected in The Connection Room. Originally
+written for migration `039_profile_privacy_overhaul.sql` and extended by
+migration `053_profile_visibility_expansion.sql`. Supersedes the
+profile-related sections of `RLS_POLICIES.md`, which described the
 pre-launch, never-locked-down model and is now stale.
 
 **Guiding principle: identity can be visible, vulnerability should be
 chosen, safety information stays private.** Migration 039 fixed a real leak
 by locking `profiles` down, but the member-visible layer it shipped
 (`public_profiles`) only carried enough fields to make a profile feel
-half-empty -- no age, orientation, relationship status, or story. Migration
-053 brings a curated set of those fields back, individually toggleable, with
-sensible defaults: identity/story fields default visible, deeper/vulnerable
-fields default hidden. Privacy should create choice, not emptiness.
+half-empty — no age, orientation, relationship status, or story. Migration
+053 brought a curated set of those fields back, individually toggleable,
+with sensible defaults: identity/story fields default visible, deeper/
+vulnerable fields default hidden. Privacy should create choice, not
+emptiness.
 
 ## Status
 
-**As of this writing, migration 039 has been written but not yet applied to
-production.** Migrations 036, 037, and 038 (created earlier in the same
-project) had also not been confirmed applied as of the start of this work.
-Until all four are run against production, in order, the pre-migration state
-described in "What this replaces" below is still live. See
-`PRODUCTION_MIGRATION_STATUS` in the final report delivered alongside this
-document for the exact SQL to run and verify.
+Migrations 036 through 054, including the profile privacy overhaul (039)
+and its five follow-up fixes (040–045, 047), the profile visibility
+expansion (053), and the RLS gaps found in the same audit (046), have been
+applied to production — confirmed by direct, live testing throughout this
+project's history (two-account verification testing at the time each
+migration was written, and repeated direct queries against
+`public_profiles_view`, `profiles`, and related tables in subsequent work).
+Do not treat this as a permanent guarantee, though: migration 040's own
+history (five RLS policies found live with no corresponding migration file)
+is a standing reminder that this repo's migration files are not, on their
+own, a fully reliable record of live database state. Before relying on any
+specific RLS behavior for a new security-sensitive change, verify it
+directly against the live database (`pg_policies`), not just this document.
 
 ## What this replaces
 
@@ -42,6 +49,16 @@ rendered this data: the member profile page (`/members/[id]`, which had no
 authentication guard at all), the connection-matching algorithm (client-side,
 shipping full profile rows to the browser), and the space member list.
 
+## Privacy philosophy
+
+The Connection Room is a private, members-only community, not a public
+social network or a dating app. Member profiles should be meaningful and
+human — a name, a face, a sense of who someone is and why they're here —
+while the member retains control over what crosses from "known" into
+"vulnerable." The two-table model below exists specifically so that adding
+a new private field to `profiles` later can never leak by default; it has
+to be deliberately, explicitly mirrored into the public layer.
+
 ## The two-table model
 
 ### `profiles` (private)
@@ -59,10 +76,11 @@ listed above. RLS:
 
 Holds only what another member is allowed to see: `display_name`,
 `profile_photo`, `tagline`, `pronouns`, `location`, `interests`,
-`spaces_joined`, `is_seeded`, plus visibility settings. Kept in sync with
-`profiles` automatically by a trigger (`sync_public_profile`) that fires on
-every `profiles` INSERT/UPDATE — no application write path needs to
-remember to write to both tables.
+`spaces_joined`, `is_seeded`, plus visibility settings and, since migration
+053, the additional fields listed under "Field-level controls" below. Kept
+in sync with `profiles` automatically by a trigger (`sync_public_profile`)
+that fires on every `profiles` INSERT/UPDATE — no application write path
+needs to remember to write to both tables.
 
 RLS:
 
@@ -80,11 +98,12 @@ RLS:
 
 A thin view over `public_profiles` that nulls individual columns per the
 owner's own flags (`show_pronouns`, `show_general_location`,
-`show_interests`). This exists because RLS is row-level only — it cannot
-express "hide this one column for this one row." The view carries no
-`SECURITY DEFINER`, so it runs with the querying user's own RLS permissions
-on `public_profiles`; it only masks columns, it grants no additional row
-access beyond what `public_profiles`' own policies already allow.
+`show_interests`, etc.). This exists because RLS is row-level only — it
+cannot express "hide this one column for this one row." The view carries
+`security_invoker` (fixed in migration 045 — see below), so it runs with
+the querying user's own RLS permissions on `public_profiles`; it only masks
+columns, it grants no additional row access beyond what `public_profiles`'
+own policies already allow.
 
 **All application code that reads another member's profile must query
 `public_profiles_view`, never `public_profiles` or `profiles` directly**
@@ -106,9 +125,52 @@ narrower problem that a view handles safely, because it sits on top of a
 table that is already row-restricted by RLS — the view can only ever narrow
 what a caller sees, never widen it.
 
-## Field visibility rules
+## Information categories
 
-| Field | Default | Owner can hide? |
+Classification of profile information, based on the actual implementation
+in `public_profiles`/`profiles` (not an idealized model):
+
+**Member-visible by default** (in `public_profiles`, `show_* = TRUE` by
+default): display name, profile photo, pronouns, general location,
+interests, age range, orientation, relationship status, why they joined,
+connection intentions, member-since date (no toggle — shown whenever the
+profile itself is visible, same tier as display name).
+
+**Optional / member-controlled, default hidden**: quiz result ("intimacy
+pattern"), connection comfort level (preferred ways to connect), a selected
+reflection (opted-in first prompt response). A member can turn any of these
+on. Badges, journey progress, and event attendance are **not** currently
+implemented as shareable at all — no column or `show_*` flag exists for
+them, because no cross-member display surface for them exists yet either;
+see "Known limitations."
+
+**Permanently private, no sharing path**: everything in `profiles` not
+mirrored into `public_profiles` — including `connection_boundaries`,
+detailed matching preferences, unpublished quiz answers, onboarding
+responses not explicitly selected for display, moderation/report data,
+blocks, and all account/billing/security data (email lives only in
+`auth.users`; there is no phone or exact-birth-date column anywhere in the
+schema).
+
+## Profile visibility states
+
+`profile_visibility` on `public_profiles`: `hidden` (owner/admin only),
+`members_only`, `shared_spaces` (visible to members who share a space with
+the owner), `member_discovery`. `members_only` and `member_discovery`
+currently resolve identically at the RLS level (any authenticated member) —
+kept as separate states in case a future release wants discovery-surfaced
+profiles to differ from directly-linkable ones, but no such distinction is
+implemented today. The profile-settings UI only ever writes `members_only`,
+`shared_spaces`, or `hidden` — `member_discovery` stays reserved/unused.
+
+`shared_spaces` is a fully working RLS check (real mutual
+`space_memberships` lookup), not a stub — but as of this writing, no UI
+control actually sets a profile to this state, so it has not been exercised
+in production.
+
+## Field-level controls
+
+| Field | Default | Owner can hide via |
 |---|---|---|
 | `pronouns` | shown | `show_pronouns` |
 | `location` (general) | shown (since migration 053; was hidden in 039) | `show_general_location` |
@@ -116,226 +178,166 @@ what a caller sees, never widen it.
 | `age_range` | shown | `show_age` |
 | `orientation` | shown | `show_orientation` |
 | `relationship_status` | shown | `show_relationship_status` |
-| `why_joined` (why they joined) | shown | `show_why_joined` |
-| `connection_intentions` (what they're hoping to find) | shown | `show_connection_intentions` |
-| `quiz_result` (also referred to as "intimacy pattern" -- same column, one concept) | **hidden** | `show_quiz_result` |
-| `connection_comfort_level` (preferred ways to connect) | **hidden** | `show_connection_comfort_level` |
-| `selected_reflection` (first prompt response, opted in) | **hidden** | `show_selected_reflection` |
+| `why_joined` | shown | `show_why_joined` |
+| `connection_intentions` | shown | `show_connection_intentions` |
+| `quiz_result` ("intimacy pattern") | **hidden** | `show_quiz_result` |
+| `connection_comfort_level` | **hidden** | `show_connection_comfort_level` |
+| `selected_reflection` | **hidden** | `show_selected_reflection` |
 | recent posts (app-layer, not a column) | hidden | `show_recent_posts` |
 | discovery inclusion | shown | `show_in_discovery` |
-| `member_since` (`created_at`) | always shown when the profile itself is visible -- no toggle, same tier as display name/photo | n/a |
+| `member_since` | always shown when the profile is visible | n/a (no toggle) |
 
-Row-level visibility (`profile_visibility`): `hidden` (owner/admin only),
-`members_only`, `shared_spaces` (visible to members who share a space),
-`member_discovery`. `members_only` and `member_discovery` currently resolve
-identically (any authenticated member) — kept as separate states because a
-future release may want discovery-surfaced profiles to differ from
-directly-linkable ones, but no such distinction is implemented yet. The
-profile-settings UI only ever writes `members_only`, `shared_spaces`, or
-`hidden` -- `member_discovery` stays reserved/unused, unchanged from 039.
+New members get these defaults automatically (the columns' own `DEFAULT`
+values). Existing members at the time migration 053 shipped were backfilled
+to the same defaults, not left null.
 
-### What migration 053 changed
+`orientation`, `relationship_status`, `age_range`, why-joined, and
+connection-intentions were **not** in `public_profiles` at all as of
+migration 039 — fully private, no opt-in path. Migration 053 brought them
+back, member-controlled, default **visible**, per updated product
+direction: hiding the fields most relevant to real connection worked
+against the app's purpose. `connection_boundaries`, detailed matching
+preferences, private reflections/onboarding answers not explicitly
+selected, moderation/safety data, and all account/billing/admin data remain
+**untouched** by migration 053 — never copied into `public_profiles`, never
+exposed through the view.
 
-`orientation` and `relationship_status` were **not** in `public_profiles` at
-all as of migration 039 — fully private, no opt-in path. As of migration
-053 they're back, member-controlled, default **visible** (per updated
-product direction: hiding the fields most relevant to real connection
-worked against the app's purpose). Same for `age_range`, why-joined, and
-connection intentions. `quiz_result`/`connection_comfort_level`/
-`selected_reflection` are new too, but default **hidden** — these are
-"a little deeper" fields, shown only when a member opts in.
+## RLS model
 
-`connection_boundaries`, detailed matching preferences, private
-reflections/onboarding answers not explicitly selected for display,
-moderation/safety data, and all account/billing/admin data are **untouched**
-by migration 053 — never copied into `public_profiles`, never exposed
-through the view. Confirmed by direct schema/RLS audit before writing the
-migration, not assumed.
+- **Private profile access** (`profiles`): owner and admin only, as
+  described above.
+- **Community-visible profile access** (`public_profiles` /
+  `public_profiles_view`): gated by `profile_visibility` at the row level
+  and `show_*` at the column level, as described above.
+- **Admin access**: admins can read/update any row in `profiles` and
+  `public_profiles`, via RLS policies keyed on `is_profile_admin(auth.uid())`
+  — a dedicated, `STABLE`-marked SQL function (migrations 044, 047) that
+  exists specifically to avoid two real bugs found in earlier attempts: RLS
+  infinite recursion from a self-referencing subquery, and planner-inlining
+  ambiguity from a same-table-querying helper function used inside a policy
+  on that same table. See [`DATABASE_SCHEMA.md`](DATABASE_SCHEMA.md#migration-history-notes).
+- **Anonymous restrictions**: no policy on `profiles` or `public_profiles`
+  grants the `anon` role any access; RLS defaults to deny.
+- **Shared-space behavior**: implemented as a real subquery against
+  `space_memberships`, not a stub — see "Profile visibility states" above
+  for its current (unused) status.
+- **Security-invoker views**: `public_profiles_view` explicitly uses
+  `security_invoker` (Postgres 15+) so it runs under the querying user's
+  own RLS permissions rather than the view owner's — the opposite,
+  default-owner behavior was a real bug (migration 045) that made the
+  "hidden" visibility state silently not work at all for a period.
+- **Relevant helper functions**: `is_profile_admin(auth.uid())`
+  (`is_admin()` was an earlier, buggier iteration — see
+  [`DATABASE_SCHEMA.md`](DATABASE_SCHEMA.md#migration-history-notes)).
 
-### Known limitations (not built, no backing data or no consuming feature)
+Server-side connection matching (`app/api/matching/find`) runs with the
+service-role key, since scoring legitimately needs `relationship_status`/
+`age_range`/`location` for compatibility — but the route only ever returns
+a safe subset built from `public_profiles_view`, so a match card respects
+each candidate's own visibility flags exactly like every other surface.
+`hidden` candidates are excluded from the pool entirely; `shared_spaces`
+candidates are excluded unless the caller actually shares a space with
+them.
 
-- **Badges, event attendance, journey progress**: no member-facing
-  cross-user display surface exists anywhere in the app today (verified: the
-  only code paths that read these read the caller's own data). No columns
-  or `show_*` flags were added for them — there's nothing to gate yet.
-  Add them when the corresponding display feature is actually built.
-- **"Current exploration," "relationship goals" (as distinct from
-  `relationship_status`), "open to one-to-one connections"**: no backing
-  column exists anywhere in this schema. Not invented for this migration.
-- **Spiritual interests / sexuality-related interests**: already covered by
-  the existing `interests`/`show_interests` column — the interest tag list
-  already includes "Spirituality" and "Sexuality" (see `lib/config.ts`). No
-  new columns needed.
+## Admin access
 
-## Application refactor
+Admins can read and update any member's full `profiles` row and any
+`public_profiles` row, enforced at the database level by
+`profiles_admin_select`/`profiles_admin_update`-style policies (not merely
+a client-side check). This is broad by design — admins are expected to do
+real moderation and support work that requires seeing private data — but it
+is not unconditional for every table: `offers`, `event_registrations`, and
+`admin_activity_logs` currently have an admin-check policy that can never
+actually match (see [`DATABASE_SCHEMA.md`](DATABASE_SCHEMA.md#known-schema-risks)),
+so admin access to those specific tables works only because the
+application routes to them go through `requireAdmin()` with the
+service-role key, not through RLS admin policies at all.
 
-Cross-member reads were moved off `profiles` to `public_profiles_view`
-(via new `getPublicProfile()` / `getPublicProfilesBySpace()` helpers in
-`lib/data/profiles.ts`) in:
+## Anonymous and public-web access
 
-- `app/members/[id]/page.tsx` — also gained an authentication guard it
-  previously lacked entirely (any unauthenticated visitor could load it).
-- `app/app/users/[userId]/page.tsx` — orphaned duplicate, fixed anyway.
-- `app/app/spaces/[id]/members/page.tsx` (space member list).
-- `components/connections/ConnectionProfileModal.tsx` — stripped direct
-  rendering of `ageRange`, `relationshipStatus`, `orientation`,
-  `whatBroughtYouHere`, `connectionHoping`, `connectionComfortLevel`,
-  `connectionBoundaries`, all previously rendered for any suggested match a
-  member clicked "View Profile" on, before any connection was made.
+Member profiles are not publicly indexed or anonymously readable. RLS on
+`profiles` and `public_profiles` grants nothing to the unauthenticated
+`anon` role. `/members/[id]` — the one profile-display route outside the
+main `/app` layout — has its own explicit authentication guard (added
+during the 039 refactor; it previously had none at all, which was itself
+part of the original leak). `articles` is the one table in this schema with
+a genuine public-read policy, by design (published writing is meant to be
+public).
 
-Connection matching (`lib/matching.ts`) moved from a client-side function
-that fetched every other member's complete row, to a thin client wrapping a
-new server route (`app/api/matching/find/route.ts`). The route runs with
-the service-role key (needed because scoring legitimately uses
-`relationship_status`/`age_range`/`location` for compatibility), but only
-ever returns a safe field subset — the private fields used for scoring
-never reach the browser. As of migration 053, that safe subset is built
-from a `public_profiles_view` lookup (not hand-picked from the private row),
-so a match card respects each candidate's own visibility flags exactly like
-every other surface. The route also now excludes `hidden` candidates from
-the pool entirely, and `shared_spaces` candidates unless the caller actually
-shares a space with them — matching suggestions are a form of "cross-member
-profile view," so the same hidden/shared_spaces rules apply as everywhere
-else.
+## Demo isolation
 
-### Types (added in migration 053's app-code refactor)
+See [`ARCHITECTURE.md`](ARCHITECTURE.md#demo-and-preview-architecture) for
+the full mechanism. In summary: demo mode is inferred purely from whether
+Supabase environment variables are configured (`lib/app-mode.ts`), not from
+a runtime session or URL toggle, and there is no `/preview` route or
+guest-mode entry point in the current codebase. In the deployed production
+environment, Supabase is always configured, so there is currently no live,
+reachable way for an anonymous visitor to write to production data via a
+"demo" path.
 
-`lib/data/profiles.ts` now exports three distinct types instead of one flat
-`Profile`:
-
-- `Profile` — private, self/admin only.
-- `CommunityProfile` — everything `public_profiles_view` can return.
-  Structurally narrower than `Profile` on purpose (no `connection_boundaries`,
-  no unpublished quiz answers, etc.) — a component typed against
-  `CommunityProfile` cannot be handed private data for a cross-member
-  render, even by mistake. `getPublicProfile`, `getPublicProfilesBySpace`,
-  `getDiscoverableMembers`, and the matching route's safe subset all return
-  this type now.
-- `ProfileVisibilitySettings` — the member's own `show_*`/`profile_visibility`
-  flags, read/written straight to `public_profiles` via
-  `getProfileVisibilitySettings()`/`updateProfileVisibilitySettings()` (not
-  through `profiles` — visibility flags were never synced by the trigger and
-  still aren't).
-
-The invited-friends list (`lib/data/invites.ts`'s `getInvitedFriends()`)
-had the same problem one level removed: `invite_relationships` keys off
-`profiles.id` (the internal row PK), which an ordinary member can no longer
-resolve to another member's name/photo now that `profiles` is locked down.
-Moved to a new server route (`app/api/invites/friends/route.ts`) for the
-same reason as matching.
-
-`posts`/`comments` needed no change: both already denormalize
-`author_name`/`author_pronouns`/`author_photo` onto the row at write time
-(verified via `lib/data/supabase-posts.ts`), so rendering an author's name
-on a post or comment never queries `profiles` for another user.
-
-`app/app/admin/members/page.tsx` and `app/app/admin/members/[id]/page.tsx`
-continue to use the full `profiles` table via `getAllProfiles()` /
-`getProfilesBySpace()` — both are gated by a `session.type !== "admin"`
-guard, and the new `profiles_admin_select` RLS policy grants admins genuine
-row access at the database level too (previously, admin RLS checks existed
-in name only — see "Known limitations" below).
-
-`components/community/CommunityMembersGrid.tsx` was not touched: it
-currently renders a hardcoded demo seed array, not live Supabase data. Not
-a privacy issue, but also not showing real members — a separate,
-pre-existing functionality gap, not introduced or fixed by this work.
-
-## Demo mode
-
-Investigated whether a demo/preview visitor could reach production
-Supabase data. Findings:
-
-- `app/preview/` is an empty directory; the route 404s in production.
-- The landing page's CTAs ("Step Inside") link to `/auth?mode=member`, not
-  a demo bypass.
-- `app/app/layout.tsx` (the layout wrapping all `/app/*` routes) redirects
-  to `/auth` when neither a stored session nor `getSession()` resolves to a
-  signed-in user. There is no guest/demo fallback at this layer.
-- `isDemoMode()` is environment-based (`isSupabaseConfigured`), not a
-  runtime toggle — but since there is no live entry point that reaches the
-  app without authentication, this does not currently constitute a way for
-  an anonymous visitor to write to production data.
-
-**Conclusion: no live demo entry point exists in the current production
-build.** A centralized runtime demo-session guard was not implemented,
-since there is nothing for it to guard against right now. If a `/preview`
-or guest-mode route is added later, this conclusion must be re-verified —
-do not assume the current safety holds after that kind of change.
-
-## Live RLS audit findings (2026-07-15)
-
-After applying migration 039, a `pg_policies` check turned up a policy on
-`profiles` — `profiles_public`, `USING (true)`, role `public` — that
-existed in the live database but corresponded to no file in this repo's
-migration history. It alone granted unconditional read access to every
-profile row, to anyone including unauthenticated requests, regardless of
-039's restrictive policies (Postgres RLS policies are OR'd together, so a
-stricter policy does not override a looser one sitting next to it). Dropped
-live, then codified in migration 040 along with four other undocumented,
-redundant-but-harmless duplicate policies on `profiles`. **This means the
-migration files in this repo are not, on their own, a fully reliable record
-of live RLS state** — `pg_policies` is ground truth, migration history is
-not guaranteed to match it.
-
-A full `pg_policies` sweep across all tables in the `public` schema, run as
-part of the same audit, found three further issues unrelated to profile
-privacy (not fixed as part of this work — flagged for separate follow-up):
-
-- **`events`**: `allow_authenticated_update`, `allow_authenticated_delete`,
-  and `allow_authenticated_insert` all resolve to `true` for role
-  `authenticated` with no ownership or admin check — any signed-in member
-  can update or delete any event, not just admins.
-- **`articles`**: `"Allow api insert"` has `with_check = true` for role
-  `public` — any request, including unauthenticated ones, can insert
-  arbitrary article rows.
-- **`couples_profiles`**: `"Couples profiles readable by authenticated
-  users"` has `qual = true` for role `authenticated` — any signed-in
-  member can read any couple's full row, including
-  `relationship_structure`, `couple_goals`, and `couple_boundaries`. This
-  is the same category of exposure the original `profiles` bug had; this
-  sibling table was never addressed.
-
-The pre-existing `profiles.id = auth.uid()` broken-admin-check pattern
-(see below) was also confirmed still live on `events`, `offers`,
-`event_registrations`, and `admin_activity_logs`.
+**Known limitation**: because demo-mode detection is environment-based
+rather than session-based, there is no mechanism today to give one specific
+visitor a sandboxed demo session while everyone else uses the real
+database — the distinction is whole-deployment, not per-request. This is
+not currently exploitable (there is no live entry point into it), but if a
+`/preview` route or a runtime demo toggle is added later, this conclusion
+must be re-verified, not assumed to still hold.
 
 ## Known limitations
 
-- **Pre-existing broken admin RLS policies outside this migration's scope.**
-  Migration 012 (`012_admin_dashboard_launch.sql`) wrote 15 admin policies
-  across `offers`, `events`, `event_registrations`, and `activity_logs`
-  using `EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role =
-  'admin')`. `profiles.id` is a generated row UUID, never equal to
-  `auth.uid()` (confirmed directly against Trevor J.'s own admin row: `id`
-  and `user_id` differ). These policies can never match, so RLS has never
-  actually granted admin access on those four tables — the admin dashboard
-  has worked regardless because its routes use `requireAdmin()` with the
-  service-role key server-side, which bypasses RLS entirely. This migration
-  fixes the equivalent pattern only on `profiles`/`public_profiles` (the
-  tables in scope for this work); the other four tables' policies are
-  unchanged and still non-functional at the RLS level. Fixing them is a
-  mechanical follow-up (same one-line `id` → `user_id` change, times 15).
-- **`shared_spaces` visibility is implemented**, not stubbed — it checks
-  actual mutual `space_memberships` — but has not been exercised by any
-  UI control yet; nothing currently sets a profile's `profile_visibility`
-  to `shared_spaces`.
+- **Broken admin-check pattern on `offers`, `event_registrations`, and
+  `admin_activity_logs`.** These three tables' admin RLS policies use
+  `EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role =
+  'admin')` — `profiles.id` is a generated row UUID, never equal to
+  `auth.uid()`, so these policies can never match. Migration 046 fixed the
+  identical pattern on `events`, but explicitly left these three as
+  out-of-scope follow-up; still unfixed as of this writing. The admin
+  dashboard works regardless, because its routes use `requireAdmin()` with
+  the service-role key server-side, bypassing RLS entirely — but RLS
+  itself offers zero real protection or fallback on these three tables.
+- **`shared_spaces` visibility is implemented but unexercised** — see
+  "Profile visibility states."
 - **`profile_tagline` and `photo_confirmed`**, referenced in application
   code (`app/onboarding/page.tsx`'s photo-confirmation gate,
   `app/members/[id]/page.tsx`'s tagline display), are not columns in the
-  live `profiles` schema and are not written by `saveProfileToSupabase()`'s
-  upsert. Unlike the `connection_comfort_level` bug fixed in migrations
-  036–038, this doesn't block any write — these two fields simply never
-  round-trip to the database, so `photo_confirmed` resets to unset on every
-  fresh session and `profile_tagline` input is silently discarded. Lower
-  severity (nothing fails, no PGRST204), but a real gap. Not fixed here —
-  out of scope for a privacy migration, flagged for separate follow-up.
-- **`app/auth/callback/route.ts` has its own instance of the `id` vs.
-  `user_id` bug**, independent of RLS: it checks
-  `.eq("id", user.id)` against `profiles.id` to decide whether a profile
-  already exists for an OAuth sign-in, which never matches, so it always
-  falls into the "create profile" branch — and that INSERT sets `id:
-  user.id` but never sets `user_id` at all, which should fail the `NOT
-  NULL` constraint on `profiles.user_id`. Not clear whether this code path
-  is ever actually exercised by the app's current auth flows; flagged for
-  separate investigation, not fixed here.
+  live `profiles` schema and are not written by the profile save path.
+  Lower severity than a hard failure (nothing errors), but a real gap:
+  `photo_confirmed` resets to unset every fresh session, and
+  `profile_tagline` input is silently discarded.
+- **`app/auth/callback/route.ts`** checks `.eq("id", user.id)` against
+  `profiles.id` to decide whether a profile already exists for an OAuth
+  sign-in — this can never match (same `id` vs. `user_id` confusion as
+  elsewhere), so it always falls into the "create profile" branch, which
+  sets `id: user.id` but never sets the required `user_id` column. Not
+  confirmed whether this code path is actually exercised by current auth
+  flows (email/password sign-up appears to be the primary path); flagged,
+  not independently re-verified in this documentation pass.
+- **Badges, event attendance, and journey progress have no cross-member
+  display surface or `show_*` flags** — not a gap in the privacy model so
+  much as a feature that doesn't exist yet to gate. Add visibility controls
+  for these if/when a feature actually surfaces them to other members.
+- **`couples_profiles` has no privacy-relevant application code path**
+  despite existing in the schema with tightened RLS — flagged as
+  effectively dormant, not actively risky.
+
+## Security testing
+
+Test cases that should hold, and were the basis for the live two-account
+verification testing referenced throughout this document and
+[`DATABASE_SCHEMA.md`](DATABASE_SCHEMA.md):
+
+- A signed-in member cannot `SELECT` another member's `profiles` row
+  directly (only their own).
+- A signed-in member reading another member's `public_profiles_view` row
+  never sees a column whose `show_*` flag is `FALSE` for that row.
+- A profile with `profile_visibility = 'hidden'` does not appear in any
+  cross-member listing, search, or matching result for a non-owner,
+  non-admin caller.
+- An unauthenticated (anonymous) request cannot read any row of `profiles`
+  or `public_profiles`.
+- An admin account can read and update any member's `profiles`/
+  `public_profiles` row.
+- Network responses from any cross-member profile read (browser dev tools
+  / API response inspection) contain no field whose `show_*` flag is
+  `FALSE`, and no field from `profiles` that isn't mirrored into
+  `public_profiles` at all.
