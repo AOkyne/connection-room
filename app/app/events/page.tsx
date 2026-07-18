@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getProfile } from "@/lib/data/profiles";
-import { getUpcomingEvents, getPastEvents, toggleEventInterest, getUserEventInterests } from "@/lib/data/events";
+import { getUpcomingEvents, getPastEvents } from "@/lib/data/events";
 import { getUserRegistrations, markAsInterested, updateRegistrationStatus } from "@/lib/admin/registrations";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -42,11 +42,9 @@ export default function EventsPage() {
       setPastEvents(past);
 
       if (p) {
-        const i = getUserEventInterests(p.id);
-        setInterests(i);
-
         const regs = await getUserRegistrations(p.id);
-        setRegistrations(new Set(regs.map((r) => r.eventId)));
+        setInterests(new Set(regs.filter((r) => r.status === "interested").map((r) => r.eventId)));
+        setRegistrations(new Set(regs.filter((r) => r.status === "registered").map((r) => r.eventId)));
       }
 
       setMounted(true);

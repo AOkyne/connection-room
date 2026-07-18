@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getPendingReminders, getReminderMessage } from "@/lib/data/event-reminders";
-import { getUserEventInterestsList } from "@/lib/data/events";
+import { getUserUpcomingEvents } from "@/lib/data/events";
 import { getProfile } from "@/lib/data/profiles";
 
 export function EventReminderBanner() {
@@ -18,8 +18,8 @@ export function EventReminderBanner() {
       const profile = await getProfile();
       if (!profile) return;
 
-      const interestedEvents = await getUserEventInterestsList(profile.id);
-      const pending = getPendingReminders(profile.id, interestedEvents);
+      const upcomingEvents = await getUserUpcomingEvents(profile.id);
+      const pending = getPendingReminders(profile.id, upcomingEvents);
       setReminders(pending);
       setMounted(true);
     };

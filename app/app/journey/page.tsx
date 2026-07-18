@@ -6,7 +6,7 @@ import { getProfile, type Profile } from "@/lib/data/profiles";
 import { getSpaces } from "@/lib/data/spaces";
 import { getUserBadges } from "@/lib/data/badges";
 import { getRecommendedNextStep, getTodaysPrompt } from "@/lib/data/recommendations";
-import { getUserEventInterestsList } from "@/lib/data/events";
+import { getUserUpcomingEvents } from "@/lib/data/events";
 import { getUserEngagementStats } from "@/lib/data/posts";
 import { appConfig } from "@/lib/config";
 import { Card, CardHeader } from "@/components/Card";
@@ -87,7 +87,7 @@ export default function JourneyPage() {
                 console.warn("Warning: Could not load badges (using fallback)", err);
                 return [];
               }),
-              Promise.resolve(getUserEventInterestsList(p.id)).catch(err => {
+              getUserUpcomingEvents(p.id).catch(err => {
                 console.warn("Warning: Could not load events (using fallback)");
                 return [];
               }),
@@ -111,7 +111,7 @@ export default function JourneyPage() {
             // If auth ready fails, still try to load badges
             Promise.allSettled([
               withTimeout(getUserBadges(p.id, p, s), 5000, []),
-              Promise.resolve(getUserEventInterestsList(p.id)).catch(() => []),
+              getUserUpcomingEvents(p.id).catch(() => []),
               getUserEngagementStats(p.id).catch(() => ({ postsShared: 0, responsesReceived: 0, commentsOffered: 0 }))
             ]).then((results) => {
               if (results[0].status === "fulfilled") setBadges(results[0].value);

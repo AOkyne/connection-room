@@ -3,8 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { demoEvents } from "./demo-data";
 import type { Event } from "./demo-data";
 import { formatTimeWithZone } from "@/lib/utils/timezone";
-
-const EVENTS_STORAGE_KEY = "connection-room:event-interests";
+import { getUserRegistrations } from "@/lib/admin/registrations";
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -106,34 +105,16 @@ export function getPastEventsFallback(): Event[] {
     .sort((a, b) => b.date.getTime() - a.date.getTime());
 }
 
-// Get user's event interests
-export function getUserEventInterests(userId: string): Set<string> {
-  if (typeof window === "undefined") return new Set();
-
-  const stored = localStorage.getItem(`${EVENTS_STORAGE_KEY}:${userId}`);
-  return stored ? new Set(JSON.parse(stored)) : new Set();
-}
-
-// Toggle interest in an event
-export function toggleEventInterest(userId: string, eventId: string): boolean {
-  if (typeof window === "undefined") return false;
-
-  const interests = getUserEventInterests(userId);
-  const isInterested = interests.has(eventId);
-
-  if (isInterested) {
-    interests.delete(eventId);
-  } else {
-    interests.add(eventId);
-  }
-
-  localStorage.setItem(`${EVENTS_STORAGE_KEY}:${userId}`, JSON.stringify(Array.from(interests)));
-  return !isInterested;
-}
-
-// Get events user is interested in
-export async function getUserEventInterestsList(userId: string): Promise<Event[]> {
-  const interests = getUserEventInterests(userId);
-  const upcomingEvents = await getUpcomingEvents();
-  return upcomingEvents.filter((event) => interests.has(event.id));
+// Upcoming events a user has registered or marked interested in -- cross-
+// references the real `event_registrations` table (source of truth for both
+// the events page's own state and admin's registration lists) against
+// upcoming events, rather than a separate, never-written-to localStorage
+// key that no registration/interest action actually updates.
+export async function getUserUpcomingEvents(userId: string): Promise<Event[]> {
+  const [registrations, upcomingEvents] = await Promise.all([
+    getUserRegistrations(userId),
+    getUpcomingEvents(),
+  ]);
+  const registeredEventIds = new Set(registrations.map((r) => r.eventId));
+  return upcomingEvents.filter((event) => registeredEventIds.has(event.id));
 }
