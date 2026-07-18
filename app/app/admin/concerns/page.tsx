@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession } from "@/lib/session";
+import { supabase } from "@/lib/supabase/client";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { Breadcrumb } from "@/components/Breadcrumb";
@@ -47,12 +48,33 @@ export default function AdminConcernsPage() {
         return;
       }
 
-      // Load concerns from localStorage
-      if (typeof window !== "undefined") {
-        const stored = localStorage.getItem("connection-room:connection-reports");
-        if (stored) {
-          const data = JSON.parse(stored);
-          setConcerns(data);
+      // Load concerns from the real `reports` table (migration 055) --
+      // this used to read a localStorage key that no other admin/device
+      // could ever see, since the report-filing side wrote to its own
+      // browser's localStorage too.
+      if (supabase) {
+        const { data, error } = await supabase
+          .from("reports")
+          .select("id, reporter_id, connection_id, reason, severity, status, reviewed, admin_notes, created_at")
+          .not("connection_id", "is", null)
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error loading connection concerns:", error);
+        } else {
+          setConcerns(
+            (data || []).map((row) => ({
+              id: row.id,
+              userId: row.reporter_id,
+              connectionId: row.connection_id,
+              concern: row.reason,
+              severity: row.severity || "medium",
+              createdAt: row.created_at,
+              status: row.status === "resolved" ? "resolved" : "pending",
+              reviewed: row.reviewed || false,
+              adminNotes: row.admin_notes || undefined,
+            }))
+          );
         }
       }
 
@@ -94,28 +116,35 @@ export default function AdminConcernsPage() {
     setFilteredConcerns(filtered);
   }, [concerns, filterStatus, filterSeverity, sortBy]);
 
-  const handleResolve = (id: string) => {
-    const updated = concerns.map((c) =>
-      c.id === id ? { ...c, status: "resolved" as const } : c
-    );
-    setConcerns(updated);
-    localStorage.setItem(
-      "connection-room:connection-reports",
-      JSON.stringify(updated)
-    );
+  const handleResolve = async (id: string) => {
+    if (!supabase) return;
+
+    const { error } = await supabase.from("reports").update({ status: "resolved" }).eq("id", id);
+    if (error) {
+      console.error("Error resolving concern:", error);
+      showToast("Could not resolve this concern. Please try again.", "error");
+      return;
+    }
+
+    setConcerns((prev) => prev.map((c) => (c.id === id ? { ...c, status: "resolved" as const } : c)));
     showToast("Concern marked as resolved", "success");
     setShowDetailModal(false);
   };
 
-  const handleSaveNotes = (id: string) => {
-    const updated = concerns.map((c) =>
-      c.id === id ? { ...c, adminNotes, reviewed: true } : c
-    );
-    setConcerns(updated);
-    localStorage.setItem(
-      "connection-room:connection-reports",
-      JSON.stringify(updated)
-    );
+  const handleSaveNotes = async (id: string) => {
+    if (!supabase) return;
+
+    const { error } = await supabase
+      .from("reports")
+      .update({ admin_notes: adminNotes, reviewed: true })
+      .eq("id", id);
+    if (error) {
+      console.error("Error saving concern notes:", error);
+      showToast("Could not save notes. Please try again.", "error");
+      return;
+    }
+
+    setConcerns((prev) => prev.map((c) => (c.id === id ? { ...c, adminNotes, reviewed: true } : c)));
     showToast("Notes saved", "success");
   };
 

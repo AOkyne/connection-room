@@ -104,37 +104,53 @@ export function skipConnection(userId: string): void {
   setCurrentConnection(userId, null);
 }
 
-// Report concern with connection
-export function reportConnectionConcern(
+// Report a safety/behavior concern about a connection. Writes to the real
+// `reports` table (migration 055) rather than localStorage -- previously
+// this only ever wrote to a localStorage key, so a concern filed by a
+// member was invisible to admins on any other device or browser.
+export async function reportConnectionConcern(
   userId: string,
   connectionId: string,
   concern: string,
   severity: "low" | "medium" | "high" = "medium"
-): void {
-  if (typeof window === "undefined") return;
+): Promise<boolean> {
+  if (!supabase) return false;
 
-  const reports = JSON.parse(localStorage.getItem("connection-room:connection-reports") || "[]");
-  const report = {
-    id: `report-${Date.now()}`,
-    userId,
-    connectionId,
-    concern,
+  const { error } = await supabase.from("reports").insert({
+    reporter_id: userId,
+    connection_id: connectionId,
+    reason: concern,
     severity,
-    createdAt: new Date().toISOString(),
-    status: "pending" as const,
-    reviewed: false,
-  };
+    status: "pending",
+  });
 
-  reports.push(report);
-  localStorage.setItem("connection-room:connection-reports", JSON.stringify(reports));
+  if (error) {
+    console.error("Error reporting connection concern:", error);
+    return false;
+  }
+
+  return true;
 }
 
-// Get reported connections for a user (safety)
-export function getSafetyReports(userId: string): any[] {
-  if (typeof window === "undefined") return [];
+// Get a user's own reported concerns (safety). Reads the real `reports`
+// table now that reportConnectionConcern() writes to it -- RLS already
+// scopes this to the caller's own rows via "Users can read own reports"
+// (reporter_id = auth.uid()), matching this function's intent.
+export async function getSafetyReports(userId: string): Promise<any[]> {
+  if (!supabase) return [];
 
-  const all = JSON.parse(localStorage.getItem("connection-room:connection-reports") || "[]");
-  return all.filter((r: any) => r.userId === userId);
+  const { data, error } = await supabase
+    .from("reports")
+    .select("id, reporter_id, connection_id, reason, severity, status, reviewed, admin_notes, created_at")
+    .eq("reporter_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching safety reports:", error);
+    return [];
+  }
+
+  return data || [];
 }
 
 // Block a user

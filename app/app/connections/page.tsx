@@ -316,11 +316,16 @@ export default function ConnectionsPage() {
     setCurrentConnectionState(null);
   };
 
-  const handleReportConcern = () => {
-    if (reportConcern.trim() && currentConnection) {
-      reportConnectionConcern(profile.id, currentConnection.id, reportConcern);
+  const handleReportConcern = async () => {
+    if (!reportConcern.trim() || !currentConnection) return;
+
+    const ok = await reportConnectionConcern(profile.id, currentConnection.id, reportConcern);
+    if (ok) {
+      showToast("Concern reported. An admin will review it.", "success");
       setReportConcern("");
       setShowReportForm(false);
+    } else {
+      showToast("Could not submit your report. Please try again.", "error");
     }
   };
 
