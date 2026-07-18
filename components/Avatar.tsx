@@ -47,7 +47,11 @@ export function Avatar({ name, photo, size = "md" }: AvatarProps) {
         src={photo}
         alt={name}
         onError={() => setPhotoError(true)}
-        className={`${sizeClasses[size]} rounded-full object-cover border border-[#dcc4b3]`}
+        // object-top biases the crop toward the upper portion of the photo
+        // instead of dead-center -- most member photos are portraits with
+        // the face in the upper half, so a centered crop was clipping
+        // foreheads/hair in the circular thumbnail.
+        className={`${sizeClasses[size]} rounded-full object-cover object-top border border-[#dcc4b3]`}
       />
     );
   }
