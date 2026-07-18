@@ -191,36 +191,30 @@ export async function getActivityStats(): Promise<ActivityStats> {
   try {
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    // Get real members (exclude demo)
-    const { data: realMembers } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("is_seeded", false);
+    // Get real members (exclude demo). Fetched (and everything below)
+    // in parallel rather than four sequential round-trips.
+    const [
+      { data: realMembers },
+      { data: posts, error: postsError },
+      { data: comments, error: commentsError },
+      { data: reactions, error: reactionsError },
+    ] = await Promise.all([
+      supabase.from("profiles").select("user_id").eq("is_seeded", false),
+      supabase.from("posts").select("id, user_id").gte("created_at", oneWeekAgo.toISOString()),
+      supabase.from("comments").select("id, user_id").gte("created_at", oneWeekAgo.toISOString()),
+      supabase.from("reactions").select("id, user_id").gte("created_at", oneWeekAgo.toISOString()),
+    ]);
 
-    const realMemberIds = new Set((realMembers || []).map((m: any) => m.id));
-
-    // Get posts from real members only
-    const { data: posts, error: postsError } = await supabase
-      .from("posts")
-      .select("id, user_id")
-      .gte("created_at", oneWeekAgo.toISOString());
+    // posts/comments/reactions.user_id all reference auth.users(id) directly
+    // -- i.e. profiles.user_id, NOT profiles.id (a separate, generated row
+    // UUID). This previously built the set from profiles.id, so it could
+    // essentially never match a real post/comment/reaction author -- Posts
+    // & Responses and Community Activity showed 0 regardless of how much
+    // real activity existed, the exact bug reported.
+    const realMemberIds = new Set((realMembers || []).map((m: any) => m.user_id));
 
     const realPosts = (posts || []).filter((p: any) => realMemberIds.has(p.user_id));
-
-    // Get comments from real members only
-    const { data: comments, error: commentsError } = await supabase
-      .from("comments")
-      .select("id, user_id")
-      .gte("created_at", oneWeekAgo.toISOString());
-
     const realComments = (comments || []).filter((c: any) => realMemberIds.has(c.user_id));
-
-    // Get reactions from real members only
-    const { data: reactions, error: reactionsError } = await supabase
-      .from("reactions")
-      .select("id, user_id")
-      .gte("created_at", oneWeekAgo.toISOString());
-
     const realReactions = (reactions || []).filter((r: any) => realMemberIds.has(r.user_id));
 
     if (postsError || commentsError || reactionsError) {

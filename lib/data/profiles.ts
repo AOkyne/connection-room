@@ -590,22 +590,28 @@ export async function getAllProfiles(): Promise<Profile[]> {
   }
 }
 
-// ADMIN ONLY (see getAllProfiles). Same data, minus profile_photo -- some
+// ADMIN ONLY. Same data as getAllProfiles(), minus profile_photo -- some
 // members' photos are multi-megabyte base64 strings stored directly in the
 // row (the images should really be in Supabase Storage, not the database,
 // but that's a larger migration than this fixes), and pulling + sorting
 // that much text for every row measured at 11+ seconds in isolation for
 // ~46 rows, well past Postgres's statement timeout under any concurrent
-// load. Use this for any listing view that doesn't render avatars (e.g.
-// the admin dashboard's summary table); use getAllProfiles() when photos
-// are actually displayed (e.g. the dedicated members management page).
+// load -- the confirmed cause of the admin Members page intermittently
+// timing out and silently rendering "No members found". Every other field
+// getAllProfiles() returns (including the age/orientation/relationship-
+// status/why-joined/connection-hoping/quiz-result/comfort-level/boundaries
+// fields from migration 053, none of which are large) is included here too,
+// so admin list/detail views can use this instead of getAllProfiles() and
+// keep full profile detail minus the one field that's actually expensive.
 export async function getAllProfilesLite(): Promise<Profile[]> {
   if (!supabase) return [];
 
   try {
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, display_name, pronouns, member_type, completed_onboarding, created_at, updated_at, is_seeded")
+      .select(
+        "id, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, completed_onboarding, spaces_joined, created_at, updated_at, is_seeded"
+      )
       .order("display_name");
 
     if (error) {
@@ -619,10 +625,20 @@ export async function getAllProfilesLite(): Promise<Profile[]> {
       lastName: p.display_name?.split(" ").slice(1).join(" ") || "",
       displayName: p.display_name || "",
       pronouns: p.pronouns,
+      location: p.location,
+      ageRange: p.age_range,
+      relationshipStatus: p.relationship_status,
+      orientation: p.orientation,
       profilePhoto: "",
       memberType: p.member_type || "individual",
-      interests: [],
+      whatBroughtYouHere: p.what_brought_you_here,
+      connectionHoping: p.connection_hoping,
+      interests: Array.isArray(p.interests) ? p.interests : [],
+      connectionComfortLevel: p.connection_comfort_level,
+      connectionBoundaries: p.connection_boundaries,
+      quizResult: p.quiz_result,
       completedOnboarding: p.completed_onboarding || false,
+      spacesJoined: Array.isArray(p.spaces_joined) ? p.spaces_joined : [],
       joinedAt: new Date(p.created_at),
       lastActive: p.updated_at ? new Date(p.updated_at) : undefined,
       is_demo_profile: p.is_seeded,

@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getAllBadges } from "@/lib/data/badges";
 import { getUpcomingEvents } from "@/lib/data/events";
 import { getAllOffers } from "@/lib/data/offers";
-import { getRecentSignups, getSession } from "@/lib/session";
+import { getSession } from "@/lib/session";
 import { getMemberStats, getActivityStats, getSpaceStats, getMemberTypeBreakdown, type MemberStats, type ActivityStats, type SpaceStats, type MemberTypeBreakdown } from "@/lib/admin/analytics";
 import { supabase } from "@/lib/supabase/client";
 import { getAllProfilesLite } from "@/lib/data/profiles";
@@ -29,7 +29,6 @@ export default function AdminPage() {
   const [events, setEvents] = useState<any[]>([]);
   const [offers, setOffers] = useState<any[]>([]);
   const [concerns, setConcerns] = useState<any[]>([]);
-  const [recentSignups, setRecentSignups] = useState<any[]>([]);
   const [allMembers, setAllMembers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [memberStats, setMemberStats] = useState<MemberStats | null>(null);
@@ -49,7 +48,6 @@ export default function AdminPage() {
 
       setBadges(getAllBadges());
       setOffers(getAllOffers());
-      setRecentSignups(getRecentSignups());
 
       // Everything below is independent -- fetch it all in parallel rather
       // than one await after another. This alone doesn't change how long
@@ -139,6 +137,22 @@ export default function AdminPage() {
     loadData();
   }, [router]);
 
+  // Real signups, derived from allMembers -- previously sourced from a
+  // localStorage key (trackSignup() in lib/session.ts) written only in
+  // whatever browser a member happened to sign up in, so an admin visiting
+  // from a different device or after clearing storage never saw any real
+  // signups here, regardless of how many people had actually joined.
+  const recentSignups = useMemo(() => {
+    return [...allMembers]
+      .filter((m) => m.joinedAt)
+      .sort((a, b) => new Date(b.joinedAt).getTime() - new Date(a.joinedAt).getTime());
+  }, [allMembers]);
+
+  const newSignupsToday = useMemo(() => {
+    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+    return recentSignups.filter((m) => new Date(m.joinedAt).getTime() > oneDayAgo);
+  }, [recentSignups]);
+
   if (!mounted) {
     return <LoadingScreen message="Loading admin dashboard" subtitle="We're gathering the data. Just a moment..." />;
   }
@@ -220,23 +234,23 @@ export default function AdminPage() {
       {/* Content Alerts */}
       <RhythmContentAlert />
 
-      {/* New Signup Notification */}
-      {recentSignups.length > 0 && (
+      {/* New Signup Notification -- real signups in the last 24 hours */}
+      {newSignupsToday.length > 0 && (
         <div className="p-4 bg-[#c97a2a] rounded-lg border-2 border-[#a84a2a]">
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1">
               <p className="font-semibold text-white text-lg">🎉 New Signup!</p>
               <p className="text-white text-sm mt-1">
-                {recentSignups[0].firstName} {recentSignups[0].lastName} just joined the community
+                {newSignupsToday[0].firstName} {newSignupsToday[0].lastName} just joined the community
               </p>
-              {recentSignups.length > 1 && (
+              {newSignupsToday.length > 1 && (
                 <p className="text-white/90 text-xs mt-2">
-                  +{recentSignups.length - 1} more signup{recentSignups.length > 2 ? 's' : ''} today
+                  +{newSignupsToday.length - 1} more signup{newSignupsToday.length > 2 ? 's' : ''} today
                 </p>
               )}
             </div>
             <div className="flex-shrink-0 text-white text-2xl font-bold bg-[#a84a2a] w-12 h-12 rounded-full flex items-center justify-center">
-              {recentSignups.length}
+              {newSignupsToday.length}
             </div>
           </div>
         </div>
@@ -279,19 +293,18 @@ export default function AdminPage() {
       <Card>
         <CardHeader title="Recent Signups" icon={<IconProfileNav size={20} />} />
         <div className="space-y-3">
-          {recentSignups.filter((s: any) => s.email && s.email !== "No email").length > 0 ? (
+          {recentSignups.length > 0 ? (
             recentSignups
-              .filter((s: any) => s.email && s.email !== "No email")
               .slice(0, 10)
-              .map((signup: any, idx: number) => (
-                <div key={idx} className="flex justify-between items-start p-3 bg-[#f3ede5] rounded text-sm">
+              .map((signup: any) => (
+                <div key={signup.id} className="flex justify-between items-start p-3 bg-[#f3ede5] rounded text-sm">
                   <div className="flex-1">
                     <p className="font-medium text-[#1a0f0a]">{signup.firstName} {signup.lastName}</p>
-                    <p className="text-xs text-[#a0704a]">{signup.email}</p>
+                    <p className="text-xs text-[#a0704a]">{signup.email || "—"}</p>
                   </div>
                   <div className="text-right text-xs">
-                    <p className="text-[#1a0f0a]">{new Date(signup.timestamp).toLocaleDateString()}</p>
-                    <p className="text-[#d4a348] font-medium capitalize">{signup.type}</p>
+                    <p className="text-[#1a0f0a]">{new Date(signup.joinedAt).toLocaleDateString()}</p>
+                    <p className="text-[#d4a348] font-medium capitalize">{signup.memberType}</p>
                   </div>
                 </div>
               ))

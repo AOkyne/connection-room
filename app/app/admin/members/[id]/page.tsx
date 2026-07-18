@@ -8,6 +8,7 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { supabase } from "@/lib/supabase/client";
 import { getSession } from "@/lib/session";
+import { deleteMembers } from "@/lib/admin/member-actions";
 import { IconProfile, IconConnection, IconAlert } from "@/components/Icons";
 
 interface MemberProfile {
@@ -29,6 +30,16 @@ interface MemberProfile {
   suspended?: boolean;
   suspended_at?: string;
   suspension_reason?: string;
+  // Migration 053 fields -- previously fetched (select("*")) but never
+  // rendered anywhere on this page, so admins had no way to see them here.
+  age_range?: string;
+  orientation?: string;
+  relationship_status?: string;
+  what_brought_you_here?: string;
+  connection_hoping?: string;
+  quiz_result?: string;
+  connection_comfort_level?: string;
+  connection_boundaries?: string;
 }
 
 export default function MemberDetailPage() {
@@ -101,16 +112,26 @@ export default function MemberDetailPage() {
         }
       }
 
-      // Get email from auth
-      if (profile.user_id) {
-        try {
-          const { data: authUser } = await supabase.auth.admin.getUserById(profile.user_id);
-          if (authUser?.user) {
-            profile.email = authUser.user.email || "";
+      // Get email from auth. supabase.auth.admin.* requires the
+      // service-role key -- calling it from this client-side (anon-key)
+      // instance always fails silently (caught below), so this member's
+      // email has never actually loaded here. Routed through the existing
+      // /api/admin/members/emails route instead, which already does this
+      // server-side with requireAdmin() + the service-role key.
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        if (token) {
+          const response = await fetch("/api/admin/members/emails", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (response.ok) {
+            const { emails } = await response.json();
+            profile.email = emails?.[profile.id] || "";
           }
-        } catch (err) {
-          console.warn("Could not get email from auth:", err);
         }
+      } catch (err) {
+        console.warn("Could not get email from auth:", err);
       }
 
       setMember(profile);
@@ -189,33 +210,25 @@ export default function MemberDetailPage() {
   const handleDelete = async () => {
     if (!confirm("Are you ABSOLUTELY SURE you want to permanently delete this member? This action cannot be undone.")) return;
     if (!confirm("This will delete all their data. Please confirm again.")) return;
-    if (!supabase) {
-      alert("Supabase not available");
-      return;
-    }
 
+    // deleteMembers() routes through /api/admin/members/delete
+    // (requireAdmin() + service-role key), which actually removes the
+    // auth.users account too. The previous version of this handler called
+    // supabase.auth.admin.deleteUser() directly from this client-side
+    // (anon-key) instance -- that call always fails silently, so a
+    // "deleted" member's auth account was never actually removed, only
+    // (if RLS allowed it) their profiles row.
     try {
-      // Delete from profiles table (cascade should handle related data)
-      const { error } = await supabase
-        .from("profiles")
-        .delete()
-        .eq("id", memberId);
+      const { deletedCount, failedCount, errors } = await deleteMembers([memberId]);
 
-      if (error) {
-        alert("Error deleting member: " + error.message);
+      if (failedCount > 0) {
+        alert("Error deleting member: " + (errors.join("; ") || "Unknown error"));
         return;
       }
 
-      // Optionally delete from auth
-      if (member?.user_id) {
-        try {
-          await supabase.auth.admin.deleteUser(member.user_id);
-        } catch (err) {
-          console.warn("Could not delete auth user:", err);
-        }
+      if (deletedCount > 0) {
+        router.push("/app/admin/members");
       }
-
-      router.push("/app/admin");
     } catch (err) {
       console.error("Error deleting member:", err);
       alert("Failed to delete member");
@@ -320,6 +333,68 @@ export default function MemberDetailPage() {
           </div>
         </Card>
       </div>
+
+      {/* Connection Profile -- migration 053 fields. Admins see the full,
+          unmasked private profiles row regardless of the member's own
+          show_* visibility settings (those flags only govern what OTHER
+          MEMBERS see via public_profiles_view); this section was
+          previously fetched but never rendered anywhere on this page. */}
+      {(member.age_range || member.orientation || member.relationship_status || member.what_brought_you_here ||
+        member.connection_hoping || member.quiz_result || member.connection_comfort_level || member.connection_boundaries) && (
+        <Card>
+          <CardHeader title="Connection Profile" icon={<IconProfile size={20} />} />
+          <div className="grid md:grid-cols-2 gap-4">
+            {member.age_range && (
+              <div>
+                <p className="text-xs text-[#a0704a] font-medium">Age Range</p>
+                <p className="text-[#1a0f0a]">{member.age_range}</p>
+              </div>
+            )}
+            {member.orientation && (
+              <div>
+                <p className="text-xs text-[#a0704a] font-medium">Orientation</p>
+                <p className="text-[#1a0f0a]">{member.orientation}</p>
+              </div>
+            )}
+            {member.relationship_status && (
+              <div>
+                <p className="text-xs text-[#a0704a] font-medium">Relationship Status</p>
+                <p className="text-[#1a0f0a]">{member.relationship_status}</p>
+              </div>
+            )}
+            {member.quiz_result && (
+              <div>
+                <p className="text-xs text-[#a0704a] font-medium">Quiz Result</p>
+                <p className="text-[#1a0f0a]">{member.quiz_result}</p>
+              </div>
+            )}
+            {member.connection_comfort_level && (
+              <div>
+                <p className="text-xs text-[#a0704a] font-medium">Connection Comfort Level</p>
+                <p className="text-[#1a0f0a]">{member.connection_comfort_level}</p>
+              </div>
+            )}
+            {member.what_brought_you_here && (
+              <div className="md:col-span-2">
+                <p className="text-xs text-[#a0704a] font-medium">Why They Joined</p>
+                <p className="text-[#1a0f0a]">{member.what_brought_you_here}</p>
+              </div>
+            )}
+            {member.connection_hoping && (
+              <div className="md:col-span-2">
+                <p className="text-xs text-[#a0704a] font-medium">What They're Hoping to Find</p>
+                <p className="text-[#1a0f0a]">{member.connection_hoping}</p>
+              </div>
+            )}
+            {member.connection_boundaries && (
+              <div className="md:col-span-2">
+                <p className="text-xs text-[#a0704a] font-medium">Connection Boundaries (private, admin-only)</p>
+                <p className="text-[#1a0f0a]">{member.connection_boundaries}</p>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
 
       {/* Interests */}
       {member.interests && member.interests.length > 0 && (

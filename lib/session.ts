@@ -14,7 +14,6 @@ export interface AppSession {
 }
 
 const SESSION_STORAGE_KEY = "connection-room:session";
-const RECENT_SIGNUPS_KEY = "connection-room:recent-signups";
 
 // Generic placeholder names getSession() has fallen back to historically
 // when a real profile lookup failed (several such bugs were fixed
@@ -137,24 +136,6 @@ export async function getSession(): Promise<AppSession | null> {
   return null;
 }
 
-// Track recent signup for admin dashboard
-function trackSignup(session: AppSession): void {
-  if (typeof window === "undefined") return;
-  const recent = localStorage.getItem(RECENT_SIGNUPS_KEY);
-  const signups = recent ? JSON.parse(recent) : [];
-  const names = session.name.split(" ");
-  signups.unshift({
-    id: session.id,
-    firstName: session.firstName || names[0] || "",
-    lastName: session.lastName || names.slice(1).join(" ") || "",
-    email: session.email || "No email",
-    type: session.type,
-    timestamp: new Date().toISOString(),
-  });
-  // Keep only last 20 signups
-  localStorage.setItem(RECENT_SIGNUPS_KEY, JSON.stringify(signups.slice(0, 20)));
-}
-
 // Create demo member session (don't track as signup)
 export function createMemberSession(name: string = "Demo Member", profilePhoto?: string): AppSession {
   const session: AppSession = {
@@ -213,9 +194,3 @@ export async function isAdmin(): Promise<boolean> {
   return session?.type === "admin";
 }
 
-// Get recent signups for admin dashboard
-export function getRecentSignups() {
-  if (typeof window === "undefined") return [];
-  const recent = localStorage.getItem(RECENT_SIGNUPS_KEY);
-  return recent ? JSON.parse(recent) : [];
-}

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
-import { getAllProfiles, type Profile } from "@/lib/data/profiles";
+import { getAllProfilesLite, type Profile } from "@/lib/data/profiles";
 import { resetMemberProgress, sendAdminMessage, deleteMembers, emailMembers } from "@/lib/admin/member-actions";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -25,6 +25,7 @@ export default function AdminMembersPage() {
   const [members, setMembers] = useState<Profile[]>([]);
   const [filteredMembers, setFilteredMembers] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<SortBy>("joinDate");
   const [filterOnboarding, setFilterOnboarding] = useState<FilterOnboarding>("all");
@@ -46,6 +47,36 @@ export default function AdminMembersPage() {
   const [isEmailing, setIsEmailing] = useState(false);
   const [emailError, setEmailError] = useState("");
 
+  const loadMembers = async () => {
+    setLoading(true);
+    setLoadError(null);
+
+    // getAllProfiles() (select("*"), including profile_photo) previously
+    // powered this page and measured 11+ seconds for ~46 rows in isolation
+    // -- some real members' photos are multi-megabyte base64 text stored
+    // directly in the row, well past Postgres's statement timeout under any
+    // concurrent load. getAllProfilesLite() has every other field (interests,
+    // age/orientation/relationship-status/etc.) but skips profile_photo, so
+    // this list loads quickly; Avatar falls back to initials without a
+    // photo. A 15s race (rather than swallowing errors into a silent empty
+    // list, as withTimeout() does) means a genuine failure surfaces as an
+    // explicit, retryable error instead of a misleading "No members found."
+    try {
+      const profiles = await Promise.race([
+        getAllProfilesLite(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Loading members timed out. Please try again.")), 15000)
+        ),
+      ]);
+      setMembers(profiles);
+    } catch (err) {
+      console.error("Error loading members:", err);
+      setLoadError(err instanceof Error ? err.message : "Failed to load members. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const loadData = async () => {
       const session = await getSession();
@@ -54,10 +85,8 @@ export default function AdminMembersPage() {
         return;
       }
 
-      const profiles = await getAllProfiles();
-      setMembers(profiles);
+      await loadMembers();
       setMounted(true);
-      setLoading(false);
     };
 
     loadData();
@@ -315,6 +344,17 @@ export default function AdminMembersPage() {
           Manage community members ({filteredMembers.length} of {members.length})
         </p>
       </div>
+
+      {loadError && (
+        <Card className="border-2 border-red-200 bg-red-50">
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-red-900 text-sm">⚠️ {loadError}</p>
+            <Button variant="outline" size="sm" onClick={loadMembers}>
+              Retry
+            </Button>
+          </div>
+        </Card>
+      )}
 
       {/* Search Bar */}
       <div className="flex flex-col md:flex-row gap-3">
