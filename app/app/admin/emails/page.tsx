@@ -16,6 +16,9 @@ const LABELS: Record<string, string> = {
   day5: "Day 5",
   day14: "Day 14",
   day30: "Day 30",
+  "onboarding-incomplete-day1": "Incomplete profile: Day 1",
+  "onboarding-incomplete-day3": "Incomplete profile: Day 3",
+  "onboarding-incomplete-day5": "Incomplete profile: Day 5",
 };
 
 export default function AdminEmailsPage() {
@@ -114,8 +117,8 @@ export default function AdminEmailsPage() {
       <div>
         <h1 className="text-3xl font-bold text-[#1a0f0a]">Automated Emails</h1>
         <p className="text-[#a0704a] mt-1">
-          Edit the welcome email and the 5/14/30-day follow-up sequence. Changes take effect
-          immediately — no code deploy needed.
+          Edit the welcome email, the 5/14/30-day follow-up sequence, and the 1/3/5-day
+          incomplete-profile reminders. Changes take effect immediately — no code deploy needed.
         </p>
       </div>
 
@@ -186,7 +189,10 @@ export default function AdminEmailsPage() {
                 onChange={(e) => setActive(e.target.checked)}
                 className="w-4 h-4"
               />
-              Active {selected.days_after_onboarding === null ? "(sends at signup)" : "(sends by the daily cron job)"}
+              Active{" "}
+              {selected.days_after_onboarding === null && selected.days_after_signup_if_incomplete === null
+                ? "(sends at signup)"
+                : "(sends by the daily cron job)"}
             </label>
             {!active && (
               <p className="text-xs text-[#a0704a]">

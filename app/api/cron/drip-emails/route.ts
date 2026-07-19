@@ -19,6 +19,16 @@ interface DripSummary {
 // drip_emails_sent so it's never sent twice — including catching up members
 // missed by a prior failed/skipped run, since the query is ">= threshold",
 // not an exact-day match.
+//
+// Also runs a second, independent drip (migration 061) for members who
+// started but never completed onboarding, anchored to profiles.created_at
+// ("when they started") instead of onboarding_completed_at, and gated on
+// completed_onboarding = false. Because that gate is re-checked on every
+// run, a member who finishes their profile simply stops matching and never
+// gets the next email in the sequence — and because the threshold is
+// "created_at <= now() - N days" rather than an exact-day match, this also
+// backfills every existing incomplete-onboarding member the first time it
+// runs after the templates are added, not just new signups going forward.
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
@@ -67,6 +77,101 @@ export async function GET(request: NextRequest) {
       .select("id, user_id, display_name")
       .not("onboarding_completed_at", "is", null)
       .lte("onboarding_completed_at", thresholdDate);
+
+    if (candidatesError) {
+      console.error(`Error fetching candidates for ${drip.key}:`, candidatesError);
+      continue;
+    }
+    if (!candidates || candidates.length === 0) continue;
+
+    const { data: alreadySent, error: alreadySentError } = await supabase
+      .from("drip_emails_sent")
+      .select("profile_id")
+      .eq("email_key", drip.key)
+      .in(
+        "profile_id",
+        candidates.map((c) => c.id)
+      );
+
+    if (alreadySentError) {
+      console.error(`Error checking already-sent for ${drip.key}:`, alreadySentError);
+      continue;
+    }
+
+    const sentIds = new Set((alreadySent || []).map((r) => r.profile_id));
+    const toSend = candidates.filter((c) => !sentIds.has(c.id));
+
+    for (const profile of toSend) {
+      if (!profile.user_id) {
+        summary[drip.key].skipped++;
+        continue;
+      }
+
+      try {
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
+          profile.user_id
+        );
+        const email = userData?.user?.email;
+        if (userError || !email) {
+          summary[drip.key].skipped++;
+          continue;
+        }
+
+        const firstName = (profile.display_name || email.split("@")[0]).split(" ")[0];
+
+        await sendBrandedEmail({
+          to: email,
+          subject: drip.subject,
+          paragraphs: renderTemplateBody(drip.body, { firstName, appUrl }),
+          appUrl,
+          signOff: drip.sign_off,
+        });
+
+        const { error: insertError } = await supabase
+          .from("drip_emails_sent")
+          .insert({ profile_id: profile.id, email_key: drip.key });
+        if (insertError) {
+          console.error(
+            `Sent ${drip.key} to profile ${profile.id} but failed to record it:`,
+            insertError
+          );
+        }
+
+        summary[drip.key].sent++;
+      } catch (err) {
+        console.error(`Error sending ${drip.key} to profile ${profile.id}:`, err);
+        summary[drip.key].failed++;
+      }
+    }
+  }
+
+  // Second drip: signup-anchored reminders for members who never completed
+  // onboarding (migration 061). Separate query shape from the loop above
+  // (created_at + completed_onboarding, not onboarding_completed_at), so
+  // kept as its own loop rather than forced into the same one.
+  const { data: incompleteDrips, error: incompleteDripsError } = await supabase
+    .from("email_templates")
+    .select("key, subject, body, sign_off, days_after_signup_if_incomplete")
+    .not("days_after_signup_if_incomplete", "is", null)
+    .eq("active", true);
+
+  if (incompleteDripsError) {
+    console.error("Error fetching onboarding-incomplete drip templates:", incompleteDripsError);
+    return NextResponse.json({ summary });
+  }
+
+  for (const drip of incompleteDrips || []) {
+    summary[drip.key] = { sent: 0, failed: 0, skipped: 0 };
+
+    const thresholdDate = new Date(
+      Date.now() - drip.days_after_signup_if_incomplete * 24 * 60 * 60 * 1000
+    ).toISOString();
+
+    const { data: candidates, error: candidatesError } = await supabase
+      .from("profiles")
+      .select("id, user_id, display_name")
+      .or("completed_onboarding.is.null,completed_onboarding.eq.false")
+      .lte("created_at", thresholdDate);
 
     if (candidatesError) {
       console.error(`Error fetching candidates for ${drip.key}:`, candidatesError);

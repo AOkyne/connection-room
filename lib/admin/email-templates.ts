@@ -7,6 +7,7 @@ export interface EmailTemplate {
   body: string;
   sign_off: string;
   days_after_onboarding: number | null;
+  days_after_signup_if_incomplete: number | null;
   active: boolean;
   updated_at: string;
 }

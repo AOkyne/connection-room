@@ -9,7 +9,9 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await auth.supabase
     .from("email_templates")
-    .select("id, key, subject, body, sign_off, days_after_onboarding, active, updated_at")
+    .select(
+      "id, key, subject, body, sign_off, days_after_onboarding, days_after_signup_if_incomplete, active, updated_at"
+    )
     .order("days_after_onboarding", { ascending: true, nullsFirst: true });
 
   if (error) {
@@ -47,7 +49,9 @@ export async function PATCH(request: NextRequest) {
     .from("email_templates")
     .update(updates)
     .eq("id", id)
-    .select("id, key, subject, body, sign_off, days_after_onboarding, active, updated_at")
+    .select(
+      "id, key, subject, body, sign_off, days_after_onboarding, days_after_signup_if_incomplete, active, updated_at"
+    )
     .maybeSingle();
 
   if (error) {
