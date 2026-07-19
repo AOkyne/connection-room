@@ -3,6 +3,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession, clearSession, type AppSession } from "@/lib/session";
+import { getProfile } from "@/lib/data/profiles";
 import { recordAppVisit, getTotalNewPostCount } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
 import { IconHome, IconJourney, IconConnectionsNav, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming, IconReflection, IconWelcome } from "@/components/Icons";
@@ -21,7 +22,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const [mounted, setMounted] = useState(false);
   const [totalUnread, setTotalUnread] = useState(0);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     const checkSession = async () => {
       // Check localStorage first for demo sessions (faster, avoids async delays)
@@ -44,10 +44,31 @@ export default function AppLayout({ children }: AppLayoutProps) {
       const s = await getSession();
       if (!s) {
         router.push("/auth");
-      } else {
-        setSession(s);
-        recordAppVisit();
+        setMounted(true);
+        return;
       }
+
+      // A member whose onboarding was reset (admin "Reset Progress" action,
+      // or anyone who simply never finished) has completed_onboarding:
+      // false in their real profile row, but nothing about signing in
+      // itself ever checked that -- only a brand-new signup redirects to
+      // /onboarding, so a reset member just landed on the normal Home
+      // dashboard as if nothing had changed. Admin-type sessions are
+      // exempt (same reasoning as isAdminSessionCached() elsewhere): an
+      // admin browsing /app/admin shouldn't get bounced into the member
+      // onboarding wizard just because their own account never completed
+      // it.
+      if (s.type === "member") {
+        const profile = await getProfile();
+        if (profile && !profile.completedOnboarding) {
+          router.push("/onboarding");
+          setMounted(true);
+          return;
+        }
+      }
+
+      setSession(s);
+      recordAppVisit();
       setMounted(true);
     };
 
