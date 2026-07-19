@@ -4,6 +4,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession, clearSession, type AppSession } from "@/lib/session";
 import { getProfile } from "@/lib/data/profiles";
+import { supabase } from "@/lib/supabase/client";
 import { recordAppVisit, getTotalNewPostCount } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
 import { IconHome, IconJourney, IconConnectionsNav, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming, IconReflection, IconWelcome } from "@/components/Icons";
@@ -64,6 +65,15 @@ export default function AppLayout({ children }: AppLayoutProps) {
           router.push("/onboarding");
           setMounted(true);
           return;
+        }
+
+        // A member who deactivated their own account (see
+        // lib/account/actions.ts) is hidden from other members until they
+        // come back -- arriving here at all means they just signed back in
+        // with their real credentials, which is the "I'm back" signal, so
+        // reactivate automatically rather than requiring a separate step.
+        if (profile?.deactivatedAt && supabase) {
+          await supabase.from("profiles").update({ deactivated_at: null }).eq("user_id", s.id);
         }
       }
 

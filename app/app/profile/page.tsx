@@ -21,6 +21,7 @@ import { InvitePanel } from "@/components/invites/InvitePanel";
 import { FriendsInvited } from "@/components/invites/FriendsInvited";
 import { ProfileVisibilitySettings } from "@/components/members/ProfileVisibilitySettings";
 import { NotificationPreferencesSettings } from "@/components/members/NotificationPreferencesSettings";
+import { AccountDangerZone } from "@/components/members/AccountDangerZone";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -513,6 +514,8 @@ export default function ProfilePage() {
       <Button variant="primary" size="lg" onClick={handleSave}>
         Save Profile
       </Button>
+
+      <AccountDangerZone />
     </div>
   );
 }

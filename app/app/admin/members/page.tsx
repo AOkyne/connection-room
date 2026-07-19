@@ -521,6 +521,11 @@ export default function AdminMembersPage() {
                   ) : (
                     <p>⏳ Onboarding incomplete</p>
                   )}
+                  {member.deactivatedAt && (
+                    <p className="text-[#a84a2a]">
+                      🚫 Deactivated {new Date(member.deactivatedAt).toLocaleDateString()}
+                    </p>
+                  )}
                   {member.joinedAt && (
                     <p>
                       Joined{" "}

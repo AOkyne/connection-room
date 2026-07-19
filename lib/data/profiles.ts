@@ -38,6 +38,7 @@ export interface Profile {
   welcomeVideoWatched?: boolean;
   welcomeVideoWatchedAt?: Date;
   onboardingCompletedAt?: Date;
+  deactivatedAt?: Date;
 }
 
 // The member-visible slice of a profile -- everything public_profiles_view
@@ -172,7 +173,7 @@ export async function getProfile(): Promise<Profile | null> {
       const queryPromise = supabase
         .from("profiles")
         .select(
-          "user_id, first_name, last_name, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, first_prompt_response, first_prompt_is_public, completed_onboarding, spaces_joined, created_at, welcome_video_watched, welcome_video_watched_at, onboarding_completed_at"
+          "user_id, first_name, last_name, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, first_prompt_response, first_prompt_is_public, completed_onboarding, spaces_joined, created_at, welcome_video_watched, welcome_video_watched_at, onboarding_completed_at, deactivated_at"
         )
         .eq("user_id", userId)
         .single();
@@ -215,6 +216,7 @@ export async function getProfile(): Promise<Profile | null> {
           welcomeVideoWatched: data.welcome_video_watched || false,
           welcomeVideoWatchedAt: data.welcome_video_watched_at ? new Date(data.welcome_video_watched_at) : undefined,
           onboardingCompletedAt: data.onboarding_completed_at ? new Date(data.onboarding_completed_at) : undefined,
+          deactivatedAt: data.deactivated_at ? new Date(data.deactivated_at) : undefined,
         };
       }
     } catch (err) {
@@ -616,7 +618,7 @@ export async function getAllProfilesLite(): Promise<Profile[]> {
     const { data, error } = await supabase
       .from("profiles")
       .select(
-        "id, first_name, last_name, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, completed_onboarding, spaces_joined, created_at, updated_at, is_seeded"
+        "id, first_name, last_name, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, completed_onboarding, spaces_joined, created_at, updated_at, is_seeded, deactivated_at"
       )
       .order("display_name");
 
@@ -651,6 +653,7 @@ export async function getAllProfilesLite(): Promise<Profile[]> {
       joinedAt: new Date(p.created_at),
       lastActive: p.updated_at ? new Date(p.updated_at) : undefined,
       is_demo_profile: p.is_seeded,
+      deactivatedAt: p.deactivated_at ? new Date(p.deactivated_at) : undefined,
     }));
   } catch (err) {
     console.error("Error fetching profiles (lite):", err);
@@ -791,12 +794,14 @@ export async function getPublicProfilesBySpace(spaceId: string): Promise<Communi
 
     // Excludes members who haven't completed onboarding (migration 059) --
     // an unfinished profile shouldn't be shown to other members as if it
-    // were a real, present community member yet.
+    // were a real, present community member yet -- and members who've
+    // deactivated their own account (migration 062).
     const { data, error } = await supabase
       .from("public_profiles_view")
       .select("*")
       .in("user_id", memberUserIds)
       .eq("completed_onboarding", true)
+      .is("deactivated_at", null)
       .order("display_name");
 
     if (error) {
@@ -821,13 +826,15 @@ export async function getDiscoverableMembers(limit: number = 20): Promise<Commun
   if (!supabase) return [];
 
   try {
-    // Excludes members who haven't completed onboarding (migration 059) --
-    // same rationale as getPublicProfilesBySpace().
+    // Excludes members who haven't completed onboarding (migration 059) and
+    // members who've deactivated their own account (migration 062) -- same
+    // rationale as getPublicProfilesBySpace().
     const { data, error } = await supabase
       .from("public_profiles_view")
       .select("*")
       .eq("show_in_discovery", true)
       .eq("completed_onboarding", true)
+      .is("deactivated_at", null)
       .limit(limit);
 
     if (error) {
