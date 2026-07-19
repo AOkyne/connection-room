@@ -92,8 +92,8 @@ SELECT
   CASE WHEN show_quiz_result THEN quiz_result ELSE NULL END AS quiz_result,
   CASE WHEN show_connection_comfort_level THEN connection_comfort_level ELSE NULL END AS connection_comfort_level,
   CASE WHEN show_selected_reflection THEN selected_reflection ELSE NULL END AS selected_reflection,
-  completed_onboarding,
   created_at AS member_since,
+  completed_onboarding,
   deactivated_at
 FROM public_profiles;
 
