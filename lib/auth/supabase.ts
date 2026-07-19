@@ -3,6 +3,7 @@
 
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import { createInviteRelationship, getStoredInviteCode, clearStoredInviteCode } from "@/lib/data/invites";
+import { generateInviteCode } from "@/lib/utils/invite-code";
 
 export interface AuthUser {
   id: string;
@@ -132,11 +133,20 @@ export async function signUpWithPassword(
     // Create profile for the new user
     if (signUpData.user) {
       console.log("Creating profile for user:", signUpData.user.id);
+      // Generated up front rather than lazily on first Profile-page visit
+      // (the previous behavior, via ensureInviteCode()) -- that left most
+      // real members with no invite_code at all, since nothing else in the
+      // app ever called it. Collisions against the DB's UNIQUE constraint
+      // are astronomically unlikely at this member count (36^6 combinations
+      // per slug) and aren't retried here, same as ensureInviteCode() itself
+      // doesn't retry.
       const { error: profileError } = await supabase.from("profiles").insert({
         user_id: signUpData.user.id,
         display_name: displayName || email.split("@")[0],
         member_type: "individual",
         completed_onboarding: false,
+        invite_code: generateInviteCode(displayName || email.split("@")[0]),
+        invite_code_created_at: new Date().toISOString(),
       });
       if (profileError) {
         console.error("Profile insert error:", profileError);
