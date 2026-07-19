@@ -177,6 +177,21 @@ export default function SpaceDetailPage() {
   const handleCreatePost = async () => {
     const trimmedContent = newPostContent.trim();
 
+    // Members who never finished onboarding still have profile.displayName
+    // set to their raw email prefix (e.g. "oxalarws") -- there's nothing
+    // elsewhere in the posting flow that stops them from posting under
+    // that placeholder name, so gate it here explicitly rather than
+    // silently letting a not-a-real-name identity post.
+    if (!profile.firstName?.trim() || !profile.lastName?.trim()) {
+      showToast(
+        "Add your first and last name to your profile before posting.",
+        "warning",
+        5000,
+        { label: "Go to Profile", onClick: () => router.push("/app/profile") }
+      );
+      return;
+    }
+
     // Validation
     if (!trimmedContent) {
       showToast("Please write something before posting", "warning");
@@ -227,6 +242,17 @@ export default function SpaceDetailPage() {
   const handleAddComment = async (postId: string) => {
     const content = newCommentContent[postId];
     const trimmedContent = content?.trim();
+
+    // Same rationale as handleCreatePost's gate above.
+    if (!profile.firstName?.trim() || !profile.lastName?.trim()) {
+      showToast(
+        "Add your first and last name to your profile before commenting.",
+        "warning",
+        5000,
+        { label: "Go to Profile", onClick: () => router.push("/app/profile") }
+      );
+      return;
+    }
 
     // Validation
     if (!trimmedContent) {

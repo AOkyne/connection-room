@@ -63,6 +63,15 @@ export default function ReflectPage() {
     e.preventDefault();
     if (!response.trim() || !selectedSpaceId) return;
 
+    // Same rationale as the space page's post/comment gate: a member who
+    // never finished onboarding still has profile.displayName set to their
+    // raw email prefix, and nothing else here stops them from posting
+    // under that placeholder name.
+    if (!profile.firstName?.trim() || !profile.lastName?.trim()) {
+      setError("Add your first and last name to your profile before posting.");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
     try {
