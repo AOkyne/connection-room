@@ -9,6 +9,7 @@ import {
   hasJoinedSpace as checkHasJoinedSpace,
   getNewContentCount,
   updateSpaceVisit,
+  updateAllSpaceVisits,
   getAllNewContent,
 } from "./supabase-spaces";
 
@@ -272,6 +273,29 @@ export async function trackSpaceVisit(spaceId: string): Promise<void> {
     const key = `connection-room:space-visit-${spaceId}`;
     localStorage.setItem(key, new Date().toISOString());
   }
+}
+
+// Mark every joined space as visited at once -- called when the Spaces
+// list itself loads, since seeing each space's new-post badge there is
+// already a real "I saw this" signal. Previously the only thing that ever
+// advanced last_visited_at was opening one specific space's own thread, so
+// a space nobody happened to click into kept accumulating "new" posts
+// indefinitely even across many sign-ins and Home-page visits. Fire this
+// after the list's own badges are computed/rendered from the pre-update
+// counts, not before -- otherwise this visit's badges would already read 0.
+export async function markAllSpacesAsVisited(): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  const userId = await getCurrentUserId();
+  if (userId && supabase) {
+    try {
+      await updateAllSpaceVisits(userId);
+    } catch (err) {
+      console.warn("Error marking all spaces visited:", err);
+    }
+  }
+  // No demo-mode fallback -- demo mode has no real per-space badges to
+  // clear (getSpaceNewPostCount() already returns 0 for it).
 }
 
 // Get new post count for a space

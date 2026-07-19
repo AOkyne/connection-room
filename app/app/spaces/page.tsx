@@ -8,7 +8,7 @@ import { Button } from "@/components/Button";
 import { SpaceIconSVG } from "@/components/SpaceIconSVG";
 import { SpaceJoinedFeedback } from "@/components/feedback";
 import { Breadcrumb } from "@/components/Breadcrumb";
-import { getSpaces, joinSpace, leaveSpace, ensureRequiredSpaces, sortSpacesByPreference, saveSpaceOrder, isStartHereRequired, getAppVisits, getSpacesWithNewCounts, trackSpaceVisit, type Space } from "@/lib/data/spaces";
+import { getSpaces, joinSpace, leaveSpace, ensureRequiredSpaces, sortSpacesByPreference, saveSpaceOrder, isStartHereRequired, getAppVisits, getSpacesWithNewCounts, markAllSpacesAsVisited, type Space } from "@/lib/data/spaces";
 import { getMemberCountBySpace } from "@/lib/data/profiles";
 import { spaceImageMap } from "@/lib/constants/spaceImages";
 
@@ -26,6 +26,12 @@ export default function SpacesPage() {
       const s = await getSpacesWithNewCounts();
       const sorted = sortSpacesByPreference(s);
       setSpaces(sorted);
+
+      // Fire-and-forget, and only after the above has already captured
+      // this visit's badge counts -- marks every joined space visited so
+      // the sidebar/Home "new posts" badges clear now that this list has
+      // been seen, without blocking the page on it.
+      markAllSpacesAsVisited();
 
       // Load member counts for each space
       const counts: Record<string, number> = {};

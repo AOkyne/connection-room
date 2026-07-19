@@ -228,6 +228,33 @@ export async function updateSpaceVisit(userId: string, spaceId: string): Promise
   }
 }
 
+// Update last_visited_at across every space a user has joined, in one
+// query. Used when the Spaces list itself (not an individual space's
+// thread) counts as having "seen" what's new -- the list already shows
+// each space's new-post badge, so opening it is a real "I saw this"
+// signal, not just a UI nicety. A single UPDATE ... WHERE user_id, not one
+// query per space -- the list can show a dozen+ joined spaces at once.
+export async function updateAllSpaceVisits(userId: string): Promise<boolean> {
+  if (!supabase) return false;
+
+  try {
+    const { error } = await supabase
+      .from("space_memberships")
+      .update({ last_visited_at: new Date().toISOString() })
+      .eq("user_id", userId);
+
+    if (error) {
+      console.warn("Error updating all space visits:", error);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.warn("Error in updateAllSpaceVisits:", err);
+    return false;
+  }
+}
+
 // Get all new posts and comments across all spaces for admin
 export async function getAllNewContent(sinceMinutesAgo: number = 1440): Promise<any[]> {
   if (!supabase) return [];
