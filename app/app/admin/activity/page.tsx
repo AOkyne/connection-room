@@ -120,11 +120,20 @@ export default function ActivityFeedPage() {
         ]}
       />
 
-      <div>
-        <h1 className="text-4xl font-bold text-[#1a0f0a]">Community Activity</h1>
-        <p className="text-lg text-[#1a0f0a] mt-2">
-          Latest posts and comments across all spaces
-        </p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold text-[#1a0f0a]">Community Activity</h1>
+          <p className="text-lg text-[#1a0f0a] mt-2">
+            Latest posts and comments across all spaces
+          </p>
+        </div>
+        <button
+          onClick={() => router.back()}
+          className="text-[#d4a348] hover:text-[#c9956d] transition-colors text-sm whitespace-nowrap"
+          aria-label="Go back"
+        >
+          ← Back
+        </button>
       </div>
 
       {/* Time Filter */}

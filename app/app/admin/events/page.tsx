@@ -182,11 +182,20 @@ export default function AdminEventsPage() {
           <h1 className="text-3xl font-bold text-[#1a0f0a]">Events</h1>
           <p className="text-[#a0704a] mt-1">Manage community events</p>
         </div>
-        <Link href="/app/admin/events/new">
-          <Button variant="primary" size="md">
-            + Create Event
-          </Button>
-        </Link>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.back()}
+            className="text-[#d4a348] hover:text-[#c9956d] transition-colors text-sm whitespace-nowrap"
+            aria-label="Go back"
+          >
+            ← Back
+          </button>
+          <Link href="/app/admin/events/new">
+            <Button variant="primary" size="md">
+              + Create Event
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="flex gap-2">

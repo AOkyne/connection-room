@@ -117,11 +117,20 @@ export default function AdminBroadcastPage() {
     <div className="space-y-6">
       <Breadcrumb items={[{ label: "Admin", href: "/app/admin" }, { label: "Broadcast Email" }]} />
 
-      <div>
-        <h1 className="text-4xl text-[#1a0f0a]">Broadcast Email</h1>
-        <p className="text-lg text-[#1a0f0a] mt-2">
-          Announce events and news to your members by email
-        </p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-4xl text-[#1a0f0a]">Broadcast Email</h1>
+          <p className="text-lg text-[#1a0f0a] mt-2">
+            Announce events and news to your members by email
+          </p>
+        </div>
+        <button
+          onClick={() => router.back()}
+          className="text-[#d4a348] hover:text-[#c9956d] transition-colors text-sm whitespace-nowrap"
+          aria-label="Go back"
+        >
+          ← Back
+        </button>
       </div>
 
       <Card className="space-y-4">

@@ -164,8 +164,15 @@ export default function InvitesAdmin() {
           { label: "Invite Relationships", isActive: true },
         ]}
       />
-      <div>
+      <div className="flex items-center justify-between gap-4">
         <h1 className="text-3xl text-[#1a0f0a]">Invite Relationships</h1>
+        <button
+          onClick={() => router.back()}
+          className="text-[#d4a348] hover:text-[#c9956d] transition-colors text-sm whitespace-nowrap"
+          aria-label="Go back"
+        >
+          ← Back
+        </button>
       </div>
 
       <Card>

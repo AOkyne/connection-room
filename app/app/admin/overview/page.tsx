@@ -110,9 +110,18 @@ export default function AdminOverviewPage() {
       />
 
       {/* Header */}
-      <div>
-        <h1 className="text-4xl font-bold text-[#1a0f0a]">Analytics</h1>
-        <p className="text-lg text-[#a0704a] mt-2">Community metrics and performance</p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold text-[#1a0f0a]">Analytics</h1>
+          <p className="text-lg text-[#a0704a] mt-2">Community metrics and performance</p>
+        </div>
+        <button
+          onClick={() => router.back()}
+          className="text-[#d4a348] hover:text-[#c9956d] transition-colors text-sm whitespace-nowrap"
+          aria-label="Go back"
+        >
+          ← Back
+        </button>
       </div>
 
       {/* Setup Status Info */}

@@ -349,11 +349,20 @@ export default function AdminMembersPage() {
           { label: "Members", isActive: true },
         ]}
       />
-      <div>
-        <h1 className="text-3xl font-bold text-[#1a0f0a]">Members</h1>
-        <p className="text-[#a0704a] mt-1">
-          Manage community members ({filteredMembers.length} of {members.length})
-        </p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-[#1a0f0a]">Members</h1>
+          <p className="text-[#a0704a] mt-1">
+            Manage community members ({filteredMembers.length} of {members.length})
+          </p>
+        </div>
+        <button
+          onClick={() => router.back()}
+          className="text-[#d4a348] hover:text-[#c9956d] transition-colors text-sm whitespace-nowrap"
+          aria-label="Go back"
+        >
+          ← Back
+        </button>
       </div>
 
       {loadError && (

@@ -114,12 +114,21 @@ export default function AdminEmailsPage() {
           { label: "Automated Emails", isActive: true },
         ]}
       />
-      <div>
-        <h1 className="text-3xl font-bold text-[#1a0f0a]">Automated Emails</h1>
-        <p className="text-[#a0704a] mt-1">
-          Edit the welcome email, the 5/14/30-day follow-up sequence, and the 1/3/5-day
-          incomplete-profile reminders. Changes take effect immediately — no code deploy needed.
-        </p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-[#1a0f0a]">Automated Emails</h1>
+          <p className="text-[#a0704a] mt-1">
+            Edit the welcome email, the 5/14/30-day follow-up sequence, and the 1/3/5-day
+            incomplete-profile reminders. Changes take effect immediately — no code deploy needed.
+          </p>
+        </div>
+        <button
+          onClick={() => router.back()}
+          className="text-[#d4a348] hover:text-[#c9956d] transition-colors text-sm whitespace-nowrap"
+          aria-label="Go back"
+        >
+          ← Back
+        </button>
       </div>
 
       <div className="flex flex-wrap gap-2">

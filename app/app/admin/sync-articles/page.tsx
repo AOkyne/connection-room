@@ -61,12 +61,23 @@ export default function SyncArticlesAdmin() {
               { label: "Sync Substack Articles", isActive: true },
             ]}
           />
-          <h1 className="text-3xl font-bold text-[#1a0f0a] mb-2 mt-4">
-            Sync Substack Articles
-          </h1>
-          <p className="text-[#a0704a]">
-            Manually sync the latest articles from Substack to the dashboard
-          </p>
+          <div className="flex items-center justify-between gap-4 mt-4">
+            <div>
+              <h1 className="text-3xl font-bold text-[#1a0f0a] mb-2">
+                Sync Substack Articles
+              </h1>
+              <p className="text-[#a0704a]">
+                Manually sync the latest articles from Substack to the dashboard
+              </p>
+            </div>
+            <button
+              onClick={() => router.back()}
+              className="text-[#d4a348] hover:text-[#c9956d] transition-colors text-sm whitespace-nowrap"
+              aria-label="Go back"
+            >
+              ← Back
+            </button>
+          </div>
         </div>
 
         {/* Info Box */}

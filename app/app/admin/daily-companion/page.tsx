@@ -164,9 +164,18 @@ export default function AdminDailyCompanion() {
           { label: "Daily Companion", isActive: true },
         ]}
       />
-      <div>
-        <h1 className="text-4xl font-bold text-[#1a0f0a]">Daily Companion Admin</h1>
-        <p className="text-[#1a0f0a] mt-2">Manage daily content and weekly notes</p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold text-[#1a0f0a]">Daily Companion Admin</h1>
+          <p className="text-[#1a0f0a] mt-2">Manage daily content and weekly notes</p>
+        </div>
+        <button
+          onClick={() => router.back()}
+          className="text-[#d4a348] hover:text-[#c9956d] transition-colors text-sm whitespace-nowrap"
+          aria-label="Go back"
+        >
+          ← Back
+        </button>
       </div>
 
       {/* Tabs */}
