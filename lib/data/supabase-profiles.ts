@@ -66,6 +66,15 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
           welcome_video_watched: profile.welcomeVideoWatched,
           welcome_video_watched_at: profile.welcomeVideoWatchedAt,
           onboarding_completed_at: profile.onboardingCompletedAt,
+          // Migration 065: previously typed on the Profile interface and
+          // read/written by the onboarding page, but with no backing
+          // column here -- silently dropped on every save, so the photo
+          // step's confirmation checkbox reset on every reload and
+          // onboarding never remembered which step a member was on.
+          onboarding_step: profile.onboardingStep,
+          photo_confirmed: profile.photo_confirmed,
+          photo_confirmed_at: profile.photo_confirmed_at,
+          profile_tagline: profile.profile_tagline,
           updated_at: new Date(),
         },
         { onConflict: "user_id" }
@@ -118,6 +127,10 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
         welcomeVideoWatched: profileData.welcome_video_watched || false,
         welcomeVideoWatchedAt: profileData.welcome_video_watched_at ? new Date(profileData.welcome_video_watched_at) : undefined,
         onboardingCompletedAt: profileData.onboarding_completed_at ? new Date(profileData.onboarding_completed_at) : undefined,
+        onboardingStep: profileData.onboarding_step || undefined,
+        photo_confirmed: profileData.photo_confirmed || false,
+        photo_confirmed_at: profileData.photo_confirmed_at ? new Date(profileData.photo_confirmed_at) : undefined,
+        profile_tagline: profileData.profile_tagline || undefined,
       }
     : null;
 }

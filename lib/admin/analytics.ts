@@ -53,6 +53,82 @@ export interface OfferStats {
   totalOffers: number;
 }
 
+// Furthest onboarding step an incomplete member has actually reached,
+// inferred from which profile columns are non-null (mirrors the step
+// order in app/onboarding/page.tsx) -- there's no persisted step-index
+// column from before migration 065, so this is the only way to see the
+// funnel for profiles that stalled prior to that migration shipping.
+export type OnboardingFunnelStep =
+  | "member-type"
+  | "basics"
+  | "photo"
+  | "interests"
+  | "connections"
+  | "prompt";
+
+export interface OnboardingFunnelStats {
+  completed: number;
+  incompleteByStep: Record<OnboardingFunnelStep, number>;
+  // Reached "connections" or "prompt" (i.e. did essentially everything)
+  // but never clicked the final "Enter the Community" button -- the
+  // group most likely stuck by the resume-step bug migration 065 fixes,
+  // not by having actually abandoned onboarding early.
+  nearComplete: number;
+}
+
+// Get onboarding funnel breakdown (real members only, excludes seeded/demo)
+export async function getOnboardingFunnel(): Promise<OnboardingFunnelStats> {
+  const empty: OnboardingFunnelStats = {
+    completed: 0,
+    incompleteByStep: { "member-type": 0, basics: 0, photo: 0, interests: 0, connections: 0, prompt: 0 },
+    nearComplete: 0,
+  };
+  if (!supabase) return empty;
+
+  try {
+    // Deliberately excludes profile_photo (legacy base64) -- bulk-selecting
+    // it across every incomplete row has hit Postgres's statement timeout
+    // outright (same issue fixed in scripts/migrate-profile-photos-to-
+    // storage.mjs). profile_photo_path is enough to know a photo step was
+    // reached for any row that's gone through migration 064's backfill or
+    // uploaded since; a handful of not-yet-migrated legacy-only photos
+    // could under-count the "photo" bucket slightly, not worth the risk
+    // of the query timing out for every admin dashboard load.
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("completed_onboarding, member_type, first_name, last_name, profile_photo_path, interests, connection_comfort_level, first_prompt_response")
+      .eq("is_seeded", false);
+
+    if (error) throw error;
+
+    const rows = data || [];
+    const completed = rows.filter((p: any) => p.completed_onboarding).length;
+    const incomplete = rows.filter((p: any) => !p.completed_onboarding);
+
+    function furthestStep(p: any): OnboardingFunnelStep {
+      if (p.first_prompt_response) return "prompt";
+      if (p.connection_comfort_level) return "connections";
+      if (p.interests && p.interests.length > 0) return "interests";
+      if (p.profile_photo_path) return "photo";
+      if (p.first_name || p.last_name) return "basics";
+      return "member-type";
+    }
+
+    const incompleteByStep = { "member-type": 0, basics: 0, photo: 0, interests: 0, connections: 0, prompt: 0 };
+    let nearComplete = 0;
+    incomplete.forEach((p: any) => {
+      const step = furthestStep(p);
+      incompleteByStep[step]++;
+      if (step === "connections" || step === "prompt") nearComplete++;
+    });
+
+    return { completed, incompleteByStep, nearComplete };
+  } catch (err) {
+    console.error("Error fetching onboarding funnel:", err);
+    return empty;
+  }
+}
+
 export interface SeededContentStats {
   seededProfiles: number;
   seededPosts: number;

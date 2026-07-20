@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getProfile, updateProfile, type Profile } from "@/lib/data/profiles";
+import {
+  getProfile,
+  updateProfile,
+  getCoupleProfileFromSupabase,
+  saveCoupleProfileToSupabase,
+  type Profile,
+} from "@/lib/data/profiles";
 import { uploadProfilePhoto } from "@/lib/utils/storage";
 import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
@@ -12,6 +18,8 @@ import { WelcomeVideoStep } from "@/components/onboarding/WelcomeVideoStep";
 import Link from "next/link";
 
 type Step = "welcome" | "agreements" | "member-type" | "basics" | "photo" | "interests" | "connections" | "couples" | "prompt" | "complete";
+
+const ALL_STEPS: Step[] = ["welcome", "agreements", "member-type", "basics", "photo", "interests", "connections", "couples", "prompt", "complete"];
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -25,18 +33,57 @@ export default function OnboardingPage() {
   const [hasAttemptedCompletion, setHasAttemptedCompletion] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+  const [coupleDisplayName, setCoupleDisplayName] = useState("");
+  const [coupleGoals, setCoupleGoals] = useState<string[]>([]);
 
   useEffect(() => {
     const loadProfile = async () => {
       const p = await getProfile();
       if (!p) {
         router.push("/auth");
-      } else {
-        setProfile(p);
-        if (p.completedOnboarding) {
-          router.push("/app");
+        setIsLoading(false);
+        return;
+      }
+
+      setProfile(p);
+      if (p.completedOnboarding) {
+        router.push("/app");
+        setIsLoading(false);
+        return;
+      }
+
+      // Restore couple mode from the saved member type -- without this, a
+      // couple who picked "couple" on the member-type step, then reloaded
+      // (or resumed via onboardingStep below) lost coupleMode back to its
+      // false default, silently dropping the "couples" step from their
+      // flow even though their profile says they're a couple.
+      const isCouple = p.memberType === "couple";
+      setCoupleMode(isCouple);
+
+      // Resume where they left off instead of always restarting at
+      // "welcome" -- see migration 065's comment: combined with
+      // app/app/layout.tsx's redirect-to-/onboarding for anyone with
+      // completedOnboarding=false, a member who got most of the way
+      // through and closed the tab before the final "Enter the Community"
+      // click was otherwise sent back to step 1 every time they returned.
+      // Only trust a saved step that's actually valid for this member's
+      // current couple/individual flow (couples adds a "couples" step
+      // between connections and prompt).
+      const validSteps = isCouple
+        ? ALL_STEPS
+        : ALL_STEPS.filter((s) => s !== "couples");
+      if (p.onboardingStep && validSteps.includes(p.onboardingStep as Step)) {
+        setCurrentStep(p.onboardingStep as Step);
+      }
+
+      if (isCouple) {
+        const couple = await getCoupleProfileFromSupabase(p.id);
+        if (couple) {
+          setCoupleDisplayName(couple.coupleDisplayName || "");
+          setCoupleGoals(couple.coupleGoals || []);
         }
       }
+
       setIsLoading(false);
     };
 
@@ -66,14 +113,20 @@ export default function OnboardingPage() {
   const handleNext = () => {
     const nextIndex = currentIndex + 1;
     if (nextIndex < steps.length) {
-      setCurrentStep(steps[nextIndex]);
+      const next = steps[nextIndex];
+      setCurrentStep(next);
+      // Fire-and-forget: don't block navigation on this save, but do
+      // persist it so a reload/return resumes here instead of "welcome".
+      updateProfile({ onboardingStep: next }).catch(() => {});
     }
   };
 
   const handleBack = () => {
     const prevIndex = currentIndex - 1;
     if (prevIndex >= 0) {
-      setCurrentStep(steps[prevIndex]);
+      const prev = steps[prevIndex];
+      setCurrentStep(prev);
+      updateProfile({ onboardingStep: prev }).catch(() => {});
     }
   };
 
@@ -751,6 +804,12 @@ export default function OnboardingPage() {
                   <label className="block text-sm font-medium text-[#1a0f0a] mb-2">Couple Name (optional)</label>
                   <input
                     type="text"
+                    value={coupleDisplayName}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setCoupleDisplayName(value);
+                      saveCoupleProfileToSupabase(profile.id, { coupleDisplayName: value });
+                    }}
                     placeholder="How would you like to be known as a couple?"
                     className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
                   />
@@ -760,7 +819,18 @@ export default function OnboardingPage() {
                   <div className="space-y-2">
                     {appConfig.coupleGoals.map((goal) => (
                       <label key={goal} className="flex items-center gap-3 p-2 hover:bg-[#f3ede5] rounded-lg cursor-pointer">
-                        <input type="checkbox" className="w-5 h-5" />
+                        <input
+                          type="checkbox"
+                          checked={coupleGoals.includes(goal)}
+                          onChange={(e) => {
+                            const updated = e.target.checked
+                              ? [...coupleGoals, goal]
+                              : coupleGoals.filter((g) => g !== goal);
+                            setCoupleGoals(updated);
+                            saveCoupleProfileToSupabase(profile.id, { coupleGoals: updated });
+                          }}
+                          className="w-5 h-5"
+                        />
                         <span className="text-sm text-[#1a0f0a]">{goal}</span>
                       </label>
                     ))}

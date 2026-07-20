@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
-import { getMemberStats, getActivityStats, getEventStats, getOfferStats, getSeededContentStats, getSpaceStats, type MemberStats, type ActivityStats, type EventStats, type OfferStats, type SeededContentStats, type SpaceStats } from "@/lib/admin/analytics";
+import { getMemberStats, getActivityStats, getEventStats, getOfferStats, getSeededContentStats, getSpaceStats, getOnboardingFunnel, type MemberStats, type ActivityStats, type EventStats, type OfferStats, type SeededContentStats, type SpaceStats, type OnboardingFunnelStats } from "@/lib/admin/analytics";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { Breadcrumb } from "@/components/Breadcrumb";
@@ -19,6 +19,7 @@ export default function AdminOverviewPage() {
   const [offerStats, setOfferStats] = useState<OfferStats | null>(null);
   const [seededStats, setSeededStats] = useState<SeededContentStats | null>(null);
   const [spaceStats, setSpaceStats] = useState<SpaceStats[]>([]);
+  const [onboardingFunnel, setOnboardingFunnel] = useState<OnboardingFunnelStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export default function AdminOverviewPage() {
       }
 
       try {
-        const [members, activity, events, offers, seeded, spaces] = await Promise.all([
+        const [members, activity, events, offers, seeded, spaces, funnel] = await Promise.all([
           getMemberStats().catch(() => ({
             totalMembers: 0,
             newThisWeek: 0,
@@ -72,6 +73,11 @@ export default function AdminOverviewPage() {
             realOffers: 0,
           })),
           getSpaceStats().catch(() => []),
+          getOnboardingFunnel().catch(() => ({
+            completed: 0,
+            incompleteByStep: { "member-type": 0, basics: 0, photo: 0, interests: 0, connections: 0, prompt: 0 },
+            nearComplete: 0,
+          })),
         ]);
 
         setMemberStats(members);
@@ -80,6 +86,7 @@ export default function AdminOverviewPage() {
         setOfferStats(offers);
         setSeededStats(seeded);
         setSpaceStats(spaces);
+        setOnboardingFunnel(funnel);
       } catch (error) {
         console.error("Error loading admin data:", error);
       }
@@ -295,6 +302,49 @@ export default function AdminOverviewPage() {
           <p className="text-xs text-amber-900 italic pt-2">
             ⚠️ Seeded content deletion will be available after launch
           </p>
+        </div>
+      </Card>
+
+      {/* Onboarding Funnel */}
+      <Card>
+        <CardHeader title="🚪 Onboarding Funnel" />
+        <div className="space-y-4">
+          <p className="text-sm text-[#1a0f0a]">
+            Furthest step each incomplete member has reached, inferred from which profile fields are filled in
+            (there's no exact step marker for members who stalled before onboarding-resume shipped).
+          </p>
+
+          {onboardingFunnel && onboardingFunnel.nearComplete > 0 && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-800">
+                <span className="font-semibold">{onboardingFunnel.nearComplete} member{onboardingFunnel.nearComplete === 1 ? "" : "s"}</span> filled
+                in everything through their connection preference or reflection prompt, but never completed onboarding
+                — most likely to unstick.
+              </p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-3 border-t border-[#e8ddd2]">
+            {[
+              { key: "member-type", label: "Just signed up" },
+              { key: "basics", label: "Basics only" },
+              { key: "photo", label: "Photo added" },
+              { key: "interests", label: "Interests picked" },
+              { key: "connections", label: "Set preference" },
+              { key: "prompt", label: "Wrote reflection" },
+            ].map(({ key, label }) => (
+              <div key={key}>
+                <p className="text-xs text-[#a0704a] font-medium">{label}</p>
+                <p className="text-xl font-bold text-[#1a0f0a]">
+                  {onboardingFunnel?.incompleteByStep[key as keyof OnboardingFunnelStats["incompleteByStep"]] || 0}
+                </p>
+              </div>
+            ))}
+            <div>
+              <p className="text-xs text-green-700 font-medium">Completed</p>
+              <p className="text-xl font-bold text-green-700">{onboardingFunnel?.completed || 0}</p>
+            </div>
+          </div>
         </div>
       </Card>
 

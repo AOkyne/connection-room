@@ -57,6 +57,13 @@ export interface Profile {
   welcomeVideoWatchedAt?: Date;
   onboardingCompletedAt?: Date;
   deactivatedAt?: Date;
+  // Which onboarding step the wizard should resume on -- see migration
+  // 065. Without this, a member who gets most of the way through
+  // onboarding and closes the tab before the final "Enter the Community"
+  // click gets bounced back to the very first "Welcome" screen every time
+  // they return (app/app/layout.tsx redirects anyone with
+  // completedOnboarding=false straight back to /onboarding).
+  onboardingStep?: string;
 }
 
 // The member-visible slice of a profile -- everything public_profiles_view
@@ -192,7 +199,7 @@ export async function getProfile(): Promise<Profile | null> {
       const queryPromise = supabase
         .from("profiles")
         .select(
-          "user_id, first_name, last_name, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, first_prompt_response, first_prompt_is_public, completed_onboarding, spaces_joined, created_at, welcome_video_watched, welcome_video_watched_at, onboarding_completed_at, deactivated_at, profile_photo_path, profile_photo_updated_at"
+          "user_id, first_name, last_name, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, first_prompt_response, first_prompt_is_public, completed_onboarding, spaces_joined, created_at, welcome_video_watched, welcome_video_watched_at, onboarding_completed_at, deactivated_at, profile_photo_path, profile_photo_updated_at, onboarding_step, photo_confirmed, photo_confirmed_at, profile_tagline"
         )
         .eq("user_id", userId)
         .single();
@@ -242,6 +249,10 @@ export async function getProfile(): Promise<Profile | null> {
           welcomeVideoWatchedAt: data.welcome_video_watched_at ? new Date(data.welcome_video_watched_at) : undefined,
           onboardingCompletedAt: data.onboarding_completed_at ? new Date(data.onboarding_completed_at) : undefined,
           deactivatedAt: data.deactivated_at ? new Date(data.deactivated_at) : undefined,
+          onboardingStep: data.onboarding_step || undefined,
+          photo_confirmed: data.photo_confirmed || false,
+          photo_confirmed_at: data.photo_confirmed_at ? new Date(data.photo_confirmed_at) : undefined,
+          profile_tagline: data.profile_tagline || undefined,
         };
       }
     } catch (err) {
@@ -556,6 +567,70 @@ export function updateCoupleProfile(updates: Partial<CoupleProfile>): CoupleProf
   const updated = { ...profile, ...updates };
   saveCoupleProfile(updated);
   return updated;
+}
+
+// Real (Supabase-backed) couple profile, used by the onboarding "couples"
+// step for real members -- getCoupleProfile/saveCoupleProfile above are
+// localStorage-only and were never wired to any real-member write path,
+// which is why nothing typed into that step was ever saved (migration
+// 065 adds the couples_profiles INSERT/UPDATE policies and unique
+// constraint this depends on).
+export async function getCoupleProfileFromSupabase(userId: string): Promise<CoupleProfile | null> {
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from("couples_profiles")
+      .select("id, partner_1_user_id, couple_display_name, partner_2_name, partner_2_email, relationship_length, relationship_structure, couple_goals, couple_boundaries, created_at")
+      .eq("partner_1_user_id", userId)
+      .maybeSingle();
+
+    if (error || !data) return null;
+
+    return {
+      id: data.id,
+      userId: data.partner_1_user_id,
+      coupleDisplayName: data.couple_display_name || undefined,
+      partner2Name: data.partner_2_name || undefined,
+      partner2Email: data.partner_2_email || undefined,
+      relationshipLength: data.relationship_length || undefined,
+      relationshipStructure: data.relationship_structure || undefined,
+      coupleGoals: Array.isArray(data.couple_goals) ? data.couple_goals : [],
+      couplesBoundaries: data.couple_boundaries || undefined,
+      createdAt: new Date(data.created_at),
+    };
+  } catch (err) {
+    console.warn("Error fetching couple profile:", err);
+    return null;
+  }
+}
+
+export async function saveCoupleProfileToSupabase(
+  userId: string,
+  updates: Partial<Pick<CoupleProfile, "coupleDisplayName" | "coupleGoals">>
+): Promise<boolean> {
+  if (!supabase) return false;
+  const client = supabase;
+
+  const { error } = await demoSafeWrite(
+    async () =>
+      client.from("couples_profiles").upsert(
+        {
+          partner_1_user_id: userId,
+          ...(updates.coupleDisplayName !== undefined ? { couple_display_name: updates.coupleDisplayName } : {}),
+          ...(updates.coupleGoals !== undefined ? { couple_goals: updates.coupleGoals } : {}),
+          updated_at: new Date(),
+        },
+        { onConflict: "partner_1_user_id" }
+      ),
+    { context: "saveCoupleProfileToSupabase" }
+  );
+
+  if (error) {
+    console.error("Error saving couple profile:", error);
+    return false;
+  }
+  return true;
 }
 
 // Delete profile (logout)
