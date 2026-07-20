@@ -4,11 +4,26 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
+import { supabase } from "@/lib/supabase/client";
 import { getMemberStats, getActivityStats, getEventStats, getOfferStats, getSeededContentStats, getSpaceStats, getOnboardingFunnel, type MemberStats, type ActivityStats, type EventStats, type OfferStats, type SeededContentStats, type SpaceStats, type OnboardingFunnelStats } from "@/lib/admin/analytics";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { LoadingScreen } from "@/components/LoadingScreen";
+
+interface DripRecipient {
+  profileId: string;
+  name: string;
+  email: string | null;
+  emailKey: string;
+  sentAt: string;
+}
+
+const EMAIL_KEY_LABELS: Record<string, string> = {
+  "onboarding-incomplete-day1": "Day 1 reminder",
+  "onboarding-incomplete-day3": "Day 3 reminder",
+  "onboarding-incomplete-day5": "Day 5 reminder",
+};
 
 export default function AdminOverviewPage() {
   const router = useRouter();
@@ -21,6 +36,8 @@ export default function AdminOverviewPage() {
   const [spaceStats, setSpaceStats] = useState<SpaceStats[]>([]);
   const [onboardingFunnel, setOnboardingFunnel] = useState<OnboardingFunnelStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [dripRecipients, setDripRecipients] = useState<DripRecipient[] | null>(null);
+  const [dripRecipientsLoading, setDripRecipientsLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
@@ -97,6 +114,43 @@ export default function AdminOverviewPage() {
 
     loadData();
   }, [router]);
+
+  // Ground truth for "who actually got emailed" -- drip_emails_sent only
+  // gets a row after a real send succeeds, unlike the funnel above (which
+  // infers progress from filled-in fields, not send history). Separate
+  // fetch/effect since it needs an admin-authenticated API call
+  // (auth.users email lookup requires the service-role key, server-side
+  // only) rather than a plain client-side Supabase query.
+  useEffect(() => {
+    const loadRecipients = async () => {
+      if (!supabase) {
+        setDripRecipientsLoading(false);
+        return;
+      }
+      try {
+        const {
+          data: { session: authSession },
+        } = await supabase.auth.getSession();
+        const token = authSession?.access_token;
+        if (!token) {
+          setDripRecipientsLoading(false);
+          return;
+        }
+        const response = await fetch("/api/admin/drip-email-recipients?days=5", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const { recipients } = await response.json();
+          setDripRecipients(recipients);
+        }
+      } catch (err) {
+        console.error("Error loading drip email recipients:", err);
+      }
+      setDripRecipientsLoading(false);
+    };
+
+    loadRecipients();
+  }, []);
 
   if (!mounted || loading) {
     return (
@@ -345,6 +399,52 @@ export default function AdminOverviewPage() {
               <p className="text-xl font-bold text-green-700">{onboardingFunnel?.completed || 0}</p>
             </div>
           </div>
+        </div>
+      </Card>
+
+      {/* Onboarding Reminder Emails Sent */}
+      <Card>
+        <CardHeader title="📧 Onboarding Reminder Emails (Last 5 Days)" />
+        <div className="space-y-4">
+          <p className="text-sm text-[#1a0f0a]">
+            Members who were actually sent a Day 1/3/5 "finish your profile" reminder, most recent first.
+          </p>
+
+          {dripRecipientsLoading ? (
+            <p className="text-sm text-[#a0704a]">Loading...</p>
+          ) : !dripRecipients || dripRecipients.length === 0 ? (
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-sm text-amber-900">
+                No reminder emails have gone out in the last 5 days. If you were expecting some (there are
+                incomplete profiles old enough to qualify), the daily cron job itself may not be running — check
+                the Cron Jobs tab in the Vercel dashboard and confirm CRON_SECRET and SMTP env vars are set for
+                Production.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-[#a0704a] border-b border-[#e8ddd2]">
+                    <th className="py-2 pr-4">Member</th>
+                    <th className="py-2 pr-4">Email</th>
+                    <th className="py-2 pr-4">Reminder</th>
+                    <th className="py-2">Sent</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dripRecipients.map((r, idx) => (
+                    <tr key={`${r.profileId}-${r.emailKey}-${idx}`} className="border-b border-[#f3ede5]">
+                      <td className="py-2 pr-4 text-[#1a0f0a]">{r.name}</td>
+                      <td className="py-2 pr-4 text-[#1a0f0a]">{r.email || "—"}</td>
+                      <td className="py-2 pr-4 text-[#1a0f0a]">{EMAIL_KEY_LABELS[r.emailKey] || r.emailKey}</td>
+                      <td className="py-2 text-[#a0704a]">{new Date(r.sentAt).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </Card>
 
