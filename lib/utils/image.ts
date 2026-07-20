@@ -56,7 +56,15 @@ export async function resizeAndCompressImage(file: File): Promise<Blob> {
 
 async function loadImageBitmap(file: File): Promise<ImageBitmap> {
   if (typeof createImageBitmap === "function") {
-    return createImageBitmap(file);
+    // Phone photos commonly store pixel data in landscape with an EXIF
+    // orientation tag telling viewers to rotate it for display. An <img>
+    // tag honors that tag automatically, but createImageBitmap's default
+    // ("none") does not -- it hands back the raw, unrotated pixels, which
+    // then get drawn onto the canvas and re-encoded with the rotation
+    // baked in as sideways, permanently (the JPEG output has no EXIF of
+    // its own). imageOrientation: "from-image" makes it apply the tag
+    // before handing back the bitmap, matching what <img> already does.
+    return createImageBitmap(file, { imageOrientation: "from-image" });
   }
   // Safari-era fallback for browsers without createImageBitmap support.
   const url = URL.createObjectURL(file);

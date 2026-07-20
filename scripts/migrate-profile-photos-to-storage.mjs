@@ -89,6 +89,10 @@ async function migrateRow(row) {
   let compressed;
   try {
     compressed = await sharp(originalBuffer)
+      .rotate() // no-args form: auto-orient from the EXIF tag, then strip it -- without this, a phone photo's
+                // landscape-stored pixels get resized/flattened as-is and the rotation instruction is lost for
+                // good once re-encoded (this base64 source displayed correctly via <img>, which honors EXIF
+                // orientation itself, but sharp does not unless told to)
       .resize(MAX_DIMENSION, MAX_DIMENSION, { fit: "inside", withoutEnlargement: true })
       .flatten({ background: "#ffffff" }) // matches lib/utils/image.ts's canvas fill for transparent PNGs
       .jpeg({ quality: JPEG_QUALITY })
