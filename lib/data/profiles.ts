@@ -309,9 +309,15 @@ export async function getProfilePhoto(): Promise<string> {
   }
 }
 
-// Save profile to Supabase (if authenticated) or localStorage
-export async function saveProfile(profile: Profile): Promise<void> {
-  if (typeof window === "undefined") return;
+// Save profile to Supabase (if authenticated) or localStorage. Returns the
+// saved profile, or null if the write failed -- callers that already hold
+// a complete, freshly-edited Profile object (the profile-edit page, the
+// onboarding wizard's per-field handleUpdate, ProfileFormModal) should call
+// this directly instead of updateProfile(), which re-fetches the current
+// profile first purely to merge a *partial* update onto it -- a real
+// network round trip a caller with the full object doesn't need to risk.
+export async function saveProfile(profile: Profile): Promise<Profile | null> {
+  if (typeof window === "undefined") return null;
 
   const userId = await getCurrentSupabaseUserId();
   if (userId && supabase) {
@@ -319,9 +325,10 @@ export async function saveProfile(profile: Profile): Promise<void> {
       ...profile,
       id: userId,
     };
-    await saveProfileToSupabase(profileWithUserId);
+    return await saveProfileToSupabase(profileWithUserId);
   } else {
     localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+    return profile;
   }
 }
 
@@ -431,8 +438,11 @@ export async function updateProfile(updates: Partial<Profile>): Promise<Profile 
     return null;
   }
   const updated = { ...profile, ...updates };
-  await saveProfile(updated);
-  return updated;
+  // Propagate the actual write result -- previously returned `updated`
+  // unconditionally, so a real write failure (RLS, network drop mid-save,
+  // etc.) looked identical to success to every caller, none of which
+  // checked further.
+  return await saveProfile(updated);
 }
 
 // Get all profiles for matching (demo profiles for now)

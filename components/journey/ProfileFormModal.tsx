@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getProfile, updateProfile, type Profile } from "@/lib/data/profiles";
+import { getProfile, saveProfile, type Profile } from "@/lib/data/profiles";
 import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
@@ -17,6 +17,7 @@ export function ProfileFormModal({ isOpen, onClose }: ProfileFormModalProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -42,9 +43,21 @@ export function ProfileFormModal({ isOpen, onClose }: ProfileFormModalProps) {
 
   const handleSave = async () => {
     if (!profile) return;
+    setSaveError(null);
     try {
       setSaving(true);
-      await updateProfile(profile);
+      // saveProfile() directly, not updateProfile() -- this modal already
+      // holds the complete, freshly-edited profile, so there's no partial
+      // update to merge and nothing to gain from updateProfile()'s
+      // internal re-fetch (a network round trip that can time out on a
+      // slow/flaky connection and, on failure, must not be mistaken for
+      // success -- confirmed live on the standalone profile-edit page,
+      // same underlying pattern as this modal's save).
+      const result = await saveProfile(profile);
+      if (!result) {
+        setSaveError("Your changes didn't save. Please check your connection and try again.");
+        return;
+      }
       setShowFeedback(true);
       setTimeout(() => {
         setShowFeedback(false);
@@ -52,6 +65,7 @@ export function ProfileFormModal({ isOpen, onClose }: ProfileFormModalProps) {
       }, 2000);
     } catch (error) {
       console.warn("Error saving profile:", error);
+      setSaveError("Something went wrong saving your profile. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -200,20 +214,25 @@ export function ProfileFormModal({ isOpen, onClose }: ProfileFormModalProps) {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-4 border-t border-[#e8ddd2]">
-                <button
-                  onClick={onClose}
-                  className="flex-1 px-4 py-2 text-sm text-[#1a0f0a] hover:bg-[#f3ede5] rounded border border-[#e8ddd2] font-medium"
-                >
-                  Cancel
-                </button>
-                <Button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="flex-1"
-                >
-                  {saving ? "Saving..." : "Save Profile"}
-                </Button>
+              <div className="space-y-2 pt-4 border-t border-[#e8ddd2]">
+                <div className="flex gap-3">
+                  <button
+                    onClick={onClose}
+                    className="flex-1 px-4 py-2 text-sm text-[#1a0f0a] hover:bg-[#f3ede5] rounded border border-[#e8ddd2] font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <Button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="flex-1"
+                  >
+                    {saving ? "Saving..." : "Save Profile"}
+                  </Button>
+                </div>
+                {saveError && (
+                  <p className="text-sm text-red-600 font-medium">❌ {saveError}</p>
+                )}
               </div>
             </>
           ) : (

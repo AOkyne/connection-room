@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getProfile, getProfilePhoto, updateProfile, type Profile } from "@/lib/data/profiles";
+import { getProfile, getProfilePhoto, saveProfile, type Profile } from "@/lib/data/profiles";
 import { ensureInviteCode } from "@/lib/data/invites";
 import { uploadProfilePhoto } from "@/lib/utils/storage";
 import { getUserBadges } from "@/lib/data/badges";
@@ -29,6 +29,8 @@ export default function ProfilePage() {
   const [badges, setBadges] = useState<any[]>([]);
   const [invitePanelOpen, setInvitePanelOpen] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const MAX_PHOTO_SIZE_MB = 5;
   const MAX_PHOTO_SIZE_BYTES = MAX_PHOTO_SIZE_MB * 1024 * 1024;
@@ -122,13 +124,29 @@ export default function ProfilePage() {
   }, []);
 
   const handleSave = async () => {
-    if (profile) {
-      try {
-        await updateProfile(profile);
-        setProfileSavedFeedback(true);
-      } catch (error) {
-        console.warn("Error saving profile:", error);
+    if (!profile) return;
+    setSaveError(null);
+    setIsSaving(true);
+    try {
+      // saveProfile() directly, not updateProfile() -- this page already
+      // holds the complete, freshly-edited profile in state, so there's no
+      // partial update to merge and nothing to gain from updateProfile()'s
+      // internal re-fetch (a real network round trip that can time out on
+      // a slow/flaky connection, e.g. mobile Safari on cellular -- and
+      // when it does, it must not be treated as success: confirmed live, a
+      // member on mobile Safari had every edit silently fail to save this
+      // way, while the page still showed "Profile updated").
+      const result = await saveProfile(profile);
+      if (!result) {
+        setSaveError("Your changes didn't save. Please check your connection and try again.");
+        return;
       }
+      setProfileSavedFeedback(true);
+    } catch (error) {
+      console.warn("Error saving profile:", error);
+      setSaveError("Something went wrong saving your profile. Please try again.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -497,9 +515,14 @@ export default function ProfilePage() {
       {/* Invite Panel Modal */}
       <InvitePanel isOpen={invitePanelOpen} onClose={() => setInvitePanelOpen(false)} />
 
-      <Button variant="primary" size="lg" onClick={handleSave}>
-        Save Profile
-      </Button>
+      <div className="space-y-2">
+        <Button variant="primary" size="lg" onClick={handleSave} disabled={isSaving}>
+          {isSaving ? "Saving..." : "Save Profile"}
+        </Button>
+        {saveError && (
+          <p className="text-sm text-red-600 font-medium">❌ {saveError}</p>
+        )}
+      </div>
 
       <AccountDangerZone />
     </div>

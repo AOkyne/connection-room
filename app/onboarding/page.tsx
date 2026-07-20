@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   getProfile,
   updateProfile,
+  saveProfile,
   getCoupleProfileFromSupabase,
   saveCoupleProfileToSupabase,
   type Profile,
@@ -133,7 +134,13 @@ export default function OnboardingPage() {
   const handleUpdate = async (updates: Partial<Profile>) => {
     const updated = { ...profile, ...updates };
     setProfile(updated);
-    await updateProfile(updated);
+    // saveProfile() directly, not updateProfile() -- `updated` is already
+    // the complete profile (every field), so there's no partial update to
+    // merge and nothing to gain from updateProfile()'s internal re-fetch
+    // (a real network round trip, on every single field edit throughout
+    // onboarding, that can time out on a slow/flaky connection -- see
+    // saveProfile()'s own comment).
+    await saveProfile(updated);
   };
 
   const handleComplete = async () => {
@@ -161,7 +168,12 @@ export default function OnboardingPage() {
         completedOnboarding: true,
         onboardingCompletedAt: new Date(),
       };
-      const result = await updateProfile(updated);
+      // saveProfile() directly, not updateProfile() -- `updated` is
+      // already the complete profile, so skip updateProfile()'s internal
+      // re-fetch (a network round trip with nothing to gain here, and one
+      // more thing that can time out on the single most important save in
+      // the whole flow).
+      const result = await saveProfile(updated);
 
       if (!result) {
         throw new Error("Failed to save completion. Please try again.");

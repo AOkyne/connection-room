@@ -46,12 +46,16 @@ export function PhotoRequirementPrompt({
       // uploadProfilePhoto()'s own comment (migration 064).
       const { publicUrl, path } = await uploadProfilePhoto(file, profile.id);
 
-      await updateProfile({
+      const result = await updateProfile({
         profilePhoto: publicUrl,
         profilePhotoPath: path,
         photo_confirmed: true,
         photo_confirmed_at: new Date(),
       });
+      if (!result) {
+        setPhotoError("Your photo uploaded, but saving it to your profile failed. Please try again.");
+        return;
+      }
       setIsOpen(false);
       onPhotoAdded?.();
     } catch (err) {
