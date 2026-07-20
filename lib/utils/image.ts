@@ -56,17 +56,32 @@ export async function resizeAndCompressImage(file: File): Promise<Blob> {
 
 async function loadImageBitmap(file: File): Promise<ImageBitmap> {
   if (typeof createImageBitmap === "function") {
-    // Phone photos commonly store pixel data in landscape with an EXIF
-    // orientation tag telling viewers to rotate it for display. An <img>
-    // tag honors that tag automatically, but createImageBitmap's default
-    // ("none") does not -- it hands back the raw, unrotated pixels, which
-    // then get drawn onto the canvas and re-encoded with the rotation
-    // baked in as sideways, permanently (the JPEG output has no EXIF of
-    // its own). imageOrientation: "from-image" makes it apply the tag
-    // before handing back the bitmap, matching what <img> already does.
-    return createImageBitmap(file, { imageOrientation: "from-image" });
+    try {
+      // Phone photos commonly store pixel data in landscape with an EXIF
+      // orientation tag telling viewers to rotate it for display. An <img>
+      // tag honors that tag automatically, but createImageBitmap's default
+      // ("none") does not -- it hands back the raw, unrotated pixels,
+      // which then get drawn onto the canvas and re-encoded with the
+      // rotation baked in as sideways, permanently (the JPEG output has no
+      // EXIF of its own). imageOrientation: "from-image" makes it apply
+      // the tag before handing back the bitmap, matching what <img>
+      // already does.
+      return await createImageBitmap(file, { imageOrientation: "from-image" });
+    } catch (err) {
+      // Confirmed live: mobile Safari's createImageBitmap exists (so the
+      // branch above is taken) but rejects the imageOrientation option
+      // outright, breaking photo upload entirely on Safari with no
+      // fallback -- because the fallback below used to be gated purely on
+      // "does createImageBitmap exist", not "did it actually succeed".
+      // Fall through to the <img>-based path on ANY failure here, not
+      // just when the function is missing.
+      console.warn("createImageBitmap with imageOrientation failed, falling back:", err);
+    }
   }
-  // Safari-era fallback for browsers without createImageBitmap support.
+  // Fallback for browsers without createImageBitmap support, or where it
+  // exists but rejects the options above (e.g. mobile Safari). <img>
+  // already honors EXIF orientation itself when decoding, so drawing it
+  // onto a canvas here produces the same correctly-rotated result.
   const url = URL.createObjectURL(file);
   try {
     const img = new Image();

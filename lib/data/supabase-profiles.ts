@@ -62,7 +62,15 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
           first_prompt_is_public: profile.firstPromptIsPublic,
           completed_onboarding: profile.completedOnboarding,
           spaces_joined: profile.spacesJoined,
-          created_at: profile.joinedAt,
+          // created_at is deliberately never part of this upsert -- it
+          // should only ever be set once, at the real first insert (the
+          // column's own DEFAULT NOW() handles that). Writing
+          // profile.joinedAt here on every save reset a member's real
+          // signup date to "right now" any time the in-memory profile's
+          // joinedAt didn't match the DB (confirmed live: a getProfile()
+          // fetch failure populated joinedAt with the current time via
+          // its fallback object, and the next save silently overwrote the
+          // real created_at with it).
           welcome_video_watched: profile.welcomeVideoWatched,
           welcome_video_watched_at: profile.welcomeVideoWatchedAt,
           onboarding_completed_at: profile.onboardingCompletedAt,
@@ -123,7 +131,9 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
         firstPromptIsPublic: profileData.first_prompt_is_public,
         completedOnboarding: profileData.completed_onboarding,
         spacesJoined: profileData.spaces_joined || [],
-        joinedAt: new Date(profileData.joined_at),
+        // The actual column is created_at -- profileData.joined_at never
+        // existed, so this was always an Invalid Date.
+        joinedAt: new Date(profileData.created_at),
         welcomeVideoWatched: profileData.welcome_video_watched || false,
         welcomeVideoWatchedAt: profileData.welcome_video_watched_at ? new Date(profileData.welcome_video_watched_at) : undefined,
         onboardingCompletedAt: profileData.onboarding_completed_at ? new Date(profileData.onboarding_completed_at) : undefined,

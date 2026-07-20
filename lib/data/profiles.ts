@@ -319,6 +319,24 @@ export async function getProfilePhoto(): Promise<string> {
 export async function saveProfile(profile: Profile): Promise<Profile | null> {
   if (typeof window === "undefined") return null;
 
+  // getProfile()'s last-resort placeholder (id always starts with
+  // "demo-user-") must never be written over a real user's row -- see
+  // updateProfile()'s matching comment for the full mechanism. That guard
+  // used to live only in updateProfile(), which was safe while every
+  // real-write call site went through it -- but once callers that already
+  // hold a full profile started calling saveProfile() directly (to skip
+  // updateProfile()'s redundant re-fetch), it bypassed the guard entirely.
+  // Confirmed live: a member's real profile (real interests, real answers,
+  // a real photo) got overwritten with first_name: "Guest", last_name: "",
+  // completedOnboarding: true, and created_at reset to the save's
+  // timestamp -- the exact same corruption the updateProfile() guard was
+  // supposed to prevent, just via a path that didn't call updateProfile()
+  // at all. The guard belongs here, at the actual write, not one layer up.
+  if (profile.id.startsWith("demo-user-")) {
+    console.warn("saveProfile() aborted: profile is the getProfile() fallback placeholder, not a real profile");
+    return null;
+  }
+
   const userId = await getCurrentSupabaseUserId();
   if (userId && supabase) {
     const profileWithUserId = {
