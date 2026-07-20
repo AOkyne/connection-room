@@ -9,7 +9,6 @@ export const maxDuration = 60;
 
 interface DripSummary {
   sent: number;
-  superseded: number;
   failed: number;
   skipped: number;
 }
@@ -32,15 +31,24 @@ interface DripCandidate {
 // share one candidate-matching shape, from the longest threshold down to
 // the shortest. Because each candidate query is "elapsed >= threshold", not
 // an exact-day match, a member who's further behind than the longest
-// threshold matches EVERY template in the sequence at once -- without this,
-// the first run after this cron had been silently not-running for days
-// would email that member all three reminders back-to-back in the same
-// run. Processing longest-first and excluding anyone already handled by a
-// longer threshold this run means each member gets at most one real email
-// per run (their most-advanced applicable reminder); the shorter
-// thresholds they also matched are recorded in drip_emails_sent as
-// "superseded" (no email sent) so they're never mistakenly sent later,
-// out of order, once the member is already caught up.
+// threshold matches EVERY template in the sequence at once -- without
+// this, the first run after this cron had been silently not-running for
+// days would email that member all three reminders back-to-back in the
+// same run.
+//
+// Dedup is DB-authoritative, not just an in-memory Set scoped to this one
+// call: `handled` is seeded up front from every drip_emails_sent row that
+// already exists for ANY template in this family, and re-checked as the
+// run adds to it. A member with ANY row in the family is considered done
+// with it, full stop -- they get no further email and no further row.
+// This intentionally does more than the minimum needed to stop
+// same-template double-sends (drip_emails_sent's own unique constraint on
+// (profile_id, email_key) already guarantees that); it's what actually
+// keeps different templates in the same family from both going out to the
+// same person. A first version of this route relied purely on an
+// in-process Set, which turned out not to be a strong enough guarantee --
+// confirmed live: two members received a real day3 email AND a real day1
+// email from what was intended to be a single dedup'd run.
 async function runDripSequence(
   supabase: SupabaseClient,
   drips: DripTemplate[],
@@ -49,10 +57,22 @@ async function runDripSequence(
   summary: Record<string, DripSummary>
 ): Promise<void> {
   const sorted = [...drips].sort((a, b) => b.days - a.days);
-  const handledThisRun = new Set<string>();
+  const familyKeys = sorted.map((d) => d.key);
+
+  const { data: alreadyHandledRows, error: alreadyHandledError } = await supabase
+    .from("drip_emails_sent")
+    .select("profile_id")
+    .in("email_key", familyKeys);
+
+  if (alreadyHandledError) {
+    console.error("Error checking already-handled profiles for this drip family:", alreadyHandledError);
+    return;
+  }
+
+  const handled = new Set((alreadyHandledRows || []).map((r) => r.profile_id));
 
   for (const drip of sorted) {
-    summary[drip.key] = { sent: 0, superseded: 0, failed: 0, skipped: 0 };
+    summary[drip.key] = { sent: 0, failed: 0, skipped: 0 };
 
     const thresholdDate = new Date(Date.now() - drip.days * 24 * 60 * 60 * 1000).toISOString();
     const { data: candidates, error: candidatesError } = await fetchCandidates(thresholdDate);
@@ -63,39 +83,9 @@ async function runDripSequence(
     }
     if (!candidates || candidates.length === 0) continue;
 
-    const { data: alreadySent, error: alreadySentError } = await supabase
-      .from("drip_emails_sent")
-      .select("profile_id")
-      .eq("email_key", drip.key)
-      .in(
-        "profile_id",
-        candidates.map((c) => c.id)
-      );
-
-    if (alreadySentError) {
-      console.error(`Error checking already-sent for ${drip.key}:`, alreadySentError);
-      continue;
-    }
-
-    const sentIds = new Set((alreadySent || []).map((r) => r.profile_id));
-    const toProcess = candidates.filter((c) => !sentIds.has(c.id));
+    const toProcess = candidates.filter((c) => !handled.has(c.id));
 
     for (const profile of toProcess) {
-      if (handledThisRun.has(profile.id)) {
-        // Already got a longer-threshold reminder this run -- record this
-        // shorter one as sent-without-emailing so it can't fire on its own
-        // in a future run (created_at/onboarding_completed_at don't
-        // change, so it would match forever otherwise).
-        const { error: insertError } = await supabase
-          .from("drip_emails_sent")
-          .insert({ profile_id: profile.id, email_key: drip.key });
-        if (insertError) {
-          console.error(`Marked ${drip.key} superseded for profile ${profile.id} but failed to record it:`, insertError);
-        }
-        summary[drip.key].superseded++;
-        continue;
-      }
-
       if (!profile.user_id) {
         summary[drip.key].skipped++;
         continue;
@@ -126,7 +116,7 @@ async function runDripSequence(
           console.error(`Sent ${drip.key} to profile ${profile.id} but failed to record it:`, insertError);
         }
 
-        handledThisRun.add(profile.id);
+        handled.add(profile.id);
         summary[drip.key].sent++;
       } catch (err) {
         console.error(`Error sending ${drip.key} to profile ${profile.id}:`, err);
