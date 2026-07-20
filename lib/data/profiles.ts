@@ -2,6 +2,17 @@ import { supabase } from "@/lib/supabase/client";
 import { saveProfileToSupabase } from "@/lib/data/supabase-profiles";
 import { demoSafeWrite } from "@/lib/demo/demo-mode-guard";
 import { waitForAuthReady } from "@/lib/supabase/auth-ready";
+import { buildProfilePhotoUrl } from "@/lib/utils/storage";
+
+// Migration 064: profile_photo_path (Storage) is the source of truth once
+// set; legacy_base64 (profiles.profile_photo/public_profiles.profile_photo)
+// is only ever a fallback for rows a backfill script hasn't migrated yet.
+// A tiny path is cheap to select even in hot paths that deliberately never
+// pull the multi-megabyte legacy column (e.g. getProfile() below).
+function resolveProfilePhotoUrl(path: string | null | undefined, legacyBase64: string | null | undefined): string {
+  if (path) return buildProfilePhotoUrl(path);
+  return legacyBase64 || "";
+}
 
 export interface Profile {
   id: string;
@@ -14,6 +25,13 @@ export interface Profile {
   relationshipStatus?: string;
   orientation?: string;
   profilePhoto: string;
+  // Storage path (migration 064) -- set once a photo has been migrated to
+  // Supabase Storage. When present, this is the source of truth for
+  // profilePhoto's URL; profilePhoto/legacy base64 is only ever a fallback
+  // for rows not yet migrated. See lib/utils/storage.ts's
+  // buildProfilePhotoUrl().
+  profilePhotoPath?: string;
+  profilePhotoUpdatedAt?: Date;
   memberType: string;
   whatBroughtYouHere?: string;
   connectionHoping?: string;
@@ -63,6 +81,7 @@ export interface CommunityProfile {
   spacesJoined?: string[];
   joinedAt: Date;
   memberSince?: Date;
+  profilePhotoPath?: string;
   profile_tagline?: string;
   is_demo_profile?: boolean;
   ageRange?: string;
@@ -173,7 +192,7 @@ export async function getProfile(): Promise<Profile | null> {
       const queryPromise = supabase
         .from("profiles")
         .select(
-          "user_id, first_name, last_name, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, first_prompt_response, first_prompt_is_public, completed_onboarding, spaces_joined, created_at, welcome_video_watched, welcome_video_watched_at, onboarding_completed_at, deactivated_at"
+          "user_id, first_name, last_name, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, first_prompt_response, first_prompt_is_public, completed_onboarding, spaces_joined, created_at, welcome_video_watched, welcome_video_watched_at, onboarding_completed_at, deactivated_at, profile_photo_path, profile_photo_updated_at"
         )
         .eq("user_id", userId)
         .single();
@@ -200,7 +219,13 @@ export async function getProfile(): Promise<Profile | null> {
           ageRange: data.age_range,
           relationshipStatus: data.relationship_status,
           orientation: data.orientation,
-          profilePhoto: "",
+          // Legacy base64 deliberately never selected here (see the
+          // comment above) -- but profile_photo_path is tiny, so a
+          // migrated member's own photo now shows up here for free,
+          // without paying for the multi-megabyte legacy transfer.
+          profilePhoto: resolveProfilePhotoUrl(data.profile_photo_path, null),
+          profilePhotoPath: data.profile_photo_path || undefined,
+          profilePhotoUpdatedAt: data.profile_photo_updated_at ? new Date(data.profile_photo_updated_at) : undefined,
           memberType: data.member_type || "individual",
           whatBroughtYouHere: data.what_brought_you_here,
           connectionHoping: data.connection_hoping,
@@ -261,12 +286,12 @@ export async function getProfilePhoto(): Promise<string> {
   try {
     const { data, error } = await supabase
       .from("profiles")
-      .select("profile_photo")
+      .select("profile_photo, profile_photo_path")
       .eq("user_id", userId)
       .single();
 
     if (error || !data) return "";
-    return data.profile_photo || "";
+    return resolveProfilePhotoUrl(data.profile_photo_path, data.profile_photo);
   } catch (err) {
     console.warn("Error fetching profile photo:", err);
     return "";
@@ -573,7 +598,8 @@ export async function getAllProfiles(): Promise<Profile[]> {
       ageRange: p.age_range,
       relationshipStatus: p.relationship_status,
       orientation: p.orientation,
-      profilePhoto: p.profile_photo || "",
+      profilePhoto: resolveProfilePhotoUrl(p.profile_photo_path, p.profile_photo),
+      profilePhotoPath: p.profile_photo_path || undefined,
       memberType: p.member_type || "individual",
       whatBroughtYouHere: p.what_brought_you_here,
       connectionHoping: p.connection_hoping,
@@ -691,7 +717,7 @@ export async function getProfilePhotosByIds(ids: string[]): Promise<Record<strin
     const batch = chunks.slice(i, i + CONCURRENCY);
     const results = await Promise.all(
       batch.map((chunk) =>
-        supabase!.from("profiles").select("id, profile_photo").in("id", chunk)
+        supabase!.from("profiles").select("id, profile_photo, profile_photo_path").in("id", chunk)
       )
     );
     for (const { data, error } of results) {
@@ -700,7 +726,12 @@ export async function getProfilePhotosByIds(ids: string[]): Promise<Record<strin
         continue;
       }
       (data || []).forEach((p: any) => {
-        if (p.profile_photo) photosById[p.id] = p.profile_photo;
+        // Migrated rows (profile_photo_path set) never touch the legacy
+        // column's bytes at all -- resolveProfilePhotoUrl only reads
+        // p.profile_photo when there's no path, so this chunk stays fast
+        // even once most rows still have the old data hanging around.
+        const url = resolveProfilePhotoUrl(p.profile_photo_path, p.profile_photo);
+        if (url) photosById[p.id] = url;
       });
     }
   }
@@ -720,7 +751,8 @@ function mapCommunityProfile(p: any): CommunityProfile {
     displayName: p.display_name || "",
     pronouns: p.pronouns,
     location: p.location,
-    profilePhoto: p.profile_photo || "",
+    profilePhoto: resolveProfilePhotoUrl(p.profile_photo_path, p.profile_photo),
+    profilePhotoPath: p.profile_photo_path || undefined,
     memberType: "individual",
     interests: Array.isArray(p.interests) ? p.interests : [],
     completedOnboarding: true,

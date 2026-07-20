@@ -6,6 +6,7 @@
 import { supabase } from "@/lib/supabase/client";
 import { demoSafeWrite } from "@/lib/demo/demo-mode-guard";
 import { generateInviteCode } from "@/lib/utils/invite-code";
+import { buildProfilePhotoUrl } from "@/lib/utils/storage";
 import type { Profile } from "./profiles";
 
 const INVITE_CODE_STORAGE_KEY = "connection-room:invite-code";
@@ -135,7 +136,7 @@ export async function getInvitedFriends(): Promise<Profile[]> {
         lastName: nameParts.slice(1).join(" ") || "",
         displayName: p.display_name,
         pronouns: p.pronouns,
-        profilePhoto: p.profile_photo,
+        profilePhoto: p.profile_photo_path ? buildProfilePhotoUrl(p.profile_photo_path) : p.profile_photo,
         memberType: "individual",
         interests: [],
         completedOnboarding: true,

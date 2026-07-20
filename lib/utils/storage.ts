@@ -3,26 +3,51 @@
  */
 
 import { supabase } from "@/lib/supabase/client";
+import { resizeAndCompressImage } from "@/lib/utils/image";
 
 const BUCKET_NAME = "profile-photos";
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB, checked against the original file before compression
+
+export interface UploadedPhoto {
+  publicUrl: string;
+  path: string;
+}
 
 /**
- * Upload a profile photo to Supabase Storage
+ * Builds a profile photo's public URL from its Storage path alone, without
+ * needing a Supabase client instance -- used by server-side read paths
+ * (API routes on the service-role key) where constructing a client just to
+ * call getPublicUrl() would be overkill for a public bucket's URL, which is
+ * a pure string formula.
+ */
+export function buildProfilePhotoUrl(path: string): string {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  return `${supabaseUrl}/storage/v1/object/public/${BUCKET_NAME}/${path}`;
+}
+
+/**
+ * Upload a profile photo to Supabase Storage. Resizes/compresses to a JPEG
+ * (max 800px, ~85% quality) before uploading -- this is what actually keeps
+ * new uploads small, not just where the bytes end up; see
+ * lib/utils/image.ts. No base64 fallback: the profile-photos bucket's RLS
+ * was the only thing ever blocking real uploads (fixed in migration 048),
+ * so a failure here is a real failure to surface to the member, not a
+ * signal to fall back to storing the image in Postgres again.
  * @param file File to upload
  * @param userId User ID to organize photos
- * @returns Public URL of the uploaded photo, or null if upload fails
+ * @returns The public URL and Storage path of the uploaded photo
  */
 export async function uploadProfilePhoto(
   file: File,
   userId: string
-): Promise<string | null> {
+): Promise<UploadedPhoto> {
   if (!supabase) {
-    console.warn("Supabase not configured, cannot upload photo");
-    return null;
+    throw new Error("Photo upload is not available right now. Please try again shortly.");
   }
 
-  // Validate file size
+  // Validate file size (against the original -- compression happens after
+  // this check, so a huge phone-camera photo still gets a clear error
+  // instead of silently taking a long time to process).
   if (file.size > MAX_FILE_SIZE) {
     throw new Error(
       `File too large. Max size is 5MB (your file is ${(file.size / 1024 / 1024).toFixed(1)}MB)`
@@ -34,35 +59,29 @@ export async function uploadProfilePhoto(
     throw new Error("File must be JPG, PNG, or GIF");
   }
 
-  try {
-    // Create a unique filename
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${userId}-${Date.now()}.${fileExt}`;
-    const filePath = `${userId}/${fileName}`;
+  const compressed = await resizeAndCompressImage(file);
 
-    // Upload to storage
-    const { data, error } = await supabase.storage
-      .from(BUCKET_NAME)
-      .upload(filePath, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
+  const fileName = `${userId}-${Date.now()}.jpg`;
+  const filePath = `${userId}/${fileName}`;
 
-    if (error) {
-      console.error("Storage upload error:", error);
-      throw new Error(`Failed to upload photo: ${error.message}`);
-    }
+  const { data, error } = await supabase.storage
+    .from(BUCKET_NAME)
+    .upload(filePath, compressed, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: "image/jpeg",
+    });
 
-    // Get the public URL
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from(BUCKET_NAME).getPublicUrl(data.path);
-
-    return publicUrl;
-  } catch (err) {
-    console.error("Error uploading profile photo:", err);
-    return null; // Return null to trigger base64 fallback in components
+  if (error) {
+    console.error("Storage upload error:", error);
+    throw new Error(`Failed to upload photo: ${error.message}`);
   }
+
+  const {
+    data: { publicUrl },
+  } = supabase.storage.from(BUCKET_NAME).getPublicUrl(data.path);
+
+  return { publicUrl, path: data.path };
 }
 
 /**

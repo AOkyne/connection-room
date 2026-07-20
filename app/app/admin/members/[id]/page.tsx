@@ -10,6 +10,7 @@ import { Avatar } from "@/components/Avatar";
 import { supabase } from "@/lib/supabase/client";
 import { getSession } from "@/lib/session";
 import { deleteMembers } from "@/lib/admin/member-actions";
+import { buildProfilePhotoUrl } from "@/lib/utils/storage";
 import { IconProfile, IconConnection, IconAlert } from "@/components/Icons";
 
 interface MemberProfile {
@@ -20,6 +21,7 @@ interface MemberProfile {
   display_name: string;
   email: string;
   profile_photo?: string;
+  profile_photo_path?: string;
   pronouns?: string;
   location?: string;
   interests?: string[];
@@ -267,9 +269,14 @@ export default function MemberDetailPage() {
               profile_photo (unlike the bulk Members list, a single row's
               photo -- even a multi-megabyte legacy base64 one -- transfers
               fast; the slow/timeout risk was specific to sorting and
-              transferring that column across every row at once) -- it was
-              just never rendered anywhere on this page. */}
-          <Avatar name={member.display_name} photo={member.profile_photo} size="lg" />
+              transferring that column across every row at once). Prefers
+              profile_photo_path (migration 064) when the member has been
+              migrated to Storage. */}
+          <Avatar
+            name={member.display_name}
+            photo={member.profile_photo_path ? buildProfilePhotoUrl(member.profile_photo_path) : member.profile_photo}
+            size="lg"
+          />
           <h1 className="text-3xl text-[#1a0f0a]">{member.display_name}</h1>
         </div>
         {/* The breadcrumb's "Members" link always goes to the dedicated

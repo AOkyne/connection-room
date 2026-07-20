@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/require-auth";
+import { buildProfilePhotoUrl } from "@/lib/utils/storage";
 
 // Server-side connection matching. Scoring needs relationship_status/
 // age_range/location, which are private fields ordinary members can no
@@ -50,14 +51,17 @@ export async function POST(request: NextRequest) {
   // that's been dead since this route was written. Not resurrected here;
   // connection-frequency pause is already handled by the
   // userPreferences?.frequency check below.
-  const CANDIDATE_COLUMNS = `${PROFILE_SCORING_COLUMNS}, completed_onboarding, profile_photo`;
+  // Migration 064: profile_photo_path (Storage) is checked alongside the
+  // legacy profile_photo (base64) -- a migrated member's "has a photo"
+  // signal now lives in the new column, not the old one, and this filter
+  // has to recognize either until the backfill finishes.
+  const CANDIDATE_COLUMNS = `${PROFILE_SCORING_COLUMNS}, completed_onboarding, profile_photo_path, profile_photo`;
 
   const [selfResult, candidatesResult, viewResult] = await Promise.all([
     supabase.from("profiles").select(PROFILE_SCORING_COLUMNS).eq("user_id", userId).single(),
     supabase.from("profiles").select(CANDIDATE_COLUMNS).neq("user_id", userId)
       .eq("completed_onboarding", true)
-      .not("profile_photo", "is", null)
-      .neq("profile_photo", ""),
+      .or("profile_photo_path.not.is.null,profile_photo.neq."),
     // Scoring below deliberately reads the private profiles rows (needs
     // relationship_status/age_range/location regardless of whether a
     // candidate has chosen to display them). What's actually returned to
@@ -223,7 +227,9 @@ function toSafeProfile(viewRow: any) {
     displayName: viewRow.display_name || "",
     pronouns: viewRow.pronouns,
     location: viewRow.location,
-    profilePhoto: viewRow.profile_photo || "",
+    profilePhoto: viewRow.profile_photo_path
+      ? buildProfilePhotoUrl(viewRow.profile_photo_path)
+      : viewRow.profile_photo || "",
     memberType: "individual",
     interests: Array.isArray(viewRow.interests) ? viewRow.interests : [],
     completedOnboarding: true,

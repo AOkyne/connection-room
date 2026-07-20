@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase/client";
+import { buildProfilePhotoUrl } from "@/lib/utils/storage";
 
 export interface AppSession {
   id: string;
@@ -57,13 +58,19 @@ export async function getSession(): Promise<AppSession | null> {
       try {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("display_name, profile_photo")
+          .select("display_name, profile_photo_path")
           .eq("user_id", session.supabaseUserId)
           .maybeSingle();
 
         if (profile?.display_name) {
           session.name = profile.display_name;
-          if (profile.profile_photo) session.profilePhoto = profile.profile_photo;
+          // profile_photo_path only -- the legacy base64 column is
+          // deliberately never selected here anymore (migration 064): this
+          // value gets JSON.stringify'd into localStorage below, and a
+          // multi-megabyte base64 string sitting in localStorage was its
+          // own real cost (quota pressure, slower reads) independent of
+          // the Postgres side of this same problem.
+          if (profile.profile_photo_path) session.profilePhoto = buildProfilePhotoUrl(profile.profile_photo_path);
           localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
         }
       } catch (err) {

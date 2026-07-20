@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase/client";
 import { demoSafeWrite } from "@/lib/demo/demo-mode-guard";
+import { buildProfilePhotoUrl } from "@/lib/utils/storage";
 import type { Profile, CoupleProfile } from "./profiles";
 
 // Create or update profile in Supabase
@@ -11,16 +12,23 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
 
   // Wrap with demo mode protection
   //
-  // profile_photo is only included when truthy. getProfile() stopped
-  // fetching this column (some photos are multi-megabyte base64 strings
+  // profile_photo_path is only included when the caller just uploaded a
+  // new photo (profilePhotoPath set -- see uploadProfilePhoto() and its
+  // three call sites). getProfile() stopped fetching the legacy
+  // profile_photo column (some photos are multi-megabyte base64 strings
   // that were slow enough to cause real profiles to time out and show as
-  // "Guest" -- see its own comment), so any updateProfile() call that
-  // merges onto a getProfile() snapshot now carries profilePhoto: "" by
-  // default. Including that unconditionally in the upsert would overwrite
-  // a real, already-saved photo with nothing on the next unrelated save
-  // (editing bio, completing onboarding, etc.) -- omitting the key
-  // entirely when there's nothing new to write leaves the existing
-  // column untouched instead.
+  // "Guest" -- see its own comment) and now resolves profilePhoto from
+  // profile_photo_path when present, so any updateProfile() call that
+  // merges onto a getProfile() snapshot carries a real, already-resolved
+  // URL or "" in profilePhoto, never the legacy value -- omitting keys
+  // entirely when there's nothing new to write leaves existing columns
+  // untouched instead of overwriting them with that resolved/blank value.
+  //
+  // Migration 064: profile_photo (legacy base64) is intentionally never
+  // written here anymore, by anyone -- new uploads only ever populate
+  // profile_photo_path (Supabase Storage). The legacy column is left
+  // alone for existing rows until a separate one-time backfill migrates
+  // them; see PROFILE_PHOTO_MIGRATION notes.
   const { data, error } = await demoSafeWrite(
     async () => client
       .from("profiles")
@@ -40,7 +48,9 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
           age_range: profile.ageRange,
           relationship_status: profile.relationshipStatus,
           orientation: profile.orientation,
-          ...(profile.profilePhoto ? { profile_photo: profile.profilePhoto } : {}),
+          ...(profile.profilePhotoPath
+            ? { profile_photo_path: profile.profilePhotoPath, profile_photo_updated_at: new Date() }
+            : {}),
           member_type: profile.memberType,
           what_brought_you_here: profile.whatBroughtYouHere,
           connection_hoping: profile.connectionHoping,
@@ -89,7 +99,10 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
         ageRange: profileData.age_range,
         relationshipStatus: profileData.relationship_status,
         orientation: profileData.orientation,
-        profilePhoto: profileData.profile_photo,
+        profilePhoto: profileData.profile_photo_path
+          ? buildProfilePhotoUrl(profileData.profile_photo_path)
+          : profileData.profile_photo || "",
+        profilePhotoPath: profileData.profile_photo_path || undefined,
         memberType: profileData.member_type,
         whatBroughtYouHere: profileData.what_brought_you_here,
         connectionHoping: profileData.connection_hoping,

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { getProfile, getProfilePhoto, updateProfile, type Profile } from "@/lib/data/profiles";
 import { ensureInviteCode } from "@/lib/data/invites";
 import { uploadProfilePhoto } from "@/lib/utils/storage";
-import { supabase } from "@/lib/supabase/client";
 import { getUserBadges } from "@/lib/data/badges";
 import { getSpaces } from "@/lib/data/spaces";
 import { waitForAuthReady } from "@/lib/supabase/auth-ready";
@@ -160,25 +159,12 @@ export default function ProfilePage() {
 
     setPhotoError(null);
     try {
-      let photoUrl: string | null = null;
-
-      // Try Supabase Storage first
-      if (supabase) {
-        photoUrl = await uploadProfilePhoto(file, profile.id);
-      }
-
-      // Fall back to base64 if Supabase upload failed or unavailable
-      if (!photoUrl) {
-        photoUrl = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            resolve(event.target?.result as string);
-          };
-          reader.readAsDataURL(file);
-        });
-      }
-
-      setProfile({ ...profile, profilePhoto: photoUrl });
+      // Uploads to Supabase Storage (resized/compressed client-side first,
+      // see lib/utils/image.ts). No base64 fallback -- see uploadProfilePhoto()'s
+      // own comment; a failure here is a real failure to surface, not a
+      // signal to fall back to storing the image in Postgres (migration 064).
+      const { publicUrl, path } = await uploadProfilePhoto(file, profile.id);
+      setProfile({ ...profile, profilePhoto: publicUrl, profilePhotoPath: path });
     } catch (err) {
       setPhotoError(err instanceof Error ? err.message : 'Failed to upload photo');
     }

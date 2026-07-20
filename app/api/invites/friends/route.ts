@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
   const invitedProfileIds = relationships.map((r) => r.invited_profile_id);
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("user_id, display_name, pronouns, profile_photo, created_at")
+    .select("user_id, display_name, pronouns, profile_photo_path, profile_photo, created_at")
     .in("id", invitedProfileIds)
     .eq("completed_onboarding", true);
 

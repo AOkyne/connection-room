@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getProfile, updateProfile, type Profile } from "@/lib/data/profiles";
+import { uploadProfilePhoto } from "@/lib/utils/storage";
 import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
 import { Card, CardHeader } from "@/components/Card";
@@ -22,6 +23,8 @@ export default function OnboardingPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [completionSuccess, setCompletionSuccess] = useState(false);
   const [hasAttemptedCompletion, setHasAttemptedCompletion] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -506,25 +509,33 @@ export default function OnboardingPage() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => {
+                      disabled={isUploadingPhoto}
+                      onChange={async (e) => {
                         const file = e.target.files?.[0];
-                        if (file) {
-                          const maxSizeMB = 5;
-                          if (file.size > maxSizeMB * 1024 * 1024) {
-                            alert(`Image is too large. Max size is ${maxSizeMB}MB.`);
-                            return;
-                          }
-                          const reader = new FileReader();
-                          reader.onload = (event) => {
-                            const dataUrl = event.target?.result as string;
-                            handleUpdate({ profilePhoto: dataUrl });
-                          };
-                          reader.readAsDataURL(file);
+                        if (!file) return;
+                        setPhotoUploadError(null);
+                        setIsUploadingPhoto(true);
+                        try {
+                          // Uploads to Supabase Storage (resized/compressed
+                          // client-side first, see lib/utils/image.ts) --
+                          // this used to be the single biggest source of
+                          // base64 bloat in the profiles table, since this
+                          // was the one photo-upload path in the whole app
+                          // that never even tried Storage and just stored
+                          // the raw file as base64 (migration 064).
+                          const { publicUrl, path } = await uploadProfilePhoto(file, profile.id);
+                          handleUpdate({ profilePhoto: publicUrl, profilePhotoPath: path });
+                        } catch (err) {
+                          setPhotoUploadError(err instanceof Error ? err.message : "Failed to upload photo. Please try again.");
+                        } finally {
+                          setIsUploadingPhoto(false);
                         }
                       }}
                       className="w-full px-4 py-3 border-2 border-dashed border-[#e8ddd2] rounded-lg focus:outline-none focus:border-[#d4a348] text-sm"
                     />
                     <p className="text-xs text-[#a0704a]">JPG, PNG, or GIF. Max 5MB. A clear, recent photo works best.</p>
+                    {isUploadingPhoto && <p className="text-xs text-[#a0704a]">Uploading...</p>}
+                    {photoUploadError && <p className="text-xs text-red-600">{photoUploadError}</p>}
                   </div>
 
                   {/* Current Photo Preview */}

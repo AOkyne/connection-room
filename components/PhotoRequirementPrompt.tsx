@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Profile, updateProfile } from "@/lib/data/profiles";
 import { uploadProfilePhoto } from "@/lib/utils/storage";
-import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/Button";
 
 interface PhotoRequirementPromptProps {
@@ -42,27 +41,14 @@ export function PhotoRequirementPrompt({
     setPhotoError(null);
     setUploading(true);
     try {
-      let photoUrl: string | null = null;
-
-      // Try Supabase Storage first
-      if (supabase) {
-        const userId = profile.id;
-        photoUrl = await uploadProfilePhoto(file, userId);
-      }
-
-      // Fall back to base64 if Supabase upload failed or unavailable
-      if (!photoUrl) {
-        photoUrl = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            resolve(event.target?.result as string);
-          };
-          reader.readAsDataURL(file);
-        });
-      }
+      // Uploads to Supabase Storage (resized/compressed client-side first,
+      // see lib/utils/image.ts). No base64 fallback -- see
+      // uploadProfilePhoto()'s own comment (migration 064).
+      const { publicUrl, path } = await uploadProfilePhoto(file, profile.id);
 
       await updateProfile({
-        profilePhoto: photoUrl,
+        profilePhoto: publicUrl,
+        profilePhotoPath: path,
         photo_confirmed: true,
         photo_confirmed_at: new Date(),
       });

@@ -101,7 +101,9 @@ export async function getMemberStats(): Promise<MemberStats> {
         .from("profiles")
         .select("id", { count: "exact", head: true })
         .eq("is_seeded", false)
-        .not("profile_photo", "is", null),
+        // Migration 064: a migrated member's "has a photo" signal now
+        // lives in profile_photo_path, not the legacy column.
+        .or("profile_photo_path.not.is.null,profile_photo.not.is.null"),
     ]);
 
     if (err) {
