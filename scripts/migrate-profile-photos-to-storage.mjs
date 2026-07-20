@@ -136,27 +136,61 @@ async function migrateRow(row) {
 async function main() {
   console.log(DRY_RUN ? "DRY RUN -- no uploads or writes will happen.\n" : "Starting migration...\n");
 
-  const { data: rows, error } = await supabase
+  // Bulk-selecting profile_photo across every matching row in one query
+  // hits Postgres's statement timeout outright (confirmed live, same
+  // issue as getAllProfiles()/getProfilePhotosByIds() elsewhere in this
+  // codebase) -- some legacy photos are multi-MB base64 text. Get the
+  // (cheap) list of ids needing migration first, then fetch each row's
+  // actual photo data in small chunks right before processing it.
+  const { data: allIdRows, error: idError } = await supabase
     .from("profiles")
-    .select("user_id, profile_photo")
+    .select("user_id")
     .not("profile_photo", "is", null)
     .is("profile_photo_path", null);
 
-  if (error) throw error;
+  if (idError) throw idError;
 
-  console.log(`Found ${rows.length} profile(s) with a legacy photo not yet migrated.\n`);
+  // A handful of rows have user_id IS NULL (orphaned data, unreachable by
+  // any real code path since every read/write keys off user_id) -- these
+  // can never be migrated and, left in, poison every .in() chunk they land
+  // in (Postgres rejects "null" as a uuid literal), which looks like mass
+  // failure across unrelated rows. Filter and report separately instead.
+  const idRows = allIdRows.filter((r) => r.user_id !== null);
+  const orphanedCount = allIdRows.length - idRows.length;
 
+  console.log(`Found ${idRows.length} profile(s) with a legacy photo not yet migrated.`);
+  if (orphanedCount > 0) {
+    console.log(`Skipping ${orphanedCount} orphaned row(s) with no user_id (cannot be migrated or read by the app).`);
+  }
+  console.log("");
+
+  const CHUNK_SIZE = 5;
   const results = [];
-  for (let i = 0; i < rows.length; i += CONCURRENCY) {
-    const batch = rows.slice(i, i + CONCURRENCY);
-    const batchResults = await Promise.all(batch.map(migrateRow));
-    for (const r of batchResults) {
-      results.push(r);
-      const bytesNote =
-        r.originalBytes != null
-          ? ` (${(r.originalBytes / 1024).toFixed(0)}KB -> ${(r.compressedBytes / 1024).toFixed(0)}KB)`
-          : "";
-      console.log(`[${r.status}] ${r.userId}${bytesNote}${r.reason ? ` -- ${r.reason}` : ""}`);
+  for (let i = 0; i < idRows.length; i += CHUNK_SIZE) {
+    const chunkIds = idRows.slice(i, i + CHUNK_SIZE).map((r) => r.user_id);
+    const { data: rows, error } = await supabase
+      .from("profiles")
+      .select("user_id, profile_photo")
+      .in("user_id", chunkIds);
+
+    if (error) {
+      for (const userId of chunkIds) {
+        results.push({ userId, status: "failed", reason: `Could not fetch photo data: ${error.message}` });
+      }
+      continue;
+    }
+
+    for (let j = 0; j < rows.length; j += CONCURRENCY) {
+      const batch = rows.slice(j, j + CONCURRENCY);
+      const batchResults = await Promise.all(batch.map(migrateRow));
+      for (const r of batchResults) {
+        results.push(r);
+        const bytesNote =
+          r.originalBytes != null
+            ? ` (${(r.originalBytes / 1024).toFixed(0)}KB -> ${(r.compressedBytes / 1024).toFixed(0)}KB)`
+            : "";
+        console.log(`[${r.status}] ${r.userId}${bytesNote}${r.reason ? ` -- ${r.reason}` : ""}`);
+      }
     }
   }
 
