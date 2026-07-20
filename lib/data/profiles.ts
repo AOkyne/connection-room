@@ -412,6 +412,24 @@ function generateAvatarUrl(initials: string): string {
 export async function updateProfile(updates: Partial<Profile>): Promise<Profile | null> {
   const profile = await getProfile();
   if (!profile) return null;
+
+  // getProfile()'s last-resort placeholder (returned when a real,
+  // authenticated user's Supabase profile fetch times out/errors, purely
+  // so a page has something non-null to render instead of hanging) must
+  // never be used as the base for a real write -- it carries
+  // firstName: "Guest", lastName: "", profilePhoto: "", and
+  // completedOnboarding: true hardcoded. Confirmed live: a real member's
+  // profile got silently overwritten with exactly these placeholder
+  // values (blank name/photo, falsely marked onboarding-complete) via a
+  // fire-and-forget partial updateProfile() call that happened to hit
+  // this fallback. Its id always starts with "demo-user-", unlike a real
+  // Supabase-backed profile's id (the auth user's UUID) -- use that as
+  // the signal to refuse the write rather than silently corrupting the
+  // member's real row.
+  if (profile.id.startsWith("demo-user-")) {
+    console.warn("updateProfile() aborted: getProfile() returned its fallback placeholder, not a real profile");
+    return null;
+  }
   const updated = { ...profile, ...updates };
   await saveProfile(updated);
   return updated;
