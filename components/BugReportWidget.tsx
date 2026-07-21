@@ -168,7 +168,19 @@ export function BugReportWidget({ defaultName, defaultEmail }: BugReportWidgetPr
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            {/* autoComplete="off" on the form itself, plus an explicit value
+                on every field below -- without this, Safari/Chrome detect
+                the Name+Email pair as a "contact form" and flood the OTHER
+                plain text fields (Bug Title, Device) with unrelated
+                autofill data (confirmed live: a submitter's phone number
+                landed in both). Once a browser autofills a field this way,
+                its internally-tracked value can desync from React's
+                controlled `value` prop, which is what made those fields
+                seem to accept no further typing at all -- explicitly
+                opting each field out of autofill (except the two that
+                should legitimately get it) prevents the browser from ever
+                touching them in the first place. */}
+            <form onSubmit={handleSubmit} className="p-6 space-y-4" autoComplete="off">
               {/* Submitter Info */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -178,6 +190,7 @@ export function BugReportWidget({ defaultName, defaultEmail }: BugReportWidgetPr
                   <input
                     type="text"
                     name="name"
+                    autoComplete="name"
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="So we know who to follow up with"
@@ -193,6 +206,7 @@ export function BugReportWidget({ defaultName, defaultEmail }: BugReportWidgetPr
                   <input
                     type="email"
                     name="email"
+                    autoComplete="email"
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="you@example.com"
@@ -211,6 +225,7 @@ export function BugReportWidget({ defaultName, defaultEmail }: BugReportWidgetPr
                 <input
                   type="text"
                   name="title"
+                  autoComplete="off"
                   value={formData.title}
                   onChange={handleInputChange}
                   placeholder="e.g., Profile photo won't upload on mobile"
@@ -252,6 +267,7 @@ export function BugReportWidget({ defaultName, defaultEmail }: BugReportWidgetPr
                   <input
                     type="text"
                     name="device"
+                    autoComplete="off"
                     value={formData.device}
                     onChange={handleInputChange}
                     placeholder="iPhone 15"
@@ -267,6 +283,7 @@ export function BugReportWidget({ defaultName, defaultEmail }: BugReportWidgetPr
                   <input
                     type="text"
                     name="os"
+                    autoComplete="off"
                     value={formData.os}
                     onChange={handleInputChange}
                     placeholder="iOS 17.2"
@@ -284,6 +301,7 @@ export function BugReportWidget({ defaultName, defaultEmail }: BugReportWidgetPr
                 </label>
                 <textarea
                   name="steps"
+                  autoComplete="off"
                   value={formData.steps}
                   onChange={handleInputChange}
                   placeholder="1. Click X&#10;2. Then click Y&#10;3. Bug happens"
@@ -302,6 +320,7 @@ export function BugReportWidget({ defaultName, defaultEmail }: BugReportWidgetPr
                   </label>
                   <textarea
                     name="expected"
+                    autoComplete="off"
                     value={formData.expected}
                     onChange={handleInputChange}
                     placeholder="What should have happened"
@@ -317,6 +336,7 @@ export function BugReportWidget({ defaultName, defaultEmail }: BugReportWidgetPr
                   </label>
                   <textarea
                     name="actual"
+                    autoComplete="off"
                     value={formData.actual}
                     onChange={handleInputChange}
                     placeholder="What actually happened"
@@ -335,6 +355,7 @@ export function BugReportWidget({ defaultName, defaultEmail }: BugReportWidgetPr
                 </label>
                 <textarea
                   name="notes"
+                  autoComplete="off"
                   value={formData.notes}
                   onChange={handleInputChange}
                   placeholder="Any other details that might help us..."
