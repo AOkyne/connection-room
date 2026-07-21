@@ -2,13 +2,25 @@
 
 import { useState, useRef } from "react";
 
-export function BugReportWidget() {
+interface BugReportWidgetProps {
+  // Pre-fills the submitter fields when the widget is mounted somewhere a
+  // real session is already known (the authenticated app shell) -- still
+  // editable, and left blank on public/logged-out pages where there's
+  // nothing to pre-fill from. Without this, a report like the "Photo
+  // won't upload" one had no way to tell who sent it.
+  defaultName?: string;
+  defaultEmail?: string;
+}
+
+export function BugReportWidget({ defaultName, defaultEmail }: BugReportWidgetProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
+    name: defaultName || "",
+    email: defaultEmail || "",
     title: "",
     severity: "medium",
     device: "iPhone",
@@ -68,6 +80,8 @@ export function BugReportWidget() {
 
       setSubmitStatus("success");
       setFormData({
+        name: defaultName || "",
+        email: defaultEmail || "",
         title: "",
         severity: "medium",
         device: "iPhone",
@@ -155,6 +169,40 @@ export function BugReportWidget() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {/* Submitter Info */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: "#2C2417" }}>
+                    Your Name
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="So we know who to follow up with"
+                    className="w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2"
+                    style={{ borderColor: "#D9CDB8", color: "#2C2417" }}
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: "#2C2417" }}>
+                    Your Email
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="you@example.com"
+                    className="w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2"
+                    style={{ borderColor: "#D9CDB8", color: "#2C2417" }}
+                    disabled={isSubmitting}
+                  />
+                </div>
+              </div>
+
               {/* Title */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: "#2C2417" }}>

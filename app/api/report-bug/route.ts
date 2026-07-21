@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
 interface BugReportData {
+  name: string;
+  email: string;
   title: string;
   severity: string;
   device: string;
@@ -32,6 +34,8 @@ export async function POST(request: NextRequest) {
     // Build email text
     const emailText = `
 🐛 New Bug Report
+
+From: ${data.name || "(not provided)"} ${data.email ? `<${data.email}>` : "(no email provided)"}
 
 Title: ${data.title}
 Severity: ${data.severity}
@@ -68,12 +72,24 @@ Submitted from The Connection Room Beta Testing Widget
         },
       });
 
+      // Reply-to the submitter directly when they gave a real email --
+      // this is the whole point of collecting it: "Reply" in Trevor's
+      // inbox should reach the actual person, not himself. A basic shape
+      // check only (this is a mailer header, not a data validation
+      // boundary) -- falls back to the previous behavior if it's missing
+      // or obviously not an email.
+      const submitterEmail = data.email?.trim();
+      const replyTo =
+        submitterEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(submitterEmail)
+          ? submitterEmail
+          : "trevor@trevorjamesla.com";
+
       await transporter.sendMail({
         from: "Trevor James <trevor@trevorjamesla.com>",
         to: "support@trevorjamesla.com",
-        subject: `[Beta Bug Report] ${data.title}`,
+        subject: `[Beta Bug Report] ${data.title}${data.name ? ` (${data.name})` : ""}`,
         text: emailText,
-        replyTo: "trevor@trevorjamesla.com",
+        replyTo,
       });
     } else {
       // Development: Log to console

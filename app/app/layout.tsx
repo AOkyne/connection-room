@@ -227,7 +227,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           )}
         </nav>
       </div>
-      <BugReportWidget />
+      <BugReportWidget defaultName={session?.name} defaultEmail={session?.email} />
     </div>
   );
 }
