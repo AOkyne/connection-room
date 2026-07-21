@@ -30,6 +30,32 @@ const SPACES_STORAGE_KEY = "connection-room:spaces";
 const SPACE_ORDER_KEY = "connection-room:space-order";
 const APP_VISITS_KEY = "connection-room:app-visits";
 const START_HERE_COMPLETE_KEY = "connection-room:start-here-complete";
+
+// Both of the above were plain, unscoped localStorage keys -- shared by
+// EVERY account that ever signs in on a given browser, not tied to the
+// specific member at all. Confirmed live: a brand-new signup didn't see
+// Start Here at all, because the same browser had already racked up 5+
+// app visits testing other accounts earlier the same day -- a bug for
+// anyone testing multiple accounts on one device/browser, and (in the
+// other direction) for anyone sharing a device, where one account's
+// "Start Here complete" would incorrectly carry over to a different
+// account signing in on the same browser. Namespacing by the currently
+// cached session's id fixes both directions. Mirrors
+// isAdminSessionCached()'s own pattern (lib/session.ts) of reading the
+// cached session directly from localStorage rather than awaiting the
+// full async getSession() -- this needs to stay synchronous since it's
+// called during render.
+function getSessionScopeKey(): string {
+  if (typeof window === "undefined") return "anonymous";
+  try {
+    const stored = localStorage.getItem("connection-room:session");
+    if (!stored) return "anonymous";
+    const session = JSON.parse(stored);
+    return session.supabaseUserId || session.id || "anonymous";
+  } catch {
+    return "anonymous";
+  }
+}
 const REQUIRED_SPACES = ["start-here", "commons"];
 const HIDDEN_SPACE_IDS = ["embodiment", "workshops", "sacred-sexuality"];
 
@@ -231,7 +257,7 @@ export function isStartHereRequired(): boolean {
   if (isAdminSessionCached()) return true;
 
   // Check if marked as complete
-  const isComplete = localStorage.getItem(START_HERE_COMPLETE_KEY);
+  const isComplete = localStorage.getItem(`${START_HERE_COMPLETE_KEY}:${getSessionScopeKey()}`);
   if (isComplete) return false;
 
   // Check app visit count (5 or more app visits = no longer required)
@@ -246,14 +272,14 @@ export function recordAppVisit(): void {
   if (typeof window === "undefined") return;
 
   const visits = getAppVisits();
-  localStorage.setItem(APP_VISITS_KEY, JSON.stringify(visits + 1));
+  localStorage.setItem(`${APP_VISITS_KEY}:${getSessionScopeKey()}`, JSON.stringify(visits + 1));
 }
 
 // Get total app visit count
 export function getAppVisits(): number {
   if (typeof window === "undefined") return 0;
 
-  const stored = localStorage.getItem(APP_VISITS_KEY);
+  const stored = localStorage.getItem(`${APP_VISITS_KEY}:${getSessionScopeKey()}`);
   return stored ? parseInt(stored, 10) : 0;
 }
 
@@ -359,7 +385,7 @@ export async function getTotalNewPostCount(): Promise<number> {
 export function markStartHereComplete(): void {
   if (typeof window === "undefined") return;
 
-  localStorage.setItem(START_HERE_COMPLETE_KEY, "true");
+  localStorage.setItem(`${START_HERE_COMPLETE_KEY}:${getSessionScopeKey()}`, "true");
 }
 
 // Get dynamically required spaces
