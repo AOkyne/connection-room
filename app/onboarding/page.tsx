@@ -957,7 +957,18 @@ export default function OnboardingPage() {
                   <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                     <p className="text-sm text-red-700">{submitError}</p>
                     <button
-                      onClick={() => setSubmitError(null)}
+                      onClick={() => {
+                        // Previously only cleared the error text (setSubmitError(null))
+                        // without re-attempting anything -- the button then vanished
+                        // entirely (this block only renders while submitError is set),
+                        // leaving no visible next step besides noticing and re-clicking
+                        // the separate "Enter the Community" button above. Confirmed
+                        // live: multiple members reported being permanently "blocked" at
+                        // this exact screen after clicking what looked like the retry
+                        // action. "Try again" now actually tries again.
+                        setSubmitError(null);
+                        handleComplete();
+                      }}
                       className="text-sm text-red-600 underline mt-2 hover:text-red-700"
                     >
                       Try again
