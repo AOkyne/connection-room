@@ -42,6 +42,7 @@ function getBrandedAttachments() {
 
 export async function sendBrandedEmail(options: {
   to: string;
+  cc?: string;
   subject: string;
   paragraphs: string[];
   appUrl: string;
@@ -51,6 +52,7 @@ export async function sendBrandedEmail(options: {
   await transporter.sendMail({
     from: FROM_ADDRESS,
     to: options.to,
+    ...(options.cc ? { cc: options.cc } : {}),
     subject: options.subject,
     text: buildBrandedEmailText(options.paragraphs, options.appUrl, options.signOff),
     html: buildBrandedEmailHtml(options.paragraphs, options.appUrl, options.signOff),
