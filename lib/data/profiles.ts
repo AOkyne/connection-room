@@ -184,79 +184,99 @@ export async function getProfile(): Promise<Profile | null> {
   }
 
   if (userId && supabase) {
-    try {
-      // profile_photo excluded deliberately -- some members' photos are
-      // multi-megabyte base64 strings stored directly in the row (found
-      // live: Trevor's own is 4.3MB). Pulling that on every single page
-      // load that calls getProfile() (the nav, every dashboard section,
-      // 8+ pages) was slow enough to blow past this function's own 3s
-      // timeout and fall through to the hardcoded "Guest User" fallback
-      // below -- a real, correctly-persisted profile, just one whose own
-      // fetch couldn't finish in time. Callers that actually need to show
-      // the real photo (the profile edit page's preview) fetch it
-      // separately via getProfilePhoto(), so only that one place pays the
-      // cost of the large transfer.
-      const queryPromise = supabase
-        .from("profiles")
-        .select(
-          "user_id, first_name, last_name, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, first_prompt_response, first_prompt_is_public, completed_onboarding, spaces_joined, created_at, welcome_video_watched, welcome_video_watched_at, onboarding_completed_at, deactivated_at, profile_photo_path, profile_photo_updated_at, onboarding_step, photo_confirmed, photo_confirmed_at, profile_tagline"
-        )
-        .eq("user_id", userId)
-        .single();
+    // Up to two attempts before giving up and falling through to the
+    // fallback placeholder below -- confirmed live: a real member (clean,
+    // uncorrupted data, confirmed directly in the database) had a whole
+    // dashboard section confidently render "Welcome back, Guest" with a
+    // generic avatar, because this query's single 3s attempt timed out on
+    // their connection. The placeholder is meant as a last resort for
+    // pages that would otherwise hang or crash with nothing at all -- it
+    // was never meant to be confidently presented as someone's real
+    // identity on the first sign of a slow network. First attempt uses a
+    // short timeout (the common case: a healthy connection, fast
+    // response); the retry gives a genuinely slow-but-working connection
+    // real headroom instead of immediately being treated the same as an
+    // outright failure.
+    const attemptTimeouts = [4000, 8000];
+    for (const timeoutMs of attemptTimeouts) {
+      try {
+        // profile_photo excluded deliberately -- some members' photos are
+        // multi-megabyte base64 strings stored directly in the row (found
+        // live: Trevor's own is 4.3MB). Pulling that on every single page
+        // load that calls getProfile() (the nav, every dashboard section,
+        // 8+ pages) was slow enough to blow past this function's own
+        // timeout and fall through to the hardcoded "Guest User" fallback
+        // below -- a real, correctly-persisted profile, just one whose own
+        // fetch couldn't finish in time. Callers that actually need to show
+        // the real photo (the profile edit page's preview) fetch it
+        // separately via getProfilePhoto(), so only that one place pays the
+        // cost of the large transfer.
+        const queryPromise = supabase
+          .from("profiles")
+          .select(
+            "user_id, first_name, last_name, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, first_prompt_response, first_prompt_is_public, completed_onboarding, spaces_joined, created_at, welcome_video_watched, welcome_video_watched_at, onboarding_completed_at, deactivated_at, profile_photo_path, profile_photo_updated_at, onboarding_step, photo_confirmed, photo_confirmed_at, profile_tagline"
+          )
+          .eq("user_id", userId)
+          .single();
 
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Profile query timeout")), 3000)
-      );
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Profile query timeout")), timeoutMs)
+        );
 
-      const result = await Promise.race([queryPromise, timeoutPromise]);
-      const { data, error } = result as any;
+        const result = await Promise.race([queryPromise, timeoutPromise]);
+        const { data, error } = result as any;
 
-      if (!error && data) {
-        // Map Supabase profile to Profile interface
-        return {
-          id: data.user_id || data.id,
-          // Migration 060 columns, falling back to splitting display_name
-          // for profiles saved before this migration (whose real last name
-          // was never stored -- see that migration's comment).
-          firstName: data.first_name || data.display_name?.split(" ")[0] || "",
-          lastName: data.last_name || data.display_name?.split(" ").slice(1).join(" ") || "",
-          displayName: data.display_name || "",
-          pronouns: data.pronouns,
-          location: data.location,
-          ageRange: data.age_range,
-          relationshipStatus: data.relationship_status,
-          orientation: data.orientation,
-          // Legacy base64 deliberately never selected here (see the
-          // comment above) -- but profile_photo_path is tiny, so a
-          // migrated member's own photo now shows up here for free,
-          // without paying for the multi-megabyte legacy transfer.
-          profilePhoto: resolveProfilePhotoUrl(data.profile_photo_path, null),
-          profilePhotoPath: data.profile_photo_path || undefined,
-          profilePhotoUpdatedAt: data.profile_photo_updated_at ? new Date(data.profile_photo_updated_at) : undefined,
-          memberType: data.member_type || "individual",
-          whatBroughtYouHere: data.what_brought_you_here,
-          connectionHoping: data.connection_hoping,
-          interests: Array.isArray(data.interests) ? data.interests : [],
-          connectionComfortLevel: data.connection_comfort_level,
-          connectionBoundaries: data.connection_boundaries,
-          quizResult: data.quiz_result,
-          firstPromptResponse: data.first_prompt_response,
-          firstPromptIsPublic: data.first_prompt_is_public,
-          completedOnboarding: data.completed_onboarding || false,
-          spacesJoined: Array.isArray(data.spaces_joined) ? data.spaces_joined : [],
-          joinedAt: new Date(data.created_at),
-          welcomeVideoWatched: data.welcome_video_watched || false,
-          welcomeVideoWatchedAt: data.welcome_video_watched_at ? new Date(data.welcome_video_watched_at) : undefined,
-          onboardingCompletedAt: data.onboarding_completed_at ? new Date(data.onboarding_completed_at) : undefined,
-          deactivatedAt: data.deactivated_at ? new Date(data.deactivated_at) : undefined,
-          onboardingStep: data.onboarding_step || undefined,
-          photo_confirmed: data.photo_confirmed || false,
-          photo_confirmed_at: data.photo_confirmed_at ? new Date(data.photo_confirmed_at) : undefined,
-          profile_tagline: data.profile_tagline || undefined,
-        };
+        if (!error && data) {
+          // Map Supabase profile to Profile interface
+          return {
+            id: data.user_id || data.id,
+            // Migration 060 columns, falling back to splitting display_name
+            // for profiles saved before this migration (whose real last name
+            // was never stored -- see that migration's comment).
+            firstName: data.first_name || data.display_name?.split(" ")[0] || "",
+            lastName: data.last_name || data.display_name?.split(" ").slice(1).join(" ") || "",
+            displayName: data.display_name || "",
+            pronouns: data.pronouns,
+            location: data.location,
+            ageRange: data.age_range,
+            relationshipStatus: data.relationship_status,
+            orientation: data.orientation,
+            // Legacy base64 deliberately never selected here (see the
+            // comment above) -- but profile_photo_path is tiny, so a
+            // migrated member's own photo now shows up here for free,
+            // without paying for the multi-megabyte legacy transfer.
+            profilePhoto: resolveProfilePhotoUrl(data.profile_photo_path, null),
+            profilePhotoPath: data.profile_photo_path || undefined,
+            profilePhotoUpdatedAt: data.profile_photo_updated_at ? new Date(data.profile_photo_updated_at) : undefined,
+            memberType: data.member_type || "individual",
+            whatBroughtYouHere: data.what_brought_you_here,
+            connectionHoping: data.connection_hoping,
+            interests: Array.isArray(data.interests) ? data.interests : [],
+            connectionComfortLevel: data.connection_comfort_level,
+            connectionBoundaries: data.connection_boundaries,
+            quizResult: data.quiz_result,
+            firstPromptResponse: data.first_prompt_response,
+            firstPromptIsPublic: data.first_prompt_is_public,
+            completedOnboarding: data.completed_onboarding || false,
+            spacesJoined: Array.isArray(data.spaces_joined) ? data.spaces_joined : [],
+            joinedAt: new Date(data.created_at),
+            welcomeVideoWatched: data.welcome_video_watched || false,
+            welcomeVideoWatchedAt: data.welcome_video_watched_at ? new Date(data.welcome_video_watched_at) : undefined,
+            onboardingCompletedAt: data.onboarding_completed_at ? new Date(data.onboarding_completed_at) : undefined,
+            deactivatedAt: data.deactivated_at ? new Date(data.deactivated_at) : undefined,
+            onboardingStep: data.onboarding_step || undefined,
+            photo_confirmed: data.photo_confirmed || false,
+            photo_confirmed_at: data.photo_confirmed_at ? new Date(data.photo_confirmed_at) : undefined,
+            profile_tagline: data.profile_tagline || undefined,
+          };
+        }
+        // A resolved-but-empty result (no error, no data -- e.g. RLS
+        // filtered the row) isn't going to succeed on a retry either;
+        // only a timeout/thrown error below is worth retrying.
+        break;
+      } catch (err) {
+        console.warn(`Error fetching profile from Supabase (attempt at ${timeoutMs}ms):`, err);
       }
-    } catch (err) {
-      console.warn("Error fetching profile from Supabase:", err);
     }
   }
 
