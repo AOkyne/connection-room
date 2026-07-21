@@ -1,0 +1,24 @@
+-- profiles.profile_tagline exists in the live table (readable via
+-- select("*"), writable via upsert) but PostgREST rejects ANY explicit
+-- column-list select naming it outright: "column profiles.profile_tagline
+-- does not exist" -- confirmed live even under the service-role key, which
+-- bypasses RLS entirely, so this is not a permissions issue. It's a
+-- PostgREST schema-cache problem: the column was added to the table at
+-- some point with no corresponding migration in this repo (grepping
+-- supabase/migrations/*.sql for "profile_tagline" before this file returns
+-- nothing), and PostgREST's cached schema was apparently never refreshed
+-- afterward to learn about it.
+--
+-- Confirmed impact: lib/data/profiles.ts's getProfile() added
+-- profile_tagline to its explicit select list as part of migration 065
+-- earlier today, which broke that query -- and therefore every profile
+-- fetch, for every user -- outright and instantly. That's already fixed
+-- by removing the column from the select list; this migration is the
+-- separate, proper fix for the underlying cache problem, so the column
+-- becomes safely selectable by name again (here or anywhere else) without
+-- relying on select("*").
+--
+-- NOTIFY has no effect if nothing is listening, so this is a no-op noise
+-- risk, not a destructive one -- safe to run regardless of whether this
+-- turns out to be the actual mechanism.
+NOTIFY pgrst, 'reload schema';
