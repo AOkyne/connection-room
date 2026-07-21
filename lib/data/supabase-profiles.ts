@@ -29,7 +29,17 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
   // profile_photo_path (Supabase Storage). The legacy column is left
   // alone for existing rows until a separate one-time backfill migrates
   // them; see PROFILE_PHOTO_MIGRATION notes.
-  const { data, error } = await demoSafeWrite(
+  // No timeout previously wrapped this request at all -- if the browser's
+  // fetch to Supabase never resolves (confirmed live: a brand-new signup's
+  // profile row had never received a single successful write across 3
+  // separate submit attempts, created_at and updated_at identical to the
+  // millisecond), the Save button just hangs indefinitely with no error,
+  // which is exactly what "the button seems unresponsive" and "I've
+  // submitted 3 times" both describe. A bounded timeout guarantees every
+  // caller eventually gets a real answer -- success, or a clear failure
+  // they can actually see and retry from -- instead of silence.
+  const WRITE_TIMEOUT_MS = 15000;
+  const writePromise = demoSafeWrite(
     async () => client
       .from("profiles")
       .upsert(
@@ -90,6 +100,16 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
       .select(),
     { context: "saveProfileToSupabase" }
   );
+
+  const timeoutPromise = new Promise<{ data: null; error: { message: string; code?: string; details?: string; hint?: string } }>(
+    (resolve) =>
+      setTimeout(
+        () => resolve({ data: null, error: { message: `Profile save timed out after ${WRITE_TIMEOUT_MS}ms` } }),
+        WRITE_TIMEOUT_MS
+      )
+  );
+
+  const { data, error } = await Promise.race([writePromise, timeoutPromise]);
 
   if (error) {
     console.error("Error saving profile to Supabase:", {
