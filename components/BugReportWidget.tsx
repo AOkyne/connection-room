@@ -16,7 +16,11 @@ export function BugReportWidget({ defaultName, defaultEmail }: BugReportWidgetPr
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+  const [screenshotError, setScreenshotError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const MAX_SCREENSHOT_SIZE_MB = 5;
+  const MAX_SCREENSHOT_SIZE_BYTES = MAX_SCREENSHOT_SIZE_MB * 1024 * 1024;
 
   const [formData, setFormData] = useState({
     name: defaultName || "",
@@ -34,16 +38,30 @@ export function BugReportWidget({ defaultName, defaultEmail }: BugReportWidgetPr
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setFormData((prev) => ({
-          ...prev,
-          screenshot: event.target?.result as string,
-        }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    setScreenshotError(null);
+
+    if (!file.type.startsWith("image/")) {
+      setScreenshotError("Screenshot must be an image file");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
     }
+
+    if (file.size > MAX_SCREENSHOT_SIZE_BYTES) {
+      setScreenshotError(`Screenshot is too large. Max size is ${MAX_SCREENSHOT_SIZE_MB}MB (yours is ${(file.size / 1024 / 1024).toFixed(1)}MB)`);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setFormData((prev) => ({
+        ...prev,
+        screenshot: event.target?.result as string,
+      }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleInputChange = (
@@ -401,6 +419,7 @@ export function BugReportWidget({ defaultName, defaultEmail }: BugReportWidgetPr
                       type="button"
                       onClick={() => {
                         setFormData((prev) => ({ ...prev, screenshot: null }));
+                        setScreenshotError(null);
                         if (fileInputRef.current) fileInputRef.current.value = "";
                       }}
                       className="text-sm text-red-600 hover:text-red-700"
@@ -423,6 +442,9 @@ export function BugReportWidget({ defaultName, defaultEmail }: BugReportWidgetPr
                   >
                     Click to upload or drag & drop
                   </button>
+                )}
+                {screenshotError && (
+                  <p className="text-xs text-red-600 mt-2 font-medium">❌ {screenshotError}</p>
                 )}
               </div>
 

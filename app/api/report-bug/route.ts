@@ -84,12 +84,33 @@ Submitted from The Connection Room Beta Testing Widget
           ? submitterEmail
           : "trevor@trevorjamesla.com";
 
+      // The widget lets someone pick a screenshot and even previews it in
+      // the UI, but data.screenshot was never actually used here -- it was
+      // received and silently dropped, so no screenshot has ever reached
+      // an actual bug report email. Parse the data URL (e.g.
+      // "data:image/png;base64,...." from FileReader.readAsDataURL()) into
+      // a real nodemailer attachment.
+      const attachments: { filename: string; content: Buffer; contentType?: string }[] = [];
+      if (data.screenshot) {
+        const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/.exec(data.screenshot);
+        if (match) {
+          const [, contentType, base64] = match;
+          const extension = contentType.split("/")[1] || "png";
+          attachments.push({
+            filename: `screenshot.${extension}`,
+            content: Buffer.from(base64, "base64"),
+            contentType,
+          });
+        }
+      }
+
       await transporter.sendMail({
         from: "Trevor James <trevor@trevorjamesla.com>",
         to: "support@trevorjamesla.com",
         subject: `[Beta Bug Report] ${data.title}${data.name ? ` (${data.name})` : ""}`,
-        text: emailText,
+        text: emailText + (data.screenshot && attachments.length === 0 ? "\n\n(A screenshot was attached but couldn't be processed.)" : ""),
         replyTo,
+        attachments,
       });
     } else {
       // Development: Log to console
