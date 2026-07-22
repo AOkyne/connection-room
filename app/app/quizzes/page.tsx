@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
-import { IconIntimacy, IconHeart } from "@/components/Icons";
+import { IconIntimacy, IconHeart, IconCandle } from "@/components/Icons";
 import { getProfile, type Profile } from "@/lib/data/profiles";
 import Link from "next/link";
 
@@ -34,6 +34,13 @@ export default function QuizzesPage() {
       description: "Explore the erotic dimension of your relationship and identify areas for deeper connection.",
       href: "/app/quizzes/erotic-relationship",
       icon: IconHeart,
+    },
+    {
+      id: "where-did-the-spark-go",
+      title: "Where Did The Spark Go?",
+      description: "Explore what's changed in your relationship's passion and connection over time.",
+      href: "/app/quizzes/where-did-the-spark-go",
+      icon: IconCandle,
     },
   ];
 
