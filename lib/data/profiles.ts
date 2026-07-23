@@ -3,6 +3,7 @@ import { saveProfileToSupabase } from "@/lib/data/supabase-profiles";
 import { demoSafeWrite } from "@/lib/demo/demo-mode-guard";
 import { waitForAuthReady } from "@/lib/supabase/auth-ready";
 import { buildProfilePhotoUrl } from "@/lib/utils/storage";
+import { generateInviteCode } from "@/lib/utils/invite-code";
 
 // Migration 064: profile_photo_path (Storage) is the source of truth once
 // set; legacy_base64 (profiles.profile_photo/public_profiles.profile_photo)
@@ -162,6 +163,86 @@ async function getCurrentSupabaseUserId(): Promise<string | null> {
   }
 }
 
+// Creates the profile row a signup should have created but didn't. Profile
+// creation historically lived ONLY inside the password-signup path
+// (client-side, its insert error merely console.logged), so magic-link
+// signups never got a row at all, and a failed insert left an
+// authenticated account permanently profile-less -- 10 real auth users
+// were found in exactly this state. Mirrors signUpWithPassword()'s insert
+// (minimal row, completed_onboarding false, invite code, default spaces)
+// so the member lands in onboarding like any new signup.
+async function createMissingProfileRow(userId: string): Promise<Profile | null> {
+  if (!supabase) return null;
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    const email = userData?.user?.email || "";
+    const displayName =
+      (userData?.user?.user_metadata as { display_name?: string } | undefined)?.display_name ||
+      email.split("@")[0] ||
+      "Member";
+
+    const { data: inserted, error: insertError } = await supabase
+      .from("profiles")
+      .insert({
+        user_id: userId,
+        display_name: displayName,
+        member_type: "individual",
+        completed_onboarding: false,
+        invite_code: generateInviteCode(displayName),
+        invite_code_created_at: new Date().toISOString(),
+      })
+      .select("user_id, display_name, created_at")
+      .maybeSingle();
+
+    // A concurrent getProfile() call (nav + dashboard sections all call
+    // this on the same page load) may have won the insert race -- re-read
+    // rather than fail.
+    let row = inserted;
+    if (insertError || !row) {
+      const { data: existing } = await supabase
+        .from("profiles")
+        .select("user_id, display_name, created_at")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (!existing) {
+        console.error("Could not create missing profile row:", insertError);
+        return null;
+      }
+      row = existing;
+    } else {
+      // Best-effort: the default-space memberships signup would have
+      // created. Failures here are non-fatal (Start Here/Commons can be
+      // joined later); never block the heal on them.
+      for (const slug of ["start-here", "commons"]) {
+        try {
+          const { data: space } = await supabase.from("spaces").select("id").eq("slug", slug).single();
+          if (space) {
+            await supabase.from("space_memberships").insert({ user_id: userId, space_id: space.id });
+          }
+        } catch {
+          // non-fatal
+        }
+      }
+    }
+
+    return {
+      id: userId,
+      firstName: "",
+      lastName: "",
+      displayName: row.display_name || displayName,
+      memberType: "individual",
+      interests: [],
+      profilePhoto: "",
+      completedOnboarding: false,
+      spacesJoined: ["start-here", "commons"],
+      joinedAt: row.created_at ? new Date(row.created_at) : new Date(),
+    };
+  } catch (err) {
+    console.error("Error healing missing profile row:", err);
+    return null;
+  }
+}
+
 // Get current profile from Supabase (if authenticated) or localStorage
 export async function getProfile(): Promise<Profile | null> {
   if (typeof window === "undefined") return null;
@@ -233,7 +314,7 @@ export async function getProfile(): Promise<Profile | null> {
             "user_id, first_name, last_name, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, first_prompt_response, first_prompt_is_public, completed_onboarding, spaces_joined, created_at, welcome_video_watched, welcome_video_watched_at, onboarding_completed_at, deactivated_at, profile_photo_path, profile_photo_updated_at, onboarding_step, photo_confirmed, photo_confirmed_at"
           )
           .eq("user_id", userId)
-          .single();
+          .maybeSingle();
 
         const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error("Profile query timeout")), timeoutMs)
@@ -286,9 +367,23 @@ export async function getProfile(): Promise<Profile | null> {
             profile_tagline: data.profile_tagline || undefined,
           };
         }
-        // A resolved-but-empty result (no error, no data -- e.g. RLS
-        // filtered the row) isn't going to succeed on a retry either;
-        // only a timeout/thrown error below is worth retrying.
+        // A resolved-but-empty result (no error, no data) means this
+        // authenticated user genuinely has NO profile row -- confirmed
+        // live for 10 real auth users: profile creation only ever
+        // happened inside the password-signup path (client-side, its
+        // error merely console.logged), so a magic-link signup or a
+        // failed insert left an authenticated account with no row at
+        // all. Those users then fell through to the Guest placeholder
+        // below -- which claims completedOnboarding: true, so they were
+        // never routed to onboarding, rendered as "Guest User", and the
+        // demo-guard in saveProfile() (correctly) blocked every save.
+        // Signed in, but permanently stuck. Heal it: create the missing
+        // row here, exactly as signup should have, and return it -- the
+        // app layout then routes them into onboarding normally.
+        if (!error && !data) {
+          const healed = await createMissingProfileRow(userId);
+          if (healed) return healed;
+        }
         break;
       } catch (err) {
         console.warn(`Error fetching profile from Supabase (attempt at ${timeoutMs}ms):`, err);
