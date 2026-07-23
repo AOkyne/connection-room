@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   getProfile,
-  updateProfile,
   saveProfile,
   getCoupleProfileFromSupabase,
   saveCoupleProfileToSupabase,
@@ -21,6 +20,23 @@ import Link from "next/link";
 type Step = "welcome" | "agreements" | "member-type" | "basics" | "photo" | "interests" | "connections" | "couples" | "prompt" | "complete";
 
 const ALL_STEPS: Step[] = ["welcome", "agreements", "member-type", "basics", "photo", "interests", "connections", "couples", "prompt", "complete"];
+
+// Not legal-name verification -- just enough to catch the obvious
+// non-names (screen handles, placeholders, keyboard mashing) without
+// requiring ID checks. A determined user can still fake a plausible-
+// looking name; the rest is a community-norms problem, not a code one.
+const PLACEHOLDER_NAMES = new Set([
+  "test", "asdf", "n/a", "na", "none", "xx", "xxx", "anonymous", "unknown", "idk", "abc", "asd",
+]);
+
+function isRealName(value: string): boolean {
+  const trimmed = value.trim();
+  if (trimmed.length < 2) return false;
+  if (!/[a-zA-Z]/.test(trimmed)) return false;
+  if (PLACEHOLDER_NAMES.has(trimmed.toLowerCase())) return false;
+  if (/^(.)\1*$/.test(trimmed)) return false; // e.g. "aaaa"
+  return true;
+}
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -126,7 +142,19 @@ export default function OnboardingPage() {
       setCurrentStep(next);
       // Fire-and-forget: don't block navigation on this save, but do
       // persist it so a reload/return resumes here instead of "welcome".
-      updateProfile({ onboardingStep: next }).catch(() => {});
+      // Chained onto saveChainRef (via saveProfile with the current, already-
+      // known `profile`) rather than a standalone updateProfile() call --
+      // updateProfile() does its own independent get-then-merge-then-write,
+      // and if that internal fetch ran before an in-flight handleUpdate save
+      // (e.g. the photo-confirmation checkbox) had actually committed, it
+      // would merge in stale data and write it back, undoing that save the
+      // same way the keystroke race did. Confirmed live: a member's photo
+      // upload + confirmation was wiped exactly this way, minutes after the
+      // keystroke-race fix -- this was the one remaining unchained write.
+      const updated = { ...profile, onboardingStep: next };
+      const chained = saveChainRef.current.then(() => saveProfile(updated));
+      saveChainRef.current = chained;
+      chained.catch(() => {});
     }
   };
 
@@ -135,7 +163,10 @@ export default function OnboardingPage() {
     if (prevIndex >= 0) {
       const prev = steps[prevIndex];
       setCurrentStep(prev);
-      updateProfile({ onboardingStep: prev }).catch(() => {});
+      const updated = { ...profile, onboardingStep: prev };
+      const chained = saveChainRef.current.then(() => saveProfile(updated));
+      saveChainRef.current = chained;
+      chained.catch(() => {});
     }
   };
 
@@ -165,8 +196,8 @@ export default function OnboardingPage() {
     // gets set to true, so it shouldn't trust that no other path (a future
     // change to the step order, a resumed/stale session, etc.) could ever
     // reach it with either blank.
-    if (!profile.firstName?.trim() || !profile.lastName?.trim()) {
-      setSubmitError("Please provide both a first and last name before completing your profile.");
+    if (!isRealName(profile.firstName) || !isRealName(profile.lastName)) {
+      setSubmitError("Please provide a proper first and last name before completing your profile.");
       setCurrentStep("basics");
       return;
     }
@@ -403,6 +434,9 @@ export default function OnboardingPage() {
                     <span className="font-semibold text-[#1a0f0a]">This helps us:</span> Understand who you are so we can match you with compatible people and create meaningful connections.
                   </p>
                 </div>
+                <p className="text-sm text-[#a0704a]">
+                  Please use your real first and last name — not a screen name or handle. We don't need a legal name, just a proper one; it's what builds trust in this community.
+                </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-[#1a0f0a] mb-2">First Name *</label>
@@ -419,6 +453,9 @@ export default function OnboardingPage() {
                       className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
                       placeholder="First name"
                     />
+                    {profile.firstName.trim().length > 0 && !isRealName(profile.firstName) && (
+                      <p className="text-xs text-red-600 mt-1">Please enter a proper first name.</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[#1a0f0a] mb-2">Last Name *</label>
@@ -435,6 +472,9 @@ export default function OnboardingPage() {
                       className="w-full px-4 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
                       placeholder="Last name"
                     />
+                    {profile.lastName.trim().length > 0 && !isRealName(profile.lastName) && (
+                      <p className="text-xs text-red-600 mt-1">Please enter a proper last name.</p>
+                    )}
                   </div>
                 </div>
                 <div className="p-3 bg-[#f3ede5] rounded-lg">
@@ -544,7 +584,7 @@ export default function OnboardingPage() {
                   variant="primary"
                   size="md"
                   onClick={handleNext}
-                  disabled={!profile.firstName?.trim() || !profile.lastName?.trim()}
+                  disabled={!isRealName(profile.firstName) || !isRealName(profile.lastName)}
                   className="flex-1"
                 >
                   Continue
@@ -574,7 +614,7 @@ export default function OnboardingPage() {
                   <div className="space-y-4">
                     <div className="bg-[#fffbf7] border-l-4 border-[#d4a348] p-4 rounded">
                       <p className="text-[#1a0f0a]">
-                        <span className="font-semibold text-[#1a0f0a]">Why your photo matters:</span> A real, current photo helps people recognize you and builds the human connection this community is built on.
+                        <span className="font-semibold text-[#1a0f0a]">Why your photo matters:</span> We need to see your face — it's how trust gets built in this community. A photo of a landscape, a pet, or an avatar doesn't let anyone recognize you.
                       </p>
                     </div>
 
