@@ -267,6 +267,7 @@ END:VCALENDAR`;
                         <p className="text-[#a0704a] uppercase tracking-wide text-xs">Date</p>
                         <p className="text-[#1a0f0a] font-medium">
                           {event.date.toLocaleDateString("en-US", {
+                            weekday: "short",
                             month: "short",
                             day: "numeric",
                           })}

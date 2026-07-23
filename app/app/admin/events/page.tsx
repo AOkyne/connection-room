@@ -261,6 +261,7 @@ export default function AdminEventsPage() {
                   <p className="text-sm text-[#a0704a] mb-2">
                     {event.startAt
                       ? new Date(event.startAt).toLocaleDateString("en-US", {
+                          weekday: "short",
                           month: "short",
                           day: "numeric",
                           year: "numeric",
