@@ -98,7 +98,28 @@ export default function OnboardingPage() {
         ? ALL_STEPS
         : ALL_STEPS.filter((s) => s !== "couples");
       if (p.onboardingStep && validSteps.includes(p.onboardingStep as Step)) {
-        setCurrentStep(p.onboardingStep as Step);
+        // Clamp the resume step to the earliest gate this profile doesn't
+        // actually meet. The saved step is just "where the UI last was" --
+        // if the data behind an earlier gate is missing (a photo save that
+        // never landed, a name that got blanked), resuming past that gate
+        // means the member never sees it again and completes without it.
+        // Confirmed live: members resumed at "prompt"/"complete" with no
+        // photo and entered the community photo-less.
+        let resumeStep = p.onboardingStep as Step;
+        const gates: { step: Step; met: boolean }[] = [
+          { step: "basics", met: isRealName(p.firstName) && isRealName(p.lastName) },
+          { step: "photo", met: !!p.profilePhoto && !!p.photo_confirmed },
+        ];
+        for (const gate of gates) {
+          if (
+            !gate.met &&
+            validSteps.indexOf(resumeStep) > validSteps.indexOf(gate.step)
+          ) {
+            resumeStep = gate.step;
+            break;
+          }
+        }
+        setCurrentStep(resumeStep);
       }
 
       if (isCouple) {
@@ -199,6 +220,17 @@ export default function OnboardingPage() {
     if (!isRealName(profile.firstName) || !isRealName(profile.lastName)) {
       setSubmitError("Please provide a proper first and last name before completing your profile.");
       setCurrentStep("basics");
+      return;
+    }
+
+    // Photo is as much a completion requirement as the name -- the photo
+    // step's own Continue button enforces it, but resume/race paths have
+    // repeatedly reached this point without one (8 real members completed
+    // photo-less before this check existed). Mirrors the DB trigger in
+    // migration 067, which backstops this same rule server-side.
+    if (!profile.profilePhoto || !profile.photo_confirmed) {
+      setSubmitError("Please add and confirm your profile photo before entering the community.");
+      setCurrentStep("photo");
       return;
     }
 

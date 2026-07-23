@@ -3,12 +3,13 @@
 import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession, clearSession, type AppSession } from "@/lib/session";
-import { getProfile } from "@/lib/data/profiles";
+import { getProfile, type Profile } from "@/lib/data/profiles";
 import { supabase } from "@/lib/supabase/client";
 import { recordAppVisit, getTotalNewPostCount } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
 import { IconHome, IconJourney, IconConnectionsNav, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming, IconReflection, IconWelcome } from "@/components/Icons";
 import { BugReportWidget } from "@/components/BugReportWidget";
+import { PhotoRequirementPrompt } from "@/components/PhotoRequirementPrompt";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -22,8 +23,46 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const [session, setSession] = useState<AppSession | null>(null);
   const [mounted, setMounted] = useState(false);
   const [totalUnread, setTotalUnread] = useState(0);
+  // Set only for a completed member who has no photo at all -- drives the
+  // PhotoRequirementPrompt safety net for members who slipped through
+  // onboarding photo-less before the completion gates existed.
+  const [photoPromptProfile, setPhotoPromptProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
+    // A member whose onboarding was reset (admin "Reset Progress" action,
+    // or anyone who simply never finished) has completed_onboarding:
+    // false in their real profile row. Admin-type sessions are exempt
+    // (same reasoning as isAdminSessionCached() elsewhere): an admin
+    // browsing /app/admin shouldn't get bounced into the member
+    // onboarding wizard just because their own account never completed
+    // it. Runs on BOTH session paths -- the cached-session fast path
+    // previously returned before this check ever ran, so any member with
+    // a cached session skipped the onboarding redirect entirely and could
+    // use the whole app with an incomplete profile.
+    const runMemberChecks = async (s: AppSession) => {
+      if (s.type !== "member") return;
+      const profile = await getProfile();
+      if (profile && !profile.completedOnboarding) {
+        router.push("/onboarding");
+        return;
+      }
+
+      // A member who deactivated their own account (see
+      // lib/account/actions.ts) is hidden from other members until they
+      // come back -- arriving here at all means they just signed back in
+      // with their real credentials, which is the "I'm back" signal, so
+      // reactivate automatically rather than requiring a separate step.
+      if (profile?.deactivatedAt && supabase) {
+        await supabase.from("profiles").update({ deactivated_at: null }).eq("user_id", s.id);
+      }
+
+      // Completed members who never got a photo stored (raced/legacy
+      // signups) get the photo prompt as a safety net.
+      if (profile && profile.completedOnboarding && !profile.profilePhoto && !profile.photo_confirmed) {
+        setPhotoPromptProfile(profile);
+      }
+    };
+
     const checkSession = async () => {
       // Check localStorage first for demo sessions (faster, avoids async delays)
       if (typeof window !== "undefined") {
@@ -34,6 +73,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
             setSession(s);
             recordAppVisit();
             setMounted(true);
+            // Don't block the fast render on it, but still enforce the
+            // same member checks the async path runs.
+            runMemberChecks(s).catch(() => {});
             return;
           } catch (e) {
             // Continue to async check if parse fails
@@ -49,33 +91,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         return;
       }
 
-      // A member whose onboarding was reset (admin "Reset Progress" action,
-      // or anyone who simply never finished) has completed_onboarding:
-      // false in their real profile row, but nothing about signing in
-      // itself ever checked that -- only a brand-new signup redirects to
-      // /onboarding, so a reset member just landed on the normal Home
-      // dashboard as if nothing had changed. Admin-type sessions are
-      // exempt (same reasoning as isAdminSessionCached() elsewhere): an
-      // admin browsing /app/admin shouldn't get bounced into the member
-      // onboarding wizard just because their own account never completed
-      // it.
-      if (s.type === "member") {
-        const profile = await getProfile();
-        if (profile && !profile.completedOnboarding) {
-          router.push("/onboarding");
-          setMounted(true);
-          return;
-        }
-
-        // A member who deactivated their own account (see
-        // lib/account/actions.ts) is hidden from other members until they
-        // come back -- arriving here at all means they just signed back in
-        // with their real credentials, which is the "I'm back" signal, so
-        // reactivate automatically rather than requiring a separate step.
-        if (profile?.deactivatedAt && supabase) {
-          await supabase.from("profiles").update({ deactivated_at: null }).eq("user_id", s.id);
-        }
-      }
+      await runMemberChecks(s);
 
       setSession(s);
       recordAppVisit();
@@ -228,6 +244,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </nav>
       </div>
       <BugReportWidget defaultName={session?.name} defaultEmail={session?.email} />
+      {photoPromptProfile && (
+        <PhotoRequirementPrompt
+          profile={photoPromptProfile}
+          onPhotoAdded={() => setPhotoPromptProfile(null)}
+        />
+      )}
     </div>
   );
 }

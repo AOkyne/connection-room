@@ -128,7 +128,7 @@ export function PhotoRequirementPrompt({
         </div>
 
         <p className="text-xs text-[#a0704a] text-center">
-          Note: You can browse and join spaces, but posting, commenting, and reacting require a photo.
+          We need to see your face — it's how trust gets built in this community. A photo of a landscape, a pet, or an avatar doesn't let anyone recognize you.
         </p>
       </div>
     </div>
