@@ -79,7 +79,7 @@ export async function getAdminEvents(): Promise<Event[]> {
       const supabasePromise = supabase
         .from("events")
         .select("*")
-        .order("start_at", { ascending: false });
+        .order("start_at", { ascending: true });
 
       const { data, error } = await withTimeout(supabasePromise, 15000);
 
@@ -111,7 +111,7 @@ export async function getAdminEvents(): Promise<Event[]> {
     console.log("[getAdminEvents] Merged results:", merged.length, "total (Supabase:", supabaseEvents.length, '+ local-only:', localOnlyEvents.length, ')');
 
     return merged.sort((a: Event, b: Event) =>
-      new Date(b.startAt || 0).getTime() - new Date(a.startAt || 0).getTime()
+      new Date(a.startAt || 0).getTime() - new Date(b.startAt || 0).getTime()
     );
   }
 
@@ -119,7 +119,7 @@ export async function getAdminEvents(): Promise<Event[]> {
   if (localEvents.length > 0) {
     console.log("[getAdminEvents] Using localStorage only:", localEvents.length, "events");
     return localEvents.sort((a: Event, b: Event) =>
-      new Date(b.startAt || 0).getTime() - new Date(a.startAt || 0).getTime()
+      new Date(a.startAt || 0).getTime() - new Date(b.startAt || 0).getTime()
     );
   }
 
