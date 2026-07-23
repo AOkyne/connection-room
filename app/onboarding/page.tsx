@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   getProfile,
@@ -36,6 +36,14 @@ export default function OnboardingPage() {
   const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
   const [coupleDisplayName, setCoupleDisplayName] = useState("");
   const [coupleGoals, setCoupleGoals] = useState<string[]>([]);
+
+  // Every keystroke on the basics step fires a save; without sequencing,
+  // an earlier request (captured before the last few characters were
+  // typed) can resolve AFTER a later, more complete one and silently
+  // overwrite it -- e.g. a fast-typed last name landing back as "" in the
+  // DB even though the browser shows it filled in. Chaining onto this ref
+  // guarantees saves land in the order they were queued.
+  const saveChainRef = useRef<Promise<unknown>>(Promise.resolve());
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -140,7 +148,12 @@ export default function OnboardingPage() {
     // (a real network round trip, on every single field edit throughout
     // onboarding, that can time out on a slow/flaky connection -- see
     // saveProfile()'s own comment).
-    await saveProfile(updated);
+    // Chained onto saveChainRef (not fired independently) so rapid
+    // keystrokes' saves can't complete out of order and clobber a newer
+    // value with a stale one.
+    const chained = saveChainRef.current.then(() => saveProfile(updated));
+    saveChainRef.current = chained;
+    await chained;
   };
 
   const handleComplete = async () => {
@@ -172,8 +185,12 @@ export default function OnboardingPage() {
       // already the complete profile, so skip updateProfile()'s internal
       // re-fetch (a network round trip with nothing to gain here, and one
       // more thing that can time out on the single most important save in
-      // the whole flow).
-      const result = await saveProfile(updated);
+      // the whole flow). Chained onto saveChainRef so this can't race
+      // ahead of (and then get clobbered by) a still-in-flight keystroke
+      // save from the previous step.
+      const chained = saveChainRef.current.then(() => saveProfile(updated));
+      saveChainRef.current = chained;
+      const result = await chained;
 
       if (!result) {
         throw new Error("Failed to save completion. Please try again.");
