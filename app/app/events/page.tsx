@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getProfile } from "@/lib/data/profiles";
+import { getSession } from "@/lib/session";
 import { getUpcomingEvents, getPastEvents } from "@/lib/data/events";
 import { getUserRegistrations, markAsInterested, updateRegistrationStatus } from "@/lib/admin/registrations";
 import { Card, CardHeader } from "@/components/Card";
@@ -16,6 +17,7 @@ import { EventRegistrationModal } from "@/components/EventRegistrationModal";
 export default function EventsPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<any>(null);
+  const [userEmail, setUserEmail] = useState("");
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [pastEvents, setPastEvents] = useState<any[]>([]);
   const [interests, setInterests] = useState<Set<string>>(new Set());
@@ -35,6 +37,12 @@ export default function EventsPage() {
     const loadData = async () => {
       const p = await getProfile();
       setProfile(p);
+
+      // Profile has no email field -- it lives on the session. Needed for
+      // markAsInterested()/updateRegistrationStatus() below (see their
+      // call sites' comment on the "Unknown" registrant bug this fixes).
+      const session = await getSession();
+      setUserEmail(session?.email || "");
 
       const upcoming = await getUpcomingEvents();
       const past = await getPastEvents();
@@ -61,16 +69,24 @@ export default function EventsPage() {
     const dateString = eventDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
     const isCurrentlyInterested = interests.has(eventId);
 
+    // Profile has firstName/lastName/displayName, never fullName -- and no
+    // email field at all (that's userEmail, from the session, above).
+    // profile.fullName was always undefined, so every "Interested" click
+    // silently stored a null name, showing as "Unknown" to admins. Real
+    // registrations (the full form) were never affected -- they collect
+    // name/email directly, see EventRegistrationModal.
+    const registrantName = profile.displayName || `${profile.firstName} ${profile.lastName}`.trim() || userEmail;
+
     if (isCurrentlyInterested) {
       // Remove interest by marking as cancelled
-      await updateRegistrationStatus(eventId, profile.id, "cancelled", eventTitle, profile.fullName || profile.email, profile.email, dateString);
+      await updateRegistrationStatus(eventId, profile.id, "cancelled", eventTitle, registrantName, userEmail, dateString);
       const newInterests = new Set(interests);
       newInterests.delete(eventId);
       setInterests(newInterests);
       showToast(`Removed "${eventTitle}" from interested`, "success");
     } else {
       // Add interest - create registration with "interested" status
-      await markAsInterested(eventId, profile.id, profile.fullName || profile.email, profile.email, eventTitle, dateString);
+      await markAsInterested(eventId, profile.id, registrantName, userEmail, eventTitle, dateString);
       const newInterests = new Set(interests);
       newInterests.add(eventId);
       setInterests(newInterests);
