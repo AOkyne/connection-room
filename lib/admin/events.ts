@@ -87,6 +87,37 @@ export async function getAdminEvents(): Promise<Event[]> {
 
       supabaseEvents = (data || []).map(mapEventFromDb);
       console.log("[getAdminEvents] Loaded from Supabase:", supabaseEvents.length, "events");
+
+      // This query never joined event_registrations, so
+      // mapEventFromDb()'s registrationCount (read off that join) was
+      // always undefined -> 0 for every event here, regardless of real
+      // registrants -- confirmed live: an event with 2 real "registered"
+      // rows showed "0 registered" on this admin list. A small separate
+      // query rather than an embedded-relation join/filter (this
+      // codebase has been burned before by PostgREST embedded-aggregate
+      // quirks, e.g. the profile_tagline schema-cache issue) -- trivial
+      // cost at this scale (a handful of events, single-digit
+      // registrations each).
+      if (supabaseEvents.length > 0) {
+        const { data: regs, error: regsError } = await supabase
+          .from("event_registrations")
+          .select("event_id")
+          .eq("status", "registered")
+          .in("event_id", supabaseEvents.map((e) => e.id));
+
+        if (regsError) {
+          console.error("[getAdminEvents] Could not load registration counts:", regsError);
+        } else {
+          const countsByEventId = new Map<string, number>();
+          for (const r of regs || []) {
+            countsByEventId.set(r.event_id, (countsByEventId.get(r.event_id) || 0) + 1);
+          }
+          supabaseEvents = supabaseEvents.map((e) => ({
+            ...e,
+            registrationCount: countsByEventId.get(e.id) || 0,
+          }));
+        }
+      }
     } catch (err) {
       console.error("[getAdminEvents] Supabase failed:", err instanceof Error ? err.message : err);
     }
