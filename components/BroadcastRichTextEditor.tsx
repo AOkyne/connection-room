@@ -15,6 +15,7 @@ export interface BroadcastEventOption {
   title: string;
   startAt: string;
   locationName?: string;
+  imageUrl?: string;
 }
 
 interface BroadcastRichTextEditorProps {
@@ -214,17 +215,22 @@ export function BroadcastRichTextEditor({
       day: "numeric",
       year: "numeric",
     });
-    // Kept to just the pertinent information (title, date, location, one
-    // plain link) -- previously a bordered card with a large pill-shaped
-    // RSVP button, which read as a big, heavy graphic block dropped into
-    // an otherwise plain-text email, especially next to the actual "HUGE
-    // image" bug from unresized photo uploads (see handleImageFileSelected).
+    // Bordered card + pill RSVP button (the original look, restored on
+    // request) plus the event's own cover photo when it has one -- a
+    // fixed HTML width attribute (not just CSS), same reasoning as the
+    // uploaded-image fix above: some email clients ignore CSS on <img>
+    // entirely, so a real pixel width is what actually keeps this from
+    // rendering oversized.
+    const coverImageHtml = event.imageUrl
+      ? `<img src="${event.imageUrl}" alt="" width="${EMAIL_CONTENT_WIDTH}" style="display:block;width:100%;max-width:${EMAIL_CONTENT_WIDTH}px;height:auto;border-radius:8px;margin-bottom:14px;" />`
+      : "";
     insertHtml(
-      `<p style="margin:12px 0;">
-        <strong>${event.title}</strong><br/>
-        ${dateLabel}${event.locationName ? ` &middot; ${event.locationName}` : ""}<br/>
-        <a href="${appUrl}/app/events" style="color:#B8892F;">RSVP &rarr;</a>
-      </p>`
+      `<div style="border:1px solid #e8ddd2;border-radius:12px;padding:16px 20px;margin:16px 0;">
+        ${coverImageHtml}
+        <div style="font-weight:700;font-size:17px;color:#1a0f0a;">${event.title}</div>
+        <div style="color:#a0704a;margin-top:4px;">${dateLabel}${event.locationName ? ` &middot; ${event.locationName}` : ""}</div>
+        <a href="${appUrl}/app/events" style="display:inline-block;margin-top:12px;background-color:#B8892F;color:#FFFDF8;text-decoration:none;padding:10px 24px;border-radius:999px;font-weight:600;font-size:14px;">RSVP</a>
+      </div>`
     );
   };
 

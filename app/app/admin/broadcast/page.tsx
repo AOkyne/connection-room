@@ -6,6 +6,13 @@ import { getSession } from "@/lib/session";
 import { getAllProfilesLite, type Profile } from "@/lib/data/profiles";
 import { sendBroadcastEmail } from "@/lib/admin/broadcast";
 import { getAdminEvents } from "@/lib/admin/events";
+import {
+  listBroadcastDrafts,
+  createBroadcastDraft,
+  updateBroadcastDraft,
+  deleteBroadcastDraft,
+  type BroadcastDraft,
+} from "@/lib/admin/broadcast-drafts";
 import { substituteMergeTags } from "@/lib/email/render-template";
 import { styleBroadcastBodyHtml } from "@/lib/email/template";
 import { Card } from "@/components/Card";
@@ -35,6 +42,10 @@ export default function AdminBroadcastPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState("");
+  const [drafts, setDrafts] = useState<BroadcastDraft[]>([]);
+  const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [showDrafts, setShowDrafts] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -46,15 +57,24 @@ export default function AdminBroadcastPage() {
 
       setAdminUserId(session.supabaseUserId || "");
 
-      const [profiles, adminEvents] = await Promise.all([getAllProfilesLite(), getAdminEvents()]);
+      const [profiles, adminEvents, draftsResult] = await Promise.all([
+        getAllProfilesLite(),
+        getAdminEvents(),
+        listBroadcastDrafts(),
+      ]);
       // Broadcasts should never go to seeded demo profiles -- they have no
       // real inbox behind them.
       setMembers(profiles.filter((p) => !p.is_demo_profile));
       setEvents(
         adminEvents
           .filter((e) => e.status === "published")
-          .map((e) => ({ id: e.id, title: e.title, startAt: e.startAt, locationName: e.locationName }))
+          .map((e) => ({ id: e.id, title: e.title, startAt: e.startAt, locationName: e.locationName, imageUrl: e.imageUrl }))
       );
+      if (draftsResult.error) {
+        console.error("Error loading broadcast drafts:", draftsResult.error);
+      } else {
+        setDrafts(draftsResult.drafts);
+      }
       setMounted(true);
     };
 
@@ -78,6 +98,67 @@ export default function AdminBroadcastPage() {
     });
   };
 
+  const handleSaveDraft = async () => {
+    if (!subject.trim() && !bodyHtml.trim()) {
+      showToast("Nothing to save yet", "warning");
+      return;
+    }
+    setIsSavingDraft(true);
+    try {
+      const params = {
+        subject,
+        bodyHtml,
+        recipientMode,
+        recipientIds: Array.from(selectedIds),
+      };
+      const result = currentDraftId
+        ? await updateBroadcastDraft(currentDraftId, params)
+        : await createBroadcastDraft(params);
+
+      if (result.error || !result.draft) {
+        showToast(result.error || "Failed to save draft", "error");
+        return;
+      }
+      setCurrentDraftId(result.draft.id);
+      setDrafts((prev) => {
+        const withoutThis = prev.filter((d) => d.id !== result.draft!.id);
+        return [result.draft!, ...withoutThis];
+      });
+      showToast("Draft saved", "success");
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
+  const handleLoadDraft = (draft: BroadcastDraft) => {
+    if (
+      (subject.trim() || bodyHtml.trim()) &&
+      draft.id !== currentDraftId &&
+      !confirm("Loading this draft will replace what you're currently writing. Continue?")
+    ) {
+      return;
+    }
+    setCurrentDraftId(draft.id);
+    setSubject(draft.subject);
+    setBodyHtml(draft.body_html);
+    setRecipientMode(draft.recipient_mode);
+    setSelectedIds(new Set(draft.recipient_ids));
+    setShowDrafts(false);
+    showToast("Draft loaded", "success");
+  };
+
+  const handleDeleteDraft = async (draft: BroadcastDraft) => {
+    if (!confirm(`Delete the draft "${draft.subject || "(no subject)"}"? This can't be undone.`)) return;
+    const result = await deleteBroadcastDraft(draft.id);
+    if (!result.success) {
+      showToast(result.error || "Failed to delete draft", "error");
+      return;
+    }
+    setDrafts((prev) => prev.filter((d) => d.id !== draft.id));
+    if (currentDraftId === draft.id) setCurrentDraftId(null);
+    showToast("Draft deleted", "success");
+  };
+
   const handleSend = async () => {
     if (!subject.trim() || !bodyHtml.trim() || recipientCount === 0) return;
 
@@ -94,6 +175,14 @@ export default function AdminBroadcastPage() {
 
       if (failedCount === 0) {
         showToast(sentCount === 1 ? "Email sent" : `Email sent to ${sentCount} members`, "success");
+        // A sent email is no longer a draft -- clean up the saved copy so
+        // it doesn't linger in the drafts list looking unfinished.
+        if (currentDraftId) {
+          const idToDelete = currentDraftId;
+          deleteBroadcastDraft(idToDelete).catch(() => {});
+          setDrafts((prev) => prev.filter((d) => d.id !== idToDelete));
+          setCurrentDraftId(null);
+        }
         setSubject("");
         setBodyHtml("");
         setSelectedIds(new Set());
@@ -124,14 +213,60 @@ export default function AdminBroadcastPage() {
             Announce events and news to your members by email
           </p>
         </div>
-        <button
-          onClick={() => router.back()}
-          className="text-[#d4a348] hover:text-[#c9956d] transition-colors text-sm whitespace-nowrap"
-          aria-label="Go back"
-        >
-          ← Back
-        </button>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={() => setShowDrafts((v) => !v)}>
+            📝 Drafts {drafts.length > 0 && `(${drafts.length})`}
+          </Button>
+          <button
+            onClick={() => router.back()}
+            className="text-[#d4a348] hover:text-[#c9956d] transition-colors text-sm whitespace-nowrap"
+            aria-label="Go back"
+          >
+            ← Back
+          </button>
+        </div>
       </div>
+
+      {showDrafts && (
+        <Card className="space-y-2">
+          <h2 className="text-lg font-bold text-[#1a0f0a]">Saved Drafts</h2>
+          {drafts.length === 0 ? (
+            <p className="text-sm text-[#a0704a]">No saved drafts yet -- use "Save Draft" below while composing.</p>
+          ) : (
+            <div className="divide-y divide-[#f3ede5]">
+              {drafts.map((draft) => (
+                <div key={draft.id} className="flex items-center justify-between gap-3 py-2">
+                  <button
+                    onClick={() => handleLoadDraft(draft)}
+                    className="flex-1 text-left hover:bg-[#f9f7f4] rounded px-2 py-1 -mx-2"
+                  >
+                    <div className="text-sm font-medium text-[#1a0f0a]">
+                      {draft.subject || "(no subject)"}
+                      {draft.id === currentDraftId && (
+                        <span className="ml-2 text-xs text-[#d4a348] font-normal">currently editing</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-[#a0704a]">
+                      Last saved {new Date(draft.updated_at).toLocaleString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => handleDeleteDraft(draft)}
+                    className="text-xs text-red-600 hover:text-red-800 whitespace-nowrap"
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
 
       <Card className="space-y-4">
         <h2 className="text-lg font-bold text-[#1a0f0a]">Recipients</h2>
@@ -233,6 +368,14 @@ export default function AdminBroadcastPage() {
         </p>
 
         <div className="flex gap-2 pt-2 border-t border-[#e8ddd2]">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSaveDraft}
+            disabled={isSavingDraft || (!subject.trim() && !bodyHtml.trim())}
+          >
+            {isSavingDraft ? "Saving..." : currentDraftId ? "Update Draft" : "Save Draft"}
+          </Button>
           <Button
             variant="outline"
             size="sm"
