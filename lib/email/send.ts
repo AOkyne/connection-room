@@ -1,10 +1,53 @@
 import nodemailer from "nodemailer";
 import { readFileSync } from "fs";
 import path from "path";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildBrandedEmailHtml, buildBrandedEmailText, buildBroadcastEmailHtml, buildBroadcastEmailText } from "./template";
 
 export function hasSmtpConfig(): boolean {
   return !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+}
+
+export type EmailCategory =
+  | "welcome"
+  | "drip_onboarding"
+  | "drip_incomplete_onboarding"
+  | "digest"
+  | "post_notification"
+  | "broadcast"
+  | "admin_direct";
+
+// Records a real send into sent_emails (migration 069) so the admin
+// email-history page has something to show. Called explicitly at each
+// send call site (not threaded through sendBrandedEmail() etc. as an
+// extra param) -- every call site already has its own service-role
+// supabase client and the recipient/subject in scope, and keeping this
+// send-only module's functions focused on sending keeps them reusable
+// without a DB dependency. Best-effort: the email has already gone out by
+// the time this runs, so a logging failure must never surface as a send
+// failure -- swallow after logging the error.
+export async function logEmailSend(
+  supabase: SupabaseClient,
+  params: {
+    category: EmailCategory;
+    to: string;
+    cc?: string;
+    subject: string;
+    recipientUserId?: string | null;
+  }
+): Promise<void> {
+  try {
+    const { error } = await supabase.from("sent_emails").insert({
+      category: params.category,
+      to_email: params.to,
+      cc_email: params.cc || null,
+      subject: params.subject,
+      recipient_user_id: params.recipientUserId || null,
+    });
+    if (error) console.error("Failed to log sent email:", error);
+  } catch (err) {
+    console.error("Failed to log sent email:", err);
+  }
 }
 
 // Every outbound email sends as Trevor personally -- SMTP2GO only

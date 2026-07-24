@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { hasSmtpConfig, sendDigestEmail } from "@/lib/email/send";
+import { hasSmtpConfig, sendDigestEmail, logEmailSend } from "@/lib/email/send";
 
 // Sends to every qualifying member sequentially, so give this route the
 // most headroom the plan allows rather than the default timeout -- same
@@ -142,6 +142,14 @@ export async function GET(request: NextRequest) {
         await supabase.from("notification_log").insert({
           user_id: profile.user_id,
           notification_type: frequency,
+        });
+
+        const totalCount = spaceBreakdown.reduce((sum, s) => sum + s.count, 0);
+        await logEmailSend(supabase, {
+          category: "digest",
+          to: email,
+          subject: `${totalCount} new post${totalCount === 1 ? "" : "s"} in your spaces`,
+          recipientUserId: profile.user_id,
         });
 
         summary[frequency].sent++;

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { hasSmtpConfig, sendBrandedEmail } from "@/lib/email/send";
+import { hasSmtpConfig, sendBrandedEmail, logEmailSend } from "@/lib/email/send";
 import { renderTemplateBody } from "@/lib/email/render-template";
 
 // Sends the welcome template (editable in the admin dashboard, stored in
@@ -62,6 +62,12 @@ export async function POST(request: NextRequest) {
       paragraphs: renderTemplateBody(template.body, { firstName, appUrl }),
       appUrl,
       signOff: template.sign_off,
+    });
+    await logEmailSend(supabase, {
+      category: "welcome",
+      to: userData.user.email,
+      subject: template.subject,
+      recipientUserId: userData.user.id,
     });
     return NextResponse.json({ success: true });
   } catch (err) {

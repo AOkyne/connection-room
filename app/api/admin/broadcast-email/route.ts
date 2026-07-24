@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { hasSmtpConfig, sendBroadcastEmail } from "@/lib/email/send";
+import { hasSmtpConfig, sendBroadcastEmail, logEmailSend } from "@/lib/email/send";
 import { substituteMergeTags } from "@/lib/email/render-template";
 
 export const maxDuration = 60;
@@ -120,6 +120,12 @@ export async function POST(request: NextRequest) {
       const firstName = profile.display_name?.split(" ")[0];
       const personalizedBody = substituteMergeTags(bodyHtml, { firstName, appUrl });
       await sendBroadcastEmail({ to: email, subject, bodyHtml: personalizedBody });
+      await logEmailSend(supabase, {
+        category: "broadcast",
+        to: email,
+        subject,
+        recipientUserId: profile.user_id,
+      });
       results.push({ id: profile.id, success: true });
     } catch (err) {
       results.push({ id: profile.id, success: false, error: err instanceof Error ? err.message : String(err) });

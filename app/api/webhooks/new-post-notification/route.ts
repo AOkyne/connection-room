@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { hasSmtpConfig, sendPostNotificationEmail } from "@/lib/email/send";
+import { hasSmtpConfig, sendPostNotificationEmail, logEmailSend } from "@/lib/email/send";
 
 // Called by the posts_notify_new_post trigger (migration 054) via pg_net,
 // fire-and-forget, every time a new post is inserted. Not a Vercel cron --
@@ -134,6 +134,13 @@ export async function POST(request: NextRequest) {
         user_id: recipient.user_id,
         notification_type: "immediate",
         post_id: postId,
+      });
+
+      await logEmailSend(supabase, {
+        category: "post_notification",
+        to: email,
+        subject: `New post in ${space.name}`,
+        recipientUserId: recipient.user_id,
       });
 
       sent++;

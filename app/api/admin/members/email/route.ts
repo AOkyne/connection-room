@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { logEmailSend } from "@/lib/email/send";
 
 interface EmailResult {
   id: string;
@@ -86,6 +87,13 @@ export async function POST(request: NextRequest) {
         subject,
         text: message,
         replyTo: "trevor@trevorjamesla.com",
+      });
+
+      await logEmailSend(supabase, {
+        category: "admin_direct",
+        to: email,
+        subject,
+        recipientUserId: profile.user_id,
       });
 
       results.push({ id, success: true });

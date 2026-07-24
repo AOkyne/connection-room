@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { hasSmtpConfig, sendBrandedEmail } from "@/lib/email/send";
+import { hasSmtpConfig, sendBrandedEmail, logEmailSend, type EmailCategory } from "@/lib/email/send";
 import { renderTemplateBody } from "@/lib/email/render-template";
 
 // Sends to every qualifying member sequentially, so give this route the
@@ -54,7 +54,8 @@ async function runDripSequence(
   drips: DripTemplate[],
   fetchCandidates: (thresholdDate: string) => Promise<{ data: DripCandidate[] | null; error: unknown }>,
   appUrl: string,
-  summary: Record<string, DripSummary>
+  summary: Record<string, DripSummary>,
+  logCategory: EmailCategory
 ): Promise<void> {
   const sorted = [...drips].sort((a, b) => b.days - a.days);
   const familyKeys = sorted.map((d) => d.key);
@@ -115,6 +116,13 @@ async function runDripSequence(
         if (insertError) {
           console.error(`Sent ${drip.key} to profile ${profile.id} but failed to record it:`, insertError);
         }
+
+        await logEmailSend(supabase, {
+          category: logCategory,
+          to: email,
+          subject: drip.subject,
+          recipientUserId: profile.user_id,
+        });
 
         handled.add(profile.id);
         summary[drip.key].sent++;
@@ -187,7 +195,8 @@ export async function GET(request: NextRequest) {
         .not("onboarding_completed_at", "is", null)
         .lte("onboarding_completed_at", thresholdDate),
     appUrl,
-    summary
+    summary,
+    "drip_onboarding"
   );
 
   // Second drip: signup-anchored reminders for members who never completed
@@ -215,7 +224,8 @@ export async function GET(request: NextRequest) {
         .or("completed_onboarding.is.null,completed_onboarding.eq.false")
         .lte("created_at", thresholdDate),
     appUrl,
-    summary
+    summary,
+    "drip_incomplete_onboarding"
   );
 
   return NextResponse.json({ summary });
