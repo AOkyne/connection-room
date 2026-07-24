@@ -12,16 +12,16 @@ const MAX_DIMENSION = 800;
 const JPEG_QUALITY = 0.85;
 
 /**
- * Resizes an image file to fit within MAX_DIMENSION x MAX_DIMENSION
+ * Resizes an image file to fit within maxDimension x maxDimension
  * (preserving aspect ratio, never upscaling) and re-encodes it as JPEG.
  * Flattens transparency onto a white background and drops GIF animation
  * (canvas can only ever draw a single frame) -- an acceptable tradeoff
  * for a profile photo, matching what most social apps do.
  */
-export async function resizeAndCompressImage(file: File): Promise<Blob> {
+export async function resizeAndCompressImage(file: File, maxDimension: number = MAX_DIMENSION): Promise<Blob> {
   const bitmap = await loadImageBitmap(file);
 
-  const scale = Math.min(1, MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+  const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
   const width = Math.round(bitmap.width * scale);
   const height = Math.round(bitmap.height * scale);
 

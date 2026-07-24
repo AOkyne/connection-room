@@ -2,6 +2,13 @@
 
 import { useRef, useEffect, useState } from "react";
 import { uploadBroadcastImage } from "@/lib/utils/storage";
+import { resizeAndCompressImage } from "@/lib/utils/image";
+
+// The email template's content column is ~496px wide (560px card minus
+// padding) -- an inserted image is capped to fit it. Also used as the
+// resize target so the actual file uploaded is never bigger than it will
+// ever be displayed at, not just visually shrunk by CSS.
+const EMAIL_CONTENT_WIDTH = 480;
 
 export interface BroadcastEventOption {
   id: string;
@@ -20,6 +27,22 @@ interface BroadcastRichTextEditorProps {
 }
 
 const BUTTON_CLASS = "px-2 py-1 rounded hover:bg-[#e8ddd2] text-sm whitespace-nowrap";
+
+function getImageDimensions(blob: Blob): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Could not read image dimensions"));
+    };
+    img.src = url;
+  });
+}
 
 export function BroadcastRichTextEditor({
   value,
@@ -67,6 +90,59 @@ export function BroadcastRichTextEditor({
     handleInput();
   };
 
+  // document.execCommand("insertUnorderedList"/"insertOrderedList") is the
+  // most notoriously unreliable pair of commands in that (deprecated) API
+  // -- Safari in particular has long-standing bugs where it silently
+  // no-ops instead of throwing, which reads exactly as "nothing happens
+  // when you click." Verified execCommand itself does work correctly here
+  // in Chromium, so this only replaces the DOM by hand as a fallback when
+  // the browser's own command demonstrably didn't do anything -- Chromium
+  // (and any other browser where the native command already works) is
+  // unaffected.
+  const toggleList = (ordered: boolean) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    editor.focus();
+
+    const command = ordered ? "insertOrderedList" : "insertUnorderedList";
+    const beforeHtml = editor.innerHTML;
+    const success = document.execCommand(command, false);
+
+    if (success && editor.innerHTML !== beforeHtml) {
+      handleInput();
+      return;
+    }
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) {
+      handleInput();
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    if (!editor.contains(range.commonAncestorContainer)) {
+      handleInput();
+      return;
+    }
+
+    const list = document.createElement(ordered ? "ol" : "ul");
+    const li = document.createElement("li");
+    if (range.collapsed) {
+      li.appendChild(document.createElement("br"));
+    } else {
+      li.appendChild(range.extractContents());
+    }
+    list.appendChild(li);
+    range.insertNode(list);
+
+    const newRange = document.createRange();
+    newRange.selectNodeContents(li);
+    newRange.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+
+    handleInput();
+  };
+
   const insertHtml = (html: string) => {
     editorRef.current?.focus();
     document.execCommand("insertHTML", false, html);
@@ -91,12 +167,28 @@ export function BroadcastRichTextEditor({
     setImageError("");
     setIsUploadingImage(true);
     try {
-      const url = await uploadBroadcastImage(file, adminUserId);
+      // Resized/compressed before upload -- previously the raw file (up to
+      // 5MB, whatever resolution the admin's phone/camera produced) was
+      // uploaded as-is and inserted with only a CSS max-width:100%, no
+      // real width. Many email clients (Outlook desktop in particular)
+      // don't honor CSS on <img> at all and render it at native pixel
+      // size -- a real photo landing in an inbox many times wider than
+      // the email itself, with no visible way to undo except the
+      // browser's native Ctrl+Z (not obvious, and not always reliable
+      // after other edits).
+      const resizedBlob = await resizeAndCompressImage(file, EMAIL_CONTENT_WIDTH);
+      const resizedFile = new File([resizedBlob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" });
+
+      const { width } = await getImageDimensions(resizedBlob);
+
+      const url = await uploadBroadcastImage(resizedFile, adminUserId);
       if (!url) {
         setImageError("Failed to upload image");
         return;
       }
-      insertHtml(`<img src="${url}" alt="" style="max-width:100%;height:auto;border-radius:8px;" />`);
+      insertHtml(
+        `<img src="${url}" alt="" width="${width}" style="max-width:100%;width:${width}px;height:auto;border-radius:8px;" />`
+      );
     } catch (err) {
       setImageError(err instanceof Error ? err.message : "Failed to upload image");
     } finally {
@@ -122,12 +214,17 @@ export function BroadcastRichTextEditor({
       day: "numeric",
       year: "numeric",
     });
+    // Kept to just the pertinent information (title, date, location, one
+    // plain link) -- previously a bordered card with a large pill-shaped
+    // RSVP button, which read as a big, heavy graphic block dropped into
+    // an otherwise plain-text email, especially next to the actual "HUGE
+    // image" bug from unresized photo uploads (see handleImageFileSelected).
     insertHtml(
-      `<div style="border:1px solid #e8ddd2;border-radius:12px;padding:16px 20px;margin:16px 0;">
-        <div style="font-weight:700;font-size:17px;color:#1a0f0a;">${event.title}</div>
-        <div style="color:#a0704a;margin-top:4px;">${dateLabel}${event.locationName ? ` &middot; ${event.locationName}` : ""}</div>
-        <a href="${appUrl}/app/events" style="display:inline-block;margin-top:12px;background-color:#B8892F;color:#FFFDF8;text-decoration:none;padding:10px 24px;border-radius:999px;font-weight:600;font-size:14px;">RSVP</a>
-      </div>`
+      `<p style="margin:12px 0;">
+        <strong>${event.title}</strong><br/>
+        ${dateLabel}${event.locationName ? ` &middot; ${event.locationName}` : ""}<br/>
+        <a href="${appUrl}/app/events" style="color:#B8892F;">RSVP &rarr;</a>
+      </p>`
     );
   };
 
@@ -138,6 +235,15 @@ export function BroadcastRichTextEditor({
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-1 p-2 border border-[#e8ddd2] rounded-t-lg bg-[#f9f7f4]">
+        <button type="button" onMouseDown={preventBlur} onClick={() => applyFormat("undo")} className={BUTTON_CLASS} title="Undo">
+          ↺ Undo
+        </button>
+        <button type="button" onMouseDown={preventBlur} onClick={() => applyFormat("redo")} className={BUTTON_CLASS} title="Redo">
+          ↻ Redo
+        </button>
+
+        <div className="border-l border-[#d4a348] mx-1 self-stretch" />
+
         <button type="button" onMouseDown={preventBlur} onClick={() => applyFormat("bold")} className={`${BUTTON_CLASS} font-bold`} title="Bold">
           B
         </button>
@@ -168,10 +274,10 @@ export function BroadcastRichTextEditor({
 
         <div className="border-l border-[#d4a348] mx-1 self-stretch" />
 
-        <button type="button" onMouseDown={preventBlur} onClick={() => applyFormat("insertUnorderedList")} className={BUTTON_CLASS} title="Bullet List">
+        <button type="button" onMouseDown={preventBlur} onClick={() => toggleList(false)} className={BUTTON_CLASS} title="Bullet List">
           • List
         </button>
-        <button type="button" onMouseDown={preventBlur} onClick={() => applyFormat("insertOrderedList")} className={BUTTON_CLASS} title="Numbered List">
+        <button type="button" onMouseDown={preventBlur} onClick={() => toggleList(true)} className={BUTTON_CLASS} title="Numbered List">
           1. List
         </button>
         <button type="button" onMouseDown={preventBlur} onClick={() => applyFormat("formatBlock", "BLOCKQUOTE")} className={BUTTON_CLASS} title="Quote">
