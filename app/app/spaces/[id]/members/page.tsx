@@ -25,7 +25,11 @@ export default function SpaceMembersPage() {
 
       setSpace(spaceData);
       setUserProfile(profileData);
-      setMembers(spaceMembers);
+      // This grid's whole purpose is showing member photos -- a card with
+      // no photo at all rendered a broken <img> (no fallback existed).
+      // Excluding here also keeps the "N members" count above consistent
+      // with what's actually shown.
+      setMembers(spaceMembers.filter((m) => m.profilePhoto));
 
       setLoading(false);
     };

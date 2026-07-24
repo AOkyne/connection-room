@@ -41,6 +41,13 @@ export function SuggestedConnections({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sentRequests, setSentRequests] = useState<Set<string>>(new Set());
 
+  // This grid is a photo gallery of potential connections -- a card with no
+  // photo at all still rendered (name/location/match% with a blank gap
+  // where the image would be), which isn't what "browse suggested
+  // connections" is meant to convey. Filtered here rather than at each of
+  // the three findMatches() call sites in app/app/connections/page.tsx.
+  const matchesWithPhotos = matches.filter((m) => m.profile.profilePhoto);
+
   useEffect(() => {
     // Track which requests have been sent
     if (!currentUserId) return;
@@ -48,7 +55,7 @@ export function SuggestedConnections({
     let cancelled = false;
     (async () => {
       const results = await Promise.all(
-        matches.map(async (match) => [match.profile.id, await hasRequestSent(currentUserId, match.profile.id)] as const)
+        matchesWithPhotos.map(async (match) => [match.profile.id, await hasRequestSent(currentUserId, match.profile.id)] as const)
       );
       if (cancelled) return;
       const requestedIds = new Set(results.filter(([, sent]) => sent).map(([id]) => id));
@@ -58,7 +65,7 @@ export function SuggestedConnections({
     return () => {
       cancelled = true;
     };
-  }, [currentUserId, matches]);
+  }, [currentUserId, matchesWithPhotos]);
 
   const handleViewProfile = (profile: CommunityProfile) => {
     setSelectedProfile(profile);
@@ -94,7 +101,7 @@ export function SuggestedConnections({
     );
   }
 
-  if (matches.length === 0) {
+  if (matchesWithPhotos.length === 0) {
     return (
       <Card>
         <CardHeader title="Suggested Connections" icon="🔗" />
@@ -110,7 +117,7 @@ export function SuggestedConnections({
       <Card>
         <CardHeader title="Suggested Connections" icon="🔗" />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {matches.map((match) => (
+          {matchesWithPhotos.map((match) => (
             <div
               key={match.profile.id}
               className="flex flex-col bg-[#f3ede5] rounded-lg overflow-hidden hover:bg-[#e8ddd2] transition-colors"
@@ -119,13 +126,11 @@ export function SuggestedConnections({
                 onClick={() => handleViewProfile(match.profile)}
                 className="flex flex-col items-center text-center hover:opacity-90 transition-opacity flex-1"
               >
-                {match.profile.profilePhoto && (
-                  <img
-                    src={match.profile.profilePhoto}
-                    alt={match.profile.displayName}
-                    className="w-full aspect-square object-cover"
-                  />
-                )}
+                <img
+                  src={match.profile.profilePhoto}
+                  alt={match.profile.displayName}
+                  className="w-full aspect-square object-cover"
+                />
 
                 <div className="p-3 w-full">
                   <p className="font-medium text-[#1a0f0a] text-sm line-clamp-2 mb-1">

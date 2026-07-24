@@ -519,38 +519,40 @@ export default function SpaceDetailPage() {
         </div>
       </div>
 
-      {/* People in This Space - Small Thumbnails at Top */}
-      {spaceMembers.length > 0 && (
+      {/* People in This Space - Small Thumbnails at Top.
+          Only members with a real photo -- a row of initials avatars isn't
+          what "People:" is meant to convey, and the space's overall member
+          count (above) already covers everyone regardless of photo. */}
+      {(() => {
+        const membersWithPhotos = spaceMembers.filter((m) => m.profilePhoto);
+        return membersWithPhotos.length > 0 && (
         <div className="flex flex-wrap gap-2 items-center bg-[#f3ede5] p-3 rounded-lg">
           <span className="text-xs font-medium text-[#1a0f0a] mr-2">People:</span>
-          {spaceMembers.slice(0, 12).map((member) => (
+          {membersWithPhotos.slice(0, 12).map((member) => (
             <button
               key={member.id}
               onClick={() => setSelectedProfile(member)}
               className="flex-shrink-0 group cursor-pointer"
               title={member.displayName}
             >
-              {member.profilePhoto ? (
-                <img
-                  src={member.profilePhoto}
-                  alt={member.displayName}
-                  className="w-12 h-12 rounded-full hover:ring-2 hover:ring-[#d4a348] transition-all object-cover"
-                />
-              ) : (
-                <Avatar name={member.displayName} size="sm" />
-              )}
+              <img
+                src={member.profilePhoto}
+                alt={member.displayName}
+                className="w-12 h-12 rounded-full hover:ring-2 hover:ring-[#d4a348] transition-all object-cover"
+              />
             </button>
           ))}
-          {spaceMembers.length > 12 && (
+          {membersWithPhotos.length > 12 && (
             <Link href={`/app/spaces/${spaceId}/members`}>
-              <span className="text-xs text-[#d4a348] hover:underline font-medium">+{spaceMembers.length - 12}</span>
+              <span className="text-xs text-[#d4a348] hover:underline font-medium">+{membersWithPhotos.length - 12}</span>
             </Link>
           )}
           <Link href={`/app/spaces/${spaceId}/members`} className="ml-auto">
             <span className="text-xs text-[#d4a348] hover:underline font-medium">See all</span>
           </Link>
         </div>
-      )}
+        );
+      })()}
 
       {/* Space Introduction */}
 

@@ -14,9 +14,14 @@ export function CommunityMembersGrid() {
   const [selectedMember, setSelectedMember] = useState<CommunityProfile | null>(null);
 
   useEffect(() => {
-    getDiscoverableMembers(10).then((all) => {
+    // Fetches a larger pool than shown (40) so filtering out photo-less
+    // members still leaves enough to pick 10 from -- this grid is a photo
+    // gallery, and an initials tile among real photos isn't what "browse
+    // members" is meant to convey.
+    getDiscoverableMembers(40).then((all) => {
+      const withPhotos = all.filter((m) => m.profilePhoto);
       // Shuffle client-side so the same 10 aren't always shown first.
-      setMembers([...all].sort(() => Math.random() - 0.5).slice(0, 10));
+      setMembers([...withPhotos].sort(() => Math.random() - 0.5).slice(0, 10));
     });
   }, []);
 
@@ -32,22 +37,11 @@ export function CommunityMembersGrid() {
             className="flex flex-col items-center gap-1 group cursor-pointer"
             onClick={() => setSelectedMember(member)}
           >
-            {member.profilePhoto ? (
-              <img
-                src={member.profilePhoto}
-                alt={member.displayName}
-                className="w-24 h-24 rounded-full object-cover border-2 border-[#e8ddd2] group-hover:border-[#d4a348] transition-colors"
-              />
-            ) : (
-              <div className="w-24 h-24 rounded-full bg-[#f3ede5] border-2 border-[#e8ddd2] flex items-center justify-center text-base font-bold text-[#d4a348]">
-                {member.displayName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(0, 2)}
-              </div>
-            )}
+            <img
+              src={member.profilePhoto}
+              alt={member.displayName}
+              className="w-24 h-24 rounded-full object-cover border-2 border-[#e8ddd2] group-hover:border-[#d4a348] transition-colors"
+            />
             <p className="text-xs text-[#1a0f0a] text-center max-w-[60px] line-clamp-2 group-hover:text-[#d4a348] transition-colors">
               {member.displayName}
             </p>
