@@ -35,6 +35,11 @@ function isRealName(value: string): boolean {
   if (!/[a-zA-Z]/.test(trimmed)) return false;
   if (PLACEHOLDER_NAMES.has(trimmed.toLowerCase())) return false;
   if (/^(.)\1*$/.test(trimmed)) return false; // e.g. "aaaa"
+  // A digit is a strong screen-name/handle signal ("beachballs2006") --
+  // real first/last names essentially never contain one. Confirmed live:
+  // a member's onboarding first_name was literally their username and
+  // passed every check above.
+  if (/\d/.test(trimmed)) return false;
   return true;
 }
 
