@@ -18,6 +18,20 @@ type SortBy = "name" | "joinDate" | "activity";
 type FilterOnboarding = "all" | "completed" | "incomplete";
 type FilterActivity = "all" | "active" | "inactive";
 
+const PHOTO_REVIEW_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Admin-only signal: automated checks (migrations 067/068) can verify a
+// photo exists and a name isn't obvious junk, but neither can verify the
+// photo actually shows a face rather than an object/pet/logo, or that a
+// name is a real one rather than a plausible-looking fake -- that's a
+// human judgment call. Flags anyone who completed onboarding recently so
+// review is a short recurring queue instead of re-scanning the whole
+// roster. Never shown to the member themselves.
+function needsPhotoReview(member: Profile): boolean {
+  if (!member.completedOnboarding || !member.onboardingCompletedAt) return false;
+  return Date.now() - new Date(member.onboardingCompletedAt).getTime() < PHOTO_REVIEW_WINDOW_MS;
+}
+
 export default function AdminMembersPage() {
   const router = useRouter();
   const { toasts, showToast, removeToast } = useToast();
@@ -33,6 +47,7 @@ export default function AdminMembersPage() {
   const [sortBy, setSortBy] = useState<SortBy>("joinDate");
   const [filterOnboarding, setFilterOnboarding] = useState<FilterOnboarding>("all");
   const [filterActivity, setFilterActivity] = useState<FilterActivity>("all");
+  const [filterNeedsPhotoReview, setFilterNeedsPhotoReview] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Profile | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [messageSubject, setMessageSubject] = useState("");
@@ -123,6 +138,12 @@ export default function AdminMembersPage() {
       filtered = filtered.filter((m) => !m.completedOnboarding);
     }
 
+    // Needs photo review: recently completed, admin-only queue (see
+    // needsPhotoReview()'s comment).
+    if (filterNeedsPhotoReview) {
+      filtered = filtered.filter(needsPhotoReview);
+    }
+
     // Activity filter - commented out until lastActive is reliably tracked
     // if (filterActivity === "active") {
     //   filtered = filtered.filter((m) => {
@@ -158,7 +179,7 @@ export default function AdminMembersPage() {
     }
 
     setFilteredMembers(filtered);
-  }, [members, searchTerm, sortBy, filterOnboarding, filterActivity]);
+  }, [members, searchTerm, sortBy, filterOnboarding, filterActivity, filterNeedsPhotoReview]);
 
   const handleResetProgress = async () => {
     if (
@@ -416,6 +437,22 @@ export default function AdminMembersPage() {
         </div>
 
         {/* Activity filter - lastActive tracking not yet implemented */}
+
+        <div>
+          <label className="text-sm text-[#a0704a] block mb-1">&nbsp;</label>
+          <button
+            type="button"
+            onClick={() => setFilterNeedsPhotoReview((v) => !v)}
+            className={`px-3 py-2 rounded-lg text-sm border transition-colors ${
+              filterNeedsPhotoReview
+                ? "bg-[#d4a348] border-[#d4a348] text-white"
+                : "border-[#e8ddd2] text-[#1a0f0a] hover:bg-[#f3ede5]"
+            }`}
+            title="Names and photos only get an automated presence check, not a content check -- this surfaces recent completions for a quick human look."
+          >
+            🔍 Needs Photo Review ({members.filter(needsPhotoReview).length})
+          </button>
+        </div>
       </div>
 
       {/* Bulk Selection Bar */}
@@ -520,6 +557,9 @@ export default function AdminMembersPage() {
                     <p>✓ Onboarding complete</p>
                   ) : (
                     <p>⏳ Onboarding incomplete</p>
+                  )}
+                  {needsPhotoReview(member) && (
+                    <p className="text-[#c97a2a] font-medium">🔍 Needs photo review</p>
                   )}
                   {member.deactivatedAt && (
                     <p className="text-[#a84a2a]">

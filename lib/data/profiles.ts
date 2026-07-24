@@ -896,7 +896,7 @@ export async function getAllProfilesLite(): Promise<Profile[]> {
     const { data, error } = await supabase
       .from("profiles")
       .select(
-        "id, first_name, last_name, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, completed_onboarding, spaces_joined, created_at, updated_at, is_seeded, deactivated_at"
+        "id, first_name, last_name, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, completed_onboarding, onboarding_completed_at, spaces_joined, created_at, updated_at, is_seeded, deactivated_at"
       )
       .order("display_name");
 
@@ -927,6 +927,7 @@ export async function getAllProfilesLite(): Promise<Profile[]> {
       connectionBoundaries: p.connection_boundaries,
       quizResult: p.quiz_result,
       completedOnboarding: p.completed_onboarding || false,
+      onboardingCompletedAt: p.onboarding_completed_at ? new Date(p.onboarding_completed_at) : undefined,
       spacesJoined: Array.isArray(p.spaces_joined) ? p.spaces_joined : [],
       joinedAt: new Date(p.created_at),
       lastActive: p.updated_at ? new Date(p.updated_at) : undefined,
