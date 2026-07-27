@@ -295,23 +295,16 @@ export async function getProfile(): Promise<Profile | null> {
         const queryPromise = supabase
           .from("profiles")
           .select(
-            // profile_tagline deliberately excluded: PostgREST rejects ANY
-            // explicit column-list select naming it outright ("column
-            // profiles.profile_tagline does not exist", confirmed live
-            // even under the service-role key, which bypasses RLS
-            // entirely -- this is a PostgREST schema-cache problem with
-            // this specific column, not a permissions issue).
-            // select("*") and writes naming it both work fine, which is
-            // why every other read site in the app (which uses select("*")
-            // or a view) never hit this. Added to this explicit list as
-            // part of migration 065 earlier today, which broke this
-            // query -- and therefore every getProfile() call, for every
-            // user -- outright and instantly (not a slow-network
-            // timeout, as the retry logic added in response mistakenly
-            // assumed). Do not add it back here without first confirming
-            // PostgREST's schema cache has been reloaded (NOTIFY pgrst,
-            // 'reload schema') and re-testing an explicit select of it.
-            "user_id, first_name, last_name, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, first_prompt_response, first_prompt_is_public, completed_onboarding, spaces_joined, created_at, welcome_video_watched, welcome_video_watched_at, onboarding_completed_at, deactivated_at, profile_photo_path, profile_photo_updated_at, onboarding_step, photo_confirmed, photo_confirmed_at"
+            // profile_tagline: every prior investigation of this column
+            // (this session and before) diagnosed a PostgREST schema-cache
+            // staleness issue and tried NOTIFY pgrst, 'reload schema' or a
+            // full project restart -- neither ever worked, because the
+            // real cause was simpler: the column did not exist in the
+            // table at all (confirmed live via select("*") -- it was
+            // missing from the full row shape entirely, not just
+            // unselectable by name). Migration 072 actually creates it.
+            // Restored here now that it's real.
+            "user_id, first_name, last_name, display_name, pronouns, location, age_range, relationship_status, orientation, member_type, what_brought_you_here, connection_hoping, interests, connection_comfort_level, connection_boundaries, quiz_result, first_prompt_response, first_prompt_is_public, completed_onboarding, spaces_joined, created_at, welcome_video_watched, welcome_video_watched_at, onboarding_completed_at, deactivated_at, profile_photo_path, profile_photo_updated_at, onboarding_step, photo_confirmed, photo_confirmed_at, profile_tagline"
           )
           .eq("user_id", userId)
           .maybeSingle();
