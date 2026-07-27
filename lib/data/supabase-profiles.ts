@@ -103,7 +103,22 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
           onboarding_step: profile.onboardingStep,
           photo_confirmed: profile.photo_confirmed,
           photo_confirmed_at: profile.photo_confirmed_at,
-          profile_tagline: profile.profile_tagline,
+          // Confirmed live: PostgREST's schema cache has gone stale on this
+          // column again (same underlying issue as the getProfile() select
+          // fixed earlier -- see migration 071's NOTIFY, which should make
+          // this reliable again) -- an *undefined* value here is dropped
+          // from the outgoing JSON entirely and is harmless, but any real
+          // string (including "", which is exactly what the onboarding
+          // tagline input produces the moment it's touched at all, even
+          // left blank) gets included and PostgREST rejects the whole
+          // write with "Could not find the 'profile_tagline' column,"
+          // breaking every subsequent save for that member -- including
+          // the final onboarding-completion save. Omitting the key
+          // entirely when there's nothing to write (same pattern already
+          // used for profile_photo_path above) means untouched/blank
+          // taglines can never trigger this; only an actual real tagline
+          // value still depends on the schema cache being current.
+          ...(profile.profile_tagline ? { profile_tagline: profile.profile_tagline } : {}),
           updated_at: new Date(),
         },
         { onConflict: "user_id" }

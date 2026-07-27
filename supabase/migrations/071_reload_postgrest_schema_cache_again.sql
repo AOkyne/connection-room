@@ -1,0 +1,18 @@
+-- 071: Re-reload PostgREST's schema cache (see migration 066's comment
+-- for the original occurrence of this exact issue).
+--
+-- Confirmed live again: PostgREST rejected any write naming
+-- profiles.profile_tagline with "Could not find the 'profile_tagline'
+-- column of 'profiles' in the schema cache" -- breaking every subsequent
+-- save for any member who so much as touched the onboarding tagline
+-- field (even leaving it blank produces an empty string, which is enough
+-- to trigger this), including their final onboarding-completion save.
+-- Migration 066 already ran this same NOTIFY once; something since (one
+-- of migrations 067-070, or just cache staleness recurring on its own)
+-- caused PostgREST to lose track of this column again. The application
+-- code (lib/data/supabase-profiles.ts) was also fixed to stop writing
+-- this column at all when there's nothing real to write, which prevents
+-- the common case (blank tagline) from ever depending on this cache
+-- being current -- but an actually-set tagline value still needs
+-- PostgREST to recognize the column, which is what this re-notifies.
+NOTIFY pgrst, 'reload schema';
