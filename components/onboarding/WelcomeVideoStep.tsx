@@ -15,7 +15,7 @@ declare global {
 
 interface WelcomeVideoStepProps {
   profile: Profile;
-  onUpdate: (updates: Partial<Profile>) => Promise<void> | void;
+  onUpdate: (updates: Partial<Profile>) => Promise<Profile | null> | void;
   onEnter: () => void;
 }
 

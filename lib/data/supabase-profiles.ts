@@ -3,6 +3,17 @@ import { demoSafeWrite } from "@/lib/demo/demo-mode-guard";
 import { buildProfilePhotoUrl } from "@/lib/utils/storage";
 import type { Profile, CoupleProfile } from "./profiles";
 
+// saveProfile()/saveProfileToSupabase() return null on any failure, which
+// is enough for most callers ("didn't save, try again") but throws away
+// the actual reason -- including genuinely useful, specific messages like
+// the onboarding-completion DB trigger's ("cannot be completed without a
+// profile photo"). A module-level side channel rather than changing the
+// Profile | null return type everywhere it's used: set right before any
+// null return below, cleared on success, read by callers that want to
+// show something more specific than the generic fallback (see
+// app/onboarding/page.tsx's handleComplete()).
+export let lastProfileSaveError: string | null = null;
+
 // Create or update profile in Supabase
 export async function saveProfileToSupabase(profile: Profile): Promise<Profile | null> {
   if (!supabase) {
@@ -119,8 +130,10 @@ export async function saveProfileToSupabase(profile: Profile): Promise<Profile |
       hint: error.hint,
       full: error
     });
+    lastProfileSaveError = error.message || null;
     return null;
   }
+  lastProfileSaveError = null;
 
   // Handle array response from select()
   const profileData = Array.isArray(data) ? data[0] : data;

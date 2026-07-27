@@ -10,6 +10,7 @@ import {
   type Profile,
 } from "@/lib/data/profiles";
 import { uploadProfilePhoto } from "@/lib/utils/storage";
+import { lastProfileSaveError } from "@/lib/data/supabase-profiles";
 import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
 import { Card, CardHeader } from "@/components/Card";
@@ -196,7 +197,11 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleUpdate = async (updates: Partial<Profile>) => {
+  // Returns the save result (null on failure) so callers that need to know
+  // -- the photo step in particular, see its own comment -- can actually
+  // check it instead of assuming success just because the local state
+  // update happened synchronously above.
+  const handleUpdate = async (updates: Partial<Profile>): Promise<Profile | null> => {
     const updated = { ...profile, ...updates };
     setProfile(updated);
     // saveProfile() directly, not updateProfile() -- `updated` is already
@@ -210,7 +215,7 @@ export default function OnboardingPage() {
     // value with a stale one.
     const chained = saveChainRef.current.then(() => saveProfile(updated));
     saveChainRef.current = chained;
-    await chained;
+    return await chained;
   };
 
   const handleComplete = async () => {
@@ -261,7 +266,14 @@ export default function OnboardingPage() {
       const result = await chained;
 
       if (!result) {
-        throw new Error("Failed to save completion. Please try again.");
+        // The DB trigger (migration 067/068) often has something far more
+        // useful to say than a generic failure -- e.g. a member whose
+        // local state believed a photo was saved (upload succeeded,
+        // checkbox checked) when an earlier silent write failure meant
+        // the database never actually got it. Surfacing the real reason
+        // here, instead of just "try again," is the difference between a
+        // dead end and someone knowing exactly what to fix.
+        throw new Error(lastProfileSaveError || "Failed to save completion. Please try again.");
       }
 
       setProfile(updated);
@@ -269,11 +281,17 @@ export default function OnboardingPage() {
       // Screen now stays visible until user clicks a button or "Skip for Now"
     } catch (error) {
       console.error("Onboarding completion error:", error);
-      setSubmitError(
-        error instanceof Error
-          ? error.message
-          : "Something went wrong. Please try again."
-      );
+      const message = error instanceof Error ? error.message : "Something went wrong. Please try again.";
+      setSubmitError(message);
+      // Matches the client-side pre-checks above -- if the DB trigger is
+      // what actually caught this (a silent earlier save failure the
+      // client didn't know about), send them back to the step that needs
+      // fixing, not just an error with no obvious next action.
+      if (message.toLowerCase().includes("photo")) {
+        setCurrentStep("photo");
+      } else if (message.toLowerCase().includes("name")) {
+        setCurrentStep("basics");
+      }
       setIsSubmitting(false);
       setHasAttemptedCompletion(false);
     }
@@ -683,7 +701,20 @@ export default function OnboardingPage() {
                           // that never even tried Storage and just stored
                           // the raw file as base64 (migration 064).
                           const { publicUrl, path } = await uploadProfilePhoto(file, profile.id);
-                          handleUpdate({ profilePhoto: publicUrl, profilePhotoPath: path });
+                          // Confirmed live: the upload itself can succeed
+                          // (photoUploadError stays clear, preview shows,
+                          // checkbox appears) while this save silently
+                          // fails -- local state still looks entirely
+                          // correct, so the member sails through the rest
+                          // of onboarding with a photo the database never
+                          // actually received, only discovering it at the
+                          // final "Enter the Community" click, as a
+                          // generic, unhelpful error with no obvious
+                          // connection back to the photo step.
+                          const result = await handleUpdate({ profilePhoto: publicUrl, profilePhotoPath: path });
+                          if (!result) {
+                            setPhotoUploadError("Your photo uploaded, but saving it to your profile failed. Please try again.");
+                          }
                         } catch (err) {
                           setPhotoUploadError(err instanceof Error ? err.message : "Failed to upload photo. Please try again.");
                         } finally {
@@ -715,12 +746,19 @@ export default function OnboardingPage() {
                         <input
                           type="checkbox"
                           checked={profile.photo_confirmed || false}
-                          onChange={(e) =>
-                            handleUpdate({
-                              photo_confirmed: e.target.checked,
-                              photo_confirmed_at: e.target.checked ? new Date() : undefined,
-                            })
-                          }
+                          onChange={async (e) => {
+                            const checked = e.target.checked;
+                            setPhotoUploadError(null);
+                            const result = await handleUpdate({
+                              photo_confirmed: checked,
+                              photo_confirmed_at: checked ? new Date() : undefined,
+                            });
+                            // Same silent-failure risk as the upload
+                            // itself -- see that handler's comment.
+                            if (!result) {
+                              setPhotoUploadError("Your confirmation didn't save. Please try again.");
+                            }
+                          }}
                           className="w-5 h-5 mt-0.5 flex-shrink-0"
                         />
                         <span className="text-sm text-[#1a0f0a]">
