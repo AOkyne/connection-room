@@ -271,6 +271,19 @@ export default function ProfilePage() {
 
             <div>
               <label className="block text-sm font-medium text-[#1a1714] mb-2">
+                Profile Tagline (optional)
+              </label>
+              <input
+                type="text"
+                placeholder="A short phrase that captures who you are (e.g., 'Learning to be vulnerable')"
+                value={profile.profile_tagline || ""}
+                onChange={(e) => setProfile({ ...profile, profile_tagline: e.target.value })}
+                className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#1a1714] mb-2">
                 Pronouns (optional)
               </label>
               <input
