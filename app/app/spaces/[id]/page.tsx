@@ -92,8 +92,14 @@ export default function SpaceDetailPage() {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingCommentContent, setEditingCommentContent] = useState("");
 
+  // The pinned "Question of the Week" always renders in its own spot above
+  // "Share Your Thoughts" (see below), not inside the regular feed -- so it's
+  // pulled out of the unfiltered `posts` list (always visible regardless of
+  // search/filter) and excluded from the feed's own filtering below.
+  const pinnedPost = posts.find((post) => post.pinned);
+
   // Filter and search posts
-  const filteredPosts = posts.filter((post) => {
+  const filteredPosts = posts.filter((post) => !post.pinned).filter((post) => {
     // Search filter
     const matchesSearch = !searchQuery ||
       post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -485,327 +491,7 @@ export default function SpaceDetailPage() {
     }
   };
 
-  return (
-    <div className="space-y-8">
-      {/* Hero Image */}
-      {space && (
-        <div className="relative w-full h-64 -mx-4 -mt-4 mb-4 overflow-hidden rounded-b-lg">
-          <img
-            src={`/imagery/spaces/${spaceImageMap[space.id] || "The Commons.png"}`}
-            alt={space.name}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/10"></div>
-        </div>
-      )}
-
-      {/* Space Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <SpaceIconSVG spaceId={space.id} size={40} />
-            <h1 className="text-4xl text-[#1a0f0a]">{space.name}</h1>
-          </div>
-          <p className="text-lg text-[#1a0f0a]">{space.description}</p>
-          <p className="text-sm text-[#a0704a] mt-2">{spaceMembers.length} members</p>
-        </div>
-        <div className="flex flex-col gap-2 items-end">
-          {/* Compact Search Bar */}
-          {mounted && posts.length > 0 && (
-            <div className="w-48">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search posts..."
-                className="w-full px-3 py-1.5 text-sm border border-[#d4a348] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4a348] text-[#1a0f0a] placeholder-[#a0704a]"
-              />
-            </div>
-          )}
-          <Link href="/app/spaces">
-            <Button variant="outline" size="md">
-              ← Back
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      {/* People in This Space - Small Thumbnails at Top.
-          Only members with a real photo -- a row of initials avatars isn't
-          what "People:" is meant to convey, and the space's overall member
-          count (above) already covers everyone regardless of photo. */}
-      {(() => {
-        const membersWithPhotos = spaceMembers.filter((m) => m.profilePhoto);
-        return membersWithPhotos.length > 0 && (
-        <div className="flex flex-wrap gap-2 items-center bg-[#f3ede5] p-3 rounded-lg">
-          <span className="text-xs font-medium text-[#1a0f0a] mr-2">People:</span>
-          {membersWithPhotos.slice(0, 12).map((member) => (
-            <button
-              key={member.id}
-              onClick={() => setSelectedProfile(member)}
-              className="flex-shrink-0 group cursor-pointer"
-              title={member.displayName}
-            >
-              <img
-                src={member.profilePhoto}
-                alt={member.displayName}
-                className="w-12 h-12 rounded-full hover:ring-2 hover:ring-[#d4a348] transition-all object-cover"
-              />
-            </button>
-          ))}
-          {membersWithPhotos.length > 12 && (
-            <Link href={`/app/spaces/${spaceId}/members`}>
-              <span className="text-xs text-[#d4a348] hover:underline font-medium">+{membersWithPhotos.length - 12}</span>
-            </Link>
-          )}
-          <Link href={`/app/spaces/${spaceId}/members`} className="ml-auto">
-            <span className="text-xs text-[#d4a348] hover:underline font-medium">See all</span>
-          </Link>
-        </div>
-        );
-      })()}
-
-      {/* Space Introduction */}
-
-      {space.id === "commons" && (
-        <>
-          <Card className="bg-[#f3ede5] border-l-4 border-[#d4a348]">
-            <div className="space-y-4 text-[#1a0f0a]">
-              <h2 className="text-2xl font-bold">Welcome to The Commons.</h2>
-
-              <p className="text-[#1a0f0a]">
-                This is the main gathering space for the community: a place for reflections, questions, introductions, check-ins, shared insights, and the small human moments that help a room feel alive.
-              </p>
-
-              <p className="italic text-[#1a0f0a]">Think of The Commons as the front room of The Connection Room — the warmer version where you can say hello, share what you are noticing, and connect with others.</p>
-
-              <div className="pt-4 border-t border-[#d4a348]">
-                <h3 className="font-bold mb-3">What to post here:</h3>
-                <ul className="space-y-1 text-sm text-[#1a0f0a]">
-                  <li>• A short introduction or what brought you here</li>
-                  <li>• What kind of connection you are craving more of</li>
-                  <li>• Something you are learning about intimacy or vulnerability</li>
-                  <li>• A reflection from a prompt or question you are sitting with</li>
-                  <li>• A small win, moment of insight, or something tender/funny</li>
-                </ul>
-              </div>
-
-              <div className="pt-4 border-t border-[#d4a348]">
-                <h3 className="font-bold mb-3">How to respond:</h3>
-                <p className="text-sm text-[#1a0f0a] mb-2">Lead with presence. Helpful responses include:</p>
-                <ul className="space-y-1 text-sm text-[#1a0f0a]">
-                  <li>• "I relate to this."</li>
-                  <li>• "Thank you for sharing."</li>
-                  <li>• "I appreciate how honestly you said this."</li>
-                  <li>• "Would you like reflection, or mostly to be witnessed?"</li>
-                </ul>
-              </div>
-            </div>
-          </Card>
-
-          {posts.length === 0 && (
-            <EmptySpaceInvitation
-              spaceId={spaceId}
-              onStartPost={() => {
-                // Scroll to post creation and focus textarea
-                const createPostSection = document.getElementById("create-post-section");
-                if (createPostSection) {
-                  createPostSection.scrollIntoView({ behavior: "smooth", block: "start" });
-                  setTimeout(() => {
-                    const textarea = createPostSection.querySelector("textarea");
-                    if (textarea) {
-                      textarea.focus();
-                    }
-                  }, 500);
-                }
-              }}
-            />
-          )}
-        </>
-      )}
-
-      {space.id === "start-here" && (
-        <Card className="bg-[#f3ede5] border-l-4 border-[#d4a348]">
-          <div className="space-y-4 text-[#1a0f0a]">
-            <h2 className="text-2xl font-bold">Welcome to The Connection Room by Trevor James.</h2>
-
-            <p className="text-[#1a0f0a]">
-              This is a private community for men and couples who want to practice more honest connection, embodied intimacy, emotional openness, spirituality, sexuality, and integration without shame, pressure, or performance.
-            </p>
-
-            <div className="space-y-2 text-[#1a0f0a]">
-              <p className="font-medium">This is not a hookup space.</p>
-              <p>It is not a dating app.</p>
-              <p>It is not a place where you have to perform vulnerability, say something profound, or arrive fully "healed" before you belong.</p>
-            </div>
-
-            <p className="italic">Think of this as a practice room. A place to slow down, notice what is true, explore what connection brings up in you, and participate at a pace that feels honest and respectful.</p>
-
-            <p className="text-[#1a0f0a]">You are welcome here whether you are feeling open, guarded, curious, nervous, tender, skeptical, quietly hopeful, or all of the above before breakfast.</p>
-
-            <h3 className="font-bold pt-4">Our culture</h3>
-            <p className="text-sm text-[#1a0f0a]">The culture here is built on consent, care, curiosity, and emotional honesty.</p>
-
-            <ul className="space-y-2 text-sm text-[#1a0f0a]">
-              <li><strong>We speak from personal experience.</strong></li>
-              <li><strong>We do not diagnose, fix, pressure, pursue, or perform.</strong></li>
-              <li><strong>We respect different bodies, orientations, relationship structures, comfort levels, and life experiences.</strong></li>
-              <li><strong>We do not use the community to cruise, solicit, or send unwanted sexual energy toward other members.</strong></li>
-            </ul>
-
-            <p className="text-[#1a0f0a] font-medium pt-2">Vulnerability is welcome here, but it is never demanded.</p>
-
-            <ul className="space-y-1 text-sm text-[#1a0f0a]">
-              <li>You can participate quietly at first.</li>
-              <li>You can take your time.</li>
-              <li>You can be thoughtful without being dramatic.</li>
-              <li>You can be honest without oversharing.</li>
-            </ul>
-
-            <p className="text-[#1a0f0a] font-medium pt-4">The invitation is simple:</p>
-            <ul className="space-y-1 text-sm text-[#1a0f0a]">
-              <li>Come back to your body.</li>
-              <li>Notice what is true.</li>
-              <li>Practice connection with care.</li>
-              <li>Let this be a place where more of you can arrive.</li>
-            </ul>
-          </div>
-        </Card>
-      )}
-
-      {/* Featured Prompt */}
-      {space.featuredPrompt && (
-        <Card className="bg-gradient-to-r from-[#f3ede5] to-[#fffbf7]">
-          <CardHeader title="Today's Prompt" icon={<IconReflection size={20} />} />
-          <p className="text-[#1a0f0a] italic text-lg mb-4">"{space.featuredPrompt}"</p>
-          <Button
-            variant="secondary"
-            size="md"
-            onClick={() => {
-              document.getElementById("create-post-section")?.scrollIntoView({ behavior: "smooth" });
-            }}
-          >
-            Respond to Prompt
-          </Button>
-        </Card>
-      )}
-
-      {/* Weekly Commons Thread */}
-      {spaceId === "commons" && <WeeklyCommonsThread />}
-
-      {/* Start Here Checklist */}
-      {spaceId === "start-here" && <StartHereChecklist />}
-
-      {/* First Week Journey Card */}
-      {spaceId === "start-here" && <FirstWeekStartHereCard />}
-
-      {/* Post Error Feedback */}
-      {postError && (
-        <div className="mb-4">
-          <ErrorFeedback
-            title="Post Failed"
-            message={postError}
-            onRetry={handleRetryPost}
-            onDismiss={() => setPostError(null)}
-            retryLoading={retryingPost}
-          />
-        </div>
-      )}
-
-      {/* Create Post */}
-      <Card id="create-post-section">
-        <CardHeader title="Share Your Thoughts" icon={<IconIntegration size={20} />} />
-
-        {/* Template Hint */}
-        <div className="mb-3 p-3 rounded-lg bg-[#f3ede5] text-sm text-[#1a0f0a]">
-          <p className="mb-2">Not sure where to start? <button onClick={() => setShowTemplateSelector(true)} className="text-[#d4a348] hover:underline font-medium">Choose a post template</button> to help you.</p>
-        </div>
-
-        <div className="space-y-2">
-          <textarea
-            value={newPostContent}
-            onChange={(e) => setNewPostContent(e.target.value)}
-            placeholder="What's on your mind? Share authentically..."
-            rows={3}
-            maxLength={MAX_POST_LENGTH}
-            className="w-full px-4 py-2.5 border border-[#ede6e0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#d4a348] focus:ring-offset-2 focus:border-transparent transition-all duration-150 text-[#1a0f0a] placeholder-[#a0704a] resize-none"
-          />
-          <div className="flex justify-between items-center">
-            <p className="text-xs text-[#a0704a]">
-              {newPostContent.length} / {MAX_POST_LENGTH} characters
-            </p>
-            {newPostContent.length > MAX_POST_LENGTH * 0.9 && (
-              <p className="text-xs text-[#d4a348]">Getting close to limit</p>
-            )}
-          </div>
-        </div>
-        <div className="flex gap-3 mt-4">
-          <Button
-            variant="primary"
-            size="md"
-            onClick={handleCreatePost}
-            disabled={!newPostContent.trim() || isSubmitting}
-          >
-            {isSubmitting ? "Posting..." : "Post"}
-          </Button>
-        </div>
-      </Card>
-
-      {/* Post Template Selector */}
-      {showTemplateSelector && (
-        <PostTemplateSelector
-          onSelect={(templateId) => {
-            const template = postTemplates.find((t) => t.id === templateId);
-            if (template) {
-              const prompts = template.starterPrompts.join("\n");
-              setNewPostContent(prompts);
-              setSelectedTemplate(templateId);
-              setShowTemplateSelector(false);
-            }
-          }}
-          onSkip={() => setShowTemplateSelector(false)}
-        />
-      )}
-
-      {/* Posts Feed */}
-      <div id="posts-feed" className="space-y-6">
-        {/* Filter Bar */}
-        {mounted && posts.length > 0 && (
-          <FilterBar
-            filters={[
-              { id: "recent", label: "Recent" },
-              { id: "popular", label: "Popular" },
-            ]}
-            selectedFilter={filterType}
-            onFilterChange={(filter) => {
-              setFilterType(filter as "all" | "recent" | "popular");
-              localStorage.setItem("connection-room:post-filter", filter);
-            }}
-          />
-        )}
-
-        {!mounted ? (
-          <div className="space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <SkeletonPost key={i} />
-            ))}
-          </div>
-        ) : filteredPosts.length === 0 && searchQuery ? (
-          <Card className="text-center py-8">
-            <p className="text-[#1a0f0a]">No posts match your search.</p>
-            <button
-              onClick={() => setSearchQuery("")}
-              className="text-sm text-[#d4a348] hover:underline mt-2"
-            >
-              Clear search
-            </button>
-          </Card>
-        ) : posts.length === 0 ? (
-          <Card className="text-center py-8">
-            <p className="text-[#1a0f0a]">No posts yet. Be the first to share!</p>
-          </Card>
-        ) : (
-          filteredPosts.map((post) => {
+  function renderPostCard(post: Post) {
             const pinned = !!post.pinned;
             // The pinned "Question of the Week" is a deliberately different
             // object on the page, not a styled variant of a regular post --
@@ -839,10 +525,14 @@ export default function SpaceDetailPage() {
                     <p className={`font-medium ${pinned ? "text-[#fdf6e8]" : "text-[#1a0f0a]"}`}>
                       {post.authorName} {post.authorPronouns && `(${post.authorPronouns})`}
                     </p>
-                    <p className={`text-xs ${pinned ? "text-[#cbb094]" : "text-[#a0704a]"}`}>
-                      {new Date(post.createdAt).toLocaleDateString()} at{" "}
-                      {new Date(post.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </p>
+                    {/* No timestamp on the pinned prompt -- it's a standing
+                        weekly fixture, not a dated post. */}
+                    {!pinned && (
+                      <p className="text-xs text-[#a0704a]">
+                        {new Date(post.createdAt).toLocaleDateString()} at{" "}
+                        {new Date(post.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                    )}
                   </div>
                 </button>
                 {(profile?.displayName === post.authorName || isAdmin) && (
@@ -1071,8 +761,338 @@ export default function SpaceDetailPage() {
                 </div>
               )}
             </Card>
-            );
-          })
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Hero Image */}
+      {space && (
+        <div className="relative w-full h-64 -mx-4 -mt-4 mb-4 overflow-hidden rounded-b-lg">
+          <img
+            src={`/imagery/spaces/${spaceImageMap[space.id] || "The Commons.png"}`}
+            alt={space.name}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/10"></div>
+        </div>
+      )}
+
+      {/* Space Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <SpaceIconSVG spaceId={space.id} size={40} />
+            <h1 className="text-4xl text-[#1a0f0a]">{space.name}</h1>
+          </div>
+          <p className="text-lg text-[#1a0f0a]">{space.description}</p>
+          <p className="text-sm text-[#a0704a] mt-2">{spaceMembers.length} members</p>
+        </div>
+        <div className="flex flex-col gap-2 items-end">
+          {/* Compact Search Bar */}
+          {mounted && posts.length > 0 && (
+            <div className="w-48">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search posts..."
+                className="w-full px-3 py-1.5 text-sm border border-[#d4a348] rounded-lg focus:outline-none focus:ring-1 focus:ring-[#d4a348] text-[#1a0f0a] placeholder-[#a0704a]"
+              />
+            </div>
+          )}
+          <Link href="/app/spaces">
+            <Button variant="outline" size="md">
+              ← Back
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* People in This Space - Small Thumbnails at Top.
+          Only members with a real photo -- a row of initials avatars isn't
+          what "People:" is meant to convey, and the space's overall member
+          count (above) already covers everyone regardless of photo. */}
+      {(() => {
+        const membersWithPhotos = spaceMembers.filter((m) => m.profilePhoto);
+        return membersWithPhotos.length > 0 && (
+        <div className="flex flex-wrap gap-2 items-center bg-[#f3ede5] p-3 rounded-lg">
+          <span className="text-xs font-medium text-[#1a0f0a] mr-2">People:</span>
+          {membersWithPhotos.slice(0, 12).map((member) => (
+            <button
+              key={member.id}
+              onClick={() => setSelectedProfile(member)}
+              className="flex-shrink-0 group cursor-pointer"
+              title={member.displayName}
+            >
+              <img
+                src={member.profilePhoto}
+                alt={member.displayName}
+                className="w-12 h-12 rounded-full hover:ring-2 hover:ring-[#d4a348] transition-all object-cover"
+              />
+            </button>
+          ))}
+          {membersWithPhotos.length > 12 && (
+            <Link href={`/app/spaces/${spaceId}/members`}>
+              <span className="text-xs text-[#d4a348] hover:underline font-medium">+{membersWithPhotos.length - 12}</span>
+            </Link>
+          )}
+          <Link href={`/app/spaces/${spaceId}/members`} className="ml-auto">
+            <span className="text-xs text-[#d4a348] hover:underline font-medium">See all</span>
+          </Link>
+        </div>
+        );
+      })()}
+
+      {/* Space Introduction */}
+
+      {space.id === "commons" && (
+        <>
+          <Card className="bg-[#f3ede5] border-l-4 border-[#d4a348]">
+            <div className="space-y-4 text-[#1a0f0a]">
+              <h2 className="text-2xl font-bold">Welcome to The Commons.</h2>
+
+              <p className="text-[#1a0f0a]">
+                This is the main gathering space for the community: a place for reflections, questions, introductions, check-ins, shared insights, and the small human moments that help a room feel alive.
+              </p>
+
+              <p className="italic text-[#1a0f0a]">Think of The Commons as the front room of The Connection Room — the warmer version where you can say hello, share what you are noticing, and connect with others.</p>
+
+              <div className="pt-4 border-t border-[#d4a348]">
+                <h3 className="font-bold mb-3">What to post here:</h3>
+                <ul className="space-y-1 text-sm text-[#1a0f0a]">
+                  <li>• A short introduction or what brought you here</li>
+                  <li>• What kind of connection you are craving more of</li>
+                  <li>• Something you are learning about intimacy or vulnerability</li>
+                  <li>• A reflection from a prompt or question you are sitting with</li>
+                  <li>• A small win, moment of insight, or something tender/funny</li>
+                </ul>
+              </div>
+
+              <div className="pt-4 border-t border-[#d4a348]">
+                <h3 className="font-bold mb-3">How to respond:</h3>
+                <p className="text-sm text-[#1a0f0a] mb-2">Lead with presence. Helpful responses include:</p>
+                <ul className="space-y-1 text-sm text-[#1a0f0a]">
+                  <li>• "I relate to this."</li>
+                  <li>• "Thank you for sharing."</li>
+                  <li>• "I appreciate how honestly you said this."</li>
+                  <li>• "Would you like reflection, or mostly to be witnessed?"</li>
+                </ul>
+              </div>
+            </div>
+          </Card>
+
+          {/* filteredPosts already excludes the pinned Question of the Week
+              (see its derivation above), so this correctly reflects whether
+              any real member has posted, not whether the auto-post has. */}
+          {filteredPosts.length === 0 && (
+            <EmptySpaceInvitation
+              spaceId={spaceId}
+              onStartPost={() => {
+                // Scroll to post creation and focus textarea
+                const createPostSection = document.getElementById("create-post-section");
+                if (createPostSection) {
+                  createPostSection.scrollIntoView({ behavior: "smooth", block: "start" });
+                  setTimeout(() => {
+                    const textarea = createPostSection.querySelector("textarea");
+                    if (textarea) {
+                      textarea.focus();
+                    }
+                  }, 500);
+                }
+              }}
+            />
+          )}
+        </>
+      )}
+
+      {space.id === "start-here" && (
+        <Card className="bg-[#f3ede5] border-l-4 border-[#d4a348]">
+          <div className="space-y-4 text-[#1a0f0a]">
+            <h2 className="text-2xl font-bold">Welcome to The Connection Room by Trevor James.</h2>
+
+            <p className="text-[#1a0f0a]">
+              This is a private community for men and couples who want to practice more honest connection, embodied intimacy, emotional openness, spirituality, sexuality, and integration without shame, pressure, or performance.
+            </p>
+
+            <div className="space-y-2 text-[#1a0f0a]">
+              <p className="font-medium">This is not a hookup space.</p>
+              <p>It is not a dating app.</p>
+              <p>It is not a place where you have to perform vulnerability, say something profound, or arrive fully "healed" before you belong.</p>
+            </div>
+
+            <p className="italic">Think of this as a practice room. A place to slow down, notice what is true, explore what connection brings up in you, and participate at a pace that feels honest and respectful.</p>
+
+            <p className="text-[#1a0f0a]">You are welcome here whether you are feeling open, guarded, curious, nervous, tender, skeptical, quietly hopeful, or all of the above before breakfast.</p>
+
+            <h3 className="font-bold pt-4">Our culture</h3>
+            <p className="text-sm text-[#1a0f0a]">The culture here is built on consent, care, curiosity, and emotional honesty.</p>
+
+            <ul className="space-y-2 text-sm text-[#1a0f0a]">
+              <li><strong>We speak from personal experience.</strong></li>
+              <li><strong>We do not diagnose, fix, pressure, pursue, or perform.</strong></li>
+              <li><strong>We respect different bodies, orientations, relationship structures, comfort levels, and life experiences.</strong></li>
+              <li><strong>We do not use the community to cruise, solicit, or send unwanted sexual energy toward other members.</strong></li>
+            </ul>
+
+            <p className="text-[#1a0f0a] font-medium pt-2">Vulnerability is welcome here, but it is never demanded.</p>
+
+            <ul className="space-y-1 text-sm text-[#1a0f0a]">
+              <li>You can participate quietly at first.</li>
+              <li>You can take your time.</li>
+              <li>You can be thoughtful without being dramatic.</li>
+              <li>You can be honest without oversharing.</li>
+            </ul>
+
+            <p className="text-[#1a0f0a] font-medium pt-4">The invitation is simple:</p>
+            <ul className="space-y-1 text-sm text-[#1a0f0a]">
+              <li>Come back to your body.</li>
+              <li>Notice what is true.</li>
+              <li>Practice connection with care.</li>
+              <li>Let this be a place where more of you can arrive.</li>
+            </ul>
+          </div>
+        </Card>
+      )}
+
+      {/* Featured Prompt */}
+      {space.featuredPrompt && (
+        <Card className="bg-gradient-to-r from-[#f3ede5] to-[#fffbf7]">
+          <CardHeader title="Today's Prompt" icon={<IconReflection size={20} />} />
+          <p className="text-[#1a0f0a] italic text-lg mb-4">"{space.featuredPrompt}"</p>
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={() => {
+              document.getElementById("create-post-section")?.scrollIntoView({ behavior: "smooth" });
+            }}
+          >
+            Respond to Prompt
+          </Button>
+        </Card>
+      )}
+
+      {/* Weekly Commons Thread */}
+      {spaceId === "commons" && <WeeklyCommonsThread />}
+
+      {/* Start Here Checklist */}
+      {spaceId === "start-here" && <StartHereChecklist />}
+
+      {/* First Week Journey Card */}
+      {spaceId === "start-here" && <FirstWeekStartHereCard />}
+
+      {/* Post Error Feedback */}
+      {postError && (
+        <div className="mb-4">
+          <ErrorFeedback
+            title="Post Failed"
+            message={postError}
+            onRetry={handleRetryPost}
+            onDismiss={() => setPostError(null)}
+            retryLoading={retryingPost}
+          />
+        </div>
+      )}
+
+      {/* Question of the Week -- always pinned at the very top of the
+          space, above "Share Your Thoughts", since it's a standing weekly
+          fixture rather than one post among many. */}
+      {pinnedPost && renderPostCard(pinnedPost)}
+
+      {/* Create Post */}
+      <Card id="create-post-section">
+        <CardHeader title="Share Your Thoughts" icon={<IconIntegration size={20} />} />
+
+        {/* Template Hint */}
+        <div className="mb-3 p-3 rounded-lg bg-[#f3ede5] text-sm text-[#1a0f0a]">
+          <p className="mb-2">Not sure where to start? <button onClick={() => setShowTemplateSelector(true)} className="text-[#d4a348] hover:underline font-medium">Choose a post template</button> to help you.</p>
+        </div>
+
+        <div className="space-y-2">
+          <textarea
+            value={newPostContent}
+            onChange={(e) => setNewPostContent(e.target.value)}
+            placeholder="What's on your mind? Share authentically..."
+            rows={3}
+            maxLength={MAX_POST_LENGTH}
+            className="w-full px-4 py-2.5 border border-[#ede6e0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#d4a348] focus:ring-offset-2 focus:border-transparent transition-all duration-150 text-[#1a0f0a] placeholder-[#a0704a] resize-none"
+          />
+          <div className="flex justify-between items-center">
+            <p className="text-xs text-[#a0704a]">
+              {newPostContent.length} / {MAX_POST_LENGTH} characters
+            </p>
+            {newPostContent.length > MAX_POST_LENGTH * 0.9 && (
+              <p className="text-xs text-[#d4a348]">Getting close to limit</p>
+            )}
+          </div>
+        </div>
+        <div className="flex gap-3 mt-4">
+          <Button
+            variant="primary"
+            size="md"
+            onClick={handleCreatePost}
+            disabled={!newPostContent.trim() || isSubmitting}
+          >
+            {isSubmitting ? "Posting..." : "Post"}
+          </Button>
+        </div>
+      </Card>
+
+      {/* Post Template Selector */}
+      {showTemplateSelector && (
+        <PostTemplateSelector
+          onSelect={(templateId) => {
+            const template = postTemplates.find((t) => t.id === templateId);
+            if (template) {
+              const prompts = template.starterPrompts.join("\n");
+              setNewPostContent(prompts);
+              setSelectedTemplate(templateId);
+              setShowTemplateSelector(false);
+            }
+          }}
+          onSkip={() => setShowTemplateSelector(false)}
+        />
+      )}
+
+      {/* Posts Feed */}
+      <div id="posts-feed" className="space-y-6">
+        {/* Filter Bar */}
+        {mounted && posts.length > 0 && (
+          <FilterBar
+            filters={[
+              { id: "recent", label: "Recent" },
+              { id: "popular", label: "Popular" },
+            ]}
+            selectedFilter={filterType}
+            onFilterChange={(filter) => {
+              setFilterType(filter as "all" | "recent" | "popular");
+              localStorage.setItem("connection-room:post-filter", filter);
+            }}
+          />
+        )}
+
+        {!mounted ? (
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <SkeletonPost key={i} />
+            ))}
+          </div>
+        ) : filteredPosts.length === 0 && searchQuery ? (
+          <Card className="text-center py-8">
+            <p className="text-[#1a0f0a]">No posts match your search.</p>
+            <button
+              onClick={() => setSearchQuery("")}
+              className="text-sm text-[#d4a348] hover:underline mt-2"
+            >
+              Clear search
+            </button>
+          </Card>
+        ) : filteredPosts.length === 0 ? (
+          <Card className="text-center py-8">
+            <p className="text-[#1a0f0a]">No posts yet. Be the first to share!</p>
+          </Card>
+        ) : (
+          filteredPosts.map((post) => renderPostCard(post))
         )}
       </div>
 
@@ -1105,4 +1125,5 @@ export default function SpaceDetailPage() {
       )}
     </div>
   );
+
 }
