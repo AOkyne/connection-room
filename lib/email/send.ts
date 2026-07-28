@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import type Mail from "nodemailer/lib/mailer";
 import { readFileSync } from "fs";
 import path from "path";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -90,6 +91,9 @@ export async function sendBrandedEmail(options: {
   paragraphs: string[];
   appUrl: string;
   signOff?: string;
+  // Extra attachments (e.g. a calendar invite) on top of the fixed
+  // branding images -- merged in, not a replacement for them.
+  attachments?: Mail.Attachment[];
 }): Promise<void> {
   const transporter = getTransporter();
   await transporter.sendMail({
@@ -100,7 +104,7 @@ export async function sendBrandedEmail(options: {
     text: buildBrandedEmailText(options.paragraphs, options.appUrl, options.signOff),
     html: buildBrandedEmailHtml(options.paragraphs, options.appUrl, options.signOff),
     replyTo: REPLY_TO_ADDRESS,
-    attachments: getBrandedAttachments(),
+    attachments: [...getBrandedAttachments(), ...(options.attachments || [])],
   });
 }
 
