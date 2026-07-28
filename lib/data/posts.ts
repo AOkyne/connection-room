@@ -17,8 +17,12 @@ export interface Post {
   authorPronouns?: string;
   authorPhoto?: string;
   promptId?: string;
+  title?: string;
   content: string;
   isPromptResponse: boolean;
+  // Set on the current week's auto-posted "Question of the Week" (see
+  // migration 073) -- at most one pinned post per space at a time.
+  pinned?: boolean;
   createdAt: Date;
   reactions: Record<string, number>;
   commentCount: number;

@@ -795,7 +795,16 @@ export default function SpaceDetailPage() {
           </Card>
         ) : (
           filteredPosts.map((post) => (
-            <Card key={post.id}>
+            <Card
+              key={post.id}
+              className={post.pinned ? "border-2 border-[#d4a348] bg-gradient-to-br from-[#fdf6e8] to-[#fffbf7]" : ""}
+            >
+              {post.pinned && (
+                <div className="flex items-center gap-1.5 mb-3 text-xs font-semibold uppercase tracking-wide text-[#b8862f]">
+                  <span>📌</span>
+                  <span>Question of the Week</span>
+                </div>
+              )}
               <div className="flex items-start justify-between mb-3">
                 <button
                   onClick={() => {
@@ -866,7 +875,12 @@ export default function SpaceDetailPage() {
                   </div>
                 </div>
               ) : (
-                <p className="text-[#1a0f0a] mb-4">{post.content}</p>
+                <div className="mb-4">
+                  {post.title && (
+                    <p className="text-lg font-semibold text-[#1a0f0a] mb-1">{post.title}</p>
+                  )}
+                  <p className="text-[#1a0f0a]">{post.content}</p>
+                </div>
               )}
 
               {/* Reactions */}

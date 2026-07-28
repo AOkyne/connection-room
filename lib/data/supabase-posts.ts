@@ -10,6 +10,7 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
     let query = supabase
       .from("posts")
       .select("*")
+      .order("pinned", { ascending: false })
       .order("created_at", { ascending: false });
 
     if (spaceId) {
@@ -65,8 +66,10 @@ export async function getSupabasePosts(spaceId?: string): Promise<Post[]> {
           // Remove Tom Sawyer's seeded photo, show real user photos only
           authorPhoto: isTomSawyerPhoto ? undefined : authorPhoto,
           promptId: post.prompt_id,
+          title: post.title || undefined,
           content: post.body,
           isPromptResponse: !!post.prompt_id,
+          pinned: !!post.pinned,
           createdAt: new Date(post.created_at),
           reactions: reactionsMap[post.id] || {},
           commentCount: commentCountMap[post.id] || 0,
