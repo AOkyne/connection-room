@@ -37,62 +37,69 @@
   --font-serif: var(--font-serif);
 }
 
-body {
-  background: var(--background);
-  color: var(--text);
-  font-family: var(--font-sans);
-  line-height: 1.7;
-  letter-spacing: 0.3px;
-}
+/* These live in @layer base so that Tailwind utility classes (which
+   Tailwind puts in @layer utilities) always win over these defaults --
+   unlayered CSS beats layered CSS regardless of specificity, which
+   previously made plain `p { color: var(--text) }` silently override
+   any text-[#...] utility on a <p>, no matter how specific. */
+@layer base {
+  body {
+    background: var(--background);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.7;
+    letter-spacing: 0.3px;
+  }
 
-/* Serif headings, warm and elegant */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  color: var(--text);
-  font-family: Georgia, serif !important;
-  font-weight: 400 !important;
-  font-size: inherit;
-  line-height: 1.2;
-  letter-spacing: -0.5px;
-}
+  /* Serif headings, warm and elegant */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: var(--text);
+    font-family: Georgia, serif;
+    font-weight: 400;
+    font-size: inherit;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+  }
 
-h1 {
-  font-size: 2.75rem;
-  margin-bottom: 1.25rem;
-}
+  h1 {
+    font-size: 2.75rem;
+    margin-bottom: 1.25rem;
+  }
 
-h2 {
-  font-size: 2.25rem;
-  margin-bottom: 1rem;
-}
+  h2 {
+    font-size: 2.25rem;
+    margin-bottom: 1rem;
+  }
 
-h3 {
-  font-size: 1.75rem;
-  margin-bottom: 0.875rem;
-}
+  h3 {
+    font-size: 1.75rem;
+    margin-bottom: 0.875rem;
+  }
 
-h4 {
-  font-size: 1.25rem;
-  margin-bottom: 0.75rem;
-}
+  h4 {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
 
-p {
-  color: var(--text);
-  font-size: 1rem;
-}
+  p {
+    color: var(--text);
+    font-size: 1rem;
+  }
 
-a {
-  color: var(--accent-dark);
-  text-decoration: none;
-  transition: color 150ms ease-in-out;
-}
+  a {
+    color: var(--accent-dark);
+    text-decoration: none;
+    transition: color 150ms ease-in-out;
+  }
 
-a:hover {
-  color: var(--accent);
+  a:hover {
+    color: var(--accent);
+  }
 }
 
 /* Smooth scrolling */
