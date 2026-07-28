@@ -142,6 +142,17 @@ export default function SpaceDetailPage() {
       const spacePosts = await getPosts(spaceId);
       setPosts(spacePosts);
 
+      // The pinned "Question of the Week" always shows its comment thread
+      // (see render below -- no toggle to click), so its comments need to
+      // be loaded up front rather than lazily on expand like every other
+      // post.
+      const pinned = spacePosts.find((p) => p.pinned);
+      if (pinned) {
+        getComments(pinned.id).then((pinnedComments) => {
+          setComments((prev) => ({ ...prev, [pinned.id]: pinnedComments }));
+        });
+      }
+
       // Real space members (safe/public fields only) -- this used to be
       // demoMembers.filter(...), a hardcoded seed roster completely
       // disconnected from who's actually in the space.
@@ -794,13 +805,23 @@ export default function SpaceDetailPage() {
             <p className="text-[#1a0f0a]">No posts yet. Be the first to share!</p>
           </Card>
         ) : (
-          filteredPosts.map((post) => (
+          filteredPosts.map((post) => {
+            const pinned = !!post.pinned;
+            // The pinned "Question of the Week" is a deliberately different
+            // object on the page, not a styled variant of a regular post --
+            // solid brown so it can't be mistaken for one, no reactions
+            // (the request specifically: reactions were competing with
+            // actually writing a comment), and its comment thread is
+            // always open rather than hidden behind a toggle, since the
+            // entire point of the card is to be answered.
+            const commentsVisible = pinned || expandedPost === post.id;
+            return (
             <Card
               key={post.id}
-              className={post.pinned ? "border-2 border-[#d4a348] bg-gradient-to-br from-[#fdf6e8] to-[#fffbf7]" : ""}
+              className={pinned ? "!bg-[#3d2b1a] border-2 border-[#8b6f47] shadow-lg" : ""}
             >
-              {post.pinned && (
-                <div className="flex items-center gap-1.5 mb-3 text-xs font-semibold uppercase tracking-wide text-[#b8862f]">
+              {pinned && (
+                <div className="flex items-center gap-1.5 mb-3 text-xs font-bold uppercase tracking-wider text-[#e0b563]">
                   <span>📌</span>
                   <span>Question of the Week</span>
                 </div>
@@ -815,10 +836,10 @@ export default function SpaceDetailPage() {
                 >
                   <Avatar name={post.authorName} photo={findAuthor(post.authorName)?.profilePhoto || post.authorPhoto} size="md" />
                   <div className="cursor-pointer">
-                    <p className="font-medium text-[#1a0f0a]">
+                    <p className={`font-medium ${pinned ? "text-[#fdf6e8]" : "text-[#1a0f0a]"}`}>
                       {post.authorName} {post.authorPronouns && `(${post.authorPronouns})`}
                     </p>
-                    <p className="text-xs text-[#a0704a]">
+                    <p className={`text-xs ${pinned ? "text-[#cbb094]" : "text-[#a0704a]"}`}>
                       {new Date(post.createdAt).toLocaleDateString()} at{" "}
                       {new Date(post.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
@@ -828,13 +849,13 @@ export default function SpaceDetailPage() {
                   <div className="flex gap-2 ml-4">
                     <button
                       onClick={() => handleEditPost(post.id, post.content)}
-                      className="text-xs text-[#d4a348] hover:text-[#8b6f47] font-medium transition-colors"
+                      className={`text-xs font-medium transition-colors ${pinned ? "text-[#e0b563] hover:text-[#fdf6e8]" : "text-[#d4a348] hover:text-[#8b6f47]"}`}
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDeletePost(post.id)}
-                      className="text-xs text-red-600 hover:text-red-700 font-medium transition-colors"
+                      className="text-xs text-red-500 hover:text-red-400 font-medium transition-colors"
                     >
                       Delete
                     </button>
@@ -877,41 +898,59 @@ export default function SpaceDetailPage() {
               ) : (
                 <div className="mb-4">
                   {post.title && (
-                    <p className="text-lg font-semibold text-[#1a0f0a] mb-1">{post.title}</p>
+                    <p className={`mb-1 ${pinned ? "text-2xl font-bold text-[#fdf6e8]" : "text-lg font-semibold text-[#1a0f0a]"}`}>
+                      {post.title}
+                    </p>
                   )}
-                  <p className="text-[#1a0f0a]">{post.content}</p>
+                  <p className={pinned ? "text-[#f3e6d4] text-lg leading-relaxed" : "text-[#1a0f0a]"}>{post.content}</p>
                 </div>
               )}
 
-              {/* Reactions */}
-              <ReactionBar
-                reactions={post.reactions}
-                userReaction={userReactions[post.id]}
-                onReact={(reactionKey) => handleReaction(post.id, reactionKey)}
-              />
-
-              {/* Post Analytics and Comments Toggle */}
-              <div className="flex items-center justify-between mt-3">
-                <button
-                  onClick={() => toggleExpandPost(post.id)}
-                  className="text-sm font-medium text-[#d4a348] hover:text-[#8b6f47] hover:underline transition-colors"
-                >
-                  💬 Comment | {comments[post.id] !== undefined ? comments[post.id].length : post.commentCount} {(comments[post.id] !== undefined ? comments[post.id].length : post.commentCount) === 1 ? "comment" : "comments"}
-                </button>
-                <PostAnalytics
-                  commentCount={post.commentCount}
+              {/* Reactions -- intentionally omitted on the pinned prompt so
+                  the reaction row doesn't stand in for actually writing a
+                  reply. */}
+              {!pinned && (
+                <ReactionBar
                   reactions={post.reactions}
-                  createdAt={post.createdAt instanceof Date ? post.createdAt.toISOString() : post.createdAt}
-                  compact={true}
+                  userReaction={userReactions[post.id]}
+                  onReact={(reactionKey) => handleReaction(post.id, reactionKey)}
                 />
-              </div>
+              )}
+
+              {/* Post Analytics and Comments Toggle -- the pinned prompt's
+                  comment thread is always open below, so there's no toggle
+                  or count line to show here at all. */}
+              {!pinned && (
+                <div className="flex items-center justify-between mt-3">
+                  <button
+                    onClick={() => toggleExpandPost(post.id)}
+                    className="text-sm font-medium text-[#d4a348] hover:text-[#8b6f47] hover:underline transition-colors"
+                  >
+                    💬 Comment | {comments[post.id] !== undefined ? comments[post.id].length : post.commentCount} {(comments[post.id] !== undefined ? comments[post.id].length : post.commentCount) === 1 ? "comment" : "comments"}
+                  </button>
+                  <PostAnalytics
+                    commentCount={post.commentCount}
+                    reactions={post.reactions}
+                    createdAt={post.createdAt instanceof Date ? post.createdAt.toISOString() : post.createdAt}
+                    compact={true}
+                  />
+                </div>
+              )}
+
+              {pinned && (
+                <p className="text-sm font-semibold text-[#e0b563] mt-1">
+                  {(comments[post.id] || []).length === 0
+                    ? "Be the first to answer"
+                    : `${(comments[post.id] || []).length} ${(comments[post.id] || []).length === 1 ? "answer" : "answers"} so far`}
+                </p>
+              )}
 
               {/* Comments Section */}
-              {expandedPost === post.id && (
-                <div className="mt-4 pt-4 border-t border-[#e8ddd2] space-y-4">
+              {commentsVisible && (
+                <div className={`mt-4 pt-4 space-y-4 ${pinned ? "border-t border-[#5a4030]" : "border-t border-[#e8ddd2]"}`}>
                   {/* Existing Comments */}
                   {(comments[post.id] || []).map((comment: Comment) => (
-                    <div key={comment.id} className="bg-[#f3ede5] p-3 rounded-lg">
+                    <div key={comment.id} className={`p-3 rounded-lg ${pinned ? "bg-[#4d3826]" : "bg-[#f3ede5]"}`}>
                       <div className="flex items-start justify-between gap-2">
                         <button
                           onClick={() => {
@@ -922,23 +961,23 @@ export default function SpaceDetailPage() {
                         >
                           <Avatar name={comment.authorName} photo={findAuthor(comment.authorName)?.profilePhoto || comment.authorPhoto} size="sm" />
                           <div className="flex-1 cursor-pointer">
-                            <p className="text-sm font-medium text-[#1a0f0a]">
+                            <p className={`text-sm font-medium ${pinned ? "text-[#fdf6e8]" : "text-[#1a0f0a]"}`}>
                               {comment.authorName} {comment.authorPronouns && `(${comment.authorPronouns})`}
                             </p>
-                            <p className="text-sm text-[#1a0f0a] mt-1">{comment.content}</p>
+                            <p className={`text-sm mt-1 ${pinned ? "text-[#f3e6d4]" : "text-[#1a0f0a]"}`}>{comment.content}</p>
                           </div>
                         </button>
                         {(profile?.displayName === comment.authorName || isAdmin) && (
                           <div className="flex gap-2 ml-2">
                             <button
                               onClick={() => handleEditComment(comment.id, comment.content)}
-                              className="text-xs text-[#d4a348] hover:text-[#8b6f47] font-medium transition-colors whitespace-nowrap"
+                              className={`text-xs font-medium transition-colors whitespace-nowrap ${pinned ? "text-[#e0b563] hover:text-[#fdf6e8]" : "text-[#d4a348] hover:text-[#8b6f47]"}`}
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => handleDeleteComment(post.id, comment.id)}
-                              className="text-xs text-red-600 hover:text-red-700 font-medium transition-colors whitespace-nowrap"
+                              className="text-xs text-red-500 hover:text-red-400 font-medium transition-colors whitespace-nowrap"
                             >
                               Delete
                             </button>
@@ -982,9 +1021,11 @@ export default function SpaceDetailPage() {
                   ))}
 
                   {/* Commenting Guide */}
-                  <div className="mb-3">
-                    <CommentingGuideHelper compact={true} />
-                  </div>
+                  {!pinned && (
+                    <div className="mb-3">
+                      <CommentingGuideHelper compact={true} />
+                    </div>
+                  )}
 
                   {/* Comment Error Feedback */}
                   {commentError[post.id] && (
@@ -1004,29 +1045,34 @@ export default function SpaceDetailPage() {
                     <textarea
                       value={newCommentContent[post.id] || ""}
                       onChange={(e) => setNewCommentContent({ ...newCommentContent, [post.id]: e.target.value })}
-                      placeholder="Add your response..."
-                      rows={2}
+                      placeholder={pinned ? "Share your answer..." : "Add your response..."}
+                      rows={pinned ? 3 : 2}
                       maxLength={MAX_COMMENT_LENGTH}
-                      className="w-full px-4 py-2.5 border border-[#ede6e0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#d4a348] focus:ring-offset-2 focus:border-transparent transition-all duration-150 text-sm text-[#1a0f0a] placeholder-[#a0704a] resize-none"
+                      className={
+                        pinned
+                          ? "w-full px-4 py-3 border border-[#5a4030] bg-[#2f2115] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#e0b563] focus:ring-offset-0 focus:border-transparent transition-all duration-150 text-[#fdf6e8] placeholder-[#a08a70] resize-none"
+                          : "w-full px-4 py-2.5 border border-[#ede6e0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#d4a348] focus:ring-offset-2 focus:border-transparent transition-all duration-150 text-sm text-[#1a0f0a] placeholder-[#a0704a] resize-none"
+                      }
                     />
                     <div className="flex justify-between items-center">
-                      <p className="text-xs text-[#a0704a]">
+                      <p className={`text-xs ${pinned ? "text-[#a08a70]" : "text-[#a0704a]"}`}>
                         {(newCommentContent[post.id] || "").length} / {MAX_COMMENT_LENGTH}
                       </p>
                     </div>
                     <Button
-                      variant="secondary"
+                      variant={pinned ? "primary" : "secondary"}
                       size="sm"
                       onClick={() => handleAddComment(post.id)}
                       disabled={!newCommentContent[post.id]?.trim() || isSubmitting}
                     >
-                      Reply
+                      {pinned ? "Post Your Answer" : "Reply"}
                     </Button>
                   </div>
                 </div>
               )}
             </Card>
-          ))
+            );
+          })
         )}
       </div>
 
