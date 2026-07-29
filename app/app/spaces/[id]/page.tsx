@@ -35,8 +35,6 @@ import { LoadingStateFeedback } from "@/components/LoadingStateFeedback";
 import { SearchBox } from "@/components/SearchBox";
 import { FilterBar } from "@/components/FilterBar";
 import { PostAnalytics } from "@/components/posts/PostAnalytics";
-import { demoMembers } from "@/lib/seed/demo-members";
-import { demoSpaceMemberships } from "@/lib/seed/demo-space-memberships";
 import Link from "next/link";
 import { ProfileModal } from "@/components/ProfileModal";
 import { spaceImageMap } from "@/lib/constants/spaceImages";
@@ -179,16 +177,13 @@ export default function SpaceDetailPage() {
     return null;
   }
 
-  // Resolves a post/comment's author against real, live space members
-  // first (spaceMembers -- real profile photos included), falling back to
-  // the hardcoded demoMembers seed roster for old seeded posts whose
-  // author isn't a real member of this space.
+  // Resolves a post/comment's author against real, live space members.
+  // The 24 seeded demo profiles (lib/seed/demo-members) were removed
+  // along with their DB rows -- any leftover seeded posts/comments whose
+  // author name doesn't match a real member now just show no photo/
+  // tagline, the same as any other unresolved author.
   const findAuthor = (authorName: string) => {
-    const realMember = spaceMembers.find((m) => m.displayName === authorName);
-    if (realMember) return realMember;
-
-    const authorFirstName = authorName.split(" ")[0];
-    return demoMembers.find((m) => m.displayName === authorFirstName || m.firstName === authorFirstName);
+    return spaceMembers.find((m) => m.displayName === authorName);
   };
 
   const handleCreatePost = async () => {
