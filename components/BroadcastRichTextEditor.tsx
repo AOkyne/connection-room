@@ -59,17 +59,34 @@ export function BroadcastRichTextEditor({
   const [showEventPicker, setShowEventPicker] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [imageError, setImageError] = useState("");
+  // Tracks the last HTML this editor itself produced (via typing or a
+  // toolbar command), so the sync effect below can tell "value changed
+  // because we typed" (skip -- resetting innerHTML mid-keystroke would
+  // reset the cursor to the start) apart from "value changed because the
+  // parent loaded a draft / cleared the form after sending" (apply it).
+  const lastEmittedValue = useRef(value);
 
   useEffect(() => {
-    if (editorRef.current && !isInit) {
+    if (!editorRef.current) return;
+
+    if (!isInit) {
       editorRef.current.innerHTML = value;
+      lastEmittedValue.current = value;
       setIsInit(true);
+      return;
     }
-  }, []);
+
+    if (value !== lastEmittedValue.current) {
+      editorRef.current.innerHTML = value;
+      lastEmittedValue.current = value;
+    }
+  }, [value, isInit]);
 
   const handleInput = () => {
     if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
+      const html = editorRef.current.innerHTML;
+      lastEmittedValue.current = html;
+      onChange(html);
     }
   };
 
