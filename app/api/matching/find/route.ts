@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
 
   // completed_onboarding/profile_photo are already filtered in SQL above;
   // interests emptiness and everything else here still needs the row.
-  const topMatches = (candidates || [])
+  const eligibleMatches = (candidates || [])
     .filter((p) => {
       if (!Array.isArray(p.interests) || p.interests.length === 0) return false;
       if (!visibleUserIds.has(p.user_id)) return false;
@@ -133,9 +133,14 @@ export async function POST(request: NextRequest) {
       const score = calculateMatchScore(selfRow, p, sharedInterests);
       return { userId: p.user_id, score, sharedInterests };
     })
-    .filter((m) => m.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
+    .filter((m) => m.score > 0);
+
+  // Randomized, not ranked -- every eligible match (anyone with a real
+  // score > 0) is an equally valid suggestion, and always returning the
+  // same top-N by score meant a member saw the identical set of faces on
+  // every visit. Shuffle the whole eligible pool and take `limit` from it,
+  // so reloading the page reliably surfaces a different mix.
+  const topMatches = shuffle(eligibleMatches).slice(0, limit);
 
   if (topMatches.length === 0) {
     return NextResponse.json({ matches: [] });
@@ -161,6 +166,19 @@ export async function POST(request: NextRequest) {
     .filter((m): m is NonNullable<typeof m> => m !== null);
 
   return NextResponse.json({ matches: scored });
+}
+
+// Fisher-Yates -- unbiased, in-place shuffle. Copies the input first since
+// callers here still need the original array order to be untouched isn't
+// actually required, but a copy keeps this function side-effect-free for
+// any future caller.
+function shuffle<T>(items: T[]): T[] {
+  const result = [...items];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
 }
 
 function calculateSharedInterests(userInterests: string[], profileInterests: string[]): string[] {
