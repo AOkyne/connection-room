@@ -1,0 +1,25 @@
+-- Supabase's Security Advisor flagged public.articles with two errors:
+-- "Policy Exists RLS Disabled" and "RLS Disabled in Public". Migration
+-- 028_add_content_theme_tags.sql already contains
+-- `ALTER TABLE articles ENABLE ROW LEVEL SECURITY;`, but the live table
+-- shows RLS is not actually active -- almost certainly because the
+-- `articles` table itself was created directly in the Supabase dashboard
+-- (it was never created by a migration in this repo), and after
+-- migration 028, so that ALTER statement failed silently against a
+-- table that didn't exist yet at the time. The table's policies
+-- (articles_read_with_themes, articles_update_themes_admin from 028; the
+-- dangerous public "Allow api insert" policy already dropped in
+-- 046_fix_events_articles_couples_rls.sql) were apparently added by hand
+-- afterward without anyone separately re-running the ENABLE statement.
+--
+-- With RLS off, every policy on the table is simply ignored -- meaning
+-- writes were governed only by Postgres's default anon/authenticated
+-- grants, not by any policy, which is the real risk here (reads were
+-- already meant to be public regardless).
+--
+-- Fix: turn RLS on so the existing, already-correct policies actually
+-- take effect. No INSERT/DELETE policy exists for anon/authenticated,
+-- so this closes those off entirely -- the only real write path,
+-- app/api/sync-substack/route.ts, uses the service-role key, which
+-- bypasses RLS and is unaffected.
+ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
