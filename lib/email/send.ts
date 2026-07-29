@@ -57,16 +57,34 @@ export async function logEmailSend(
 const FROM_ADDRESS = "Trevor James <trevor@trevorjamesla.com>";
 const REPLY_TO_ADDRESS = "trevor@trevorjamesla.com";
 
-function getTransporter() {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || "587"),
-    secure: process.env.SMTP_SECURE === "true",
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+// Reused across calls within the same warm serverless invocation (and
+// across invocations on a warm container) instead of opening a brand-new
+// SMTP connection -- TLS handshake included -- for every single email.
+// This matters a lot for batch senders (digest/drip crons looping over
+// 100+ recipients sequentially): creating a fresh transporter per send
+// was the dominant cost pushing space-digest-emails past its 60s
+// function timeout. `pool: true` lets nodemailer additionally reuse and
+// multiplex actual socket connections across sendMail() calls.
+// Typed as the base Mail interface (same type every sendMail() call site
+// already assumes) rather than nodemailer's pool-specific overload return
+// type, which TS can't cleanly assign to a plain nullable variable.
+let cachedTransporter: Mail | null = null;
+
+function getTransporter(): Mail {
+  if (!cachedTransporter) {
+    cachedTransporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || "587"),
+      secure: process.env.SMTP_SECURE === "true",
+      pool: true,
+      maxConnections: 5,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+  }
+  return cachedTransporter;
 }
 
 function getBrandedAttachments() {

@@ -73,32 +73,48 @@ export async function GET(request: NextRequest) {
 
     const defaultLookbackMs = (frequency === "daily" ? 24 : 7 * 24) * 60 * 60 * 1000;
 
+    // Batch-fetch what used to be two separate round trips PER candidate
+    // (notification_log lookup + space_memberships lookup) -- with 100+
+    // candidates that was 200+ sequential requests before any email was
+    // even sent, the main reason this route blew past its 60s timeout.
+    const candidateIds = (candidates || []).map((c) => c.user_id);
+
+    const { data: allLogs } = await supabase
+      .from("notification_log")
+      .select("user_id, sent_at")
+      .eq("notification_type", frequency)
+      .in("user_id", candidateIds)
+      .order("sent_at", { ascending: false });
+
+    // Ordered desc, so the first row seen per user is their latest.
+    const lastSentByUser = new Map<string, string>();
+    for (const log of allLogs || []) {
+      if (!lastSentByUser.has(log.user_id)) lastSentByUser.set(log.user_id, log.sent_at);
+    }
+
+    const { data: allMemberships } = await supabase
+      .from("space_memberships")
+      .select("user_id, space_id")
+      .in("user_id", candidateIds);
+
+    const spaceIdsByUser = new Map<string, string[]>();
+    for (const m of allMemberships || []) {
+      const list = spaceIdsByUser.get(m.user_id) || [];
+      list.push(m.space_id);
+      spaceIdsByUser.set(m.user_id, list);
+    }
+
     for (const profile of candidates || []) {
       try {
-        const { data: lastLog } = await supabase
-          .from("notification_log")
-          .select("sent_at")
-          .eq("user_id", profile.user_id)
-          .eq("notification_type", frequency)
-          .order("sent_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
+        const lastSentAt = lastSentByUser.get(profile.user_id);
+        const since = lastSentAt ? new Date(lastSentAt) : new Date(Date.now() - defaultLookbackMs);
 
-        const since = lastLog?.sent_at
-          ? new Date(lastLog.sent_at)
-          : new Date(Date.now() - defaultLookbackMs);
+        const spaceIds = spaceIdsByUser.get(profile.user_id);
 
-        const { data: memberships, error: membershipsError } = await supabase
-          .from("space_memberships")
-          .select("space_id")
-          .eq("user_id", profile.user_id);
-
-        if (membershipsError || !memberships || memberships.length === 0) {
+        if (!spaceIds || spaceIds.length === 0) {
           summary[frequency].skipped++;
           continue;
         }
-
-        const spaceIds = memberships.map((m) => m.space_id);
 
         const { data: newPosts, error: postsError } = await supabase
           .from("posts")
