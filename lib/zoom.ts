@@ -4,6 +4,8 @@
 // authorizing users. Never import this from client components; the client
 // secret must never reach the browser.
 
+import { isoToZonedDatetimeLocal } from "./utils/timezone";
+
 interface ZoomTokenResponse {
   access_token: string;
   expires_in: number;
@@ -60,6 +62,18 @@ export interface ZoomMeeting {
 
 export async function createZoomMeeting(params: CreateZoomMeetingParams): Promise<ZoomMeeting> {
   const token = await getZoomAccessToken();
+  const timezone = params.timezone || "America/Los_Angeles";
+
+  // Zoom's API technically documents start_time+"Z" as an absolute UTC
+  // instant that it then converts for display using `timezone` -- but in
+  // practice Zoom's own scheduling/display layer ignores the "Z" and just
+  // takes the raw digits as if they were already wall-clock time in
+  // `timezone`. Confirmed live: sending "18:43Z" + timezone: PT made Zoom
+  // display "18:43" as the meeting's PT time instead of converting to
+  // 11:43 AM PT. So instead of sending a true UTC instant, convert to the
+  // naive wall-clock time as it reads in `timezone` and send that with no
+  // "Z" -- matching what Zoom actually does with the value.
+  const localWallClock = isoToZonedDatetimeLocal(params.startAt, timezone);
 
   const response = await fetch("https://api.zoom.us/v2/users/me/meetings", {
     method: "POST",
@@ -70,9 +84,9 @@ export async function createZoomMeeting(params: CreateZoomMeetingParams): Promis
     body: JSON.stringify({
       topic: params.topic,
       type: 2, // scheduled meeting
-      start_time: params.startAt,
+      start_time: `${localWallClock}:00`,
       duration: params.durationMinutes,
-      timezone: params.timezone || "America/Los_Angeles",
+      timezone,
       settings: {
         join_before_host: true,
         waiting_room: false,
