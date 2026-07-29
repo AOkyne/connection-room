@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getProfile, getProfilePhoto, saveProfile, type Profile } from "@/lib/data/profiles";
 import { ensureInviteCode } from "@/lib/data/invites";
-import { uploadProfilePhoto } from "@/lib/utils/storage";
+import { uploadProfilePhoto, isAcceptableProfilePhotoFile } from "@/lib/utils/storage";
 import { getUserBadges } from "@/lib/data/badges";
 import { getSpaces } from "@/lib/data/spaces";
 import { waitForAuthReady } from "@/lib/supabase/auth-ready";
@@ -170,8 +170,8 @@ export default function ProfilePage() {
     }
 
     // Validate file type
-    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
-      setPhotoError('Photo must be JPG, PNG, or GIF');
+    if (!isAcceptableProfilePhotoFile(file)) {
+      setPhotoError('Photo must be JPG, PNG, GIF, or HEIC');
       return;
     }
 

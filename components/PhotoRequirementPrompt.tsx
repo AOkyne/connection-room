@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Profile, updateProfile } from "@/lib/data/profiles";
-import { uploadProfilePhoto } from "@/lib/utils/storage";
+import { uploadProfilePhoto, isAcceptableProfilePhotoFile } from "@/lib/utils/storage";
 import { Button } from "@/components/Button";
 
 interface PhotoRequirementPromptProps {
@@ -33,8 +33,8 @@ export function PhotoRequirementPrompt({
     }
 
     // Validate file type
-    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
-      setPhotoError('Photo must be JPG, PNG, or GIF');
+    if (!isAcceptableProfilePhotoFile(file)) {
+      setPhotoError('Photo must be JPG, PNG, GIF, or HEIC');
       return;
     }
 

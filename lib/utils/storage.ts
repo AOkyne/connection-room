@@ -8,6 +8,34 @@ import { resizeAndCompressImage } from "@/lib/utils/image";
 const BUCKET_NAME = "profile-photos";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB, checked against the original file before compression
 
+// iPhone cameras shoot HEIC/HEIF by default. WebKit's native Photos picker
+// transparently transcodes to JPEG on the way into the browser in many
+// cases, but that's not guaranteed -- picking a photo via the Files app,
+// iCloud Drive, or a Shared Album can hand the browser the original
+// `image/heic` file, which this whitelist previously rejected outright
+// with no attempt to even try decoding it. resizeAndCompressImage() always
+// re-encodes to JPEG via canvas regardless of source format, and Safari
+// (uniquely among major browsers) can decode HEIC natively via
+// createImageBitmap/<img>, so accepting it here and letting the existing
+// decode path attempt it is strictly better than rejecting by MIME string
+// before ever trying.
+const ACCEPTED_PROFILE_PHOTO_TYPES = ["image/jpeg", "image/png", "image/gif", "image/heic", "image/heif"];
+
+/**
+ * Whether a file is acceptable to attempt as a profile photo. Some iOS file
+ * pickers (Files app / iCloud Drive / Shared Albums, rather than the
+ * native Photos picker) report an empty or generic `file.type` for HEIC
+ * files instead of "image/heic" -- fall back to checking the extension in
+ * that case rather than rejecting a file we can very likely still decode.
+ */
+export function isAcceptableProfilePhotoFile(file: File): boolean {
+  if (ACCEPTED_PROFILE_PHOTO_TYPES.includes(file.type)) return true;
+  if (!file.type || file.type === "application/octet-stream") {
+    return /\.(heic|heif|jpe?g|png|gif)$/i.test(file.name);
+  }
+  return false;
+}
+
 export interface UploadedPhoto {
   publicUrl: string;
   path: string;
@@ -55,8 +83,8 @@ export async function uploadProfilePhoto(
   }
 
   // Validate file type
-  if (!["image/jpeg", "image/png", "image/gif"].includes(file.type)) {
-    throw new Error("File must be JPG, PNG, or GIF");
+  if (!isAcceptableProfilePhotoFile(file)) {
+    throw new Error("File must be JPG, PNG, GIF, or HEIC");
   }
 
   const compressed = await resizeAndCompressImage(file);

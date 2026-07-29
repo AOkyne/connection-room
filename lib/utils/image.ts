@@ -19,7 +19,7 @@ const JPEG_QUALITY = 0.85;
  * for a profile photo, matching what most social apps do.
  */
 export async function resizeAndCompressImage(file: File, maxDimension: number = MAX_DIMENSION): Promise<Blob> {
-  const bitmap = await loadImageBitmap(file);
+  const bitmap = await loadImageBitmap(file, maxDimension);
 
   const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
   const width = Math.round(bitmap.width * scale);
@@ -54,34 +54,50 @@ export async function resizeAndCompressImage(file: File, maxDimension: number = 
   });
 }
 
-async function loadImageBitmap(file: File): Promise<ImageBitmap> {
+async function loadImageBitmap(file: File, maxDimension: number): Promise<ImageBitmap> {
   if (typeof createImageBitmap === "function") {
+    // Ask the browser to downsample *during* decode via resizeWidth --
+    // modern iPhones (12 Pro+) shoot up to 48MP (~8064x6048), which decodes
+    // to well over 100MB of raw RGBA before any resizing ever happens if
+    // decoded at full resolution first. On a memory-constrained mobile
+    // Safari tab that can silently kill/reload the page with no JS
+    // exception at all -- no error to catch, upload just appears to do
+    // "nothing". Specifying only resizeWidth (not resizeHeight) lets the
+    // browser preserve aspect ratio on its own rather than us needing to
+    // know the source dimensions up front. resizeQuality defaults to
+    // "low" (nearest-neighbor) if omitted, which looks noticeably worse
+    // than the final canvas draw needs to for a profile-photo thumbnail.
     try {
-      // Phone photos commonly store pixel data in landscape with an EXIF
-      // orientation tag telling viewers to rotate it for display. An <img>
-      // tag honors that tag automatically, but createImageBitmap's default
-      // ("none") does not -- it hands back the raw, unrotated pixels,
-      // which then get drawn onto the canvas and re-encoded with the
-      // rotation baked in as sideways, permanently (the JPEG output has no
-      // EXIF of its own). imageOrientation: "from-image" makes it apply
-      // the tag before handing back the bitmap, matching what <img>
-      // already does.
-      return await createImageBitmap(file, { imageOrientation: "from-image" });
+      return await createImageBitmap(file, {
+        imageOrientation: "from-image",
+        resizeWidth: maxDimension,
+        resizeQuality: "medium",
+      });
     } catch (err) {
       // Confirmed live: mobile Safari's createImageBitmap exists (so the
       // branch above is taken) but rejects the imageOrientation option
       // outright, breaking photo upload entirely on Safari with no
       // fallback -- because the fallback below used to be gated purely on
       // "does createImageBitmap exist", not "did it actually succeed".
-      // Fall through to the <img>-based path on ANY failure here, not
-      // just when the function is missing.
+      // Retry without the resize options in case it's specifically those
+      // (rather than imageOrientation) a given browser doesn't support,
+      // before falling all the way through to the <img>-based path.
+      console.warn("createImageBitmap with resize options failed, retrying without them:", err);
+    }
+    try {
+      return await createImageBitmap(file, { imageOrientation: "from-image" });
+    } catch (err) {
       console.warn("createImageBitmap with imageOrientation failed, falling back:", err);
     }
   }
   // Fallback for browsers without createImageBitmap support, or where it
-  // exists but rejects the options above (e.g. mobile Safari). <img>
-  // already honors EXIF orientation itself when decoding, so drawing it
-  // onto a canvas here produces the same correctly-rotated result.
+  // exists but rejects every option combination above. <img> already
+  // honors EXIF orientation itself when decoding. Feeding the loaded <img>
+  // straight into createImageBitmap's own resize (rather than manually
+  // drawing it onto a full-resolution canvas first, which is what this
+  // used to do) keeps the same memory benefit in this path too, and avoids
+  // a separate unguarded canvas 2D context that could otherwise silently
+  // produce a blank image if getContext("2d") ever returned null here.
   const url = URL.createObjectURL(file);
   try {
     const img = new Image();
@@ -90,11 +106,21 @@ async function loadImageBitmap(file: File): Promise<ImageBitmap> {
       img.onerror = () => reject(new Error("Could not load image"));
       img.src = url;
     });
+    if (typeof createImageBitmap === "function") {
+      try {
+        return await createImageBitmap(img, { resizeWidth: maxDimension, resizeQuality: "medium" });
+      } catch (err) {
+        console.warn("createImageBitmap(img) with resize failed, falling back to canvas:", err);
+      }
+    }
     const canvas = document.createElement("canvas");
     canvas.width = img.naturalWidth;
     canvas.height = img.naturalHeight;
     const ctx = canvas.getContext("2d");
-    ctx?.drawImage(img, 0, 0);
+    if (!ctx) {
+      throw new Error("Could not process image (canvas unavailable)");
+    }
+    ctx.drawImage(img, 0, 0);
     return createImageBitmap(canvas);
   } finally {
     URL.revokeObjectURL(url);
