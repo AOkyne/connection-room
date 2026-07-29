@@ -379,33 +379,62 @@ export default function ConnectionsPage() {
           </button>
         </div>
 
-        {/* What are Connections Section */}
+        {/* What are Connections Section -- copy differs per flow so it never
+            describes a structure the member isn't actually using. */}
         <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-[#d4a348]">
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-[#1a0f0a]">What are Connections?</h3>
-            <p className="text-sm text-[#1a0f0a] leading-relaxed">
-              A connection is a one-on-one, 20-minute structured conversation with another member. You'll respond to a shared prompt and practice authentic relating in a safe, contained format. It's designed to deepen your understanding of how you connect.
-            </p>
-            <div className="grid sm:grid-cols-3 gap-3 pt-2">
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-[#c97a2a] uppercase">Who</p>
-                <p className="text-sm text-[#1a0f0a]">Matched based on shared interests</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-[#c97a2a] uppercase">What</p>
-                <p className="text-sm text-[#1a0f0a]">20-minute guided conversation</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-[#c97a2a] uppercase">Why</p>
-                <p className="text-sm text-[#1a0f0a]">Practice authentic connection in real time</p>
-              </div>
-            </div>
-            <div className="border-t border-[#e8ddd2] pt-4">
-              <p className="text-sm text-[#1a0f0a]">
-                <strong>This is not a dating platform.</strong> Connections are structured conversations focused on authentic relating, deeper self-understanding, and practicing vulnerability in a safe space.
+          {asyncEnabled ? (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-[#1a0f0a]">What is a Guided Connection?</h3>
+              <p className="text-sm text-[#1a0f0a] leading-relaxed">
+                A guided connection is an invitation, mutual acceptance, and three rounds of shared reflection with another member -- each on your own time, no scheduling required. Once you've both answered a round, you'll see each other's responses together. A live 20-minute conversation is always optional, never required.
               </p>
+              <div className="grid sm:grid-cols-3 gap-3 pt-2">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-[#c97a2a] uppercase">Who</p>
+                  <p className="text-sm text-[#1a0f0a]">Invite someone, or accept an invitation</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-[#c97a2a] uppercase">What</p>
+                  <p className="text-sm text-[#1a0f0a]">Three rounds of guided reflection, at your own pace</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-[#c97a2a] uppercase">Why</p>
+                  <p className="text-sm text-[#1a0f0a]">Practice authentic connection without needing to be online at the same time</p>
+                </div>
+              </div>
+              <div className="border-t border-[#e8ddd2] pt-4">
+                <p className="text-sm text-[#1a0f0a]">
+                  <strong>This is not a dating platform.</strong> This is a structured exchange, not unrestricted messaging -- responses stay private until you've both answered, and you can end a connection any time.
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-[#1a0f0a]">What are Connections?</h3>
+              <p className="text-sm text-[#1a0f0a] leading-relaxed">
+                A connection is a one-on-one, 20-minute structured conversation with another member. You'll respond to a shared prompt and practice authentic relating in a safe, contained format. It's designed to deepen your understanding of how you connect.
+              </p>
+              <div className="grid sm:grid-cols-3 gap-3 pt-2">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-[#c97a2a] uppercase">Who</p>
+                  <p className="text-sm text-[#1a0f0a]">Matched based on shared interests</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-[#c97a2a] uppercase">What</p>
+                  <p className="text-sm text-[#1a0f0a]">20-minute guided conversation</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-[#c97a2a] uppercase">Why</p>
+                  <p className="text-sm text-[#1a0f0a]">Practice authentic connection in real time</p>
+                </div>
+              </div>
+              <div className="border-t border-[#e8ddd2] pt-4">
+                <p className="text-sm text-[#1a0f0a]">
+                  <strong>This is not a dating platform.</strong> Connections are structured conversations focused on authentic relating, deeper self-understanding, and practicing vulnerability in a safe space.
+                </p>
+              </div>
+            </div>
+          )}
         </Card>
       </div>
 
@@ -512,64 +541,71 @@ export default function ConnectionsPage() {
       <div className="bg-[#f3ede5] rounded-lg p-4 border-l-4 border-[#c97a2a] mb-6">
         <h3 className="text-base font-semibold text-[#1a0f0a] mb-2">Set Your Connection Preferences</h3>
         <p className="text-sm text-[#1a0f0a]">
-          Help us match you with people who share your connection style. Your preferences guide how often you want to connect and how you prefer to communicate.
+          {asyncEnabled
+            ? "Choose which formats you're open to. You can change this any time."
+            : "Help us match you with people who share your connection style. Your preferences guide how often you want to connect and how you prefer to communicate."}
         </p>
       </div>
 
-      {/* Preferences and Current Connection Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+      {/* Preferences and Current Connection Grid -- single column when
+          async (nothing legacy-specific to pair it with), two columns on
+          the legacy path (preferences alongside the current-connection
+          card). */}
+      <div className={`grid grid-cols-1 ${asyncEnabled ? "" : "sm:grid-cols-2"} gap-6 mb-8`}>
         {/* Preferences Card */}
         <Card>
           <CardHeader title="Your Preferences" icon={<IconForYou size={20} />} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-[#1a0f0a] mb-3">
-                How often would you like to connect?
-              </label>
-              <div className="space-y-2">
-                {[
-                  { id: "weekly", label: "connect me this week" },
-                  { id: "monthly", label: "connect me monthly" },
-                  { id: "pause", label: "Not at this time" },
-                ].map((option) => (
-                  <label key={option.id} className="flex items-center gap-3 p-3 hover:bg-[#f3ede5] rounded cursor-pointer">
-                    <input
-                      type="radio"
-                      checked={preferences.frequency === option.id}
-                      onChange={() => handleFrequencyChange(option.id)}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-[#1a0f0a]">{option.label}</span>
-                  </label>
-                ))}
+          {!asyncEnabled && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-[#1a0f0a] mb-3">
+                  How often would you like to connect?
+                </label>
+                <div className="space-y-2">
+                  {[
+                    { id: "weekly", label: "connect me this week" },
+                    { id: "monthly", label: "connect me monthly" },
+                    { id: "pause", label: "Not at this time" },
+                  ].map((option) => (
+                    <label key={option.id} className="flex items-center gap-3 p-3 hover:bg-[#f3ede5] rounded cursor-pointer">
+                      <input
+                        type="radio"
+                        checked={preferences.frequency === option.id}
+                        onChange={() => handleFrequencyChange(option.id)}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-[#1a0f0a]">{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#1a0f0a] mb-3">
+                  Preferred contact method
+                </label>
+                <div className="space-y-2">
+                  {[
+                    { id: "text", label: "Text-based only" },
+                    { id: "voice-video", label: "Voice or video call" },
+                    { id: "local", label: "Open to local/in-person if appropriate" },
+                  ].map((option) => (
+                    <label key={option.id} className="flex items-center gap-3 p-3 hover:bg-[#f3ede5] rounded cursor-pointer">
+                      <input
+                        type="radio"
+                        checked={preferences.contactMode === option.id}
+                        onChange={() => handleContactModeChange(option.id)}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-[#1a0f0a]">{option.label}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
+          )}
 
-            <div>
-              <label className="block text-sm font-medium text-[#1a0f0a] mb-3">
-                Preferred contact method
-              </label>
-              <div className="space-y-2">
-                {[
-                  { id: "text", label: "Text-based only" },
-                  { id: "voice-video", label: "Voice or video call" },
-                  { id: "local", label: "Open to local/in-person if appropriate" },
-                ].map((option) => (
-                  <label key={option.id} className="flex items-center gap-3 p-3 hover:bg-[#f3ede5] rounded cursor-pointer">
-                    <input
-                      type="radio"
-                      checked={preferences.contactMode === option.id}
-                      onChange={() => handleContactModeChange(option.id)}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-[#1a0f0a]">{option.label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 pt-6 border-t border-[#e8ddd2]">
+          <div className={asyncEnabled ? "" : "mt-6 pt-6 border-t border-[#e8ddd2]"}>
             <label className="block text-sm font-medium text-[#1a0f0a] mb-3">Formats you're open to</label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {FORMAT_OPTIONS.map((option) => (
@@ -742,33 +778,64 @@ export default function ConnectionsPage() {
         )}
       </div>
 
-      {/* Info Section */}
+      {/* Info Section -- content differs per flow, same reasoning as the
+          top intro card: don't describe a structure the member isn't
+          actually using. */}
       <Card className="bg-[#f3ede5]">
         <CardHeader title="How This Works" icon="📖" />
-        <ul className="space-y-3 text-[#1a0f0a] text-sm">
-          <li className="flex items-start gap-3">
-            <span className="text-[#d4a348]">✓</span>
-            <span>Opt-in only—connections happen because you want them</span>
-          </li>
-          <li className="flex items-start gap-3">
-            <span className="text-[#d4a348]">✓</span>
-            <span>Matched on shared interests and comfort level preferences</span>
-          </li>
-          <li className="flex items-start gap-3">
-            <span className="text-[#d4a348]">✓</span>
-            <span>20-minute structured conversation with clear timing</span>
-          </li>
-          <li className="flex items-start gap-3">
-            <span className="text-[#d4a348]">✓</span>
-            <span>
-              Contact info only shared with mutual consent—you stay in control
-            </span>
-          </li>
-          <li className="flex items-start gap-3">
-            <span className="text-[#d4a348]">✓</span>
-            <span>Report concerns anytime, no retaliation, no judgment</span>
-          </li>
-        </ul>
+        {asyncEnabled ? (
+          <ul className="space-y-3 text-[#1a0f0a] text-sm">
+            <li className="flex items-start gap-3">
+              <span className="text-[#d4a348]">✓</span>
+              <span>Opt-in only -- an exchange begins only after you both accept the invitation</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-[#d4a348]">✓</span>
+              <span>Respond when you have space -- each round gives you 48 hours, with a one-time extension if you need it</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-[#d4a348]">✓</span>
+              <span>You'll both see each other's answers only after you've each responded</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-[#d4a348]">✓</span>
+              <span>A live 20-minute conversation is always optional, and either side can decline without ending the exchange</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-[#d4a348]">✓</span>
+              <span>It's okay to end a connection that no longer feels right, any time -- no reason required</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-[#d4a348]">✓</span>
+              <span>Report concerns anytime, no retaliation, no judgment</span>
+            </li>
+          </ul>
+        ) : (
+          <ul className="space-y-3 text-[#1a0f0a] text-sm">
+            <li className="flex items-start gap-3">
+              <span className="text-[#d4a348]">✓</span>
+              <span>Opt-in only—connections happen because you want them</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-[#d4a348]">✓</span>
+              <span>Matched on shared interests and comfort level preferences</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-[#d4a348]">✓</span>
+              <span>20-minute structured conversation with clear timing</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-[#d4a348]">✓</span>
+              <span>
+                Contact info only shared with mutual consent—you stay in control
+              </span>
+            </li>
+            <li className="flex items-start gap-3">
+              <span className="text-[#d4a348]">✓</span>
+              <span>Report concerns anytime, no retaliation, no judgment</span>
+            </li>
+          </ul>
+        )}
       </Card>
 
       {/* Phase 2 Note */}

@@ -375,10 +375,17 @@ export async function getActiveConnections(userId: string): Promise<Connection[]
   if (!supabase) return [];
 
   try {
+    // Scoped to connection_type='live' (migration 078) -- async guided
+    // connections also pass through status 'active' once accepted, but they
+    // have no connection_messages/ConnectionChat history and belong on the
+    // Guided Connections dashboard instead. Without this filter, an
+    // accepted async connection would also show up here as an empty,
+    // message-less legacy chat, which is exactly the wrong place for it.
     const { data, error } = await supabase
       .from("connections")
       .select("*")
       .or(`user_id.eq.${userId},partner_id.eq.${userId}`)
+      .eq("connection_type", "live")
       .in("status", ["confirmed", "active"])
       .order("confirmed_at", { ascending: false });
 
