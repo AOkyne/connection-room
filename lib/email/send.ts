@@ -15,6 +15,7 @@ export type EmailCategory =
   | "drip_incomplete_onboarding"
   | "digest"
   | "post_notification"
+  | "connection_invite"
   | "broadcast"
   | "admin_direct";
 
@@ -147,6 +148,30 @@ export async function sendPostNotificationEmail(options: {
       "Manage how often you hear about new posts anytime from your profile settings.",
     ],
     appUrl: options.spaceUrl,
+  });
+}
+
+// Sent once, the first time a member receives a message in a brand-new
+// Connection chat -- there's no real presence/online tracking in this app
+// (no last_seen_at, no realtime status), so "not immediately available" is
+// approximated as "hasn't been in this chat replying yet": if the
+// recipient were already there, they wouldn't need an email to find out.
+// Only fires on the first message of a connection (see the webhook route),
+// not every message, so this can't turn into a running notification thread.
+export async function sendConnectionInviteEmail(options: {
+  to: string;
+  fromUserName: string;
+  appUrl: string;
+}): Promise<void> {
+  await sendBrandedEmail({
+    to: options.to,
+    subject: `${options.fromUserName} wants to connect with you`,
+    paragraphs: [
+      `${options.fromUserName} just started a conversation with you in The Connection Room.`,
+      "Connections are 20-minute structured conversations focused on authentic relating -- no pressure, just a chance to be present with someone.",
+      "Reply whenever you're free.",
+    ],
+    appUrl: `${options.appUrl}/app/connections`,
   });
 }
 
