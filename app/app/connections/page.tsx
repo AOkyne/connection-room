@@ -438,106 +438,9 @@ export default function ConnectionsPage() {
         </Card>
       </div>
 
-      {/* Async Guided Connections -- the async-first replacement flow.
-          Gated per-user by feature_async_connections_enabled /
-          connection_async_beta_user_ids (see migration 079). While a
-          member is on the legacy path (asyncEnabled === false), none of
-          this renders and the request/accept/suggested-connections flow
-          below behaves exactly as it always has. */}
-      {asyncEnabled && (
-        <div className="space-y-6">
-          <h2 className="text-2xl font-semibold text-[#1a0f0a]">Guided Connections</h2>
-          <GuidedExchangeSection connections={asyncConnections} myUserId={profile.id} />
-          <GuidedConnectionSuggestions
-            matches={suggestedMatches}
-            loading={loadingMatches}
-            onInvited={() => showToast("Invitation sent! We'll let you know when they respond.", "success")}
-          />
-          <LiveAvailabilityToggle userId={profile.id} />
-        </div>
-      )}
-
-      {/* Incoming Requests (legacy request/accept flow) */}
-      {!asyncEnabled && incomingRequests.length > 0 && (
-        <IncomingRequests
-          requests={incomingRequests}
-          onAccept={handleAcceptRequest}
-          onDecline={handleDeclineRequest}
-          currentUserId={profile.id}
-          requesterProfiles={requesterProfiles}
-          mutualUserIds={mutualUserIds}
-        />
-      )}
-
-      {/* Active Conversations */}
-      {activeConnections.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-2xl font-semibold text-[#1a0f0a]">Active Conversations</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {activeConnections.map((connection) => (
-              <div key={connection.id} className="space-y-3">
-                {selectedChatId === connection.id ? (
-                  <ConnectionChat
-                    connectionId={connection.id}
-                    partnerId={connection.partnerId}
-                    partnerName={connection.partnerName}
-                    userId={profile.id}
-                    userName={profile.displayName}
-                  />
-                ) : (
-                  <Card className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      {connection.partnerPhoto && (
-                        <img
-                          src={connection.partnerPhoto}
-                          alt={connection.partnerName}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                      )}
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-[#1a0f0a]">{connection.partnerName}</h3>
-                        <p className="text-xs text-[#a0704a]">Connected • Ready to chat</p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="primary"
-                      onClick={() => setSelectedChatId(connection.id)}
-                      className="w-full"
-                    >
-                      Open Chat
-                    </Button>
-                  </Card>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Suggested Connections (legacy request/accept flow) */}
-      {!asyncEnabled && suggestedMatches.length > 0 && (
-        <div className="space-y-4">
-          <div className="bg-[#f3ede5] rounded-lg p-4 border-l-4 border-[#d4a348]">
-            <h3 className="text-base font-semibold text-[#1a0f0a] mb-2">Your Suggested Connections</h3>
-            <p className="text-sm text-[#1a0f0a] mb-3">
-              These matches are suggested based on shared interests and compatible connection styles. Click on any profile to learn more, then select someone to begin your conversation this week.
-            </p>
-            <p className="text-xs text-[#c97a2a]">
-              💡 Tip: The match percentage shows how many interests you share. Higher percentages suggest more natural conversation starters.
-            </p>
-          </div>
-          <SuggestedConnections
-            matches={suggestedMatches}
-            onSelectMatch={handleRequestConnection}
-            loading={loadingMatches}
-            currentUserId={profile.id}
-            currentUserName={profile.displayName}
-            currentUserPhoto={profilePhoto}
-          />
-        </div>
-      )}
-
-      {/* Preferences Section */}
+      {/* Preferences Section -- placed right below the intro card so a
+          member sets their preferences before browsing/inviting, rather
+          than buried below the connections lists. */}
       <div className="bg-[#f3ede5] rounded-lg p-4 border-l-4 border-[#c97a2a] mb-6">
         <h3 className="text-base font-semibold text-[#1a0f0a] mb-2">Set Your Connection Preferences</h3>
         <p className="text-sm text-[#1a0f0a]">
@@ -777,6 +680,105 @@ export default function ConnectionsPage() {
         </Card>
         )}
       </div>
+
+      {/* Async Guided Connections -- the async-first replacement flow.
+          Gated per-user by feature_async_connections_enabled /
+          connection_async_beta_user_ids (see migration 079). While a
+          member is on the legacy path (asyncEnabled === false), none of
+          this renders and the request/accept/suggested-connections flow
+          below behaves exactly as it always has. */}
+      {asyncEnabled && (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-semibold text-[#1a0f0a]">Guided Connections</h2>
+          <GuidedExchangeSection connections={asyncConnections} myUserId={profile.id} />
+          <GuidedConnectionSuggestions
+            matches={suggestedMatches}
+            loading={loadingMatches}
+            onInvited={() => showToast("Invitation sent! We'll let you know when they respond.", "success")}
+          />
+          <LiveAvailabilityToggle userId={profile.id} />
+        </div>
+      )}
+
+      {/* Incoming Requests (legacy request/accept flow) */}
+      {!asyncEnabled && incomingRequests.length > 0 && (
+        <IncomingRequests
+          requests={incomingRequests}
+          onAccept={handleAcceptRequest}
+          onDecline={handleDeclineRequest}
+          currentUserId={profile.id}
+          requesterProfiles={requesterProfiles}
+          mutualUserIds={mutualUserIds}
+        />
+      )}
+
+      {/* Active Conversations */}
+      {activeConnections.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold text-[#1a0f0a]">Active Conversations</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {activeConnections.map((connection) => (
+              <div key={connection.id} className="space-y-3">
+                {selectedChatId === connection.id ? (
+                  <ConnectionChat
+                    connectionId={connection.id}
+                    partnerId={connection.partnerId}
+                    partnerName={connection.partnerName}
+                    userId={profile.id}
+                    userName={profile.displayName}
+                  />
+                ) : (
+                  <Card className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      {connection.partnerPhoto && (
+                        <img
+                          src={connection.partnerPhoto}
+                          alt={connection.partnerName}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-[#1a0f0a]">{connection.partnerName}</h3>
+                        <p className="text-xs text-[#a0704a]">Connected • Ready to chat</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="primary"
+                      onClick={() => setSelectedChatId(connection.id)}
+                      className="w-full"
+                    >
+                      Open Chat
+                    </Button>
+                  </Card>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Suggested Connections (legacy request/accept flow) */}
+      {!asyncEnabled && suggestedMatches.length > 0 && (
+        <div className="space-y-4">
+          <div className="bg-[#f3ede5] rounded-lg p-4 border-l-4 border-[#d4a348]">
+            <h3 className="text-base font-semibold text-[#1a0f0a] mb-2">Your Suggested Connections</h3>
+            <p className="text-sm text-[#1a0f0a] mb-3">
+              These matches are suggested based on shared interests and compatible connection styles. Click on any profile to learn more, then select someone to begin your conversation this week.
+            </p>
+            <p className="text-xs text-[#c97a2a]">
+              💡 Tip: The match percentage shows how many interests you share. Higher percentages suggest more natural conversation starters.
+            </p>
+          </div>
+          <SuggestedConnections
+            matches={suggestedMatches}
+            onSelectMatch={handleRequestConnection}
+            loading={loadingMatches}
+            currentUserId={profile.id}
+            currentUserName={profile.displayName}
+            currentUserPhoto={profilePhoto}
+          />
+        </div>
+      )}
 
       {/* Info Section -- content differs per flow, same reasoning as the
           top intro card: don't describe a structure the member isn't
