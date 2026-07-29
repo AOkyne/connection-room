@@ -712,8 +712,12 @@ export default function ConnectionsPage() {
         />
       )}
 
-      {/* Active Conversations */}
-      {activeConnections.length > 0 && (
+      {/* Active Conversations (legacy live chat) -- hidden entirely once a
+          member is on the async flow, even if they have old legacy
+          connections. Those conversations aren't deleted, just no longer
+          surfaced on this page -- Guided Connections is the one dashboard
+          for async members now. */}
+      {!asyncEnabled && activeConnections.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold text-[#1a0f0a]">Active Conversations</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
