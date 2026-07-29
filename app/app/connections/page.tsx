@@ -695,6 +695,7 @@ export default function ConnectionsPage() {
             matches={suggestedMatches}
             loading={loadingMatches}
             onInvited={() => showToast("Invitation sent! We'll let you know when they respond.", "success")}
+            myUserId={profile.id}
           />
           <LiveAvailabilityToggle userId={profile.id} />
         </div>

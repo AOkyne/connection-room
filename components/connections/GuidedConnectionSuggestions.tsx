@@ -19,10 +19,12 @@ export function GuidedConnectionSuggestions({
   matches,
   loading = false,
   onInvited,
+  myUserId,
 }: {
   matches: MatchScore[];
   loading?: boolean;
   onInvited: (partnerId: string) => void;
+  myUserId: string;
 }) {
   const [selectedProfile, setSelectedProfile] = useState<CommunityProfile | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -109,6 +111,7 @@ export function GuidedConnectionSuggestions({
         profile={selectedProfile}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        currentUserId={myUserId}
         onSendRequest={handleInvite}
         requestPending={selectedProfile ? invitedIds.has(selectedProfile.id) || sending : false}
       />
