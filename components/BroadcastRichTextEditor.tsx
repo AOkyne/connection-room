@@ -367,7 +367,7 @@ export function BroadcastRichTextEditor({
         onKeyDown={handleKeyDown}
         contentEditable
         suppressContentEditableWarning
-        className="w-full px-3 py-2 border border-[#e8ddd2] rounded-b-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a] min-h-48"
+        className="broadcast-editor-content w-full px-3 py-2 border border-[#e8ddd2] rounded-b-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a] min-h-48"
         style={{ whiteSpace: "pre-wrap", overflowWrap: "break-word" }}
         data-placeholder={placeholder}
       />

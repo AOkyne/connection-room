@@ -55,7 +55,14 @@ export function styleBroadcastBodyHtml(html: string): string {
     )
     .replace(/<hr\s*\/?>/gi, '<hr style="border:none;border-top:1px solid #e8ddd2;margin:24px 0;" />')
     .replace(/<img(?![^>]*style=)/gi, '<img style="max-width:100%;height:auto;border-radius:8px;"')
-    .replace(/<a(?![^>]*style=)(?=[^>]*href)/gi, '<a style="color:#B8892F;"');
+    .replace(/<a(?![^>]*style=)(?=[^>]*href)/gi, '<a style="color:#B8892F;"')
+    // Outlook desktop (Word's rendering engine) is notorious for dropping
+    // list-style/indentation on unstyled ul/ol/li -- same reasoning as
+    // img/hr above, inline it explicitly rather than trusting any email
+    // client's default.
+    .replace(/<ul(?![^>]*style=)/gi, '<ul style="list-style:disc;padding-left:24px;margin:12px 0;"')
+    .replace(/<ol(?![^>]*style=)/gi, '<ol style="list-style:decimal;padding-left:24px;margin:12px 0;"')
+    .replace(/<li(?![^>]*style=)/gi, '<li style="display:list-item;margin:4px 0;"');
 }
 
 // Wraps an admin-authored rich-text body (raw HTML from the broadcast
