@@ -80,6 +80,26 @@ Email notifications for new space posts, with member-chosen frequency, via
 a Postgres trigger + webhook for immediate notifications and a separate
 cron-driven digest path for daily/weekly summaries (migration 054).
 
+## Async Guided Connections
+
+Replaced the live-first "both members online at once for 20 minutes"
+requirement with an asynchronous-first Guided Connection Exchange:
+invitation, mutual acceptance, three structured async rounds, optional live
+conversation (migrations 078-080). New tables: `connection_participants`,
+`connection_prompt_sequences`/`connection_prompts`, `connection_rounds`,
+`connection_responses`, `connection_acknowledgments`,
+`connection_availability`, `connection_live_sessions`/
+`connection_live_session_participants`, `connection_live_availability`,
+`connection_blocks` (the first real, server-enforced block list — blocking
+was previously localStorage-only). All state transitions run through
+SECURITY DEFINER Postgres RPCs rather than direct client writes, which is
+what makes "second submission reveals exactly once" and "second acceptance
+activates exactly once" race-safe. Existing live connections and
+`ConnectionChat.tsx` are untouched and keep working; the new flow is
+gated behind `feature_async_connections_enabled`. See
+[`docs/ASYNC_CONNECTIONS.md`](docs/ASYNC_CONNECTIONS.md) for the full
+design.
+
 ## This documentation refresh
 
 Rewrote `README.md`, `ARCHITECTURE.md`, and `DATABASE_SCHEMA.md`; rewrote

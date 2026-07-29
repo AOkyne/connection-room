@@ -117,21 +117,41 @@ Primary identifier: `id`. Read by: the two parties involved. Written by:
 the sender (insert), the recipient (update, to accept/decline).
 
 ### `connections`
-An active/confirmed Connection between two members, created when a request
-is accepted. Primary identifier: `id`; `user_id`/`partner_id` reference
-`auth.users(id)` directly (not `profiles.id`). `status` moves through
-`pending_their_acceptance → confirmed → active → completed` (or
-`declined`). Read by: either party. Written by: the accepting party
-(insert), either party (status updates).
+The one row per connection, either legacy live or async. Primary
+identifier: `id`; `user_id`/`partner_id` reference `auth.users(id)`
+directly (not `profiles.id`), populated for every row (legacy and new)
+so the original either-party SELECT policy keeps working unmodified.
+`connection_type` (`'async'`/`'live'`) and a much wider `status` set
+(migration 078) carry the new async lifecycle -- see
+[`docs/ASYNC_CONNECTIONS.md`](docs/ASYNC_CONNECTIONS.md) for the full state
+machine. Legacy statuses (`pending_their_acceptance → confirmed → active →
+completed`/`declined`) remain valid and untouched on pre-078 rows.
 
 ### `connection_messages`
-Chat messages within an active Connection. Primary identifier: `id`;
-`connection_id` references `connections(id)`. Read/written by: either
-party to that connection.
+Chat messages within a legacy live Connection (`ConnectionChat.tsx`).
+Primary identifier: `id`; `connection_id` references `connections(id)`.
+Read/written by: either party to that connection. Unaffected by the async
+guided-exchange work -- see `docs/ASYNC_CONNECTIONS.md`.
 
 ### `connection_preferences`, `connection_milestones`
-Member-level connection preferences and milestone/practice tracking. See
-`lib/data/connection-practice.ts` for the milestones consumer.
+Member-level connection preferences (now including a `formats` array --
+migration 078 -- and read/written against the real table rather than
+localStorage, see `lib/data/connections.ts`) and milestone/practice
+tracking. See `lib/data/connection-practice.ts` for the milestones consumer.
+
+### Async Guided Connections tables (migration 078+)
+`connection_participants` (one row per member per connection, replacing the
+old single-row-owns-both-sides model), `connection_prompt_sequences` /
+`connection_prompts` (configurable multi-round prompt content),
+`connection_rounds` / `connection_responses` (per-round private
+draft/submitted text, reveal-gated), `connection_acknowledgments`,
+`connection_availability` / `connection_live_sessions` /
+`connection_live_session_participants` (scheduled live conversations),
+`connection_live_availability` (self-expiring "available now" toggle), and
+`connection_blocks` (the first real, server-enforced block list). Full
+column-level detail and the state machine are in
+[`docs/ASYNC_CONNECTIONS.md`](docs/ASYNC_CONNECTIONS.md) rather than
+duplicated here.
 
 ### Legacy, unused connection-adjacent tables
 `pairings`, `pairing_preferences`, `pairing_reports` (defined only in the
@@ -361,6 +381,15 @@ documentation simplification — see "Known schema risks."
   deletion silently doing nothing — Postgres RLS filters a `DELETE` to zero
   matched rows rather than erroring, so a missing admin-bypass policy
   looked like success in the UI while deleting nothing.
+- **`078_async_guided_connections_schema.sql` / `079_..._feature_flag_and_settings.sql`
+  / `080_..._legacy_backfill.sql`** added the Async Guided Connections
+  feature: extended `connections` in place rather than replacing it, added
+  nine new tables (see "Async Guided Connections tables" above), moved
+  every state transition into SECURITY DEFINER RPCs, and added the first
+  real server-side block list (`connection_blocks` — blocking was
+  previously localStorage-only). See
+  [`docs/ASYNC_CONNECTIONS.md`](docs/ASYNC_CONNECTIONS.md) for the full
+  design and each migration's own rollback notes.
 
 ## Known schema risks
 
@@ -400,6 +429,11 @@ documentation simplification — see "Known schema risks."
   member is invisible to an admin on a different device or browser. This
   is a functional moderation gap, confirmed by direct code inspection, not
   a documentation staleness issue.
+- **`/api/matching/find`'s `blockedUserIds` is still client-supplied**, not
+  cross-checked against the new server-side `connection_blocks` table
+  (migration 078). The new `create_connection_invitation()` RPC does check
+  `connection_blocks` correctly; the legacy suggestion-matching route does
+  not yet. See [`docs/ASYNC_CONNECTIONS.md`](docs/ASYNC_CONNECTIONS.md#known-limitations--follow-up).
 - **Legacy, unused tables**: `couples_profiles`, `pairings`,
   `pairing_preferences`, `pairing_reports`, `pairing_interests`,
   `event_interests` all exist in the schema (or, for the `pairing_*` set

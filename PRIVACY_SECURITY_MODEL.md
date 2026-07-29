@@ -253,6 +253,38 @@ so admin access to those specific tables works only because the
 application routes to them go through `requireAdmin()` with the
 service-role key, not through RLS admin policies at all.
 
+## Async Guided Connections (migration 078+)
+
+Full design in [`docs/ASYNC_CONNECTIONS.md`](docs/ASYNC_CONNECTIONS.md);
+security-relevant summary:
+
+- Every new table (`connection_participants`, `connection_rounds`,
+  `connection_responses`, `connection_acknowledgments`,
+  `connection_availability`, `connection_live_sessions` and its
+  participants table, `connection_live_availability`, `connection_blocks`)
+  has RLS enabled and almost no client-facing INSERT/UPDATE policy — every
+  state transition (accept, decline, submit, reveal, advance, extend, end,
+  report, live scheduling/readiness) goes through a SECURITY DEFINER
+  Postgres RPC that re-verifies the caller's participation and the current
+  state itself, rather than relying on RLS having already filtered
+  anything or on client-supplied state.
+- `connection_responses` SELECT is owner-only; the other participant's
+  revealed response is read only through `get_round_responses()`, which
+  strips `draft_text` unconditionally and re-checks server-side that the
+  round is actually revealed before returning any `submitted_text` —
+  the client's belief about reveal state is never trusted.
+- `connection_blocks` is the first real, server-enforced block list in
+  this app — `blockUser()`/`getBlockedUsers()` in `lib/data/connections.ts`
+  were localStorage-only before this migration, meaning a block was
+  unenforceable server-side. The new `create_connection_invitation()` RPC
+  checks it in both directions; the legacy `/api/matching/find` route does
+  not yet cross-check it (still relies on a client-supplied
+  `blockedUserIds` array) — see `DATABASE_SCHEMA.md`'s "Known schema
+  risks."
+- Decline reasons and end reasons are private columns
+  (`decline_reason_private`, `end_reason_private`) never selected or
+  returned by any RPC to the other participant.
+
 ## Anonymous and public-web access
 
 Member profiles are not publicly indexed or anonymously readable. RLS on

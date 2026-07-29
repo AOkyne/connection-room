@@ -43,12 +43,18 @@ founding members are actively shaping direction, language, and features.
   `profiles` table and a separate, curated `public_profiles` table/view that
   only ever exposes what a member has chosen to share. See
   [`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md).
-- **Structured Connections** — opt-in, 20-minute guided one-on-one
-  conversations between members: requests, acceptance, a real-time chat, and
-  server-side matching (`app/api/matching/find`) that never exposes private
-  scoring fields to the browser. (Historical migrations and a legacy,
-  unused data file refer to this as "Pairings" — the current system and
-  all current code use "Connections.")
+- **Structured Connections** — an asynchronous-first "Guided Connection
+  Exchange" between members: invitation, mutual acceptance, three
+  structured async rounds (shared prompt, private response, reveal,
+  optional acknowledgment), and an optional 20-minute live conversation
+  once at least one round is complete. Server-side matching
+  (`app/api/matching/find`) never exposes private scoring fields to the
+  browser. Rolled out behind `feature_async_connections_enabled`; while off
+  for a given member, they see the original live-only 20-minute flow
+  instead. See [`docs/ASYNC_CONNECTIONS.md`](docs/ASYNC_CONNECTIONS.md).
+  (Historical migrations and a legacy, unused data file refer to this
+  system as "Pairings" — the current system and all current code use
+  "Connections.")
 - **Events and offers** — a calendar of workshops/circles/retreats with
   registration and interest tracking, plus an admin-managed "offers"
   catalog (coaching, retreats, etc.).

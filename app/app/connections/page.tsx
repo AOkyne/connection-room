@@ -43,6 +43,19 @@ import {
   sendConnectionRequest,
   type ConnectionRequest,
 } from "@/lib/data/connectionRequests";
+import { isAsyncConnectionsEnabled } from "@/lib/data/featureFlags";
+import { getMyAsyncConnections } from "@/lib/data/connectionAsync";
+import { GuidedExchangeSection } from "@/components/connections/GuidedExchangeSection";
+import { GuidedConnectionSuggestions } from "@/components/connections/GuidedConnectionSuggestions";
+import { LiveAvailabilityToggle } from "@/components/connections/LiveAvailabilityToggle";
+import type { AsyncConnection, ConnectionFormat } from "@/lib/types/connection";
+
+const FORMAT_OPTIONS: Array<{ id: ConnectionFormat; label: string }> = [
+  { id: "guided_message", label: "Guided message exchange" },
+  { id: "scheduled_live", label: "Scheduled 20-minute conversation" },
+  { id: "live_now", label: "Live now" },
+  { id: "any", label: "Open to any format" },
+];
 
 export default function ConnectionsPage() {
   const router = useRouter();
@@ -72,6 +85,8 @@ export default function ConnectionsPage() {
   const [isRandomModalOpen, setIsRandomModalOpen] = useState(false);
   const [randomRequestSent, setRandomRequestSent] = useState(false);
   const [loadingRandomMatch, setLoadingRandomMatch] = useState(false);
+  const [asyncEnabled, setAsyncEnabled] = useState(false);
+  const [asyncConnections, setAsyncConnections] = useState<AsyncConnection[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -83,7 +98,7 @@ export default function ConnectionsPage() {
       setProfilePhoto(realPhoto);
 
       if (p) {
-        const prefs = getConnectionPreferences(p.id);
+        const prefs = await getConnectionPreferences(p.id);
         setPreferences(prefs);
 
         const connection = getCurrentConnection(p.id);
@@ -121,7 +136,7 @@ export default function ConnectionsPage() {
           shouldFindMatches
             ? (async () => {
                 const declined = Array.from(getDeclinedUsers(p.id));
-                const blocked = Array.from(getBlockedUsers(p.id));
+                const blocked = Array.from(await getBlockedUsers(p.id));
                 try {
                   return await findMatches(p, prefs, history, declined, blocked, 5);
                 } catch (err) {
@@ -152,6 +167,13 @@ export default function ConnectionsPage() {
         if (matches !== null) {
           setSuggestedMatches(matches);
         }
+
+        const enabled = await isAsyncConnectionsEnabled(p.id);
+        setAsyncEnabled(enabled);
+        if (enabled) {
+          const asyncConns = await getMyAsyncConnections(p.id);
+          setAsyncConnections(asyncConns);
+        }
       }
 
       setMounted(true);
@@ -179,6 +201,14 @@ export default function ConnectionsPage() {
     updateConnectionPreferences(profile.id, updated);
   };
 
+  const handleFormatsToggle = (format: ConnectionFormat) => {
+    const current: ConnectionFormat[] = preferences.formats || [];
+    const next = current.includes(format) ? current.filter((f) => f !== format) : [...current, format];
+    const updated = { ...preferences, formats: next.length > 0 ? next : ["guided_message"] };
+    setPreferences(updated);
+    updateConnectionPreferences(profile.id, updated);
+  };
+
   // Picks one random real, eligible profile (from a wider pool than just
   // the 5 shown under Suggested Connections -- it can be one of those 5,
   // but isn't limited to them) and shows it in the same profile-view modal
@@ -190,7 +220,7 @@ export default function ConnectionsPage() {
     setLoadingRandomMatch(true);
     try {
       const declined = Array.from(getDeclinedUsers(profile.id));
-      const blocked = Array.from(getBlockedUsers(profile.id));
+      const blocked = Array.from(await getBlockedUsers(profile.id));
       const pool = await findMatches(profile, preferences, connectionHistory, declined, blocked, 50);
 
       if (pool.length === 0) {
@@ -299,7 +329,7 @@ export default function ConnectionsPage() {
 
     try {
       const declined = Array.from(getDeclinedUsers(profile.id));
-      const blocked = Array.from(getBlockedUsers(profile.id));
+      const blocked = Array.from(await getBlockedUsers(profile.id));
       const realMatches = await findMatches(profile, preferences, updatedHistory, declined, blocked, 5);
       setSuggestedMatches(realMatches);
     } catch (err) {
@@ -379,8 +409,27 @@ export default function ConnectionsPage() {
         </Card>
       </div>
 
-      {/* Incoming Requests */}
-      {incomingRequests.length > 0 && (
+      {/* Async Guided Connections -- the async-first replacement flow.
+          Gated per-user by feature_async_connections_enabled /
+          connection_async_beta_user_ids (see migration 079). While a
+          member is on the legacy path (asyncEnabled === false), none of
+          this renders and the request/accept/suggested-connections flow
+          below behaves exactly as it always has. */}
+      {asyncEnabled && (
+        <div className="space-y-6">
+          <h2 className="text-2xl font-semibold text-[#1a0f0a]">Guided Connections</h2>
+          <GuidedExchangeSection connections={asyncConnections} myUserId={profile.id} />
+          <GuidedConnectionSuggestions
+            matches={suggestedMatches}
+            loading={loadingMatches}
+            onInvited={() => showToast("Invitation sent! We'll let you know when they respond.", "success")}
+          />
+          <LiveAvailabilityToggle userId={profile.id} />
+        </div>
+      )}
+
+      {/* Incoming Requests (legacy request/accept flow) */}
+      {!asyncEnabled && incomingRequests.length > 0 && (
         <IncomingRequests
           requests={incomingRequests}
           onAccept={handleAcceptRequest}
@@ -436,8 +485,8 @@ export default function ConnectionsPage() {
         </div>
       )}
 
-      {/* Suggested Connections */}
-      {suggestedMatches.length > 0 && (
+      {/* Suggested Connections (legacy request/accept flow) */}
+      {!asyncEnabled && suggestedMatches.length > 0 && (
         <div className="space-y-4">
           <div className="bg-[#f3ede5] rounded-lg p-4 border-l-4 border-[#d4a348]">
             <h3 className="text-base font-semibold text-[#1a0f0a] mb-2">Your Suggested Connections</h3>
@@ -519,10 +568,27 @@ export default function ConnectionsPage() {
               </div>
             </div>
           </div>
+
+          <div className="mt-6 pt-6 border-t border-[#e8ddd2]">
+            <label className="block text-sm font-medium text-[#1a0f0a] mb-3">Formats you're open to</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {FORMAT_OPTIONS.map((option) => (
+                <label key={option.id} className="flex items-center gap-3 p-2 hover:bg-[#f3ede5] rounded cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={preferences.formats?.includes(option.id) ?? option.id === "guided_message"}
+                    onChange={() => handleFormatsToggle(option.id)}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-[#1a0f0a] text-sm">{option.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
         </Card>
 
-        {/* Current Connection or Random Connection Card */}
-        {currentConnection ? (
+        {/* Current Connection or Random Connection Card (legacy request/accept flow) */}
+        {asyncEnabled ? null : currentConnection ? (
         <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-2 border-[#d4a348]">
           <CardHeader title="Your Connection This Week" icon={<IconConnection size={20} />} />
           <div className="space-y-4">

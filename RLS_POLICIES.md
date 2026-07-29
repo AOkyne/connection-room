@@ -229,6 +229,15 @@ USING (user_id = auth.uid());
 
 ### 6. **public.connections** (formerly pairings)
 
+> **Aspirational, not applied.** The policies below (`user_id_1`/`user_id_2`,
+> `profiles.type = 'admin'`) were never the real schema — the actual applied
+> policies (migration 010, extended by 078) use `user_id`/`partner_id` and
+> `is_profile_admin(auth.uid())`, and almost every write now goes through a
+> SECURITY DEFINER RPC rather than a direct table policy. See
+> [`docs/ASYNC_CONNECTIONS.md`](docs/ASYNC_CONNECTIONS.md) and
+> [`DATABASE_SCHEMA.md`](DATABASE_SCHEMA.md#connections) for what's
+> actually live.
+
 **Purpose**: Track user connections
 
 **Access Rules**:

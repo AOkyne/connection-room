@@ -84,7 +84,12 @@ checks — see "Admin architecture" below): `overview`, `members`, `events`,
 `report-bug`, `sync-substack`, `welcome-email`.
 
 **Cron routes** (`app/api/cron/*`, called by Vercel Cron or an external
-scheduler): `drip-emails`, `sync-substack`, `space-digest-emails`.
+scheduler): `drip-emails`, `sync-substack`, `space-digest-emails`,
+`weekly-prompts`, `connections-expiry` (async Guided Connections
+expiry/reminders — see [`docs/ASYNC_CONNECTIONS.md`](docs/ASYNC_CONNECTIONS.md)).
+Only the first two are registered in `vercel.json` (Vercel Hobby's 2-cron
+cap); the rest are meant to be hit by an external scheduler on the same
+`CRON_SECRET` bearer pattern.
 
 **Webhook routes** (`app/api/webhooks/*`): `new-post-notification` (called
 by a Postgres trigger via `pg_net`, migration 054), `workshop-ops` (called

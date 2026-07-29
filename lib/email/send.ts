@@ -16,6 +16,7 @@ export type EmailCategory =
   | "digest"
   | "post_notification"
   | "connection_invite"
+  | "connection_lifecycle"
   | "broadcast"
   | "admin_direct";
 
@@ -172,6 +173,27 @@ export async function sendConnectionInviteEmail(options: {
       "Reply whenever you're free.",
     ],
     appUrl: `${options.appUrl}/app/connections`,
+  });
+}
+
+// Generic wrapper for the async-guided-connections lifecycle notifications
+// (round available, response due soon, both revealed, extension used, live
+// request/reminders, etc -- see app/api/cron/connections-expiry/route.ts and
+// docs/ASYNC_CONNECTIONS.md for the full event list). One shared shape
+// rather than a dedicated function per event: every one of these is just a
+// subject + a couple of warm, neutral paragraphs pointing back at the same
+// connection detail page.
+export async function sendConnectionLifecycleEmail(options: {
+  to: string;
+  subject: string;
+  paragraphs: string[];
+  appUrl: string;
+}): Promise<void> {
+  await sendBrandedEmail({
+    to: options.to,
+    subject: options.subject,
+    paragraphs: options.paragraphs,
+    appUrl: options.appUrl,
   });
 }
 

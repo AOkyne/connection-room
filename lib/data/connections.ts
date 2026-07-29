@@ -11,17 +11,27 @@
 // person's public profile when the viewer is partner_id rather than
 // user_id.
 //
-// Preferences/history/declined/blocked lists remain localStorage --
-// out of scope for the real-data pass that added the functions below.
+// History remains localStorage -- out of scope for this pass. Preferences
+// and blocked-users now hit the real backend (migration 078): preferences
+// previously only ever round-tripped through a localStorage key, so a
+// member's frequency/contact-mode choice on one device was invisible to
+// the async-matching/invitation RPCs running server-side; blocking was the
+// same problem but worse -- a security requirement ("blocked users must
+// not be matched or reconnected") that a client-only localStorage list
+// can't actually enforce. See lib/data/connectionAsync.ts for the RPCs that
+// depend on both being real now.
 
 import { supabase } from "@/lib/supabase/client";
+import { demoSafeWrite } from "@/lib/demo/demo-mode-guard";
 import { getPublicProfile } from "./profiles";
 import type { ConnectionRequest } from "./connectionRequests";
+import type { ConnectionFormat } from "@/lib/types/connection";
 
 export interface ConnectionPreferences {
   frequency: "weekly" | "monthly" | "pause";
   contactMode: "text" | "voice-video" | "local";
   optInToExchangeContact: boolean;
+  formats: ConnectionFormat[];
 }
 
 export interface Connection {
@@ -43,28 +53,62 @@ export interface Connection {
   mutualContactOptIn: boolean;
 }
 
-const PREFERENCES_STORAGE_KEY = "connection-room:connection-preferences";
 const CURRENT_CONNECTION_KEY = "connection-room:current-connection";
 const HISTORY_STORAGE_KEY = "connection-room:connection-history";
 
-// Get connection preferences
-export function getConnectionPreferences(userId: string): ConnectionPreferences {
-  if (typeof window === "undefined") {
-    return { frequency: "weekly", contactMode: "text", optInToExchangeContact: false };
-  }
+const DEFAULT_PREFERENCES: ConnectionPreferences = {
+  frequency: "weekly",
+  contactMode: "text",
+  optInToExchangeContact: false,
+  formats: ["guided_message"],
+};
 
-  const stored = localStorage.getItem(`${PREFERENCES_STORAGE_KEY}:${userId}`);
-  if (stored) {
-    return JSON.parse(stored);
-  }
+// Real `connection_preferences` row (migration 010 table, migration 078
+// `formats` column) -- see file header for why this stopped being
+// localStorage-only.
+export async function getConnectionPreferences(userId: string): Promise<ConnectionPreferences> {
+  if (!supabase) return DEFAULT_PREFERENCES;
 
-  return { frequency: "weekly", contactMode: "text", optInToExchangeContact: false };
+  const { data, error } = await supabase
+    .from("connection_preferences")
+    .select("frequency, contact_mode, opt_in_to_exchange_contact, formats")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error || !data) return DEFAULT_PREFERENCES;
+
+  return {
+    frequency: data.frequency || "weekly",
+    contactMode: data.contact_mode || "text",
+    optInToExchangeContact: data.opt_in_to_exchange_contact || false,
+    formats: (data.formats && data.formats.length > 0 ? data.formats : ["guided_message"]) as ConnectionFormat[],
+  };
 }
 
-// Update connection preferences
-export function updateConnectionPreferences(userId: string, preferences: ConnectionPreferences): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(`${PREFERENCES_STORAGE_KEY}:${userId}`, JSON.stringify(preferences));
+export async function updateConnectionPreferences(userId: string, preferences: ConnectionPreferences): Promise<boolean> {
+  if (!supabase) return false;
+
+  const { error } = await demoSafeWrite(
+    () =>
+      supabase!.from("connection_preferences").upsert(
+        {
+          user_id: userId,
+          frequency: preferences.frequency,
+          contact_mode: preferences.contactMode,
+          opt_in_to_exchange_contact: preferences.optInToExchangeContact,
+          formats: preferences.formats,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" }
+      ),
+    { context: "updateConnectionPreferences" }
+  );
+
+  if (error) {
+    console.error("Error updating connection preferences:", error);
+    return false;
+  }
+  return true;
 }
 
 // Get current connection
@@ -153,26 +197,38 @@ export async function getSafetyReports(userId: string): Promise<any[]> {
   return data || [];
 }
 
-// Block a user
-export function blockUser(userId: string, blockedUserId: string): void {
-  if (typeof window === "undefined") return;
+// Block a user -- real `connection_blocks` row (migration 078). Previously
+// localStorage-only, which meant the async-invitation RPCs (and the legacy
+// matching route) had no way to actually enforce a block server-side; see
+// file header.
+export async function blockUser(_userId: string, blockedUserId: string): Promise<boolean> {
+  if (!supabase) return false;
 
-  const blockedKey = `connection-room:blocked-users:${userId}`;
-  const blocked = JSON.parse(localStorage.getItem(blockedKey) || "[]");
+  const { error } = await demoSafeWrite(
+    () => supabase!.from("connection_blocks").insert({ blocker_id: _userId, blocked_id: blockedUserId }),
+    { context: "blockUser" }
+  );
 
-  if (!blocked.includes(blockedUserId)) {
-    blocked.push(blockedUserId);
-    localStorage.setItem(blockedKey, JSON.stringify(blocked));
+  // A duplicate block (unique constraint) is not an error worth surfacing.
+  if (error && !String(error.message || "").includes("duplicate")) {
+    console.error("Error blocking user:", error);
+    return false;
   }
+  return true;
 }
 
 // Get blocked users
-export function getBlockedUsers(userId: string): Set<string> {
-  if (typeof window === "undefined") return new Set();
+export async function getBlockedUsers(userId: string): Promise<Set<string>> {
+  if (!supabase) return new Set();
 
-  const blockedKey = `connection-room:blocked-users:${userId}`;
-  const blocked = JSON.parse(localStorage.getItem(blockedKey) || "[]");
-  return new Set(blocked);
+  const { data, error } = await supabase.from("connection_blocks").select("blocked_id").eq("blocker_id", userId);
+
+  if (error) {
+    console.error("Error fetching blocked users:", error);
+    return new Set();
+  }
+
+  return new Set((data || []).map((row) => row.blocked_id));
 }
 
 // Get completed connection history
