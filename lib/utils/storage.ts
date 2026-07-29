@@ -102,6 +102,18 @@ export async function uploadProfilePhoto(
 
   if (error) {
     console.error("Storage upload error:", error);
+    // "new row violates row-level security policy" is the raw Postgres
+    // message when the upload path's folder segment doesn't match the
+    // caller's current auth.uid() -- in practice this happens when a
+    // member's session has gone stale (expired access token that failed to
+    // silently refresh), not from anything the member did wrong. Confirmed
+    // live: a member hit this trying to change an already-successfully-
+    // uploaded photo after ~a week away from the app. A raw RLS error
+    // string is not something a member can act on; tell them the actual
+    // fix instead.
+    if (/row-level security/i.test(error.message)) {
+      throw new Error("Your session may have expired. Please sign out and back in, then try again.");
+    }
     throw new Error(`Failed to upload photo: ${error.message}`);
   }
 
