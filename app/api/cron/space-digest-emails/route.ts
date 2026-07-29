@@ -2,10 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { hasSmtpConfig, sendDigestEmail, logEmailSend } from "@/lib/email/send";
 
-// Sends to every qualifying member sequentially, so give this route the
-// most headroom the plan allows rather than the default timeout -- same
-// reasoning as the existing drip-emails cron.
+// Give this route the most headroom the plan allows -- same reasoning as
+// the existing drip-emails cron. Note the external trigger (cron-job.org)
+// has its own, tighter 30s request timeout that this can't exceed either,
+// which is why the per-candidate work below is batched/parallelized
+// rather than just relying on this ceiling.
 export const maxDuration = 60;
+
+// Bounds how many candidates are processed concurrently per frequency.
+// Unbounded Promise.all over 100+ candidates would open that many
+// simultaneous DB/SMTP connections at once; this caps concurrency to
+// something reasonable while still being far faster than one at a time.
+const CONCURRENCY = 15;
+
+async function processInBatches<T>(items: T[], size: number, fn: (item: T) => Promise<void>): Promise<void> {
+  for (let i = 0; i < items.length; i += size) {
+    await Promise.all(items.slice(i, i + size).map(fn));
+  }
+}
 
 // NOT wired into vercel.json -- this project already has 2 daily Vercel
 // crons and is likely on the Hobby plan (2-cron cap). Trigger this route
@@ -104,7 +118,14 @@ export async function GET(request: NextRequest) {
       spaceIdsByUser.set(m.user_id, list);
     }
 
-    for (const profile of candidates || []) {
+    // auth.admin.getUserById() measured at ~360ms per call -- called once
+    // per candidate, that alone was ~40s+ sequentially for 100+
+    // candidates, the dominant cost even after batching the DB lookups
+    // above. listUsers() fetches everyone in a single ~200ms call instead.
+    const { data: userList } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+    const emailByUserId = new Map((userList?.users || []).map((u) => [u.id, u.email]));
+
+    await processInBatches(candidates || [], CONCURRENCY, async (profile) => {
       try {
         const lastSentAt = lastSentByUser.get(profile.user_id);
         const since = lastSentAt ? new Date(lastSentAt) : new Date(Date.now() - defaultLookbackMs);
@@ -113,7 +134,7 @@ export async function GET(request: NextRequest) {
 
         if (!spaceIds || spaceIds.length === 0) {
           summary[frequency].skipped++;
-          continue;
+          return;
         }
 
         const { data: newPosts, error: postsError } = await supabase
@@ -125,12 +146,12 @@ export async function GET(request: NextRequest) {
 
         if (postsError) {
           summary[frequency].failed++;
-          continue;
+          return;
         }
 
         if (!newPosts || newPosts.length === 0) {
           summary[frequency].skipped++;
-          continue;
+          return;
         }
 
         const { data: spaces } = await supabase.from("spaces").select("id, name").in("id", spaceIds);
@@ -146,11 +167,10 @@ export async function GET(request: NextRequest) {
           count,
         }));
 
-        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(profile.user_id);
-        const email = userData?.user?.email;
-        if (userError || !email) {
+        const email = emailByUserId.get(profile.user_id);
+        if (!email) {
           summary[frequency].skipped++;
-          continue;
+          return;
         }
 
         await sendDigestEmail({ to: email, frequency, appUrl, spaceBreakdown });
@@ -173,7 +193,7 @@ export async function GET(request: NextRequest) {
         console.error(`Error sending ${frequency} digest to ${profile.user_id}:`, err);
         summary[frequency].failed++;
       }
-    }
+    });
   }
 
   return NextResponse.json({ dueFrequencies, summary });

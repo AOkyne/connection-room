@@ -77,7 +77,7 @@ function getTransporter(): Mail {
       port: parseInt(process.env.SMTP_PORT || "587"),
       secure: process.env.SMTP_SECURE === "true",
       pool: true,
-      maxConnections: 5,
+      maxConnections: 10,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
