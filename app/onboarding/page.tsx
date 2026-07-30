@@ -10,6 +10,7 @@ import {
   type Profile,
 } from "@/lib/data/profiles";
 import { uploadProfilePhoto } from "@/lib/utils/storage";
+import { isAsyncConnectionsEnabled } from "@/lib/data/featureFlags";
 import { lastProfileSaveError } from "@/lib/data/supabase-profiles";
 import { appConfig } from "@/lib/config";
 import { Button } from "@/components/Button";
@@ -58,6 +59,7 @@ export default function OnboardingPage() {
   const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
   const [coupleDisplayName, setCoupleDisplayName] = useState("");
   const [coupleGoals, setCoupleGoals] = useState<string[]>([]);
+  const [asyncConnectionsEnabled, setAsyncConnectionsEnabled] = useState(false);
 
   // Every keystroke on the basics step fires a save; without sequencing,
   // an earlier request (captured before the last few characters were
@@ -82,6 +84,15 @@ export default function OnboardingPage() {
         setIsLoading(false);
         return;
       }
+
+      // The "Connections" step's own copy only ever described the legacy
+      // live 20-minute model, regardless of whether this member will land
+      // on the new async guided-exchange flow -- so every new member's
+      // first impression of the feature was the old one, even once async
+      // was live for them. Checked here, not just on the Connections page
+      // itself, since this is the very first place a member hears about
+      // the feature at all.
+      isAsyncConnectionsEnabled(p.id).then(setAsyncConnectionsEnabled);
 
       // Restore couple mode from the saved member type -- without this, a
       // couple who picked "couple" on the member-type step, then reloaded
@@ -880,7 +891,15 @@ export default function OnboardingPage() {
               <div className="space-y-4">
                 <div className="bg-[#fffbf7] border-l-4 border-[#d4a348] p-4 rounded">
                   <p className="text-[#1a0f0a]">
-                    <span className="font-semibold text-[#1a0f0a]">What are connections:</span> Structured 20-minute conversations with matched members. A guided, safe way to practice vulnerability and authentic connection.
+                    {asyncConnectionsEnabled ? (
+                      <>
+                        <span className="font-semibold text-[#1a0f0a]">What are connections:</span> Invite a matched member into a guided exchange -- a few shared reflections, each on your own time. A live 20-minute conversation is always optional, never required.
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-semibold text-[#1a0f0a]">What are connections:</span> Structured 20-minute conversations with matched members. A guided, safe way to practice vulnerability and authentic connection.
+                      </>
+                    )}
                   </p>
                 </div>
                 <p className="text-[#1a0f0a]">

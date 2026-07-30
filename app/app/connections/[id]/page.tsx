@@ -147,7 +147,16 @@ export default function ConnectionDetailPage() {
     }
   };
 
-  const canOfferLive = connection.currentRoundNumber >= 1 && !["live_requested", "live_scheduled", "completed", "ended", "expired", "declined", "cancelled", "reported"].includes(connection.status);
+  // Per spec, the live-conversation upsell only appears once at least one
+  // round has actually been COMPLETED (both sides revealed and advanced),
+  // not merely opened. current_round_number is set to 1 the instant a
+  // connection activates -- before either side has answered anything --
+  // so checking `currentRoundNumber >= 1` here made this card (with its
+  // 20-minute framing) appear immediately alongside the very first
+  // prompt on every new connection, crowding out the async round
+  // experience it's supposed to be optional next-step after.
+  const hasCompletedARound = rounds.some((r) => r.status === "completed");
+  const canOfferLive = hasCompletedARound && !["live_requested", "live_scheduled", "completed", "ended", "expired", "declined", "cancelled", "reported"].includes(connection.status);
 
   return (
     <div className="space-y-6">
