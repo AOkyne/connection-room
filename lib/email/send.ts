@@ -176,6 +176,30 @@ export async function sendConnectionInviteEmail(options: {
   });
 }
 
+// Sent once, when a member is invited into a new async Guided Connection
+// Exchange (create_connection_invitation() / migration 078+). Distinct
+// copy from sendConnectionInviteEmail() below -- that one is about a
+// message arriving in an already-open legacy live chat ("started a
+// conversation"); this is about a new structured invitation waiting to be
+// accepted or declined, which is a meaningfully different action for the
+// recipient to take.
+export async function sendConnectionInvitationEmail(options: {
+  to: string;
+  fromUserName: string;
+  appUrl: string;
+}): Promise<void> {
+  await sendBrandedEmail({
+    to: options.to,
+    subject: `${options.fromUserName} would like to connect with you`,
+    paragraphs: [
+      `${options.fromUserName} has invited you to a guided connection in The Connection Room.`,
+      "A guided connection is a structured, low-pressure way to get to know another member through a few shared reflections, each on your own time -- no need to be online at the same moment.",
+      "You can accept, decline privately, or decide later.",
+    ],
+    appUrl: `${options.appUrl}/app/connections`,
+  });
+}
+
 // Generic wrapper for the async-guided-connections lifecycle notifications
 // (round available, response due soon, both revealed, extension used, live
 // request/reminders, etc -- see app/api/cron/connections-expiry/route.ts and
