@@ -19,11 +19,13 @@ import { DailyCompanionDashboard } from "@/components/daily-companion/DailyCompa
 interface DashboardTodaySectionProps {
   displayName: string;
   userId: string;
+  profilePhoto?: string;
 }
 
 export function DashboardTodaySection({
   displayName,
   userId,
+  profilePhoto,
 }: DashboardTodaySectionProps) {
   return (
     <div className="space-y-8">
@@ -32,6 +34,7 @@ export function DashboardTodaySection({
         <DailyCompanionDashboard
           displayName={displayName}
           userId={userId}
+          profilePhoto={profilePhoto}
         />
       </div>
 

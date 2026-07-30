@@ -39,6 +39,17 @@ export default function AppHome() {
       }
     }, 25000);
 
+    // A real profile-load failure (see useDashboardPrimaryData's own
+    // comment -- this used to be silently papered over with a fake
+    // "Guest" identity instead of ever reaching this check) surfaces the
+    // same retry screen as the page's own timeout, rather than rendering
+    // the dashboard as somebody else.
+    if (!primaryLoading && primaryError && !profile) {
+      clearTimeout(timeoutId);
+      setLoadError(primaryError);
+      return;
+    }
+
     // Mark page as mounted when primary data is ready
     if (!primaryLoading && profile) {
       clearTimeout(timeoutId);
@@ -47,7 +58,7 @@ export default function AppHome() {
     }
 
     return () => clearTimeout(timeoutId);
-  }, [primaryLoading, profile, mounted]);
+  }, [primaryLoading, profile, primaryError, mounted]);
 
   if (loadError && !mounted) {
     return (
@@ -101,6 +112,7 @@ export default function AppHome() {
       <DashboardTodaySection
         displayName={profile.displayName}
         userId={profile.id}
+        profilePhoto={profile.profilePhoto}
       />
 
       {/* TIER 2: CONTINUE (Secondary content) - Non-blocking */}

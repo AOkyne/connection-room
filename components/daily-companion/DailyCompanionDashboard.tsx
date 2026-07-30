@@ -17,9 +17,10 @@ import type { DailyContent, WeeklyNote } from "@/lib/data/daily-companion";
 interface DailyCompanionDashboardProps {
   displayName: string;
   userId: string | null;
+  profilePhoto?: string;
 }
 
-export function DailyCompanionDashboard({ displayName, userId }: DailyCompanionDashboardProps) {
+export function DailyCompanionDashboard({ displayName, userId, profilePhoto }: DailyCompanionDashboardProps) {
   const [dailyContent, setDailyContent] = useState<{
     theme: DailyContent | null;
     reflection: DailyContent | null;
@@ -86,7 +87,7 @@ export function DailyCompanionDashboard({ displayName, userId }: DailyCompanionD
       {/* Greeting */}
       <div className="space-y-2">
         <div className="flex items-center gap-4">
-          <Avatar name={displayName} size="lg" />
+          <Avatar name={displayName} photo={profilePhoto} size="lg" />
           <h1 className="text-3xl font-semibold text-[#1a0f0a]">Welcome back, {displayName.split(' ')[0]}</h1>
         </div>
         <p className="text-[#1a0f0a]">
