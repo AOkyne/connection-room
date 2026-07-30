@@ -54,7 +54,10 @@ export function GuidedExchangeSection({ connections, myUserId }: { connections: 
   if (localConnections.length === 0) {
     return (
       <Card className="text-center py-8">
-        <p className="text-[#1a0f0a]">You don't have an active guided connection yet. When you're ready, we'll help you begin one.</p>
+        <p className="text-[#1a0f0a]">You don't have an active guided connection yet.</p>
+        <p className="text-sm text-[#a0704a] mt-2">
+          Scroll down to "Suggested Guided Connections" below, pick someone, and send them an invitation to get started.
+        </p>
       </Card>
     );
   }

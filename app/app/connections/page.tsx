@@ -44,7 +44,7 @@ import {
   type ConnectionRequest,
 } from "@/lib/data/connectionRequests";
 import { isAsyncConnectionsEnabled } from "@/lib/data/featureFlags";
-import { getMyAsyncConnections } from "@/lib/data/connectionAsync";
+import { getMyAsyncConnections, hasAnyAsyncConnectionActivity } from "@/lib/data/connectionAsync";
 import { GuidedExchangeSection } from "@/components/connections/GuidedExchangeSection";
 import { GuidedConnectionSuggestions } from "@/components/connections/GuidedConnectionSuggestions";
 import { LiveAvailabilityToggle } from "@/components/connections/LiveAvailabilityToggle";
@@ -168,7 +168,17 @@ export default function ConnectionsPage() {
           setSuggestedMatches(matches);
         }
 
-        const enabled = await isAsyncConnectionsEnabled(p.id);
+        // A member who isn't on the beta list must still be able to see
+        // and respond to an async invitation someone else already sent
+        // them -- otherwise it's a one-way trap (confirmed live: exactly
+        // this happened). Once involved in an async connection at all,
+        // they get the full guided-connections experience, not a
+        // view-only subset -- simpler and avoids a confusing partial UI.
+        const [flagEnabled, hasActivity] = await Promise.all([
+          isAsyncConnectionsEnabled(p.id),
+          hasAnyAsyncConnectionActivity(p.id),
+        ]);
+        const enabled = flagEnabled || hasActivity;
         setAsyncEnabled(enabled);
         if (enabled) {
           const asyncConns = await getMyAsyncConnections(p.id);
@@ -691,6 +701,12 @@ export default function ConnectionsPage() {
         <div className="space-y-6">
           <h2 className="text-2xl font-semibold text-[#1a0f0a]">Guided Connections</h2>
           <GuidedExchangeSection connections={asyncConnections} myUserId={profile.id} />
+          <div>
+            <h3 className="text-lg font-semibold text-[#1a0f0a] mb-1">Start a new guided connection</h3>
+            <p className="text-sm text-[#a0704a] mb-3">
+              Choose someone below, view their profile, and send a connection request to begin.
+            </p>
+          </div>
           <GuidedConnectionSuggestions
             matches={suggestedMatches}
             loading={loadingMatches}

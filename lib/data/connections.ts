@@ -349,6 +349,17 @@ export async function createConfirmedConnection(
         partner_photo: request.fromUserPhoto || null,
         partner_interests: request.fromUserInterests || [],
         status: "confirmed",
+        // Explicit -- migration 078 changed connections.connection_type's
+        // column default to 'async' (for the new invitation RPC, which
+        // always sets it explicitly anyway). This legacy insert never set
+        // it, so it was silently inheriting that default: every new
+        // legacy-flow connection since then has been mislabeled
+        // connection_type='async' with none of the actual async
+        // infrastructure (no connection_participants, no
+        // connection_rounds) -- a broken hybrid row that both
+        // getActiveConnections() (filters connection_type='live') and the
+        // Guided Connections dashboard would handle wrong. Confirmed live.
+        connection_type: "live",
         shared_prompt: request.sharedPrompt || null,
         confirmed_at: new Date().toISOString(),
       })

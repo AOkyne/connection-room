@@ -139,6 +139,33 @@ async function mapAsyncConnectionRow(row: any, viewerId: string): Promise<AsyncC
 
 const CONNECTION_SELECT = "*, connection_participants(id, user_id, invitation_status)";
 
+// A member who isn't on the async beta list must still be able to see and
+// respond to an async invitation someone else sends them -- otherwise it's
+// a one-way trap: the inviter sees it as sent, the recipient's whole
+// Connections page renders as pure legacy UI and the invitation is
+// invisible to them, with no way to accept, decline, or even know it
+// exists. Confirmed live: exactly this happened. Callers should OR this
+// with the feature flag itself (isAsyncConnectionsEnabled) rather than
+// using it alone, so the flag still controls whether someone can
+// *initiate* new guided connections while this only ever widens access
+// for someone who's already been invited into one.
+export async function hasAnyAsyncConnectionActivity(userId: string): Promise<boolean> {
+  if (!supabase) return false;
+
+  const { data, error } = await supabase
+    .from("connections")
+    .select("id")
+    .or(`user_id.eq.${userId},partner_id.eq.${userId}`)
+    .eq("connection_type", "async")
+    .limit(1);
+
+  if (error) {
+    rpcError("hasAnyAsyncConnectionActivity", error);
+    return false;
+  }
+  return (data || []).length > 0;
+}
+
 export async function getMyAsyncConnections(userId: string): Promise<AsyncConnection[]> {
   if (!supabase) return [];
 
