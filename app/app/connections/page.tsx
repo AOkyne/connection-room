@@ -695,7 +695,12 @@ export default function ConnectionsPage() {
             matches={suggestedMatches}
             loading={loadingMatches}
             onInvited={() => showToast("Invitation sent! We'll let you know when they respond.", "success")}
-            onError={(message) => showToast(message, "error")}
+            // duration: 0 -- errors here are exactly the kind of thing a
+            // member needs to read carefully or report back (confirmed
+            // live: the default 3s auto-dismiss was gone before it could
+            // even be screenshotted). Stays until manually dismissed via
+            // the toast's own "x" button.
+            onError={(message) => showToast(message, "error", 0)}
             myUserId={profile.id}
           />
           <LiveAvailabilityToggle userId={profile.id} />
