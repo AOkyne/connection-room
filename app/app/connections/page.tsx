@@ -723,8 +723,16 @@ export default function ConnectionsPage() {
         </div>
       )}
 
-      {/* Incoming Requests (legacy request/accept flow) */}
-      {!asyncEnabled && incomingRequests.length > 0 && (
+      {/* Incoming Requests (legacy request/accept flow) -- shown whenever
+          there's real data, regardless of the async flag. Confirmed live:
+          gating this on !asyncEnabled meant a legacy request FROM a
+          non-beta member TO an async-enabled member became just as
+          invisible as an async invitation to a non-beta recipient (the
+          exact mirrored version of a bug already fixed elsewhere on this
+          page) -- an async member simply never saw someone trying to
+          reach them the old way. Being on the new flow should never cost
+          you visibility into a real, existing interaction on the old one. */}
+      {incomingRequests.length > 0 && (
         <IncomingRequests
           requests={incomingRequests}
           onAccept={handleAcceptRequest}
@@ -735,12 +743,12 @@ export default function ConnectionsPage() {
         />
       )}
 
-      {/* Active Conversations (legacy live chat) -- hidden entirely once a
-          member is on the async flow, even if they have old legacy
-          connections. Those conversations aren't deleted, just no longer
-          surfaced on this page -- Guided Connections is the one dashboard
-          for async members now. */}
-      {!asyncEnabled && activeConnections.length > 0 && (
+      {/* Active Conversations (legacy live chat) -- same reasoning as
+          Incoming Requests above: shown whenever real data exists,
+          regardless of the async flag, so an actual accepted legacy
+          connection never silently disappears just because the member is
+          also using the new system. */}
+      {activeConnections.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold text-[#1a0f0a]">Active Conversations</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
