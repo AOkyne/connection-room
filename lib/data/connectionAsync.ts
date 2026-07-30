@@ -35,11 +35,22 @@ function rpcError(context: string, error: unknown): null {
 // Invitations
 // ---------------------------------------------------------------------
 
+export interface CreateInvitationResult {
+  connectionId: string | null;
+  // Human-readable reason for a failure -- the RPC raises a real
+  // exception for "already blocked" / "already have an open connection
+  // with this person" / not-authenticated, which previously vanished
+  // entirely (console.error only, nothing shown to the member clicking
+  // the button -- confirmed live: looked exactly like the button just
+  // didn't do anything).
+  error: string | null;
+}
+
 export async function createConnectionInvitation(
   toUserId: string,
   options: { connectionType?: "async" | "live"; sharedPrompt?: string; promptSequenceId?: string } = {}
-): Promise<string | null> {
-  if (!supabase) return null;
+): Promise<CreateInvitationResult> {
+  if (!supabase) return { connectionId: null, error: "Connections are not available right now." };
 
   try {
     const { data, error } = await demoSafeWrite(
@@ -53,10 +64,14 @@ export async function createConnectionInvitation(
       { context: "createConnectionInvitation" }
     );
 
-    if (error) return rpcError("createConnectionInvitation", error);
-    return data as string;
+    if (error) {
+      rpcError("createConnectionInvitation", error);
+      return { connectionId: null, error: error.message || "Could not send this invitation." };
+    }
+    return { connectionId: data as string, error: null };
   } catch (err) {
-    return rpcError("createConnectionInvitation", err);
+    rpcError("createConnectionInvitation", err);
+    return { connectionId: null, error: err instanceof Error ? err.message : "Could not send this invitation." };
   }
 }
 

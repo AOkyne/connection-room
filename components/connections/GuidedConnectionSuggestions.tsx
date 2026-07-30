@@ -19,11 +19,13 @@ export function GuidedConnectionSuggestions({
   matches,
   loading = false,
   onInvited,
+  onError,
   myUserId,
 }: {
   matches: MatchScore[];
   loading?: boolean;
   onInvited: (partnerId: string) => void;
+  onError: (message: string) => void;
   myUserId: string;
 }) {
   const [selectedProfile, setSelectedProfile] = useState<CommunityProfile | null>(null);
@@ -40,12 +42,14 @@ export function GuidedConnectionSuggestions({
 
   const handleInvite = async (partnerId: string) => {
     setSending(true);
-    const connectionId = await createConnectionInvitation(partnerId, { connectionType: "async" });
+    const { connectionId, error } = await createConnectionInvitation(partnerId, { connectionType: "async" });
     setSending(false);
     if (connectionId) {
       setInvitedIds((prev) => new Set([...prev, partnerId]));
       onInvited(partnerId);
       setIsModalOpen(false);
+    } else {
+      onError(error || "Could not send this invitation. Please try again.");
     }
   };
 
