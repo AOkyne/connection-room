@@ -79,7 +79,9 @@ reveal state).
 `app/api/cron/connections-expiry/route.ts` -- externally triggered (not in
 `vercel.json`, which is already at Vercel Hobby's 2-job cap), same
 `Authorization: Bearer CRON_SECRET` pattern as `weekly-prompts` /
-`space-digest-emails`. Intended to run every 15-30 minutes. Responsibilities:
+`space-digest-emails`. Intended to run every 5 minutes -- the round-revealed
+and acknowledgment emails (below) are gated on a 10-minute unread grace
+period, and are only as precise as this run interval. Responsibilities:
 
 - Expire invitations past `invitation_expires_at` still `awaiting_acceptance`.
 - Expire connections whose current round's `response_deadline_at` has

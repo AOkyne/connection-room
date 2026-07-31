@@ -29,13 +29,24 @@ export function RoundResponseEditor({
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Flips immediately on a successful submit, without waiting for the
+  // parent's onSubmitted() -> reload round-trip -- previously the only
+  // way this editor ever showed a "submitted" state was via the
+  // alreadySubmitted prop coming back around through a full page reload,
+  // which (a) has a visible delay and (b) was also wrong whenever the
+  // round was still 'open' waiting on the other participant (see the
+  // parent page's own fix for that). This local flag makes the
+  // transition instant and correct regardless of what the parent
+  // computes.
+  const [justSubmitted, setJustSubmitted] = useState(false);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setText(initialDraft);
+    setJustSubmitted(false);
   }, [round.id, initialDraft]);
 
-  if (alreadySubmitted) {
+  if (alreadySubmitted || justSubmitted) {
     return (
       <div className="bg-white rounded-lg p-4 space-y-2">
         <p className="text-sm text-[#1a0f0a]">
@@ -71,6 +82,7 @@ export function RoundResponseEditor({
       setError("Could not submit your response. Please try again.");
       return;
     }
+    setJustSubmitted(true);
     onSubmitted();
   };
 

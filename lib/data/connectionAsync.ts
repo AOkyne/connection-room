@@ -315,8 +315,20 @@ export async function saveResponseDraft(roundId: string, draftText: string): Pro
 // My own draft is a normal owner-scoped SELECT (RLS allows it directly),
 // unlike the counterpart's response which must go through
 // getRoundResponses() below.
-export async function getMyDraft(roundId: string, myParticipantId: string): Promise<string> {
-  if (!supabase) return "";
+export interface MyRoundResponseState {
+  text: string;
+  isSubmitted: boolean;
+}
+
+// Distinguishes "this is a draft you can still edit" from "you already
+// submitted this" -- the caller previously only got a bare string, so a
+// round that's still 'open' only because the OTHER participant hasn't
+// answered yet (not because you haven't) looked identical to one you'd
+// never touched: same editable textarea, same enabled Submit button,
+// your already-submitted text just sitting there with no indication
+// anything had happened. Confirmed live.
+export async function getMyDraft(roundId: string, myParticipantId: string): Promise<MyRoundResponseState> {
+  if (!supabase) return { text: "", isSubmitted: false };
   const { data, error } = await supabase
     .from("connection_responses")
     .select("draft_text, submitted_text")
@@ -324,8 +336,9 @@ export async function getMyDraft(roundId: string, myParticipantId: string): Prom
     .eq("participant_id", myParticipantId)
     .maybeSingle();
 
-  if (error || !data) return "";
-  return data.submitted_text || data.draft_text || "";
+  if (error || !data) return { text: "", isSubmitted: false };
+  if (data.submitted_text) return { text: data.submitted_text, isSubmitted: true };
+  return { text: data.draft_text || "", isSubmitted: false };
 }
 
 export type SubmitRoundResult = "revealed" | "waiting_for_participant";

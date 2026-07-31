@@ -4,10 +4,16 @@ import { sendConnectionLifecycleEmail, logEmailSend, hasSmtpConfig } from "@/lib
 import { isHalfwayReminderDue, isClosingSoonReminderDue, getDueLiveReminderKey } from "@/lib/utils/connectionReminders";
 
 // Expires stale async-connection invitations/rounds and sends round/live
-// reminders. Not registered in vercel.json -- same reason as
-// weekly-prompts/space-digest-emails (Vercel Hobby's 2-cron cap is already
-// spent) -- meant to be hit externally (e.g. cron-job.org) every 15-30
-// minutes with the same CRON_SECRET bearer pattern used everywhere else.
+// reminders, plus delayed "you have something new" emails (round
+// revealed, acknowledgment received -- see sections 5/6 below) gated on a
+// 10-minute unread grace period. Not registered in vercel.json -- same
+// reason as weekly-prompts/space-digest-emails (Vercel Hobby's 2-cron cap
+// is already spent) -- meant to be hit externally (e.g. cron-job.org).
+// Recommend every 5 minutes now, not the previous 15-30: the 10-minute
+// grace period in sections 5/6 is only as precise as this run interval
+// (e.g. a 30-minute interval means those emails could land anywhere from
+// 10 to 40 minutes late) -- expiry/reminder checks below are unaffected
+// by a faster interval, they just run idempotently more often.
 //
 // Idempotent per row: every mutation here is a status/timestamp check
 // before writing (e.g. only expire rows still in an expirable status), and
@@ -37,8 +43,20 @@ export async function GET(request: NextRequest) {
     expiredRounds: 0,
     remindersSent: 0,
     liveRemindersSent: 0,
+    revealedRemindersSent: 0,
+    acknowledgmentRemindersSent: 0,
     errors: [] as string[],
   };
+
+  // How long to wait after a round reveals / an acknowledgment arrives
+  // before emailing about it, IF the recipient still hasn't looked --
+  // requested explicitly: firing instantly meant someone already active in
+  // the app, about to check it themselves, would get an email about
+  // something they were already looking at. This cron's own run interval
+  // is the real resolution limit on how close to exactly 10 minutes this
+  // lands -- see this route's file-level comment for the recommended
+  // external schedule.
+  const UNREAD_GRACE_MS = 10 * 60 * 1000;
 
   // auth.admin.listUsers() once, reused for every email lookup below --
   // same cost-saving pattern as space-digest-emails (measured ~360ms per
@@ -234,6 +252,92 @@ export async function GET(request: NextRequest) {
         ]);
         results.liveRemindersSent++;
       }
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // 5. Round-revealed emails: sent to whichever participant submitted
+  //    first (has been waiting) only if they STILL haven't opened the
+  //    reveal at least UNREAD_GRACE_MS after it happened. Requested:
+  //    replaces the old instant-on-reveal email (migration 083, removed
+  //    in 086) -- firing right away could catch someone already active in
+  //    the app about to look at it themselves.
+  // -------------------------------------------------------------------
+  const { data: revealedRounds, error: revealedRoundsError } = await supabase
+    .from("connection_rounds")
+    .select("id, connection_id, revealed_at")
+    .eq("status", "revealed")
+    .lt("revealed_at", new Date(Date.now() - UNREAD_GRACE_MS).toISOString());
+
+  if (revealedRoundsError) {
+    results.errors.push(`load revealed rounds: ${revealedRoundsError.message}`);
+  } else {
+    for (const round of revealedRounds || []) {
+      const { data: unviewed } = await supabase
+        .from("connection_responses")
+        .select("participant_id, connection_participants!inner(user_id)")
+        .eq("connection_round_id", round.id)
+        .is("viewed_at", null);
+
+      for (const r of unviewed || []) {
+        const userId = (r as any).connection_participants.user_id;
+        await notifyOnce(round.connection_id, userId, `round_revealed:${round.id}`, "You'll both see the responses now", [
+          "Your connection has answered this round -- you'll both see each other's responses now.",
+          "Take a look whenever you have space, and continue when you're ready.",
+        ]);
+        results.revealedRemindersSent++;
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // 6. Acknowledgment emails: sent to the recipient only if they still
+  //    haven't advanced past that round at least UNREAD_GRACE_MS after
+  //    the acknowledgment arrived. Same reasoning as #5.
+  // -------------------------------------------------------------------
+  const { data: recentAcknowledgments, error: ackError } = await supabase
+    .from("connection_acknowledgments")
+    .select("id, connection_round_id, from_participant_id, to_participant_id, created_at")
+    .lt("created_at", new Date(Date.now() - UNREAD_GRACE_MS).toISOString());
+
+  if (ackError) {
+    results.errors.push(`load acknowledgments: ${ackError.message}`);
+  } else {
+    for (const ack of recentAcknowledgments || []) {
+      const { data: toResponse } = await supabase
+        .from("connection_responses")
+        .select("advanced_at, connection_round_id")
+        .eq("connection_round_id", ack.connection_round_id)
+        .eq("participant_id", ack.to_participant_id)
+        .maybeSingle();
+
+      if (!toResponse || toResponse.advanced_at) continue; // already moved on -- no need to notify
+
+      const [{ data: toParticipant }, { data: fromParticipant }, { data: round }] = await Promise.all([
+        supabase.from("connection_participants").select("user_id, connection_id").eq("id", ack.to_participant_id).single(),
+        supabase.from("connection_participants").select("user_id").eq("id", ack.from_participant_id).single(),
+        supabase.from("connection_rounds").select("id").eq("id", ack.connection_round_id).single(),
+      ]);
+      if (!toParticipant || !round) continue;
+
+      const { data: fromProfile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", fromParticipant?.user_id)
+        .maybeSingle();
+      const fromName = fromProfile?.display_name || "Your connection";
+
+      await notifyOnce(
+        toParticipant.connection_id,
+        toParticipant.user_id,
+        `acknowledgment:${ack.id}`,
+        `${fromName} acknowledged what you shared`,
+        [
+          `${fromName} left a short acknowledgment on what you shared in your guided connection.`,
+          "Take a look whenever you have space.",
+        ]
+      );
+      results.acknowledgmentRemindersSent++;
     }
   }
 

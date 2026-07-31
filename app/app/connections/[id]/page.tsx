@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getProfile } from "@/lib/data/profiles";
@@ -29,7 +29,10 @@ import {
   requestLiveConversation,
   respondToLiveRequest,
 } from "@/lib/data/connectionAsync";
+import { playNotificationSound } from "@/lib/utils/notificationSound";
 import type { AsyncConnection, ConnectionRound, RoundResponseView } from "@/lib/types/connection";
+
+const POLL_INTERVAL_MS = 10000;
 
 export default function ConnectionDetailPage() {
   const params = useParams();
@@ -42,6 +45,7 @@ export default function ConnectionDetailPage() {
   const [rounds, setRounds] = useState<ConnectionRound[]>([]);
   const [currentRound, setCurrentRound] = useState<ConnectionRound | null>(null);
   const [myDraft, setMyDraft] = useState("");
+  const [myRoundSubmitted, setMyRoundSubmitted] = useState(false);
   const [responses, setResponses] = useState<RoundResponseView[]>([]);
   const [mounted, setMounted] = useState(false);
   const [showReportForm, setShowReportForm] = useState(false);
@@ -73,10 +77,12 @@ export default function ConnectionDetailPage() {
       if (round) {
         if (round.status === "open") {
           const draft = await getMyDraft(round.id, conn.myParticipantId);
-          setMyDraft(draft);
+          setMyDraft(draft.text);
+          setMyRoundSubmitted(draft.isSubmitted);
         } else if (round.status === "revealed") {
           const roundResponses = await getRoundResponses(round.id);
           setResponses(roundResponses);
+          setMyRoundSubmitted(true);
         }
       }
     }
@@ -88,6 +94,42 @@ export default function ConnectionDetailPage() {
     if (connectionId) load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectionId]);
+
+  // Cheap poll: just re-check status/round-status, not a full load(). A
+  // full reload every interval would overwrite myDraft with whatever's
+  // last saved server-side, silently discarding keystrokes typed since
+  // the last 800ms auto-save debounce -- confirmed as a real risk given
+  // the same class of bug already found in the broadcast composer this
+  // session. Only actually reload (and play a sound) when something
+  // meaningfully changed -- a round revealing, the connection status
+  // changing, or the round number advancing -- exactly the events that
+  // matter enough to justify replacing what's on screen.
+  const lastSeenRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!connectionId || !userId || !connection) return;
+
+    const interval = setInterval(async () => {
+      const [freshConnection, freshRound] = await Promise.all([
+        getAsyncConnection(connectionId, userId),
+        connection.currentRoundNumber > 0 ? getCurrentRound(connectionId, connection.currentRoundNumber) : Promise.resolve(null),
+      ]);
+      if (!freshConnection) return;
+
+      const fingerprint = `${freshConnection.status}:${freshConnection.currentRoundNumber}:${freshRound?.status || ""}`;
+      if (lastSeenRef.current === null) {
+        lastSeenRef.current = fingerprint;
+        return;
+      }
+      if (fingerprint !== lastSeenRef.current) {
+        lastSeenRef.current = fingerprint;
+        playNotificationSound();
+        await load();
+      }
+    }, POLL_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connectionId, userId, connection?.status, connection?.currentRoundNumber]);
 
   if (!mounted) {
     return <LoadingScreen message="Loading your connection" subtitle="Just a moment..." />;
@@ -105,7 +147,15 @@ export default function ConnectionDetailPage() {
   }
 
   const myResponse = responses.find((r) => r.isMine);
-  const iHaveSubmitted = currentRound?.status === "revealed" || !!myResponse?.submittedAt;
+  // Was previously `currentRound?.status === "revealed" || !!myResponse?.submittedAt`
+  // -- both of those are only ever true once the round has revealed,
+  // which requires BOTH sides to have submitted. If only I've submitted
+  // and the round is still 'open' waiting on the other participant, this
+  // always evaluated false: the editor kept rendering as if I'd never
+  // submitted anything, my own text just sitting there with the Submit
+  // button still enabled. myRoundSubmitted (state, set from load() with
+  // getMyDraft()'s submitted_text check) is correct in both cases.
+  const iHaveSubmitted = myRoundSubmitted;
 
   const handleExtend = async () => {
     const ok = await extendConnectionDeadline(connection.id);
@@ -209,7 +259,10 @@ export default function ConnectionDetailPage() {
               round={currentRound}
               initialDraft={myDraft}
               alreadySubmitted={iHaveSubmitted}
-              onSubmitted={load}
+              onSubmitted={() => {
+                showToast("Response submitted.", "success");
+                load();
+              }}
             />
           </div>
         </Card>

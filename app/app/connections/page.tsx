@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getProfile, getProfilePhoto, getPublicProfile, type Profile } from "@/lib/data/profiles";
 import {
   getConnectionPreferences,
@@ -48,7 +48,20 @@ import { getMyAsyncConnections, hasAnyAsyncConnectionActivity } from "@/lib/data
 import { GuidedExchangeSection } from "@/components/connections/GuidedExchangeSection";
 import { GuidedConnectionSuggestions } from "@/components/connections/GuidedConnectionSuggestions";
 import { LiveAvailabilityToggle } from "@/components/connections/LiveAvailabilityToggle";
+import { playNotificationSound } from "@/lib/utils/notificationSound";
 import type { AsyncConnection, ConnectionFormat } from "@/lib/types/connection";
+
+const ASYNC_POLL_INTERVAL_MS = 15000;
+
+// A lightweight "did anything meaningful change" fingerprint per
+// connection -- status and round number cover every state transition that
+// actually matters to the member (invitation accepted, round revealed,
+// round advanced, exchange completed, live requested, etc.). Comparing
+// this instead of deep-equality avoids false "new activity" pings from
+// fields that change without anything actionable happening.
+function fingerprintAsyncConnections(connections: AsyncConnection[]): Map<string, string> {
+  return new Map(connections.map((c) => [c.id, `${c.status}:${c.currentRoundNumber}`]));
+}
 
 const FORMAT_OPTIONS: Array<{ id: ConnectionFormat; label: string }> = [
   { id: "guided_message", label: "Guided message exchange" },
@@ -194,6 +207,38 @@ export default function ConnectionsPage() {
       setMounted(true);
     });
   }, []);
+
+  // Lightweight polling for the async dashboard only -- re-running the
+  // whole loadData() above every interval would re-fetch preferences,
+  // legacy requests, matches, etc. for no reason and cause visible
+  // flicker. This just re-checks asyncConnections on its own, diffs
+  // against what was already on screen, and plays a sound the moment
+  // something actionable changes (a round revealed, an invitation
+  // accepted, an exchange advancing) -- confirmed live: without this, the
+  // page never reflected new activity until a manual reload.
+  const asyncConnectionsRef = useRef<AsyncConnection[]>([]);
+  useEffect(() => {
+    asyncConnectionsRef.current = asyncConnections;
+  }, [asyncConnections]);
+
+  useEffect(() => {
+    if (!asyncEnabled || !profile?.id) return;
+
+    const interval = setInterval(async () => {
+      const fresh = await getMyAsyncConnections(profile.id);
+      const prevFingerprint = fingerprintAsyncConnections(asyncConnectionsRef.current);
+      const hasNewActivity = fresh.some((c) => {
+        const prevValue = prevFingerprint.get(c.id);
+        const newValue = `${c.status}:${c.currentRoundNumber}`;
+        return prevValue !== newValue;
+      });
+
+      if (hasNewActivity) playNotificationSound();
+      setAsyncConnections(fresh);
+    }, ASYNC_POLL_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [asyncEnabled, profile?.id]);
 
   if (!mounted || !profile || !preferences) {
     return <LoadingScreen message="Getting ready for connections" subtitle="We're personalizing your experience. Just a moment..." />;
