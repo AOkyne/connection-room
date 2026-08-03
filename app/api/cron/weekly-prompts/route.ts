@@ -1,19 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Posts each space's next "Question of the Week" once ~7 days have
-// elapsed since its last one (see migration 073's own comment for why
-// this is elapsed-time rather than a fixed weekday -- a late/missed run
-// still catches up correctly on its next run, matching the drip-emails
-// cron's existing pattern). Not registered in vercel.json -- Vercel's
-// Hobby plan caps at 2 cron jobs, both already used (drip-emails,
-// space-digest-emails) -- so, like space-digest-emails, this route is
-// meant to be triggered externally (e.g. cron-job.org) on a daily
-// schedule, hitting this endpoint with the same CRON_SECRET bearer
-// token used everywhere else.
+// Posts each space's next "Question of the Week" every Monday (UTC,
+// matching this route's own daily external trigger time -- see below).
+// Previously ran on a per-space elapsed-7-days clock (migration 073's
+// original design), which staggered different spaces onto different
+// weekdays from each other; requested instead: all spaces change over on
+// the same day. Not registered in vercel.json -- Vercel's Hobby plan caps
+// at 2 cron jobs, both already used (drip-emails, space-digest-emails) --
+// so, like space-digest-emails, this route is meant to be triggered
+// externally (e.g. cron-job.org) once daily, hitting this endpoint with
+// the same CRON_SECRET bearer token used everywhere else. Safe to run more
+// than once on a Monday (or miss a Monday) -- see the same-day guard and
+// the "not-monday" skip below, both idempotent.
 export const maxDuration = 30;
 
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+function isSameUtcDate(a: Date, b: Date): boolean {
+  return a.getUTCFullYear() === b.getUTCFullYear() && a.getUTCMonth() === b.getUTCMonth() && a.getUTCDate() === b.getUTCDate();
+}
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -56,37 +60,62 @@ export async function GET(request: NextRequest) {
   const spaceIds = Array.from(new Set((spaceRows || []).map((r) => r.space_id)));
   const results: Array<{ spaceId: string; status: string; week?: number }> = [];
 
+  const now = new Date();
+  // getUTCDay(): 0=Sunday, 1=Monday. This route's own external trigger
+  // runs once daily -- whichever timezone that's scheduled in, the UTC
+  // weekday it lands on is what "Monday" means here. If cron-job.org is
+  // ever moved to a schedule that crosses midnight UTC on the day meant
+  // to be "Monday" locally, adjust the external trigger time, not this
+  // check.
+  const isMonday = now.getUTCDay() === 1;
+
   for (const spaceId of spaceIds) {
     try {
+      if (!isMonday) {
+        results.push({ spaceId, status: "not-monday" });
+        continue;
+      }
+
       const { data: schedule } = await supabase
         .from("space_prompt_schedule")
         .select("next_week, last_posted_at")
         .eq("space_id", spaceId)
         .maybeSingle();
 
-      const nextWeek = schedule?.next_week ?? 1;
+      let nextWeek = schedule?.next_week ?? 1;
       const lastPostedAt = schedule?.last_posted_at ? new Date(schedule.last_posted_at) : null;
 
-      if (nextWeek > 16) {
-        results.push({ spaceId, status: "exhausted" });
+      // Guards against posting twice if this route is ever triggered more
+      // than once on the same Monday (retry, manual test run, etc.).
+      if (lastPostedAt && isSameUtcDate(lastPostedAt, now)) {
+        results.push({ spaceId, status: "already-posted-today" });
         continue;
       }
 
-      const dueNow = !lastPostedAt || Date.now() - lastPostedAt.getTime() >= SEVEN_DAYS_MS;
-      if (!dueNow) {
-        results.push({ spaceId, status: "not-due" });
-        continue;
-      }
-
-      const { data: promptRow, error: promptError } = await supabase
+      let { data: promptRow } = await supabase
         .from("space_weekly_prompts")
         .select("prompt_text")
         .eq("space_id", spaceId)
         .eq("week_number", nextWeek)
         .maybeSingle();
 
-      if (promptError || !promptRow) {
-        results.push({ spaceId, status: "missing-prompt", week: nextWeek });
+      // Sequence exhausted for this space (typically past week 16) --
+      // start over at week 1, UNLESS an admin has since added prompts
+      // beyond where this space left off, in which case the select above
+      // already found one and this block is skipped entirely.
+      if (!promptRow) {
+        nextWeek = 1;
+        const { data: firstPrompt } = await supabase
+          .from("space_weekly_prompts")
+          .select("prompt_text")
+          .eq("space_id", spaceId)
+          .eq("week_number", 1)
+          .maybeSingle();
+        promptRow = firstPrompt;
+      }
+
+      if (!promptRow) {
+        results.push({ spaceId, status: "no-prompts-configured" });
         continue;
       }
 
