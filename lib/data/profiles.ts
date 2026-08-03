@@ -1270,14 +1270,40 @@ export async function updateNotificationPreferences(
 // own row here and get a wrong (0 or 1) count. space_memberships has its
 // own, broader read policy and was never part of the private-profile
 // lockdown.
+//
+// Filtered to completed_onboarding=true and deactivated_at IS NULL, same
+// as getPublicProfilesBySpace() below -- previously this counted every
+// space_memberships row unconditionally, while the space detail page's
+// own member count (spaceMembers.length, sourced from
+// getPublicProfilesBySpace) applied those filters. Confirmed live: the
+// Spaces list showed 126 for a space whose own detail page showed 82 --
+// the gap was members who joined but never finished onboarding, or have
+// since deactivated. Matching the detail page's definition here since
+// counting an incomplete/deactivated signup as a present community member
+// is misleading either way this was going to be reconciled.
 export async function getMemberCountBySpace(spaceId: string): Promise<number> {
   if (!supabase) return 0;
 
   try {
-    const { count, error } = await supabase
+    const { data: memberships, error: membershipsError } = await supabase
       .from("space_memberships")
-      .select("id", { count: "exact", head: true })
+      .select("user_id")
       .eq("space_id", spaceId);
+
+    if (membershipsError) {
+      console.error("Error getting member count:", membershipsError);
+      return 0;
+    }
+
+    const memberUserIds = (memberships || []).map((m: any) => m.user_id);
+    if (memberUserIds.length === 0) return 0;
+
+    const { count, error } = await supabase
+      .from("public_profiles_view")
+      .select("user_id", { count: "exact", head: true })
+      .in("user_id", memberUserIds)
+      .eq("completed_onboarding", true)
+      .is("deactivated_at", null);
 
     if (error) {
       console.error("Error getting member count:", error);
