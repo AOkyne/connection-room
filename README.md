@@ -38,7 +38,14 @@ founding members are actively shaping direction, language, and features.
   community, articles, badges). The dashboard is meant to feel like a
   companion, not a control panel.
 - **Spaces and community posts** — topical discussion spaces
-  (`spaces`/`space_memberships`) with posts, comments, and reactions.
+  (`spaces`/`space_memberships`) with posts, comments, and reactions. Every
+  post has a shareable permalink (`/app/spaces/[id]/posts/[postId]`), with
+  two-level threaded replies and a validated post-login redirect back to the
+  exact link a signed-out visitor clicked. A "Question of the Week" newsletter
+  segment generator (`/app/admin/newsletter`, admin-only) produces
+  copy-paste-ready HTML/plain-text email segments linking directly into a
+  question's conversation — not a sending platform. See
+  [`ARCHITECTURE.md`](ARCHITECTURE.md#newsletter-deep-links-and-threaded-comments).
 - **Member profiles with member-controlled visibility** — a private
   `profiles` table and a separate, curated `public_profiles` table/view that
   only ever exposes what a member has chosen to share. See

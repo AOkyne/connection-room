@@ -508,44 +508,51 @@ export default function SpaceDetailPage() {
                 </div>
               )}
               <div className="flex items-start justify-between mb-3">
-                <button
-                  onClick={() => {
-                    const author = findAuthor(post.authorName);
-                    if (author) setSelectedProfile(author);
-                  }}
-                  className="flex items-start gap-3 flex-1 hover:opacity-80 transition-opacity text-left"
-                >
-                  <Avatar name={post.authorName} photo={findAuthor(post.authorName)?.profilePhoto || post.authorPhoto} size="md" />
-                  <div className="cursor-pointer">
+                <div className="flex items-start gap-3 flex-1">
+                  <button
+                    onClick={() => {
+                      const author = findAuthor(post.authorName);
+                      if (author) setSelectedProfile(author);
+                    }}
+                    className="flex items-start gap-3 text-left hover:opacity-80 transition-opacity"
+                  >
+                    <Avatar name={post.authorName} photo={findAuthor(post.authorName)?.profilePhoto || post.authorPhoto} size="md" />
                     <p className={`font-medium ${pinned ? "text-[#fdf6e8]" : "text-[#1a0f0a]"}`}>
                       {post.authorName} {post.authorPronouns && `(${post.authorPronouns})`}
                     </p>
-                    {/* No timestamp on the pinned prompt -- it's a standing
-                        weekly fixture, not a dated post. */}
-                    {!pinned && (
-                      <p className="text-xs text-[#a0704a]">
-                        {new Date(post.createdAt).toLocaleDateString()} at{" "}
-                        {new Date(post.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                      </p>
-                    )}
-                  </div>
-                </button>
-                {(profile?.displayName === post.authorName || isAdmin) && (
-                  <div className="flex gap-2 ml-4">
-                    <button
-                      onClick={() => handleEditPost(post.id, post.content)}
-                      className={`text-xs font-medium transition-colors ${pinned ? "text-[#e0b563] hover:text-[#fdf6e8]" : "text-[#d4a348] hover:text-[#8b6f47]"}`}
+                  </button>
+                </div>
+                <div className="flex items-start gap-3 ml-2 shrink-0">
+                  {/* No timestamp on the pinned prompt -- it's a standing
+                      weekly fixture, not a dated post. Doubles as this
+                      post's shareable permalink (deep-linkable, e.g. from
+                      the newsletter). */}
+                  {!pinned && (
+                    <Link
+                      href={`/app/spaces/${spaceId}/posts/${post.id}`}
+                      className="text-xs text-[#a0704a] hover:underline whitespace-nowrap pt-0.5"
                     >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeletePost(post.id)}
-                      className="text-xs text-red-500 hover:text-red-400 font-medium transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                )}
+                      {new Date(post.createdAt).toLocaleDateString()} at{" "}
+                      {new Date(post.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </Link>
+                  )}
+                  {(profile?.displayName === post.authorName || isAdmin) && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEditPost(post.id, post.content)}
+                        className={`text-xs font-medium transition-colors ${pinned ? "text-[#e0b563] hover:text-[#fdf6e8]" : "text-[#d4a348] hover:text-[#8b6f47]"}`}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeletePost(post.id)}
+                        className="text-xs text-red-500 hover:text-red-400 font-medium transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {editingPostId === post.id ? (
@@ -652,22 +659,35 @@ export default function SpaceDetailPage() {
                             <p className={`text-sm mt-1 ${pinned ? "text-[#f3e6d4]" : "text-[#1a0f0a]"}`}>{comment.content}</p>
                           </div>
                         </button>
-                        {(profile?.displayName === comment.authorName || isAdmin) && (
-                          <div className="flex gap-2 ml-2">
-                            <button
-                              onClick={() => handleEditComment(comment.id, comment.content)}
-                              className={`text-xs font-medium transition-colors whitespace-nowrap ${pinned ? "text-[#e0b563] hover:text-[#fdf6e8]" : "text-[#d4a348] hover:text-[#8b6f47]"}`}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteComment(post.id, comment.id)}
-                              className="text-xs text-red-500 hover:text-red-400 font-medium transition-colors whitespace-nowrap"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        )}
+                        <div className="flex gap-2 ml-2 shrink-0">
+                          {/* Replying to a specific comment (including
+                              replying to an existing reply) isn't
+                              possible inline in the feed -- it takes you
+                              to that comment on its own page, where the
+                              reply box opens automatically. */}
+                          <Link
+                            href={`/app/spaces/${spaceId}/posts/${post.id}?reply=${comment.id}`}
+                            className={`text-xs font-medium transition-colors whitespace-nowrap ${pinned ? "text-[#e0b563] hover:text-[#fdf6e8]" : "text-[#d4a348] hover:text-[#8b6f47]"}`}
+                          >
+                            Reply
+                          </Link>
+                          {(profile?.displayName === comment.authorName || isAdmin) && (
+                            <>
+                              <button
+                                onClick={() => handleEditComment(comment.id, comment.content)}
+                                className={`text-xs font-medium transition-colors whitespace-nowrap ${pinned ? "text-[#e0b563] hover:text-[#fdf6e8]" : "text-[#d4a348] hover:text-[#8b6f47]"}`}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteComment(post.id, comment.id)}
+                                className="text-xs text-red-500 hover:text-red-400 font-medium transition-colors whitespace-nowrap"
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </div>
                       {editingCommentId === comment.id && (
                         <div className="mt-3 space-y-2">

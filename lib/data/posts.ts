@@ -2,9 +2,12 @@ import { supabase } from "@/lib/supabase/client";
 import { demoPosts, demoBadges, demoComments } from "./demo-data";
 import {
   getSupabasePosts,
+  getSupabasePostById,
   createSupabasePost,
   getSupabaseComments,
   createSupabaseComment,
+  createSupabaseReply,
+  softDeleteSupabaseComment,
   addSupabasePostReaction,
 } from "./supabase-posts";
 import { migrateOldReactionKey } from "@/lib/content/reactions";
@@ -38,6 +41,44 @@ export interface Comment {
   content: string;
   createdAt: Date;
   reactions: Record<string, number>;
+  // Threading (migration 087). parentCommentId is the comment being
+  // directly replied to; undefined means top-level. rootCommentId is the
+  // top-level ancestor of the whole thread (undefined for top-level
+  // comments themselves) -- group by rootCommentId ?? id to render a
+  // thread, and render everything with parentCommentId set at a single
+  // reply indent level, regardless of how deep the actual reply chain is.
+  parentCommentId?: string;
+  rootCommentId?: string;
+  // Set when a comment with live replies was removed -- body is cleared
+  // server-side; render "This comment has been removed." instead of
+  // content for these rows, but keep rendering their replies normally.
+  deletedAt?: Date;
+}
+
+// Groups a flat comment array into threads: each top-level comment
+// (parentCommentId undefined) paired with every reply that shares its
+// root, sorted oldest-first within each group. A reply-to-a-reply is
+// still grouped under the SAME top-level ancestor as its parent -- this
+// is what keeps rendering to exactly 2 visual levels (top-level response,
+// one reply level) regardless of how deep the actual parentCommentId
+// chain goes, since the caller renders every entry in a group's `replies`
+// array at a single indent level.
+export function groupCommentsIntoThreads(comments: Comment[]): Array<{ topLevel: Comment; replies: Comment[] }> {
+  const topLevel = comments.filter((c) => !c.parentCommentId);
+  const repliesByRoot = new Map<string, Comment[]>();
+
+  comments
+    .filter((c) => c.parentCommentId)
+    .forEach((c) => {
+      const rootId = c.rootCommentId || c.parentCommentId!;
+      if (!repliesByRoot.has(rootId)) repliesByRoot.set(rootId, []);
+      repliesByRoot.get(rootId)!.push(c);
+    });
+
+  return topLevel.map((comment) => ({
+    topLevel: comment,
+    replies: (repliesByRoot.get(comment.id) || []).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()),
+  }));
 }
 
 const POSTS_STORAGE_KEY = "connection-room:posts";
@@ -172,6 +213,23 @@ export async function getPosts(spaceId?: string): Promise<Post[]> {
 export async function getPost(postId: string): Promise<Post | null> {
   const posts = await getPosts();
   return posts.find((p) => p.id === postId) || null;
+}
+
+// Get a single post directly by id (a real Supabase lookup, not a filter
+// over getPosts()'s full list+demo-merge) -- used by the post-detail
+// deep-link page, which needs to distinguish "doesn't exist"/"wrong
+// space" from every other post in the space. Falls back to the
+// demo/local getPost() path when Supabase isn't available.
+export async function getPostById(postId: string): Promise<Post | null> {
+  if (typeof window === "undefined") return getPost(postId);
+
+  const userId = await getCurrentUserId();
+  if (userId && supabase) {
+    const post = await getSupabasePostById(postId);
+    if (post) return post;
+  }
+
+  return getPost(postId);
 }
 
 // Create new post
@@ -325,7 +383,7 @@ export async function getComments(postId: string): Promise<Comment[]> {
   return deduplicatedComments.filter((c: Comment) => c.postId === postId);
 }
 
-// Create comment
+// Create comment (top-level response to a post)
 export async function createComment(
   postId: string,
   authorName: string,
@@ -382,6 +440,33 @@ export async function createComment(
   return comment;
 }
 
+// Reply to a top-level comment or to an existing reply. Real (Supabase)
+// members only -- unlike createComment, there's no meaningful demo/
+// localStorage fallback for a reply, since threading requires resolving
+// the parent's real root_comment_id server-side.
+export async function createReply(
+  postId: string,
+  parentCommentId: string,
+  authorName: string,
+  content: string,
+  authorPronouns?: string,
+  authorPhoto?: string
+): Promise<Comment | null> {
+  if (typeof window === "undefined") return null;
+
+  const userId = await getCurrentUserId();
+  if (!userId || !supabase) {
+    console.warn("createReply: requires a signed-in Supabase session.");
+    return null;
+  }
+
+  const reply = await createSupabaseReply(postId, parentCommentId, userId, authorName, content, authorPronouns, authorPhoto);
+  if (!reply) {
+    console.warn("createReply: Supabase write failed.");
+  }
+  return reply;
+}
+
 // Add reaction to comment
 export async function addCommentReaction(commentId: string, reactionType: string): Promise<void> {
   if (typeof window === "undefined") return;
@@ -436,9 +521,14 @@ export async function updatePost(postId: string, content: string): Promise<void>
 
   if (supabase) {
     try {
+      // posts' actual text column is `body`, not `content` (see Comment
+      // interface's `content` -- that's this app's TS-side field name,
+      // mapped to/from the DB's `body` everywhere else in this file).
+      // This previously wrote to a nonexistent `content` column, so
+      // "edit post" silently no-op'd against Supabase every time.
       const { error } = await supabase
         .from("posts")
-        .update({ content, updated_at: new Date() })
+        .update({ body: content, updated_at: new Date() })
         .eq("id", postId);
 
       if (error) throw error;
@@ -531,9 +621,10 @@ export async function updateComment(commentId: string, content: string): Promise
 
   if (supabase) {
     try {
+      // Same fix as updatePost -- comments' actual text column is `body`.
       const { error } = await supabase
         .from("comments")
-        .update({ content, updated_at: new Date() })
+        .update({ body: content, updated_at: new Date() })
         .eq("id", commentId);
 
       if (error) throw error;
@@ -553,12 +644,38 @@ export async function updateComment(commentId: string, content: string): Promise
 }
 
 // Delete comment. Same fix as deletePost: verify a row was actually
-// removed (RLS silently matches zero rows rather than erroring) and always
-// also clean up any localStorage copy instead of returning early.
+// removed/changed (RLS silently matches zero rows rather than erroring)
+// and always also clean up any localStorage copy instead of returning
+// early.
+//
+// A comment with live replies underneath it is soft-deleted instead of
+// hard-deleted (migration 087's parent_comment_id/root_comment_id FKs
+// are ON DELETE SET NULL, not CASCADE, specifically so a hard delete here
+// never silently orphans/vaporizes those replies) -- the UI renders
+// "This comment has been removed." for a deletedAt row while its replies
+// keep rendering normally. A leaf comment (no replies) keeps today's
+// hard-delete behavior unchanged.
 export async function deleteComment(commentId: string): Promise<void> {
   if (typeof window === "undefined") return;
 
   if (supabase && UUID_RE.test(commentId)) {
+    const { data: children } = await supabase
+      .from("comments")
+      .select("id")
+      .eq("parent_comment_id", commentId)
+      .limit(1);
+
+    if (children && children.length > 0) {
+      const ok = await softDeleteSupabaseComment(commentId);
+      if (!ok) {
+        throw new Error("Comment not removed -- you may not have permission to remove this comment.");
+      }
+      // Soft-deleted comments stay in place (with replies intact), so
+      // there's no localStorage/deleted-tracking cleanup to do -- return
+      // here rather than falling into the hard-delete cleanup below.
+      return;
+    }
+
     const { data: deletedRows, error } = await supabase
       .from("comments")
       .delete()

@@ -204,7 +204,11 @@ this split: `Profile` (private), `CommunityProfile` (everything
 - **Protected routes**: `app/app/layout.tsx` redirects to `/auth` if
   `getSession()` doesn't resolve to a signed-in user. This is a
   client-side redirect, not middleware — the underlying data is still
-  protected by RLS regardless of whether this redirect fires.
+  protected by RLS regardless of whether this redirect fires. The redirect
+  appends `?next=<original path>` so sign-in can return the visitor to
+  exactly where they were headed (e.g. a newsletter link into a specific
+  post) instead of always landing on `/app` — see
+  [Newsletter deep-links and threaded comments](#newsletter-deep-links-and-threaded-comments).
 - **Admin access**: two independent layers. (1) Client-side: admin pages
   check `session.type === "admin"` before rendering. (2) Server/data-side:
   RLS policies using `is_profile_admin(auth.uid())` (a dedicated,
@@ -238,6 +242,80 @@ Every admin-only API route uses `requireAdmin()`. Admin pages themselves
 are also protected at the RLS layer for any direct Supabase queries they
 issue from the client (e.g. `profiles_admin_select`), so admin data access
 is not solely dependent on the client-side page guard.
+
+## Newsletter deep-links and threaded comments
+
+- **Deep-link route**: `app/app/spaces/[id]/posts/[postId]/page.tsx` — a
+  permalink for any post (not just Question of the Week), reusing the
+  space's own UUID from the route. On load it: requires a session
+  (redirecting through `/auth?next=` if signed out, see above); checks
+  `space_memberships` directly (RLS on `posts`/`comments` is intentionally
+  **not** space-scoped — migration 075 — so this app-level check is the
+  actual enforcement for "must be a member of this space to view/respond");
+  resolves the post via `getPostById()`/`getSupabasePostById()`, 404-ing on
+  a missing or moderator-deleted post rather than exposing it.
+- **`?next=` validation**: `lib/utils/safe-redirect.ts` `getSafeNextPath()`
+  only accepts a path-absolute, same-origin string (rejects
+  `//host`, absolute URLs, embedded schemes) — applied everywhere a `next`
+  value is consumed (`app/auth/page.tsx`, `app/auth/callback/route.ts`,
+  `app/onboarding/page.tsx`). A brand-new signup stashes the validated
+  target across the onboarding flow via `lib/utils/pending-redirect.ts`
+  (`sessionStorage`, mirrors the existing invite-code-preservation pattern
+  in `lib/utils/invite-code.ts`), since signup always lands on `/onboarding`
+  first regardless of `next`.
+- **Threaded comments**: `comments.parent_comment_id`/`root_comment_id`
+  (migration 087) support reply-to-a-comment and reply-to-a-reply while
+  capping *visual* nesting at 2 levels — `root_comment_id` is the top-level
+  ancestor of a whole thread, computed application-side at insert
+  (`createSupabaseReply()`), so every comment in a thread (however deep its
+  actual `parent_comment_id` chain) groups and renders at a single reply
+  indent level (`lib/data/posts.ts` `groupCommentsIntoThreads()`). A
+  comment with live replies is soft-deleted (`deleted_at` set, body
+  cleared) instead of hard-deleted, rendering "This comment has been
+  removed." while its replies stay intact; a childless comment still
+  hard-deletes as before. Migration 088 added the DB-enforced check that a
+  reply's `parent_comment_id` belongs to the same post, plus an admin
+  UPDATE policy needed for moderator soft-deletes (the existing
+  `comments_admin_delete` policy, migration 052, only ever covered hard
+  deletes).
+- **Reply notifications**: `comments_notify_new_reply` trigger (migration
+  091) → `pg_net` → `/api/webhooks/new-comment-reply`, the same
+  fire-and-forget trigger→webhook→email shape as `notify_new_post`
+  (054) and the connections notification triggers (077, 082). Notifies the
+  direct reply target and, if different, the thread's root author — deduped
+  against each other and against `comment_notification_log` — respecting
+  the existing `profiles.notification_frequency` preference (no second
+  preference system was added). Never notifies on a self-reply.
+- **Newsletter segment generator**: `app/app/admin/newsletter/page.tsx`
+  (admin-gated client page) + `app/api/admin/newsletter/questions/route.ts`
+  (`requireAdmin()`-gated, lists `newsletter_eligible` questions from
+  `space_weekly_prompts`, migration 089). Pure generation logic —
+  `buildQuestionUrl()`, `renderQuestionHtml()`/`renderQuestionPlainText()`,
+  and combined-block variants — lives in `lib/newsletter/generate.ts`
+  (framework/Supabase-free, unit-tested), producing inline-CSS,
+  no-JS/no-`<style>` HTML and a plain-text alternative for copy-paste into
+  wherever the newsletter is actually sent from; this app does not send
+  newsletters itself.
+- **Newsletter tracking**: `newsletter_events` (migration 090, insert-only
+  RLS for both `anon` and `authenticated` — a signed-out arrival needs to
+  log its own "viewed" event before the `/auth` redirect fires — but no
+  content/PII column exists on the table at all) records
+  `newsletter_question_viewed`/`question_response_started`/
+  `question_response_submitted`/`question_reply_started`/
+  `question_reply_submitted` via `lib/analytics/events.ts`
+  `trackNewsletterEvent()`, fired from the deep-link page. Admin summary
+  (`getNewsletterQuestionStats()`, `lib/admin/analytics.ts`, backed by
+  `app/api/admin/newsletter/stats/route.ts` since the events table has no
+  member-facing SELECT policy) counts real `comments` rows for
+  responses/replies rather than trusting event counts for that part, since
+  events can be missed.
+- **`space_weekly_prompts` scheduling additions** (migration 089): `status`
+  (`scheduled`/`active`/`archived`), `post_id` (a real FK back to the post
+  the weekly-prompts cron created — previously only derivable by
+  string-parsing `posts.prompt_id`), `newsletter_eligible`,
+  `newsletter_display_order`. `app/api/cron/weekly-prompts/route.ts` sets
+  these alongside its existing `pinned`/unpin bookkeeping; no new
+  scheduling logic was added.
 
 ## Demo and preview architecture
 

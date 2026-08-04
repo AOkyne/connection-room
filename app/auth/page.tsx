@@ -16,6 +16,8 @@ import {
 } from "@/lib/auth/fallback";
 import { supabase } from "@/lib/supabase/client";
 import { storeInviteCodeLocally } from "@/lib/data/invites";
+import { getSafeNextPath } from "@/lib/utils/safe-redirect";
+import { storePendingRedirect } from "@/lib/utils/pending-redirect";
 import Link from "next/link";
 
 function BetaAuthContent() {
@@ -36,6 +38,21 @@ function BetaAuthContent() {
       storeInviteCodeLocally(inviteCode);
     }
   }, [searchParams]);
+
+  // Validated deep-link return target (e.g. a newsletter link into a
+  // specific post) -- re-validated here even though app/app/layout.tsx
+  // already only ever sends a same-origin path, since this URL param is
+  // just as reachable by anyone crafting their own link directly to
+  // /auth?next=...
+  const safeNext = getSafeNextPath(searchParams?.get("next"));
+
+  // Signup always lands on /onboarding regardless of `next` (existing
+  // behavior, unchanged) -- but stash the validated target now so
+  // onboarding's own completion redirect (app/onboarding/page.tsx) can
+  // send the member on to it afterward instead of hardcoding /app.
+  useEffect(() => {
+    if (safeNext) storePendingRedirect(safeNext);
+  }, [safeNext]);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,7 +146,7 @@ function BetaAuthContent() {
         const result = await signInWithPassword(email, password);
         if (result.success) {
           setTimeout(() => {
-            router.push("/app");
+            router.push(safeNext || "/app");
           }, 500);
         } else {
           // Supabase failed, try fallback immediately
@@ -143,7 +160,7 @@ function BetaAuthContent() {
             setUsingFallback(true);
             setError("✓ Logged in - Using fallback mode (Supabase temporarily unavailable)");
             setTimeout(() => {
-              router.push("/app");
+              router.push(safeNext || "/app");
             }, 1500);
           } else {
             // Show Supabase error only if fallback also fails

@@ -100,6 +100,22 @@ gated behind `feature_async_connections_enabled`. See
 [`docs/ASYNC_CONNECTIONS.md`](docs/ASYNC_CONNECTIONS.md) for the full
 design.
 
+## Newsletter deep-links and threaded comments
+
+Direct, shareable, permission-gated URLs into any post (`/app/spaces/[id]/posts/[postId]`), with a validated
+`?next=` redirect so a signed-out newsletter click returns to the exact question after sign-in rather than the
+dashboard. Comments gained two-level reply threading (`parent_comment_id`/`root_comment_id`, migration 087) with
+soft-delete placeholders for removed comments that still have live replies, plus a moderator RLS update policy
+(088) that fixes a pre-existing no-op: admins previously couldn't actually remove another member's comment via
+the moderation page (only `comments_admin_delete` existed; no admin UPDATE policy did). New reply-notification
+emails follow the established trigger → `pg_net` → webhook pattern (`comment_notification_log`, migration 091).
+`space_weekly_prompts` gained minimal scheduling/newsletter metadata (`status`, `post_id`, `newsletter_eligible`,
+`newsletter_display_order`, migration 089), and a new admin tool
+(`/app/admin/newsletter`) generates copy-paste email-safe HTML and plain-text newsletter segments per question —
+not a sending platform, just a generator. A new `newsletter_events` table (090, insert-only RLS, no content
+column) tracks newsletter-arrival/response/reply events for a small per-question performance summary in that same
+admin page.
+
 ## This documentation refresh
 
 Rewrote `README.md`, `ARCHITECTURE.md`, and `DATABASE_SCHEMA.md`; rewrote

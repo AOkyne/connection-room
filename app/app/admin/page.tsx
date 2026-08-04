@@ -233,6 +233,11 @@ export default function AdminPage() {
             📣 Broadcast Email
           </Button>
         </Link>
+        <Link href="/app/admin/newsletter">
+          <Button variant="outline" size="sm">
+            📰 Newsletter Segments
+          </Button>
+        </Link>
         <Link href="/app/admin/email-history">
           <Button variant="outline" size="sm">
             📜 Email History

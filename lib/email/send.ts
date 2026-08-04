@@ -15,6 +15,7 @@ export type EmailCategory =
   | "drip_incomplete_onboarding"
   | "digest"
   | "post_notification"
+  | "comment_reply"
   | "connection_invite"
   | "connection_lifecycle"
   | "broadcast"
@@ -149,6 +150,29 @@ export async function sendPostNotificationEmail(options: {
       "Manage how often you hear about new posts anytime from your profile settings.",
     ],
     appUrl: options.spaceUrl,
+  });
+}
+
+// Sent when someone replies directly to a member's comment, or replies
+// within a thread that member started (migration 091's trigger + the
+// new-comment-reply webhook route decide which; this just renders
+// whichever single email results). replyUrl points at the exact post,
+// anchored to the new reply (?comment=<id>), so the click lands in
+// context rather than just at the post.
+export async function sendCommentReplyNotificationEmail(options: {
+  to: string;
+  replierName: string;
+  spaceName: string;
+  replyUrl: string;
+}): Promise<void> {
+  await sendBrandedEmail({
+    to: options.to,
+    subject: `${options.replierName} replied to your comment in ${options.spaceName}`,
+    paragraphs: [
+      `${options.replierName} replied to your comment in ${options.spaceName}.`,
+      "Manage how often you hear about replies anytime from your profile settings.",
+    ],
+    appUrl: options.replyUrl,
   });
 }
 

@@ -171,6 +171,8 @@ USING (user_id = auth.uid());
 
 ### 5. **public.comments**
 
+> **Note (2026-08, migrations 087-088):** the actual applied policies differ from the design below in two ways this document was never updated for. First, `comments` SELECT is **not** space-scoped at all in production (migration 075 intentionally made it `TO authenticated USING (true)` — a known, separately-tracked gap, not fixed by this feature; see [`DATABASE_SCHEMA.md`](DATABASE_SCHEMA.md#known-schema-risks)). Second, the real INSERT policy additionally validates a new `parent_comment_id` column (reply threading) references a real, non-deleted comment on the same post, and a new admin `UPDATE` policy (`comments_admin_update`, using `is_profile_admin(auth.uid())`) exists for moderator soft-deletes. See [`ARCHITECTURE.md`](ARCHITECTURE.md#newsletter-deep-links-and-threaded-comments) for the current design and `supabase/migrations/087_comment_threading.sql`/`088_comment_rls_threading_and_moderation.sql` for the actual applied SQL.
+
 **Purpose**: Comments on posts
 
 **Access Rules**:

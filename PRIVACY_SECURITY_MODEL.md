@@ -296,6 +296,18 @@ part of the original leak). `articles` is the one table in this schema with
 a genuine public-read policy, by design (published writing is meant to be
 public).
 
+`newsletter_events` (migration 090) is a deliberate, narrow exception:
+`anon` can `INSERT` (never `SELECT`) so a signed-out newsletter click can
+log its own arrival event before the app-level redirect to `/auth` fires.
+Rows carry no content/PII — ids, an event-type enum, and booleans only —
+and the `WITH CHECK` constrains `user_id` to `NULL` or the caller's own
+`auth.uid()`, so an anonymous caller can never attribute an event to a
+real member's account. Post/comment visibility on a newsletter deep link
+is enforced at the application layer (an explicit `space_memberships`
+check in `app/app/spaces/[id]/posts/[postId]/page.tsx`), not by `anon`
+gaining any new read access — RLS on `posts`/`comments` is unchanged by
+this feature.
+
 ## Demo isolation
 
 See [`ARCHITECTURE.md`](ARCHITECTURE.md#demo-and-preview-architecture) for

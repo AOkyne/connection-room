@@ -1,5 +1,42 @@
 import { supabase } from "@/lib/supabase/client";
 
+export interface NewsletterQuestionStats {
+  visits: number;
+  uniqueSignedInVisitors: number;
+  responses: number;
+  replies: number;
+  conversionRate: number;
+}
+
+// newsletter_events (migration 090) has no member-facing SELECT policy,
+// so unlike every other function in this file, this one can't query
+// Supabase directly with the anon/authenticated client -- it goes
+// through the service-role, admin-gated /api/admin/newsletter/stats
+// route instead (same pattern as lib/admin/broadcast-drafts.ts).
+export async function getNewsletterQuestionStats(
+  questionPostId: string,
+  campaign?: string
+): Promise<NewsletterQuestionStats | null> {
+  if (!supabase) return null;
+  try {
+    const { data: authData } = await supabase.auth.getSession();
+    const token = authData.session?.access_token;
+    if (!token) return null;
+
+    const params = new URLSearchParams({ questionPostId });
+    if (campaign) params.set("campaign", campaign);
+
+    const response = await fetch(`/api/admin/newsletter/stats?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (err) {
+    console.error("Error fetching newsletter question stats:", err);
+    return null;
+  }
+}
+
 export interface MemberStats {
   totalMembers: number;
   newThisWeek: number;

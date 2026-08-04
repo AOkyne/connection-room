@@ -123,23 +123,40 @@ export async function GET(request: NextRequest) {
       // week's before posting this week's, so exactly one stays
       // prominent per space. The previous post itself is untouched
       // otherwise (still visible in normal post history, still
-      // commentable).
+      // commentable). space_weekly_prompts.status (migration 089)
+      // mirrors this same "exactly one active per space" rule, so the
+      // now-superseded week's row also flips to archived here.
       await supabase.from("posts").update({ pinned: false }).eq("space_id", spaceId).eq("pinned", true);
+      await supabase.from("space_weekly_prompts").update({ status: "archived" }).eq("space_id", spaceId).eq("status", "active");
 
-      const { error: insertError } = await supabase.from("posts").insert({
-        user_id: adminProfile.user_id,
-        space_id: spaceId,
-        author_name: adminProfile.display_name || "Trevor James",
-        title: "Question of the Week",
-        body: promptRow.prompt_text,
-        prompt_id: `weekly:${spaceId}:${nextWeek}`,
-        pinned: true,
-      });
+      const { data: insertedPost, error: insertError } = await supabase
+        .from("posts")
+        .insert({
+          user_id: adminProfile.user_id,
+          space_id: spaceId,
+          author_name: adminProfile.display_name || "Trevor James",
+          title: "Question of the Week",
+          body: promptRow.prompt_text,
+          prompt_id: `weekly:${spaceId}:${nextWeek}`,
+          pinned: true,
+        })
+        .select("id")
+        .single();
 
-      if (insertError) {
-        results.push({ spaceId, status: "post-failed: " + insertError.message, week: nextWeek });
+      if (insertError || !insertedPost) {
+        results.push({ spaceId, status: "post-failed: " + (insertError?.message || "unknown error"), week: nextWeek });
         continue;
       }
+
+      // post_id links this week's row back to the post the generator
+      // (app/app/admin/newsletter) reads from -- without it there'd be
+      // no way to resolve "this week's question" to a real post/URL
+      // except by re-deriving the prompt_id string convention.
+      await supabase
+        .from("space_weekly_prompts")
+        .update({ status: "active", post_id: insertedPost.id })
+        .eq("space_id", spaceId)
+        .eq("week_number", nextWeek);
 
       await supabase.from("space_prompt_schedule").upsert({
         space_id: spaceId,

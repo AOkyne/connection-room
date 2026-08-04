@@ -89,7 +89,24 @@ set.
 
 ### `comments`
 Comments on a post. Same `body`-not-`content` note as `posts` applies.
-Same author-denormalization pattern. Read/write rules mirror `posts`.
+Same author-denormalization pattern. Read/write rules mirror `posts`, plus
+(migration 088) an admin `UPDATE` policy for moderator soft-deletes.
+Threading (migration 087): `parent_comment_id` (the comment directly
+replied to; `NULL` = top-level, both `ON DELETE SET NULL` not `CASCADE` so
+a removed comment never silently drops its own replies) and
+`root_comment_id` (the top-level ancestor of the whole thread, `NULL` for
+top-level comments — used to group a thread for rendering, capping visual
+nesting at 2 levels regardless of actual reply depth). `deleted_at` +
+`updated_at`: a comment with live replies is soft-deleted (`deleted_at`
+set, `body` cleared) instead of hard-deleted so those replies survive; a
+childless comment still hard-deletes as before. Indexes:
+`comments_parent_comment_id_idx`, `comments_root_comment_id_idx`,
+`comments_post_id_created_at_idx`.
+
+### `comment_notification_log`
+Dedup/bookkeeping for reply-notification emails (migration 091) — mirrors
+`connection_notification_log`'s shape exactly. Unique on `(comment_id,
+notified_user_id)`. Service-role only, no member-facing RLS policy.
 
 ### `reactions`
 Lightweight reactions on a post or comment. Primary identifier: `id`;
@@ -108,6 +125,42 @@ meaning a concern filed by one member is only ever visible in that same
 browser's local storage, not to an admin on a different device. This is a
 real, currently-live functional gap, not a documentation error; see
 "Known schema risks."
+
+## Question of the Week and newsletter tracking
+
+### `space_weekly_prompts`
+The 16-week "Question of the Week" script per space (migration 073),
+service-role only. `week_number` (1-16, cycles back to 1 once exhausted
+unless an admin has added prompts beyond where a space left off).
+Newsletter/scheduling metadata added in migration 089: `status`
+(`scheduled`/`active`/`archived` — at most one `active` row per space,
+kept in sync by `app/api/cron/weekly-prompts/route.ts` alongside its
+existing `posts.pinned` bookkeeping), `week_start_date`/`week_end_date`,
+`newsletter_eligible`, `newsletter_display_order`, and `post_id` (a real
+FK to the `posts` row the cron created for that week — previously only
+derivable by parsing the `posts.prompt_id` string convention
+`weekly:{spaceId}:{week}`; `post_id` is backfilled from that same
+convention in the same migration).
+
+### `space_prompt_schedule`
+One row per space tracking `next_week`/`last_posted_at` for the cron
+above. Service-role only.
+
+### `newsletter_events`
+Minimal internal event log for newsletter deep-link tracking (migration
+090) — `event_type` (`newsletter_question_viewed`,
+`question_response_started`/`submitted`, `question_reply_started`/
+`submitted`), `question_post_id`, `space_id`, `user_id` (nullable — `NULL`
+means a signed-out arrival), `campaign`, `source`,
+`signed_in_on_arrival`, `is_reply`. **No content/PII column exists on this
+table at all** — "never store response content in analytics" is enforced
+by the schema, not just convention. RLS: `INSERT` allowed for both `anon`
+and `authenticated` (a signed-out newsletter click needs to log its own
+viewed event *before* the app-level redirect to `/auth` fires), each
+constrained to `user_id IS NULL OR user_id = auth.uid()` so no caller can
+attribute an event to someone else. No `SELECT` policy for regular
+users — the admin summary reads via the service-role key in
+`app/api/admin/newsletter/stats/route.ts`.
 
 ## Connections
 
@@ -390,6 +443,18 @@ documentation simplification — see "Known schema risks."
   previously localStorage-only). See
   [`docs/ASYNC_CONNECTIONS.md`](docs/ASYNC_CONNECTIONS.md) for the full
   design and each migration's own rollback notes.
+
+- **`087_comment_threading.sql` / `088_comment_rls_threading_and_moderation.sql`
+  / `089_qotw_metadata.sql` / `090_newsletter_analytics_events.sql` /
+  `091_comment_reply_notifications.sql`** added newsletter deep-links and
+  threaded comments: reply threading + soft-delete on `comments`; an RLS
+  fix for a previously-broken moderator soft-delete path (the existing
+  `comments_admin_delete`, migration 052, only ever covered hard deletes);
+  minimal newsletter-scheduling metadata on `space_weekly_prompts`; a new
+  content-free `newsletter_events` table; and a new
+  `comment_notification_log` + trigger + webhook following the exact
+  shape of 054/077/082. See "Newsletter deep-links and threaded comments"
+  in [`ARCHITECTURE.md`](ARCHITECTURE.md#newsletter-deep-links-and-threaded-comments).
 
 ## Known schema risks
 

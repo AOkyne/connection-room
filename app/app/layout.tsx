@@ -86,7 +86,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
       // Fall back to full async session check (for Supabase)
       const s = await getSession();
       if (!s) {
-        router.push("/auth");
+        // Preserve the page the visitor was actually trying to reach
+        // (e.g. a newsletter deep link into a specific post) so sign-in
+        // can return them there instead of dropping them on /app --
+        // validated on the way back out by getSafeNextPath in
+        // app/auth/page.tsx, never trusted blindly.
+        const target = typeof window !== "undefined" ? window.location.pathname + window.location.search : "";
+        router.push(target && target !== "/app" ? `/auth?next=${encodeURIComponent(target)}` : "/auth");
         setMounted(true);
         return;
       }

@@ -10,6 +10,8 @@ import {
   type Profile,
 } from "@/lib/data/profiles";
 import { uploadProfilePhoto } from "@/lib/utils/storage";
+import { getAndClearPendingRedirect, storePendingRedirect } from "@/lib/utils/pending-redirect";
+import { getSafeNextPath } from "@/lib/utils/safe-redirect";
 import { isAsyncConnectionsEnabled } from "@/lib/data/featureFlags";
 import { lastProfileSaveError } from "@/lib/data/supabase-profiles";
 import { appConfig } from "@/lib/config";
@@ -69,6 +71,18 @@ export default function OnboardingPage() {
   // guarantees saves land in the order they were queued.
   const saveChainRef = useRef<Promise<unknown>>(Promise.resolve());
 
+  // Picks up ?next= forwarded by app/auth/callback/route.ts (the OAuth/
+  // magic-link path -- the password-login path already stashes this
+  // itself in app/auth/page.tsx before ever reaching here). Reads
+  // window.location directly rather than useSearchParams to avoid
+  // needing a Suspense boundary around this whole page.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const next = new URLSearchParams(window.location.search).get("next");
+    const safe = getSafeNextPath(next);
+    if (safe) storePendingRedirect(safe);
+  }, []);
+
   useEffect(() => {
     const loadProfile = async () => {
       const p = await getProfile();
@@ -80,7 +94,7 @@ export default function OnboardingPage() {
 
       setProfile(p);
       if (p.completedOnboarding) {
-        router.push("/app");
+        router.push(getAndClearPendingRedirect() || "/app");
         setIsLoading(false);
         return;
       }
@@ -309,7 +323,11 @@ export default function OnboardingPage() {
   };
 
   const handleNavigateToDestination = (destination: string) => {
-    router.push(destination);
+    // A stashed newsletter/deep-link target (app/auth/page.tsx, set
+    // before signup bounced here) takes priority over the default
+    // destination -- e.g. lands a brand-new member on the exact question
+    // they clicked into, instead of the dashboard.
+    router.push(getAndClearPendingRedirect() || destination);
   };
 
   return (

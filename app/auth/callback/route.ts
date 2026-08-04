@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase/client";
+import { getSafeNextPath } from "@/lib/utils/safe-redirect";
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const searchParams = url.searchParams;
   const hashParams = new URLSearchParams(url.hash.substring(1)); // Parse hash fragment
+  // Preserves a deep-link target (e.g. a newsletter link) through the
+  // magic-link/OAuth code-exchange path -- this flow is currently dead
+  // code in the live UI (only email+password is wired up in
+  // app/auth/page.tsx) but kept correct so it doesn't silently regress if
+  // that changes. Same validation as the password-login path.
+  const safeNext = getSafeNextPath(searchParams.get("next"));
 
   const code = searchParams.get("code");
   const error = searchParams.get("error") || hashParams.get("error");
@@ -90,11 +97,13 @@ export async function GET(request: NextRequest) {
 
         // Check if onboarding is complete
         if (existingProfile?.completed_onboarding) {
-          return NextResponse.redirect(new URL("/app", request.url));
+          return NextResponse.redirect(new URL(safeNext || "/app", request.url));
         }
       }
 
-      return NextResponse.redirect(new URL("/onboarding", request.url));
+      return NextResponse.redirect(
+        new URL(safeNext ? `/onboarding?next=${encodeURIComponent(safeNext)}` : "/onboarding", request.url)
+      );
     } catch (err) {
       console.error("Error exchanging code for session:", err);
       return NextResponse.redirect(
