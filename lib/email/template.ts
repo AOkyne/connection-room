@@ -47,6 +47,17 @@ Founder, The Connection Room`;
 // gets the brand accent color.
 export function styleBroadcastBodyHtml(html: string): string {
   return html
+    // The editor's own typed paragraphs (from Enter -> insertParagraph)
+    // come out as plain, unstyled <div>/<p> tags -- previously left
+    // completely unstyled here, so they rendered with NO vertical gap
+    // between them in the preview/sent email even though they looked
+    // like separate paragraphs while typing (contentEditable's own
+    // rendering isn't representative of how bare divs/paragraphs render
+    // once actually placed in the page). This is very likely the main
+    // cause of "formatting looks nothing like what I set": text that
+    // looked like distinct paragraphs while editing collapses together.
+    .replace(/<div(?![^>]*style=)/gi, '<div style="margin:0 0 12px 0;"')
+    .replace(/<p(?![^>]*style=)/gi, '<p style="margin:0 0 12px 0;"')
     .replace(/<h2(?![^>]*style=)/gi, '<h2 style="font-size:22px;font-weight:700;color:#1a0f0a;margin:24px 0 12px;"')
     .replace(/<h3(?![^>]*style=)/gi, '<h3 style="font-size:18px;font-weight:700;color:#1a0f0a;margin:20px 0 10px;"')
     .replace(

@@ -120,6 +120,70 @@ export function BroadcastRichTextEditor({
     handleInput();
   };
 
+  // "formatBlock" (H2/H3/blockquote) is the same notoriously unreliable
+  // execCommand as insertUnorderedList/insertOrderedList (see toggleList
+  // below): passing a bare tag name ("H2") is silently ignored in some
+  // browsers, which only accept the bracketed form ("<h2>") per the
+  // (deprecated but still-implemented) spec. Passing the bracketed form
+  // fixes the common case; the manual-DOM fallback below additionally
+  // covers browsers where even that demonstrably does nothing, mirroring
+  // toggleList's exact "verify it actually changed something, else do it
+  // by hand" approach.
+  const applyFormatBlock = (tag: "h2" | "h3" | "blockquote") => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    editor.focus();
+
+    const beforeHtml = editor.innerHTML;
+    document.execCommand("formatBlock", false, `<${tag}>`);
+
+    if (editor.innerHTML !== beforeHtml) {
+      handleInput();
+      return;
+    }
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) {
+      handleInput();
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    if (!editor.contains(range.commonAncestorContainer)) {
+      handleInput();
+      return;
+    }
+
+    // Find the nearest block-level ancestor within the editor (or the
+    // editor itself, for text with no wrapping block yet) and replace
+    // just that element's tag, preserving its content -- not the whole
+    // editor, so nothing else on the page is touched.
+    let node: Node | null = range.commonAncestorContainer;
+    if (node.nodeType === Node.TEXT_NODE) node = node.parentNode;
+    let blockEl = node as HTMLElement | null;
+    while (blockEl && blockEl !== editor && !["DIV", "P", "H2", "H3", "BLOCKQUOTE", "LI"].includes(blockEl.tagName)) {
+      blockEl = blockEl.parentElement;
+    }
+
+    const newBlock = document.createElement(tag);
+    if (blockEl && blockEl !== editor) {
+      newBlock.innerHTML = blockEl.innerHTML;
+      blockEl.replaceWith(newBlock);
+    } else {
+      // No block wrapper at all (raw text typed directly into the
+      // editor) -- wrap the current selection's contents instead.
+      newBlock.appendChild(range.extractContents());
+      range.insertNode(newBlock);
+    }
+
+    const newRange = document.createRange();
+    newRange.selectNodeContents(newBlock);
+    newRange.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+
+    handleInput();
+  };
+
   // document.execCommand("insertUnorderedList"/"insertOrderedList") is the
   // most notoriously unreliable pair of commands in that (deprecated) API
   // -- Safari in particular has long-standing bugs where it silently
@@ -292,7 +356,12 @@ export function BroadcastRichTextEditor({
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-1 p-2 border border-[#e8ddd2] rounded-t-lg bg-[#f9f7f4]">
+      {/* sticky (not fixed): the app shell's main content area is its own
+          scroll container (app/app/layout.tsx), so "top-0" here sticks
+          the toolbar to the top of THAT scrolling region -- right below
+          the app header -- once it scrolls past, instead of needing a
+          manual pixel offset to dodge the header. */}
+      <div className="flex flex-wrap items-center gap-1 p-2 border border-[#e8ddd2] rounded-t-lg bg-[#f9f7f4] sticky top-0 z-20">
         <button type="button" onMouseDown={preventBlur} onClick={() => applyFormat("undo")} className={BUTTON_CLASS} title="Undo">
           ↺ Undo
         </button>
@@ -311,10 +380,10 @@ export function BroadcastRichTextEditor({
 
         <div className="border-l border-[#d4a348] mx-1 self-stretch" />
 
-        <button type="button" onMouseDown={preventBlur} onClick={() => applyFormat("formatBlock", "H2")} className={BUTTON_CLASS} title="Heading 2">
+        <button type="button" onMouseDown={preventBlur} onClick={() => applyFormatBlock("h2")} className={BUTTON_CLASS} title="Heading 2">
           H2
         </button>
-        <button type="button" onMouseDown={preventBlur} onClick={() => applyFormat("formatBlock", "H3")} className={BUTTON_CLASS} title="Heading 3">
+        <button type="button" onMouseDown={preventBlur} onClick={() => applyFormatBlock("h3")} className={BUTTON_CLASS} title="Heading 3">
           H3
         </button>
 
@@ -338,7 +407,7 @@ export function BroadcastRichTextEditor({
         <button type="button" onMouseDown={preventBlur} onClick={() => toggleList(true)} className={BUTTON_CLASS} title="Numbered List">
           1. List
         </button>
-        <button type="button" onMouseDown={preventBlur} onClick={() => applyFormat("formatBlock", "BLOCKQUOTE")} className={BUTTON_CLASS} title="Quote">
+        <button type="button" onMouseDown={preventBlur} onClick={() => applyFormatBlock("blockquote")} className={BUTTON_CLASS} title="Quote">
           ❝
         </button>
         <button type="button" onMouseDown={preventBlur} onClick={() => applyFormat("insertHorizontalRule")} className={BUTTON_CLASS} title="Divider">
