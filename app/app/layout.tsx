@@ -137,7 +137,19 @@ export default function AppLayout({ children }: AppLayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#fdfbf7] flex flex-col relative overflow-x-hidden">
+    // h-screen (not min-h-screen): this wrapper needs a FIXED height, not
+    // just a minimum, for the "sticky header + independently-scrolling
+    // content pane" layout below to actually work. With min-h-screen, a
+    // page whose content is taller than the viewport made this whole
+    // wrapper grow past 100vh instead of clipping -- so the header's own
+    // sticky and the content pane's overflow-y-auto both silently became
+    // no-ops (nothing here actually had a height smaller than its
+    // content to scroll/stick within), and the real document/<html>
+    // element ended up as the only thing that actually scrolled. Found
+    // while debugging a sticky toolbar in the broadcast composer that
+    // wouldn't stick at all -- same root cause would have affected any
+    // other sticky element added inside this shell.
+    <div className="h-screen bg-[#fdfbf7] flex flex-col relative overflow-x-hidden">
       {/* Warm subtle background texture */}
       <div className="fixed inset-0 pointer-events-none opacity-50 z-0"
         style={{
