@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import { uploadBroadcastImage } from "@/lib/utils/storage";
 import { resizeAndCompressImage } from "@/lib/utils/image";
+import { buildQuestionUrl, renderQuestionHtml } from "@/lib/newsletter/generate";
 
 // The email template's content column is ~496px wide (560px card minus
 // padding) -- an inserted image is capped to fit it. Also used as the
@@ -18,12 +19,21 @@ export interface BroadcastEventOption {
   imageUrl?: string;
 }
 
+export interface BroadcastQuestionOption {
+  id: string;
+  postId: string;
+  spaceId: string;
+  spaceName: string;
+  questionText: string;
+}
+
 interface BroadcastRichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   adminUserId: string;
   events: BroadcastEventOption[];
+  questions: BroadcastQuestionOption[];
   appUrl: string;
 }
 
@@ -51,12 +61,14 @@ export function BroadcastRichTextEditor({
   placeholder = "Write your announcement...",
   adminUserId,
   events,
+  questions,
   appUrl,
 }: BroadcastRichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isInit, setIsInit] = useState(false);
   const [showEventPicker, setShowEventPicker] = useState(false);
+  const [showQuestionPicker, setShowQuestionPicker] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [imageError, setImageError] = useState("");
   // Tracks the last HTML this editor itself produced (via typing or a
@@ -251,6 +263,29 @@ export function BroadcastRichTextEditor({
     );
   };
 
+  // Inserts a real, working Question of the Week block -- same
+  // table-based inline-CSS HTML the standalone generator
+  // (app/app/admin/newsletter) produces, via document.execCommand
+  // insertHTML so it lands as live, rendered DOM in this contentEditable
+  // editor (a working button), not as visible HTML source text the way
+  // pasting the generator's "Copy HTML" output into a rich-text field
+  // would. campaign defaults to the current year-month, editable via the
+  // prompt below since it's just a tracking tag, not shown to recipients.
+  const handleInsertQuestion = (question: BroadcastQuestionOption) => {
+    setShowQuestionPicker(false);
+    const buttonLabel = window.prompt("Button text:", "Join the Conversation");
+    if (!buttonLabel) return;
+    const campaign = window.prompt("Campaign tag (for tracking only, not shown to recipients):", new Date().toISOString().slice(0, 7));
+    if (!campaign) return;
+
+    const url = buildQuestionUrl(question.postId, question.spaceId, campaign, appUrl);
+    const html = renderQuestionHtml(
+      { postId: question.postId, spaceId: question.spaceId, spaceName: question.spaceName, questionText: question.questionText, buttonLabel },
+      url
+    );
+    insertHtml(html);
+  };
+
   const handleInsertMergeTag = () => {
     insertHtml("{{firstName}}");
   };
@@ -374,6 +409,40 @@ export function BroadcastRichTextEditor({
         <button type="button" onMouseDown={preventBlur} onClick={handleInsertMergeTag} className={BUTTON_CLASS} title="Insert the recipient's first name">
           {"{}"} Merge
         </button>
+
+        <div className="border-l border-[#d4a348] mx-1 self-stretch" />
+
+        <div className="relative">
+          <button
+            type="button"
+            onMouseDown={preventBlur}
+            onClick={() => setShowQuestionPicker((v) => !v)}
+            className={BUTTON_CLASS}
+            title="Insert a Question of the Week"
+          >
+            📰 Question
+          </button>
+          {showQuestionPicker && (
+            <div className="absolute z-10 top-full left-0 mt-1 w-72 max-h-56 overflow-y-auto bg-white border border-[#e8ddd2] rounded-lg shadow-lg">
+              {questions.length === 0 ? (
+                <p className="p-3 text-xs text-[#a0704a]">No newsletter-eligible questions found</p>
+              ) : (
+                questions.map((question) => (
+                  <button
+                    key={question.id}
+                    type="button"
+                    onMouseDown={preventBlur}
+                    onClick={() => handleInsertQuestion(question)}
+                    className="w-full text-left p-2 px-3 hover:bg-[#f9f7f4] text-sm text-[#1a0f0a] border-b border-[#f3ede5] last:border-0"
+                  >
+                    <div className="text-xs font-bold uppercase tracking-wide text-[#8b6f47]">{question.spaceName}</div>
+                    <div className="font-medium">{question.questionText}</div>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {imageError && <p className="text-xs text-red-600">{imageError}</p>}

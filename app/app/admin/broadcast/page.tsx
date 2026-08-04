@@ -6,6 +6,7 @@ import { getSession } from "@/lib/session";
 import { getAllProfilesLite, type Profile } from "@/lib/data/profiles";
 import { sendBroadcastEmail } from "@/lib/admin/broadcast";
 import { getAdminEvents } from "@/lib/admin/events";
+import { getAdminNewsletterQuestions } from "@/lib/admin/newsletter";
 import {
   listBroadcastDrafts,
   createBroadcastDraft,
@@ -19,7 +20,7 @@ import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import { BroadcastRichTextEditor, type BroadcastEventOption } from "@/components/BroadcastRichTextEditor";
+import { BroadcastRichTextEditor, type BroadcastEventOption, type BroadcastQuestionOption } from "@/components/BroadcastRichTextEditor";
 import { useToast } from "@/lib/hooks/useToast";
 import { ToastContainer } from "@/components/Toast";
 
@@ -34,6 +35,7 @@ export default function AdminBroadcastPage() {
   const [members, setMembers] = useState<Profile[]>([]);
   const [adminUserId, setAdminUserId] = useState("");
   const [events, setEvents] = useState<BroadcastEventOption[]>([]);
+  const [questions, setQuestions] = useState<BroadcastQuestionOption[]>([]);
   const [recipientMode, setRecipientMode] = useState<RecipientMode>("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [memberSearch, setMemberSearch] = useState("");
@@ -57,9 +59,10 @@ export default function AdminBroadcastPage() {
 
       setAdminUserId(session.supabaseUserId || "");
 
-      const [profiles, adminEvents, draftsResult] = await Promise.all([
+      const [profiles, adminEvents, adminQuestions, draftsResult] = await Promise.all([
         getAllProfilesLite(),
         getAdminEvents(),
+        getAdminNewsletterQuestions(),
         listBroadcastDrafts(),
       ]);
       // Broadcasts should never go to seeded demo profiles -- they have no
@@ -69,6 +72,9 @@ export default function AdminBroadcastPage() {
         adminEvents
           .filter((e) => e.status === "published")
           .map((e) => ({ id: e.id, title: e.title, startAt: e.startAt, locationName: e.locationName, imageUrl: e.imageUrl }))
+      );
+      setQuestions(
+        adminQuestions.map((q) => ({ id: q.id, postId: q.postId, spaceId: q.spaceId, spaceName: q.spaceName, questionText: q.questionText }))
       );
       if (draftsResult.error) {
         console.error("Error loading broadcast drafts:", draftsResult.error);
@@ -359,6 +365,7 @@ export default function AdminBroadcastPage() {
             placeholder="Write your announcement..."
             adminUserId={adminUserId}
             events={events}
+            questions={questions}
             appUrl={APP_URL}
           />
         </div>
