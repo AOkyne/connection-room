@@ -344,9 +344,13 @@ export default function AdminPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a0f0a] placeholder-[#a0704a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
           />
-          <div className="overflow-x-auto">
+          {/* Capped to roughly 20 rows tall -- this list has no pagination
+              and can run into the hundreds of members, which made the
+              whole admin page unusably long. The header stays pinned
+              while the body scrolls so column labels don't disappear. */}
+          <div className="overflow-x-auto overflow-y-auto max-h-[720px]">
             <table className="w-full text-sm">
-              <thead>
+              <thead className="sticky top-0 bg-[#fffbf7] z-10">
                 <tr className="border-b border-[#e8e3db]">
                   <th className="text-left py-2 px-2 text-[#a0704a] font-medium">Name</th>
                   <th className="text-left py-2 px-2 text-[#a0704a] font-medium">Email</th>
