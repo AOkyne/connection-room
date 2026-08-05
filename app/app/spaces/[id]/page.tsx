@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getSpace, trackSpaceVisit } from "@/lib/data/spaces";
-import { getPosts, createPost, addPostReaction, getComments, createComment, getUserReactionForPost, updatePost, deletePost, updateComment, deleteComment, type Post, type Comment } from "@/lib/data/posts";
+import { getPosts, createPost, addPostReaction, getComments, createComment, getUserReactionForPost, updatePost, deletePost, updateComment, deleteComment, groupCommentsIntoThreads, type Post, type Comment } from "@/lib/data/posts";
 import { getProfile, getProfilePhoto, getPublicProfilesBySpace } from "@/lib/data/profiles";
 import { getSession } from "@/lib/session";
 import { appConfig } from "@/lib/config";
@@ -640,9 +640,24 @@ export default function SpaceDetailPage() {
               {/* Comments Section */}
               {commentsVisible && (
                 <div className={`mt-4 pt-4 space-y-4 ${pinned ? "border-t border-[#5a4030]" : "border-t border-[#e8ddd2]"}`}>
-                  {/* Existing Comments */}
-                  {(comments[post.id] || []).map((comment: Comment) => (
-                    <div key={comment.id} className={`p-3 rounded-lg ${pinned ? "bg-[#4d3826]" : "bg-[#f3ede5]"}`}>
+                  {/* Existing Comments -- grouped into threads (see
+                      lib/data/posts.ts groupCommentsIntoThreads) so a
+                      reply renders visibly indented under the comment it
+                      belongs to, instead of looking like an unrelated
+                      top-level comment. */}
+                  {groupCommentsIntoThreads(comments[post.id] || []).flatMap((thread) => [
+                    { ...thread.topLevel, isReply: false },
+                    ...thread.replies.map((r) => ({ ...r, isReply: true })),
+                  ]).map((comment) => {
+                    const isRemoved = !!comment.deletedAt;
+                    return (
+                    <div
+                      key={comment.id}
+                      className={`p-3 rounded-lg ${comment.isReply ? "ml-6 sm:ml-8" : ""} ${pinned ? "bg-[#4d3826]" : "bg-[#f3ede5]"}`}
+                    >
+                      {isRemoved ? (
+                        <p className={`text-sm italic ${pinned ? "text-[#c9b8a2]" : "text-[#a0704a]"}`}>This comment has been removed.</p>
+                      ) : (
                       <div className="flex items-start justify-between gap-2">
                         <button
                           onClick={() => {
@@ -656,6 +671,9 @@ export default function SpaceDetailPage() {
                             <p className={`text-sm font-medium ${pinned ? "text-[#fdf6e8]" : "text-[#1a0f0a]"}`}>
                               {comment.authorName} {comment.authorPronouns && `(${comment.authorPronouns})`}
                             </p>
+                            {comment.isReply && comment.parentCommentId !== comment.rootCommentId && (
+                              <p className={`text-xs ${pinned ? "text-[#c9b8a2]" : "text-[#a0704a]"}`}>replying in this thread</p>
+                            )}
                             <p className={`text-sm mt-1 ${pinned ? "text-[#f3e6d4]" : "text-[#1a0f0a]"}`}>{comment.content}</p>
                           </div>
                         </button>
@@ -689,6 +707,7 @@ export default function SpaceDetailPage() {
                           )}
                         </div>
                       </div>
+                      )}
                       {editingCommentId === comment.id && (
                         <div className="mt-3 space-y-2">
                           <textarea
@@ -723,7 +742,8 @@ export default function SpaceDetailPage() {
                         </div>
                       )}
                     </div>
-                  ))}
+                    );
+                  })}
 
                   {/* Commenting Guide */}
                   {!pinned && (

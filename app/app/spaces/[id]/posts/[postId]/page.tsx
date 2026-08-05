@@ -86,10 +86,22 @@ export default function PostDetailPage() {
         return;
       }
 
-      const isMember = await hasJoinedSpace(session.supabaseUserId || session.id, spaceId);
-      if (!isMember) {
-        setState({ status: "not-a-member" });
-        return;
+      // Admin sessions (both the demo and real "Admin Account" login
+      // paths -- createAdminSession() in lib/session.ts) never carry a
+      // real Supabase user id, only a display name and a synthetic
+      // session-<timestamp> id -- so hasJoinedSpace() below could never
+      // match a real space_memberships row for an admin, incorrectly
+      // blocking every admin from every space regardless of actual
+      // membership. Admins should see any space's content anyway
+      // (matches moderation access elsewhere), so this check is
+      // meaningless for them -- skip it entirely rather than trying to
+      // make it "work" for an id that was never real.
+      if (session.type !== "admin") {
+        const isMember = await hasJoinedSpace(session.supabaseUserId || session.id, spaceId);
+        if (!isMember) {
+          setState({ status: "not-a-member" });
+          return;
+        }
       }
 
       const foundPost = await getPostById(postId);
