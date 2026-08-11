@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getSession, clearSession, type AppSession } from "@/lib/session";
+import { getSession, clearSession, hasLiveSupabaseSession, type AppSession } from "@/lib/session";
 import { getProfile, type Profile } from "@/lib/data/profiles";
 import { supabase } from "@/lib/supabase/client";
 import { recordAppVisit, getTotalNewPostCount } from "@/lib/data/spaces";
@@ -63,6 +63,26 @@ export default function AppLayout({ children }: AppLayoutProps) {
       }
     };
 
+    // A cached "member" session with a real supabaseUserId claims to be a
+    // live Supabase-backed identity -- but the cache itself never expires
+    // on its own, so it can keep showing someone as "signed in" long
+    // after their actual Supabase auth token has gone stale (expired
+    // refresh token, cleared cookies, etc). When that happens, every real
+    // data request silently runs as an anonymous visitor, gets blocked by
+    // RLS, and the app quietly substitutes empty/demo content -- which
+    // reads exactly like "everything I wrote is gone," even though
+    // nothing was actually lost. Runs in the background so it doesn't
+    // block the fast cached-session render; forces a real re-sign-in
+    // (with a clear reason) the moment it finds the cache is lying.
+    const validateLiveSession = async (s: AppSession) => {
+      if (s.type !== "member" || !s.supabaseUserId) return;
+      const live = await hasLiveSupabaseSession();
+      if (!live) {
+        await clearSession();
+        router.push("/auth?sessionExpired=1");
+      }
+    };
+
     const checkSession = async () => {
       // Check localStorage first for demo sessions (faster, avoids async delays)
       if (typeof window !== "undefined") {
@@ -76,6 +96,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             // Don't block the fast render on it, but still enforce the
             // same member checks the async path runs.
             runMemberChecks(s).catch(() => {});
+            validateLiveSession(s).catch(() => {});
             return;
           } catch (e) {
             // Continue to async check if parse fails

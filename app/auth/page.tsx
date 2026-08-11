@@ -54,6 +54,20 @@ function BetaAuthContent() {
     if (safeNext) storePendingRedirect(safeNext);
   }, [safeNext]);
 
+  // Sent here by app/app/layout.tsx when it catches a cached "signed in"
+  // session whose actual Supabase auth token had gone stale -- lands
+  // straight on the sign-in tab with a clear, honest reason, instead of
+  // the default signup tab with no explanation (which is what silently
+  // produced "everything I wrote disappeared" reports before this
+  // existed: the member was actually signed out, not missing anything).
+  useEffect(() => {
+    if (searchParams?.get("sessionExpired") === "1") {
+      setAuthMode("password-signin");
+      setError("Your session expired -- please sign in again. Your posts and comments are safe.");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");

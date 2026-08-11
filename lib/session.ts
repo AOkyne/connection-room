@@ -189,6 +189,33 @@ export async function clearSession(): Promise<void> {
   }
 }
 
+// Confirms a cached "member" AppSession with a real supabaseUserId is
+// still backed by a live Supabase auth session (a valid, non-expired
+// token), not just a stale localStorage blob. app/app/layout.tsx's fast
+// path sets `session` straight from localStorage without ever checking
+// this -- previously, a member whose Supabase session had quietly gone
+// stale (expired refresh token, cleared cookies, etc.) stayed looking
+// "signed in" indefinitely: the UI showed their real name, but every
+// actual data request ran as an unauthenticated visitor, got silently
+// blocked by RLS, and the app substituted empty/demo content with no
+// error at all -- reading exactly like "everything I wrote disappeared,"
+// even though nothing was ever lost server-side (confirmed for a real
+// member, 2026-08-11: their posts/comments/profile were all intact in
+// Supabase the whole time). This lets the layout catch that state and
+// force a real re-sign-in instead of silently degrading.
+export async function hasLiveSupabaseSession(): Promise<boolean> {
+  if (!supabase) return false;
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    return !!session;
+  } catch (err) {
+    console.error("Error checking live Supabase session:", err);
+    return false;
+  }
+}
+
 // Check if user is authenticated
 export async function isAuthenticated(): Promise<boolean> {
   const session = await getSession();
