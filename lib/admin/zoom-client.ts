@@ -1,5 +1,16 @@
 import { supabase } from "@/lib/supabase/client";
 
+export interface ZoomMeetingLinks {
+  joinUrl: string;
+  // The host "start URL" -- opening this signs the opener in as the
+  // meeting's host (what's actually needed to start/host it). Distinct
+  // from joinUrl, which is the plain attendee link. Previously fetched
+  // from Zoom's API and immediately discarded here, so there was no
+  // reliable way to actually start a meeting this app created -- see
+  // migration 092.
+  startUrl?: string;
+}
+
 // Calls /api/admin/zoom/create-meeting (server-side, holds the Zoom
 // credentials) to auto-generate a join link for an online/hybrid event.
 // Never blocks event creation on failure -- a missing Zoom link is
@@ -11,7 +22,7 @@ export async function createZoomMeetingLink(
   endAtISO: string | undefined,
   showToast: (message: string, type: "success" | "error") => void,
   timezone?: string
-): Promise<string | undefined> {
+): Promise<ZoomMeetingLinks | undefined> {
   if (!supabase) return undefined;
 
   try {
@@ -42,7 +53,7 @@ export async function createZoomMeetingLink(
     }
 
     const { meeting } = await response.json();
-    return meeting.joinUrl as string;
+    return { joinUrl: meeting.joinUrl as string, startUrl: meeting.startUrl as string | undefined };
   } catch (err) {
     console.error("Error creating Zoom meeting link:", err);
     showToast("Couldn't auto-create a Zoom link — you can add one manually.", "error");

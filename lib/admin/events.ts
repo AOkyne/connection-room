@@ -46,6 +46,13 @@ export interface Event {
   locationName?: string;
   locationAddress?: string;
   onlineUrl?: string;
+  // The Zoom host "start URL" (migration 092) -- distinct from onlineUrl
+  // (the plain attendee join link). Opening this signs the admin in as
+  // the meeting's host; onlineUrl does not. Previously fetched from
+  // Zoom's API at meeting-creation time and immediately discarded, so
+  // there was no reliable way to actually start hosting a meeting this
+  // app created.
+  zoomStartUrl?: string;
   imageUrl?: string;
   capacity?: number;
   spotsTaken?: number;
@@ -693,6 +700,7 @@ function mapEventFromDb(dbEvent: any): Event {
     locationName: dbEvent.location_name,
     locationAddress: dbEvent.location_address,
     onlineUrl: dbEvent.online_url,
+    zoomStartUrl: dbEvent.zoom_start_url,
     imageUrl: dbEvent.image_url,
     capacity: dbEvent.capacity,
     spotsTaken: dbEvent.spots_taken,
@@ -735,6 +743,7 @@ function mapEventToDb(event: Partial<Event>): any {
     location_name: event.locationName,
     location_address: event.locationAddress,
     online_url: event.onlineUrl,
+    zoom_start_url: event.zoomStartUrl,
     image_url: event.imageUrl,
     capacity: event.capacity,
     spots_taken: event.spotsTaken,

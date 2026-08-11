@@ -150,8 +150,11 @@ export default function CreateEventPage() {
       const endAtISO = zonedDatetimeLocalToISO(formData.endAt, formData.timezone);
 
       let onlineUrl: string | undefined;
+      let zoomStartUrl: string | undefined;
       if ((formData.format === "online" || formData.format === "hybrid") && startAtISO) {
-        onlineUrl = await createZoomMeetingLink(formData.title, startAtISO, endAtISO, showToast, formData.timezone);
+        const zoomLinks = await createZoomMeetingLink(formData.title, startAtISO, endAtISO, showToast, formData.timezone);
+        onlineUrl = zoomLinks?.joinUrl;
+        zoomStartUrl = zoomLinks?.startUrl;
       }
 
       const eventData = {
@@ -166,6 +169,7 @@ export default function CreateEventPage() {
         locationType:
           formData.format === "in-person" ? ("in_person" as const) : (formData.format as "online" | "hybrid"),
         onlineUrl,
+        zoomStartUrl,
         hostName: formData.facilitator,
         eventType: formData.format,
         imageUrl: formData.image,

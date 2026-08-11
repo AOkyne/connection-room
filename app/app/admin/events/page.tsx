@@ -28,6 +28,11 @@ export default function AdminEventsPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
+  // Events move here automatically once their end time (or start time, if
+  // no end time is set) has passed -- purely a computed split on the
+  // existing startAt/endAt fields, not a stored status, so nothing has to
+  // update it.
+  const [timeTab, setTimeTab] = useState<"upcoming" | "past">("upcoming");
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [showRegistrants, setShowRegistrants] = useState(false);
   const [registrants, setRegistrants] = useState<EventRegistration[]>([]);
@@ -164,10 +169,24 @@ export default function AdminEventsPage() {
     );
   }
 
-  const filteredEvents = events.filter((e) => {
-    if (filter === "all") return true;
-    return e.status === filter;
-  });
+  const isPastEvent = (e: Event) => new Date(e.endAt || e.startAt).getTime() < Date.now();
+  const upcomingEvents = events.filter((e) => !isPastEvent(e));
+  const pastEvents = events.filter((e) => isPastEvent(e));
+  const timeFilteredEvents = timeTab === "past" ? pastEvents : upcomingEvents;
+
+  const filteredEvents = timeFilteredEvents
+    .filter((e) => {
+      if (filter === "all") return true;
+      return e.status === filter;
+    })
+    // Upcoming stays soonest-first (getAdminEvents' own sort); past is
+    // most-recently-completed-first, which is more useful for looking
+    // back than the same ascending order would be.
+    .sort((a, b) =>
+      timeTab === "past"
+        ? new Date(b.startAt).getTime() - new Date(a.startAt).getTime()
+        : new Date(a.startAt).getTime() - new Date(b.startAt).getTime()
+    );
 
   return (
     <div className="space-y-6 max-w-6xl">
@@ -198,6 +217,25 @@ export default function AdminEventsPage() {
         </div>
       </div>
 
+      <div className="flex gap-4 border-b border-[#e8e3db]">
+        <button
+          onClick={() => setTimeTab("upcoming")}
+          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+            timeTab === "upcoming" ? "border-[#d4a348] text-[#1a0f0a]" : "border-transparent text-[#a0704a] hover:text-[#1a0f0a]"
+          }`}
+        >
+          Upcoming ({upcomingEvents.length})
+        </button>
+        <button
+          onClick={() => setTimeTab("past")}
+          className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+            timeTab === "past" ? "border-[#d4a348] text-[#1a0f0a]" : "border-transparent text-[#a0704a] hover:text-[#1a0f0a]"
+          }`}
+        >
+          Past ({pastEvents.length})
+        </button>
+      </div>
+
       <div className="flex gap-2">
         {(["all", "published", "draft"] as const).map((f) => (
           <button
@@ -210,8 +248,8 @@ export default function AdminEventsPage() {
             }`}
           >
             {f === "all"
-              ? `All (${events.length})`
-              : `${f === "published" ? "Published" : "Draft"} (${events.filter((e) => e.status === f).length})`}
+              ? `All (${timeFilteredEvents.length})`
+              : `${f === "published" ? "Published" : "Draft"} (${timeFilteredEvents.filter((e) => e.status === f).length})`}
           </button>
         ))}
       </div>
@@ -283,6 +321,17 @@ export default function AdminEventsPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2 justify-end">
+                  {(event.zoomStartUrl || event.onlineUrl) && (
+                    <a
+                      href={event.zoomStartUrl || event.onlineUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center px-3 py-2 text-xs font-medium rounded bg-[#d4a348] text-white hover:bg-[#c9956d] transition-colors"
+                      title={event.zoomStartUrl ? "Start the Zoom meeting as host" : "Open the Zoom join link"}
+                    >
+                      🎥 {event.zoomStartUrl ? "Start Zoom" : "Join Zoom"}
+                    </a>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"

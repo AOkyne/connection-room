@@ -41,6 +41,7 @@ export default function EditEventPage() {
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [existingOnlineUrl, setExistingOnlineUrl] = useState<string | undefined>(undefined);
+  const [existingZoomStartUrl, setExistingZoomStartUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     const loadData = async () => {
@@ -70,6 +71,7 @@ export default function EditEventPage() {
           currency: event.currency || "USD",
         });
         setExistingOnlineUrl(event.onlineUrl);
+        setExistingZoomStartUrl(event.zoomStartUrl);
         if (event.imageUrl) {
           console.log("[EditEvent] Image URL loaded, length:", event.imageUrl.length);
           console.log("[EditEvent] Image URL starts with:", event.imageUrl.substring(0, 50));
@@ -147,8 +149,11 @@ export default function EditEventPage() {
       // one -- otherwise every unrelated edit (fixing a typo, etc.) would
       // spawn a brand new Zoom meeting each time.
       let onlineUrl = existingOnlineUrl;
+      let zoomStartUrl = existingZoomStartUrl;
       if (!onlineUrl && (formData.format === "online" || formData.format === "hybrid") && startAtISO) {
-        onlineUrl = await createZoomMeetingLink(formData.title, startAtISO, endAtISO, showToast, formData.timezone);
+        const zoomLinks = await createZoomMeetingLink(formData.title, startAtISO, endAtISO, showToast, formData.timezone);
+        onlineUrl = zoomLinks?.joinUrl;
+        zoomStartUrl = zoomLinks?.startUrl;
       }
 
       const eventData = {
@@ -162,6 +167,7 @@ export default function EditEventPage() {
         locationType:
           formData.format === "in-person" ? ("in_person" as const) : (formData.format as "online" | "hybrid"),
         onlineUrl,
+        zoomStartUrl,
         hostName: formData.facilitator,
         eventType: formData.format,
         imageUrl: formData.image,
@@ -390,6 +396,47 @@ export default function EditEventPage() {
               <option value="hybrid">Hybrid</option>
             </select>
           </div>
+
+          {(existingOnlineUrl || existingZoomStartUrl) && (
+            <div className="p-4 rounded-lg bg-[#f3ede5] space-y-3">
+              <p className="text-sm font-medium text-[#1a0f0a]">Zoom Meeting</p>
+              {existingZoomStartUrl ? (
+                <a
+                  href={existingZoomStartUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#d4a348] text-white font-medium text-sm hover:bg-[#c9956d] transition-colors"
+                >
+                  🎥 Start Meeting
+                </a>
+              ) : (
+                <p className="text-xs text-[#a0704a]">
+                  No host start link saved for this meeting yet -- only available for meetings created after this fix. Use the join link below to enter as an attendee.
+                </p>
+              )}
+              {existingOnlineUrl && (
+                <div className="flex items-center gap-2">
+                  <input
+                    readOnly
+                    value={existingOnlineUrl}
+                    onFocus={(e) => e.target.select()}
+                    className="flex-1 px-3 py-2 border border-[#e8ddd2] rounded-lg text-xs text-[#1a0f0a] bg-white"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(existingOnlineUrl);
+                      showToast("Join link copied", "success");
+                    }}
+                  >
+                    Copy join link
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
