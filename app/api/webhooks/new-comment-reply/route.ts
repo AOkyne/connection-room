@@ -1,19 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { hasSmtpConfig, sendCommentReplyNotificationEmail, logEmailSend } from "@/lib/email/send";
+import { hasSmtpConfig, sendCommentReplyNotificationEmail, sendPostCommentNotificationEmail, logEmailSend } from "@/lib/email/send";
 
-// Called by the comments_notify_new_reply trigger (migration 091) via
-// pg_net, fire-and-forget, every time a reply (parent_comment_id IS NOT
-// NULL) is inserted into comments. Same trust boundary/secret as the
-// sibling new-post-notification / new-connection-message webhooks.
+// Called by the comments_notify_new_reply trigger via pg_net,
+// fire-and-forget, on every comment insert (migration 093 widened this
+// from replies-only to all comments -- see that migration's header).
+// Same trust boundary/secret as the sibling new-post-notification /
+// new-connection-message webhooks.
 //
-// Notifies up to two people: the author of the comment directly replied
-// to, and -- if different -- the author of the thread's root comment
-// ("replies within a thread you started"). Deduped against each other
-// (so replying to a top-level comment, where those two are the same
-// person, only ever sends one email) and against comment_notification_log
-// (so a retried webhook delivery never double-sends). Never notifies
-// someone about their own reply.
+// Two distinct notification shapes, both handled here since they share
+// all the same lookup/dedup/preference plumbing:
+// - Top-level comment (parentCommentId null): notifies the POST's
+//   author -- "{name} replied to your post" -- a real gap before this;
+//   only reply-to-a-comment was ever covered.
+// - Reply (parentCommentId set): notifies up to two people, the author
+//   of the comment directly replied to, and -- if different -- the
+//   author of the thread's root comment ("replies within a thread you
+//   started"). Deduped against each other (so replying to a top-level
+//   comment, where those two are the same person, only ever sends one
+//   email) and against comment_notification_log (so a retried webhook
+//   delivery never double-sends). Never notifies someone about their
+//   own comment/reply.
 export const maxDuration = 30;
 
 export async function POST(request: NextRequest) {
@@ -31,9 +38,9 @@ export async function POST(request: NextRequest) {
   }
 
   const { commentId, parentCommentId, rootCommentId, postId, replierId } = body;
-  if (!commentId || !parentCommentId || !postId || !replierId) {
+  if (!commentId || !postId || !replierId) {
     return NextResponse.json(
-      { error: "Missing commentId, parentCommentId, postId, or replierId" },
+      { error: "Missing commentId, postId, or replierId" },
       { status: 400 }
     );
   }
@@ -65,7 +72,7 @@ export async function POST(request: NextRequest) {
 
   const { data: post, error: postError } = await supabase
     .from("posts")
-    .select("space_id")
+    .select("space_id, user_id")
     .eq("id", postId)
     .maybeSingle();
   if (postError || !post) {
@@ -75,27 +82,37 @@ export async function POST(request: NextRequest) {
   const { data: space } = await supabase.from("spaces").select("name").eq("id", post.space_id).maybeSingle();
   const spaceName = space?.name || "the community";
 
-  const { data: parentComment, error: parentError } = await supabase
-    .from("comments")
-    .select("user_id, deleted_at")
-    .eq("id", parentCommentId)
-    .maybeSingle();
-  if (parentError || !parentComment) {
-    return NextResponse.json({ error: "Parent comment not found" }, { status: 404 });
-  }
+  const candidateIds = new Set<string>();
+  const isTopLevelComment = !parentCommentId;
 
-  // Direct reply target, plus -- if this reply landed deeper in a thread
-  // someone else started -- that thread's root author too. rootCommentId
-  // equals parentCommentId when replying directly to a top-level comment,
-  // so the Set below naturally collapses that case to one recipient.
-  const candidateIds = new Set<string>([parentComment.user_id]);
-  if (rootCommentId && rootCommentId !== parentCommentId) {
-    const { data: rootComment } = await supabase
+  if (isTopLevelComment) {
+    // A brand new comment directly on the post -- notify the post's
+    // author, full stop.
+    candidateIds.add(post.user_id);
+  } else {
+    const { data: parentComment, error: parentError } = await supabase
       .from("comments")
-      .select("user_id")
-      .eq("id", rootCommentId)
+      .select("user_id, deleted_at")
+      .eq("id", parentCommentId)
       .maybeSingle();
-    if (rootComment?.user_id) candidateIds.add(rootComment.user_id);
+    if (parentError || !parentComment) {
+      return NextResponse.json({ error: "Parent comment not found" }, { status: 404 });
+    }
+
+    // Direct reply target, plus -- if this reply landed deeper in a
+    // thread someone else started -- that thread's root author too.
+    // rootCommentId equals parentCommentId when replying directly to a
+    // top-level comment, so the Set below naturally collapses that case
+    // to one recipient.
+    candidateIds.add(parentComment.user_id);
+    if (rootCommentId && rootCommentId !== parentCommentId) {
+      const { data: rootComment } = await supabase
+        .from("comments")
+        .select("user_id")
+        .eq("id", rootCommentId)
+        .maybeSingle();
+      if (rootComment?.user_id) candidateIds.add(rootComment.user_id);
+    }
   }
   candidateIds.delete(replierId); // never self-notify
 
@@ -131,12 +148,16 @@ export async function POST(request: NextRequest) {
       continue;
     }
 
-    await sendCommentReplyNotificationEmail({
-      to: email,
-      replierName: replier.display_name || "A member",
-      spaceName,
-      replyUrl,
-    });
+    const commenterName = replier.display_name || "A member";
+    const subject = isTopLevelComment
+      ? `${commenterName} replied to your post`
+      : `${commenterName} replied to your comment in ${spaceName}`;
+
+    if (isTopLevelComment) {
+      await sendPostCommentNotificationEmail({ to: email, commenterName, spaceName, replyUrl });
+    } else {
+      await sendCommentReplyNotificationEmail({ to: email, replierName: commenterName, spaceName, replyUrl });
+    }
 
     await supabase.from("comment_notification_log").insert({
       comment_id: commentId,
@@ -146,7 +167,7 @@ export async function POST(request: NextRequest) {
     await logEmailSend(supabase, {
       category: "comment_reply",
       to: email,
-      subject: `${replier.display_name || "A member"} replied to your comment in ${spaceName}`,
+      subject,
       recipientUserId: recipientId,
     });
 

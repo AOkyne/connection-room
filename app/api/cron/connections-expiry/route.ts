@@ -66,6 +66,24 @@ export async function GET(request: NextRequest) {
 
   const canEmail = hasSmtpConfig();
 
+  // Personalizes reminder/reveal emails with the other participant's
+  // name ("Marcus's response is ready" instead of "You'll both see the
+  // responses now") -- requested explicitly: a named person is a
+  // stronger reason to come back than generic activity copy. Falls back
+  // to "Your connection" if the other participant can't be resolved
+  // (shouldn't normally happen for a real 2-person connection) rather
+  // than failing the notification outright.
+  async function getOtherParticipantName(connectionId: string, excludeUserId: string): Promise<string> {
+    const { data: participants } = await supabase
+      .from("connection_participants")
+      .select("user_id")
+      .eq("connection_id", connectionId);
+    const other = (participants || []).find((p) => p.user_id !== excludeUserId);
+    if (!other) return "Your connection";
+    const { data: profile } = await supabase.from("profiles").select("display_name").eq("user_id", other.user_id).maybeSingle();
+    return profile?.display_name || "Your connection";
+  }
+
   async function notifyOnce(
     connectionId: string,
     userId: string,
@@ -196,18 +214,24 @@ export async function GET(request: NextRequest) {
 
       for (const r of unsubmitted || []) {
         const userId = (r as any).connection_participants.user_id;
+        const halfwayDue = isHalfwayReminderDue(opened, deadline, now);
+        const closingSoonDue = isClosingSoonReminderDue(deadline, now);
 
-        if (isHalfwayReminderDue(opened, deadline, now)) {
-          await notifyOnce(round.connection_id, userId, `round_halfway:${round.id}`, "Your guided connection is waiting for a response", [
-            "You have a guided connection round open, whenever you have space to answer.",
+        // Only fetched when actually needed -- neither reminder fires
+        // for most rounds on most cron runs.
+        const otherName = halfwayDue || closingSoonDue ? await getOtherParticipantName(round.connection_id, userId) : "";
+
+        if (halfwayDue) {
+          await notifyOnce(round.connection_id, userId, `round_halfway:${round.id}`, `Your guided connection with ${otherName} is open`, [
+            `You have a guided connection round with ${otherName} open, whenever you have space to answer.`,
             "Respond when you have space -- there's no rush, just a window that's now past its halfway point.",
           ]);
           results.remindersSent++;
         }
 
-        if (isClosingSoonReminderDue(deadline, now)) {
-          await notifyOnce(round.connection_id, userId, `round_closing:${round.id}`, "A guided connection window closes soon", [
-            "This connection's response window closes in a few hours.",
+        if (closingSoonDue) {
+          await notifyOnce(round.connection_id, userId, `round_closing:${round.id}`, `Your guided connection with ${otherName} closes soon`, [
+            `This connection's response window with ${otherName} closes in a few hours.`,
             "If you'd like more time, you can use your one-time extension from the connection page.",
           ]);
           results.remindersSent++;
@@ -228,17 +252,16 @@ export async function GET(request: NextRequest) {
   if (sessionsError) {
     results.errors.push(`load scheduled sessions: ${sessionsError.message}`);
   } else {
-    const SUBJECT_BY_REMINDER_KEY: Record<string, string> = {
-      live_10min: "Your live conversation starts in 10 minutes",
-      live_1hour: "Your live conversation starts in about an hour",
-      live_24hour: "Your live conversation is tomorrow",
-    };
+    const SUBJECT_BY_REMINDER_KEY = (otherName: string): Record<string, string> => ({
+      live_10min: `Your live conversation with ${otherName} starts in 10 minutes`,
+      live_1hour: `Your live conversation with ${otherName} starts in about an hour`,
+      live_24hour: `Your live conversation with ${otherName} is tomorrow`,
+    });
 
     for (const session of scheduledSessions || []) {
       const startsAt = new Date(session.scheduled_start_at as string);
       const reminderKey = getDueLiveReminderKey(startsAt, new Date());
       if (!reminderKey) continue;
-      const subject = SUBJECT_BY_REMINDER_KEY[reminderKey];
 
       const { data: participants } = await supabase
         .from("connection_participants")
@@ -246,8 +269,15 @@ export async function GET(request: NextRequest) {
         .eq("connection_id", session.connection_id);
 
       for (const p of participants || []) {
-        await notifyOnce(session.connection_id, p.user_id, `${reminderKey}:${session.id}`, subject, [
-          "You have a scheduled live conversation coming up in The Connection Room.",
+        const other = (participants || []).find((x) => x.user_id !== p.user_id);
+        let otherName = "Your connection";
+        if (other) {
+          const { data: profile } = await supabase.from("profiles").select("display_name").eq("user_id", other.user_id).maybeSingle();
+          otherName = profile?.display_name || "Your connection";
+        }
+
+        await notifyOnce(session.connection_id, p.user_id, `${reminderKey}:${session.id}`, SUBJECT_BY_REMINDER_KEY(otherName)[reminderKey], [
+          `You have a scheduled live conversation with ${otherName} coming up in The Connection Room.`,
           "It'll open in your connection's detail page a few minutes before the scheduled time.",
         ]);
         results.liveRemindersSent++;
@@ -281,8 +311,9 @@ export async function GET(request: NextRequest) {
 
       for (const r of unviewed || []) {
         const userId = (r as any).connection_participants.user_id;
-        await notifyOnce(round.connection_id, userId, `round_revealed:${round.id}`, "You'll both see the responses now", [
-          "Your connection has answered this round -- you'll both see each other's responses now.",
+        const otherName = await getOtherParticipantName(round.connection_id, userId);
+        await notifyOnce(round.connection_id, userId, `round_revealed:${round.id}`, `${otherName}'s response is ready`, [
+          `${otherName} has answered this round -- you'll both see each other's responses now.`,
           "Take a look whenever you have space, and continue when you're ready.",
         ]);
         results.revealedRemindersSent++;

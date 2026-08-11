@@ -153,6 +153,29 @@ export async function sendPostNotificationEmail(options: {
   });
 }
 
+// Sent when someone leaves a brand-new, top-level comment directly on a
+// member's post (not a reply to another comment -- see
+// sendCommentReplyNotificationEmail for that). Named, specific copy
+// ("Marcus replied to your post") deliberately, not "New activity on
+// your post" -- a concrete social reason to come back is the whole
+// point of this notification existing.
+export async function sendPostCommentNotificationEmail(options: {
+  to: string;
+  commenterName: string;
+  spaceName: string;
+  replyUrl: string;
+}): Promise<void> {
+  await sendBrandedEmail({
+    to: options.to,
+    subject: `${options.commenterName} replied to your post`,
+    paragraphs: [
+      `${options.commenterName} replied to your post in ${options.spaceName}.`,
+      "Manage how often you hear about replies anytime from your profile settings.",
+    ],
+    appUrl: options.replyUrl,
+  });
+}
+
 // Sent when someone replies directly to a member's comment, or replies
 // within a thread that member started (migration 091's trigger + the
 // new-comment-reply webhook route decide which; this just renders
