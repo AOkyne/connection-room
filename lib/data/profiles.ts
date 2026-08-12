@@ -15,6 +15,45 @@ function resolveProfilePhotoUrl(path: string | null | undefined, legacyBase64: s
   return legacyBase64 || "";
 }
 
+// getProfile()'s main query deliberately never selects profile_photo (see
+// that function's own comment -- some rows hold multi-megabyte base64
+// blobs that blew past its timeout). But a real member (confirmed live,
+// 2026-08-11) had a small, valid value sitting in that legacy column --
+// not a giant base64 blob, an already-working Supabase Storage URL, just
+// never copied into profile_photo_path by the one-time backfill -- and
+// getProfile() discarding it unconditionally meant their own profile page
+// kept telling them to add a photo they'd already added.
+//
+// Only called for the shrinking minority of rows still missing
+// profile_photo_path (16 total, confirmed live) -- the common case
+// (already migrated) never pays this extra round trip. Still caps the
+// value size before using it, so a row that genuinely does hold a
+// multi-megabyte blob doesn't reintroduce the original timeout/page-weight
+// problem through this fallback path -- it just renders with no photo,
+// same as today, until the real backfill (scripts/migrate-profile-photos-
+// to-storage.mjs) picks it up.
+const MAX_LEGACY_PHOTO_FALLBACK_LENGTH = 200_000; // ~200KB of base64 text
+
+async function getLegacyPhotoFallback(userId: string): Promise<string> {
+  if (!supabase) return "";
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("profile_photo")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error || !data?.profile_photo) return "";
+    if (data.profile_photo.length > MAX_LEGACY_PHOTO_FALLBACK_LENGTH) {
+      console.warn(`getProfile: legacy profile_photo for ${userId} is too large to use as a fallback (${data.profile_photo.length} chars) -- needs the real Storage backfill.`);
+      return "";
+    }
+    return data.profile_photo;
+  } catch (err) {
+    console.warn("getProfile: error fetching legacy photo fallback:", err);
+    return "";
+  }
+}
+
 export interface Profile {
   id: string;
   firstName: string;
@@ -331,11 +370,13 @@ export async function getProfile(): Promise<Profile | null> {
             ageRange: data.age_range,
             relationshipStatus: data.relationship_status,
             orientation: data.orientation,
-            // Legacy base64 deliberately never selected here (see the
-            // comment above) -- but profile_photo_path is tiny, so a
-            // migrated member's own photo now shows up here for free,
-            // without paying for the multi-megabyte legacy transfer.
-            profilePhoto: resolveProfilePhotoUrl(data.profile_photo_path, null),
+            // Legacy base64 deliberately never selected in the main query
+            // above (see the comment there) -- but profile_photo_path is
+            // tiny, so a migrated member's own photo now shows up here for
+            // free, without paying for the multi-megabyte legacy transfer.
+            profilePhoto: data.profile_photo_path
+              ? resolveProfilePhotoUrl(data.profile_photo_path, null)
+              : await getLegacyPhotoFallback(userId),
             profilePhotoPath: data.profile_photo_path || undefined,
             profilePhotoUpdatedAt: data.profile_photo_updated_at ? new Date(data.profile_photo_updated_at) : undefined,
             memberType: data.member_type || "individual",
