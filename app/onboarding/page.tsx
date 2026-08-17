@@ -92,7 +92,23 @@ export default function OnboardingPage() {
         return;
       }
 
-      setProfile(p);
+      // New signups get an auto-assigned placeholder first_name/display_name
+      // (their email prefix, e.g. "vitraboy") before onboarding ever asks
+      // for a real name -- and the "basics" step below pre-fills its First/
+      // Last Name inputs straight from this profile. Since that same step
+      // validates names and correctly rejects a handle-like placeholder,
+      // members were landing on their very first data-entry screen to find
+      // it already showing a red "please enter a proper name" error and a
+      // disabled Continue button, before they'd typed anything at all --
+      // confirmed live as the exact stall point for 4 of the last 5
+      // incomplete signups. Start the fields blank instead so a legitimate,
+      // real name someone later types in isn't fighting a rejected value
+      // that was never theirs to begin with.
+      setProfile({
+        ...p,
+        firstName: isRealName(p.firstName) ? p.firstName : "",
+        lastName: isRealName(p.lastName) ? p.lastName : "",
+      });
       if (p.completedOnboarding) {
         router.push(getAndClearPendingRedirect() || "/app");
         setIsLoading(false);
