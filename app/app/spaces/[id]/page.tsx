@@ -96,8 +96,20 @@ export default function SpaceDetailPage() {
   // search/filter) and excluded from the feed's own filtering below.
   const pinnedPost = posts.find((post) => post.pinned);
 
+  // Once a week's prompt is superseded (app/api/cron/weekly-prompts unpins
+  // it and pins the new one), it used to fall straight into the regular
+  // feed and just sit there -- often with zero responses, since a prompt
+  // that already had its featured week rarely gets discovered again once
+  // it's buried in "Share Your Thoughts". Requested: keep old prompts out
+  // of the feed entirely rather than letting them accumulate as clutter.
+  // They're not deleted or made inaccessible -- the post itself, and any
+  // real responses it did get, still exist and are still reachable
+  // directly (e.g. a permalink or a notification link still opens it) --
+  // this only hides them from this list/search.
+  const isPastWeeklyPrompt = (post: Post) => !post.pinned && !!post.promptId?.startsWith("weekly:");
+
   // Filter and search posts
-  const filteredPosts = posts.filter((post) => !post.pinned).filter((post) => {
+  const filteredPosts = posts.filter((post) => !post.pinned && !isPastWeeklyPrompt(post)).filter((post) => {
     // Search filter
     const matchesSearch = !searchQuery ||
       post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
