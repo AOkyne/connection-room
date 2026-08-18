@@ -53,36 +53,50 @@ async function checkActivityBasedBadges(
   const earned: Badge[] = [];
 
   try {
-    // Only fetch data if not provided (avoid redundant calls)
-    if (!profile) {
-      try {
-        profile = await getProfile();
-      } catch (err) {
-        console.warn("Could not fetch profile for badges:", err);
-      }
-    }
-    if (!spaces) {
-      try {
-        spaces = await getSpaces();
-      } catch (err) {
-        console.warn("Could not fetch spaces for badges:", err);
-      }
-    }
-    if (!posts) {
-      try {
-        posts = await getPosts();
-      } catch (err) {
-        console.warn("Could not fetch posts for badges:", err);
-      }
-    }
-
-    // Try to get engagement stats but don't fail if unavailable
-    let engagementStats: any = null;
-    try {
-      engagementStats = await getUserEngagementStats(userId);
-    } catch (err) {
-      console.warn("Could not fetch engagement stats:", err);
-    }
+    // Every fetch below is independent of every other -- previously these
+    // ran one after another (profile, then spaces, then posts, then
+    // engagement stats, then invited-friends count), so total latency was
+    // the SUM of every round trip rather than the slowest single one.
+    // Combined with the 3-second timeout the profile page races this
+    // against, that was enough on a real (non-local) database to blow
+    // past the timeout and silently show "no badges earned" -- nothing
+    // actually wrong with the account, just too slow to finish in time.
+    // Fetching in parallel keeps each call's own error handling (a
+    // failed fetch still degrades to "skip that badge check", never
+    // throws) while cutting total wait time to roughly the slowest one.
+    const [profileResult, spacesResult, postsResult, engagementStats, invitedCount] = await Promise.all([
+      profile
+        ? Promise.resolve(profile)
+        : getProfile().catch((err) => {
+            console.warn("Could not fetch profile for badges:", err);
+            return undefined;
+          }),
+      spaces
+        ? Promise.resolve(spaces)
+        : getSpaces().catch((err) => {
+            console.warn("Could not fetch spaces for badges:", err);
+            return undefined;
+          }),
+      posts
+        ? Promise.resolve(posts)
+        : getPosts().catch((err) => {
+            console.warn("Could not fetch posts for badges:", err);
+            return undefined;
+          }),
+      getUserEngagementStats(userId).catch((err) => {
+        console.warn("Could not fetch engagement stats:", err);
+        return null;
+      }),
+      supabase
+        ? getInvitedFriendsCount().catch((err) => {
+            console.warn("Error checking invite-based community builder badge:", err);
+            return 0;
+          })
+        : Promise.resolve(0),
+    ]);
+    profile = profileResult;
+    spaces = spacesResult;
+    posts = postsResult;
 
     // First Step: account exists (triggered on first visit)
     if (profile) {
@@ -175,19 +189,12 @@ async function checkActivityBasedBadges(
     }
 
     // Community Builder (Invite-based): invited someone who joined
-    if (supabase) {
-      try {
-        const invitedCount = await getInvitedFriendsCount();
-        if (invitedCount >= 1) {
-          // Only add if not already added from engagement stats
-          const alreadyHasBadge = earned.some((b) => b.id === "community-builder");
-          if (!alreadyHasBadge) {
-            const communityBuilder = demoBadges.find((b) => b.id === "community-builder");
-            if (communityBuilder) earned.push(communityBuilder);
-          }
-        }
-      } catch (err) {
-        console.warn("Error checking invite-based community builder badge:", err);
+    if (invitedCount >= 1) {
+      // Only add if not already added from engagement stats
+      const alreadyHasBadge = earned.some((b) => b.id === "community-builder");
+      if (!alreadyHasBadge) {
+        const communityBuilder = demoBadges.find((b) => b.id === "community-builder");
+        if (communityBuilder) earned.push(communityBuilder);
       }
     }
 
@@ -217,29 +224,29 @@ export async function getUserBadges(
   if (typeof window === "undefined") return [];
 
   try {
-    // Get activity-based badges (these don't require async calls if data is provided)
-    const activityBadges = await checkActivityBasedBadges(userId, profile, spaces, posts);
-
-    // Only fetch milestones if we have a userId
-    let milestoneEarned: Badge[] = [];
-    if (userId) {
-      try {
-        const milestones = await getConnectionMilestones(userId);
-        milestoneEarned = milestones
-          .map((m) => {
-            const template = MILESTONE_BADGES[m.milestoneType];
-            if (!template) return null;
-            return {
-              ...template,
-              earnedAt: m.earnedAt,
-            } as Badge;
-          })
-          .filter((b) => b !== null) as Badge[];
-      } catch (err) {
-        console.warn("Could not fetch milestones:", err);
-        // Continue without milestones if fetch fails
-      }
-    }
+    // Activity-based badges and milestone badges come from entirely
+    // independent sources (client-side derivation vs. a Supabase table) --
+    // fetched in parallel rather than one after another, same reasoning
+    // as checkActivityBasedBadges' own internal fetches above.
+    const [activityBadges, milestoneEarned] = await Promise.all([
+      checkActivityBasedBadges(userId, profile, spaces, posts),
+      userId
+        ? getConnectionMilestones(userId)
+            .then((milestones) =>
+              milestones
+                .map((m) => {
+                  const template = MILESTONE_BADGES[m.milestoneType];
+                  if (!template) return null;
+                  return { ...template, earnedAt: m.earnedAt } as Badge;
+                })
+                .filter((b) => b !== null) as Badge[]
+            )
+            .catch((err) => {
+              console.warn("Could not fetch milestones:", err);
+              return [] as Badge[];
+            })
+        : Promise.resolve([] as Badge[]),
+    ]);
 
     // Combine and deduplicate
     const allBadges = [...milestoneEarned, ...activityBadges];

@@ -91,8 +91,15 @@ export default function ProfilePage() {
             }
 
             const badgesPromise = getUserBadges(p.id, p, spaces);
+            // Was 3000ms -- badges.ts's own fetches now run in parallel
+            // instead of sequentially (see that file's comment), which
+            // should keep this comfortably under budget, but a little
+            // extra headroom is cheap insurance against real network
+            // variance rather than a silent, misleading "no badges
+            // earned" for an account that timed out, not one that
+            // genuinely has none.
             const timeoutPromise = new Promise((_, reject) =>
-              setTimeout(() => reject(new Error("Timeout")), 3000)
+              setTimeout(() => reject(new Error("Timeout")), 6000)
             );
             const userBadges = await Promise.race([badgesPromise, timeoutPromise]);
             setBadges(userBadges as any[]);
