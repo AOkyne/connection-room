@@ -177,9 +177,9 @@ export default function AdminBroadcastPage() {
     setSendError("");
     try {
       const recipientIds = recipientMode === "all" ? "all" : Array.from(selectedIds);
-      const { sentCount, failedCount, errors } = await sendBroadcastEmail(recipientIds, subject, bodyHtml);
+      const { sentCount, failedCount, errors, success } = await sendBroadcastEmail(recipientIds, subject, bodyHtml);
 
-      if (failedCount === 0) {
+      if (success) {
         showToast(sentCount === 1 ? "Email sent" : `Email sent to ${sentCount} members`, "success");
         // A sent email is no longer a draft -- clean up the saved copy so
         // it doesn't linger in the drafts list looking unfinished.
@@ -194,7 +194,17 @@ export default function AdminBroadcastPage() {
         setSelectedIds(new Set());
       } else {
         console.error("Errors sending broadcast:", errors);
-        showToast(`Sent ${sentCount}, failed to send ${failedCount}. See details below.`, "error");
+        // failedCount is only meaningful once the send actually reached
+        // per-recipient results -- an early failure (no session, API
+        // error, network exception) can't know how many "all" recipients
+        // there would have been, so it's 0 even though nothing sent.
+        // Lead with sentCount/failedCount only when they're informative.
+        showToast(
+          sentCount > 0 || failedCount > 0
+            ? `Sent ${sentCount}, failed to send ${failedCount}. See details below.`
+            : "Failed to send. See details below.",
+          "error"
+        );
         setSendError(errors.join("; "));
       }
     } catch (err) {
