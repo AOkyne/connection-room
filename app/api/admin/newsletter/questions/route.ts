@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/require-admin";
 
+// Never cached -- this list changes weekly (the cron flips which row is
+// 'active' every Monday) and is only ever read by an admin composing a
+// newsletter/broadcast right now, so a stale cached response is pure
+// downside with no benefit.
+export const dynamic = "force-dynamic";
+
 // Lists Question of the Week entries eligible for the newsletter
 // generator (app/app/admin/newsletter/page.tsx) and the "Insert Question"
 // picker in BroadcastRichTextEditor: newsletter_eligible rows from

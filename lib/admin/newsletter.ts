@@ -24,6 +24,7 @@ export async function getAdminNewsletterQuestions(): Promise<AdminNewsletterQues
 
     const response = await fetch("/api/admin/newsletter/questions", {
       headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
     });
     if (!response.ok) return [];
     const result = await response.json();

@@ -74,6 +74,7 @@ export default function AdminNewsletterPage() {
       try {
         const response = await fetch("/api/admin/newsletter/questions", {
           headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
         });
         const data = await response.json();
         if (!response.ok) {
