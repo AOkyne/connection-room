@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getProfile, getProfilePhoto, saveProfile, type Profile } from "@/lib/data/profiles";
+import { lastProfileSaveError } from "@/lib/data/supabase-profiles";
 import { ensureInviteCode } from "@/lib/data/invites";
 import { uploadProfilePhoto, isAcceptableProfilePhotoFile } from "@/lib/utils/storage";
 import { getUserBadges } from "@/lib/data/badges";
@@ -145,7 +146,20 @@ export default function ProfilePage() {
       // way, while the page still showed "Profile updated").
       const result = await saveProfile(profile);
       if (!result) {
-        setSaveError("Your changes didn't save. Please check your connection and try again.");
+        // saveProfileToSupabase() collapses every failure (thrown error,
+        // RLS denial, constraint violation, schema-cache miss, timeout)
+        // into a plain `null` return -- this page previously always
+        // showed the same generic "check your connection" copy
+        // regardless of the real cause, which made a genuinely
+        // reproducible server-side failure (e.g. the profile_tagline
+        // schema-cache issue documented in supabase-profiles.ts, already
+        // seen twice before) indistinguishable from an actual network
+        // blip. Surface the real message when one was captured.
+        setSaveError(
+          lastProfileSaveError
+            ? `Your changes didn't save: ${lastProfileSaveError}`
+            : "Your changes didn't save. Please check your connection and try again."
+        );
         return;
       }
       setProfileSavedFeedback(true);
