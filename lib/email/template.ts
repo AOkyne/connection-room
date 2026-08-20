@@ -76,11 +76,71 @@ export function styleBroadcastBodyHtml(html: string): string {
     .replace(/<li(?![^>]*style=)/gi, '<li style="display:list-item;margin:4px 0;"');
 }
 
+const TRACKING_APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://community.trevorjamesla.com";
+
+// Broadcast emails only ever link back into this app in practice -- links
+// are only rewritten through the click-tracking redirect when their host
+// matches this allowlist. Anything else (an external site pasted into the
+// broadcast composer) is left completely untouched: no click data for it,
+// but also no way for /api/email/click to become a general-purpose open
+// redirect for a domain we don't control. The click route re-validates
+// this same allowlist independently before ever redirecting anywhere, so
+// this rewriting step isn't itself the security boundary -- just what
+// decides which links are worth tracking at all.
+const TRACKABLE_LINK_HOSTS = new Set([
+  new URL(TRACKING_APP_URL).host,
+  "trevorjamesla.com",
+  "www.trevorjamesla.com",
+]);
+
+export function isTrackableClickTarget(rawUrl: string): boolean {
+  try {
+    const parsed = new URL(rawUrl);
+    return (parsed.protocol === "http:" || parsed.protocol === "https:") && TRACKABLE_LINK_HOSTS.has(parsed.host);
+  } catch {
+    return false;
+  }
+}
+
+// Rewrites every href="..." pointing at an allowlisted host to route
+// through /api/email/click/{trackingId}?url=..., which logs the click
+// then redirects to the real destination. Links to other hosts (or
+// malformed/non-http hrefs) are left exactly as they were.
+function wrapTrackedLinks(html: string, trackingId: string): string {
+  return html.replace(/href="([^"]*)"/gi, (match, rawUrl) => {
+    const decoded = rawUrl.replace(/&amp;/g, "&");
+    if (!isTrackableClickTarget(decoded)) return match;
+    const clickUrl = `${TRACKING_APP_URL}/api/email/click/${trackingId}?url=${encodeURIComponent(decoded)}`;
+    return `href="${clickUrl}"`;
+  });
+}
+
+// A single transparent pixel, invisible in every real email client --
+// its only purpose is that requesting it tells /api/email/open/{id} the
+// email was opened. Apple Mail Privacy Protection auto-loads this (and
+// every image) for a large share of recipients regardless of whether a
+// human actually opened the email, which inflates open counts -- a real,
+// documented limitation of pixel-based open tracking generally, not
+// something specific to this implementation. Click data is the more
+// trustworthy signal for the same reason.
+function buildOpenTrackingPixel(trackingId: string): string {
+  return `<img src="${TRACKING_APP_URL}/api/email/open/${trackingId}" width="1" height="1" alt="" style="display:block;border:0;width:1px;height:1px;" />`;
+}
+
 // Wraps an admin-authored rich-text body (raw HTML from the broadcast
 // composer's contentEditable editor) in the same branded shell as the
 // automated emails, but with a fixed, fuller signature instead of the
 // automated emails' short "Founder, The Connection Room" line.
-export function buildBroadcastEmailHtml(bodyHtml: string): string {
+//
+// trackingId (migration 095): when provided, this specific recipient's
+// copy gets an open-tracking pixel and click-tracked links. Omitted
+// entirely for previews/tests or if logging the send failed -- tracking
+// is additive and must never be a reason a broadcast fails to send.
+export function buildBroadcastEmailHtml(bodyHtml: string, trackingId?: string | null): string {
+  const styledBody = styleBroadcastBodyHtml(bodyHtml);
+  const trackedBody = trackingId ? wrapTrackedLinks(styledBody, trackingId) : styledBody;
+  const pixel = trackingId ? buildOpenTrackingPixel(trackingId) : "";
+
   return `<!DOCTYPE html>
 <html>
   <body style="margin:0;padding:0;background-color:#F7F1E3;">
@@ -95,7 +155,7 @@ export function buildBroadcastEmailHtml(bodyHtml: string): string {
             </tr>
             <tr>
               <td style="padding:24px 32px 8px;">
-                <div style="font-size:16px;line-height:1.6;color:#1a0f0a;">${styleBroadcastBodyHtml(bodyHtml)}</div>
+                <div style="font-size:16px;line-height:1.6;color:#1a0f0a;">${trackedBody}</div>
                 <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:24px;">
                   <tr>
                     <td style="padding-right:16px;vertical-align:middle;">
@@ -114,6 +174,7 @@ export function buildBroadcastEmailHtml(bodyHtml: string): string {
         </td>
       </tr>
     </table>
+    ${pixel}
   </body>
 </html>`;
 }

@@ -107,6 +107,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // One id shared across every recipient's sent_emails row from this
+  // request, so the admin Email History page can group them back into a
+  // single "campaign" with aggregate open/click stats (migration 095).
+  const broadcastBatchId = crypto.randomUUID();
+
   const results: EmailResult[] = [];
 
   for (const profile of targetProfiles) {
@@ -116,18 +121,35 @@ export async function POST(request: NextRequest) {
       continue;
     }
 
+    // Logged BEFORE sending now, not after -- open/click tracking
+    // (migration 095) needs this specific recipient's sent_emails row id
+    // to embed in the tracking pixel/links, which only exists once the
+    // row does. logEmailSend() itself still never throws (returns null
+    // on failure), so a logging problem degrades to "this one recipient
+    // sends without tracking," never blocks the send.
+    const trackingId = await logEmailSend(supabase, {
+      category: "broadcast",
+      to: email,
+      subject,
+      recipientUserId: profile.user_id,
+      broadcastBatchId,
+    });
+
     try {
       const firstName = profile.display_name?.split(" ")[0];
       const personalizedBody = substituteMergeTags(bodyHtml, { firstName, appUrl });
-      await sendBroadcastEmail({ to: email, subject, bodyHtml: personalizedBody });
-      await logEmailSend(supabase, {
-        category: "broadcast",
-        to: email,
-        subject,
-        recipientUserId: profile.user_id,
-      });
+      await sendBroadcastEmail({ to: email, subject, bodyHtml: personalizedBody, trackingId });
       results.push({ id: profile.id, success: true });
     } catch (err) {
+      // The send failed after a log row was already created for it --
+      // remove that row (best-effort) so Email History doesn't show a
+      // "sent" entry for an email that never actually went out.
+      if (trackingId) {
+        supabase.from("sent_emails").delete().eq("id", trackingId).then(
+          () => {},
+          () => {}
+        );
+      }
       results.push({ id: profile.id, success: false, error: err instanceof Error ? err.message : String(err) });
     }
   }

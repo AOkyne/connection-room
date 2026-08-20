@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession } from "@/lib/session";
-import { getEmailHistory, type SentEmail } from "@/lib/admin/email-history";
+import { getEmailHistory, getBroadcastCampaigns, type SentEmail, type BroadcastCampaign } from "@/lib/admin/email-history";
 import { Card, CardHeader } from "@/components/Card";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { LoadingScreen } from "@/components/LoadingScreen";
@@ -36,6 +36,8 @@ export default function AdminEmailHistoryPage() {
   const [category, setCategory] = useState("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [campaigns, setCampaigns] = useState<BroadcastCampaign[]>([]);
+  const [campaignsLoading, setCampaignsLoading] = useState(true);
 
   const load = async (targetPage: number, targetCategory: string, targetSearch: string) => {
     setLoading(true);
@@ -60,6 +62,15 @@ export default function AdminEmailHistoryPage() {
       }
       await load(1, "", "");
       setMounted(true);
+
+      setCampaignsLoading(true);
+      const campaignResult = await getBroadcastCampaigns();
+      if (campaignResult.error) {
+        showToast(campaignResult.error, "error");
+      } else {
+        setCampaigns(campaignResult.campaigns);
+      }
+      setCampaignsLoading(false);
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -89,6 +100,59 @@ export default function AdminEmailHistoryPage() {
         <h1 className="text-3xl font-bold text-[#1a0f0a]">Email History</h1>
         <p className="text-[#a0704a] mt-1">Every email the app has sent, when, and to whom</p>
       </div>
+
+      <Card>
+        <CardHeader
+          title="Broadcast performance"
+          subtitle="Open and click rates per broadcast, most recent first"
+        />
+        {campaignsLoading ? (
+          <p className="text-[#a0704a] py-6 text-center">Loading...</p>
+        ) : campaigns.length === 0 ? (
+          <p className="text-[#a0704a] py-6 text-center">
+            No broadcast tracking data yet -- this fills in once you send a broadcast.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-[#a0704a] border-b border-[#e8ddd2]">
+                  <th className="py-2 pr-4 font-medium">Sent</th>
+                  <th className="py-2 pr-4 font-medium">Subject</th>
+                  <th className="py-2 pr-4 font-medium text-right">Recipients</th>
+                  <th className="py-2 pr-4 font-medium text-right">Opened</th>
+                  <th className="py-2 font-medium text-right">Clicked</th>
+                </tr>
+              </thead>
+              <tbody>
+                {campaigns.map((c) => (
+                  <tr key={c.batchId} className="border-b border-[#f3ede5] last:border-0">
+                    <td className="py-2 pr-4 whitespace-nowrap text-[#a0704a]">
+                      {new Date(c.sentAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </td>
+                    <td className="py-2 pr-4 text-[#1a0f0a]">{c.subject}</td>
+                    <td className="py-2 pr-4 text-right text-[#1a0f0a]">{c.totalSent}</td>
+                    <td className="py-2 pr-4 text-right text-[#1a0f0a]">
+                      {c.uniqueOpens} <span className="text-[#a0704a]">({Math.round(c.openRate * 100)}%)</span>
+                    </td>
+                    <td className="py-2 text-right text-[#1a0f0a]">
+                      {c.uniqueClicks} <span className="text-[#a0704a]">({Math.round(c.clickRate * 100)}%)</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="text-xs text-[#a0704a] pt-3">
+              Open counts include automatic loads from Apple Mail Privacy Protection, which inflates them for some
+              recipients -- click rates are the more trustworthy signal.
+            </p>
+          </div>
+        )}
+      </Card>
 
       <Card>
         <div className="flex flex-col sm:flex-row gap-3">

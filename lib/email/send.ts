@@ -27,9 +27,14 @@ export type EmailCategory =
 // extra param) -- every call site already has its own service-role
 // supabase client and the recipient/subject in scope, and keeping this
 // send-only module's functions focused on sending keeps them reusable
-// without a DB dependency. Best-effort: the email has already gone out by
-// the time this runs, so a logging failure must never surface as a send
-// failure -- swallow after logging the error.
+// without a DB dependency. Best-effort: a logging failure must never
+// surface as a send failure -- swallow after logging the error.
+//
+// Returns the new row's id (or null on failure) -- migration 095's
+// open/click tracking needs this id BEFORE the email is sent, to embed
+// in the tracking pixel/links, so broadcast sends now log first and
+// send second (see app/api/admin/broadcast-email/route.ts), unlike
+// every other call site here which still logs after a successful send.
 export async function logEmailSend(
   supabase: SupabaseClient,
   params: {
@@ -38,19 +43,30 @@ export async function logEmailSend(
     cc?: string;
     subject: string;
     recipientUserId?: string | null;
+    broadcastBatchId?: string | null;
   }
-): Promise<void> {
+): Promise<string | null> {
   try {
-    const { error } = await supabase.from("sent_emails").insert({
-      category: params.category,
-      to_email: params.to,
-      cc_email: params.cc || null,
-      subject: params.subject,
-      recipient_user_id: params.recipientUserId || null,
-    });
-    if (error) console.error("Failed to log sent email:", error);
+    const { data, error } = await supabase
+      .from("sent_emails")
+      .insert({
+        category: params.category,
+        to_email: params.to,
+        cc_email: params.cc || null,
+        subject: params.subject,
+        recipient_user_id: params.recipientUserId || null,
+        broadcast_batch_id: params.broadcastBatchId || null,
+      })
+      .select("id")
+      .single();
+    if (error) {
+      console.error("Failed to log sent email:", error);
+      return null;
+    }
+    return data?.id || null;
   } catch (err) {
     console.error("Failed to log sent email:", err);
+    return null;
   }
 }
 
@@ -305,6 +321,13 @@ export async function sendBroadcastEmail(options: {
   to: string;
   subject: string;
   bodyHtml: string;
+  // The sent_emails row id for THIS recipient's copy (migration 095) --
+  // when present, buildBroadcastEmailHtml embeds an open-tracking pixel
+  // and rewrites trackable links through the click-tracking redirect.
+  // Undefined/null (e.g. logging the row failed) just sends untracked,
+  // same as before this existed -- tracking is additive, never a
+  // reason to block a send.
+  trackingId?: string | null;
 }): Promise<void> {
   const transporter = getTransporter();
   await transporter.sendMail({
@@ -312,7 +335,7 @@ export async function sendBroadcastEmail(options: {
     to: options.to,
     subject: options.subject,
     text: buildBroadcastEmailText(options.bodyHtml),
-    html: buildBroadcastEmailHtml(options.bodyHtml),
+    html: buildBroadcastEmailHtml(options.bodyHtml, options.trackingId),
     replyTo: REPLY_TO_ADDRESS,
     attachments: getBrandedAttachments(),
   });

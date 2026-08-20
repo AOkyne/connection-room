@@ -44,3 +44,31 @@ export async function getEmailHistory(params: {
     pageSize: data.pageSize || 50,
   };
 }
+
+export interface BroadcastCampaign {
+  batchId: string;
+  subject: string;
+  sentAt: string;
+  totalSent: number;
+  uniqueOpens: number;
+  uniqueClicks: number;
+  openRate: number;
+  clickRate: number;
+}
+
+// Broadcasts sent before migration 095 shipped tracking have no
+// broadcast_batch_id and simply won't appear here -- there's nothing to
+// group them into, and no historical open/click data exists for them.
+export async function getBroadcastCampaigns(): Promise<{ campaigns: BroadcastCampaign[]; error?: string }> {
+  const authHeader = await getAuthHeader();
+  if (!authHeader) {
+    return { campaigns: [], error: "Not signed in with a real admin account." };
+  }
+
+  const response = await fetch("/api/admin/broadcast-campaigns", { headers: authHeader, cache: "no-store" });
+  const data = await response.json();
+  if (!response.ok) {
+    return { campaigns: [], error: data.error || "Request failed" };
+  }
+  return { campaigns: data.campaigns || [] };
+}
