@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSession } from "@/lib/session";
 import { supabase } from "@/lib/supabase/client";
+import { getConnectionContent, type ConnectionContent } from "@/lib/admin/connections";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { Breadcrumb } from "@/components/Breadcrumb";
@@ -39,6 +40,9 @@ export default function AdminConcernsPage() {
   const [selectedConcern, setSelectedConcern] = useState<Concern | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [adminNotes, setAdminNotes] = useState("");
+  const [connectionContent, setConnectionContent] = useState<ConnectionContent | null>(null);
+  const [contentLoading, setContentLoading] = useState(false);
+  const [contentRequested, setContentRequested] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -129,6 +133,18 @@ export default function AdminConcernsPage() {
     setConcerns((prev) => prev.map((c) => (c.id === id ? { ...c, status: "resolved" as const } : c)));
     showToast("Concern marked as resolved", "success");
     setShowDetailModal(false);
+  };
+
+  const handleViewContent = async (connectionId: string) => {
+    setContentRequested(true);
+    setContentLoading(true);
+    const result = await getConnectionContent(connectionId);
+    if (result.error) {
+      showToast(result.error, "error");
+    } else {
+      setConnectionContent(result.content);
+    }
+    setContentLoading(false);
   };
 
   const handleSaveNotes = async (id: string) => {
@@ -266,6 +282,8 @@ export default function AdminConcernsPage() {
               onClick={() => {
                 setSelectedConcern(concern);
                 setAdminNotes(concern.adminNotes || "");
+                setConnectionContent(null);
+                setContentRequested(false);
                 setShowDetailModal(true);
               }}
             >
@@ -318,7 +336,7 @@ export default function AdminConcernsPage() {
       {/* Detail Modal */}
       {showDetailModal && selectedConcern && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="max-w-2xl w-full max-h-96 overflow-y-auto">
+          <Card className="max-w-2xl w-full max-h-[85vh] overflow-y-auto">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-[#1a0f0a]">
@@ -364,6 +382,61 @@ export default function AdminConcernsPage() {
                     </p>
                   </div>
                 </div>
+              </div>
+
+              <div>
+                {!contentRequested ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewContent(selectedConcern.connectionId)}
+                  >
+                    🔍 View Connection Content
+                  </Button>
+                ) : contentLoading ? (
+                  <p className="text-sm text-[#a0704a]">Loading connection content...</p>
+                ) : connectionContent ? (
+                  <div className="space-y-3 p-3 bg-[#f3ede5] rounded">
+                    <p className="text-sm font-medium text-[#a0704a]">
+                      Connection content ({connectionContent.connection?.participants.join(" & ") || "unknown participants"})
+                    </p>
+                    {connectionContent.rounds.length === 0 && connectionContent.messages.length === 0 ? (
+                      <p className="text-sm text-[#a0704a]">No round responses or messages have been exchanged yet.</p>
+                    ) : (
+                      <>
+                        {connectionContent.rounds.map((round) => (
+                          <div key={round.id} className="text-sm border-b border-[#e8ddd2] pb-2 last:border-0">
+                            <p className="font-medium text-[#1a0f0a]">
+                              Round {round.roundNumber} ({round.status})
+                            </p>
+                            {round.promptText && <p className="text-[#a0704a] italic mb-1">&ldquo;{round.promptText}&rdquo;</p>}
+                            {round.responses.length === 0 ? (
+                              <p className="text-[#a0704a]">No responses submitted yet.</p>
+                            ) : (
+                              round.responses.map((r, i) => (
+                                <p key={i} className="text-[#1a0f0a]">
+                                  <strong>{r.name}:</strong> {r.text || "(not yet submitted)"}
+                                </p>
+                              ))
+                            )}
+                          </div>
+                        ))}
+                        {connectionContent.messages.length > 0 && (
+                          <div className="text-sm">
+                            <p className="font-medium text-[#1a0f0a] mb-1">Chat messages</p>
+                            {connectionContent.messages.map((m) => (
+                              <p key={m.id} className="text-[#1a0f0a]">
+                                <strong>{m.fromName}:</strong> {m.text}
+                              </p>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-[#a0704a]">Could not load connection content.</p>
+                )}
               </div>
 
               <div>

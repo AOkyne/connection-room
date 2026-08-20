@@ -218,6 +218,11 @@ export default function AdminPage() {
             ⚠️ Reported Concerns
           </Button>
         </Link>
+        <Link href="/app/admin/connections">
+          <Button variant="outline" size="sm">
+            🔗 Connections Activity
+          </Button>
+        </Link>
         <Link href="/app/admin/daily-companion">
           <Button variant="outline" size="sm">
             ✨ Daily Content
