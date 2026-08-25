@@ -95,7 +95,7 @@ export interface ConnectionParticipant {
 export interface AsyncConnection {
   id: string;
   status: AsyncConnectionStatus;
-  connectionType: "async" | "live";
+  connectionType: "async" | "live" | "direct";
   currentRoundNumber: number;
   invitationExpiresAt?: Date;
   activatedAt?: Date;

@@ -1,5 +1,20 @@
 # Async Guided Connections
 
+> **Status: legacy, frozen, not creatable.** Migration 096 ("Simplify
+> Connections") replaced this as the flow for NEW connections with a
+> lightweight `connection_type = 'direct'`: discover a member → view
+> profile → Say Hello → ordinary conversation, no invitation/acceptance
+> gate (unless the recipient sets messaging privacy to "connect first"),
+> no rounds, no reveal, no live-scheduling requirement. See the README's
+> "Connections" section and `app/app/connections/[id]/page.tsx`'s
+> `connection_type` branch. Nothing below is removed or altered --
+> `connections`/`connection_participants`/`connection_rounds`/
+> `connection_responses`/etc. and every existing in-progress guided
+> exchange keep working exactly as documented below. The only change is
+> that no new invitation of this type is ever created by current UI; this
+> document describes that now-frozen system for anyone maintaining an
+> existing exchange or reading old data.
+
 Replaces the live-first "two members online at once for 20 minutes" model
 with an asynchronous-first **Guided Connection Exchange**: invitation →
 mutual acceptance → structured async rounds → optional live conversation →

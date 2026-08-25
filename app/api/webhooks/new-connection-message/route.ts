@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { hasSmtpConfig, sendConnectionInviteEmail, logEmailSend } from "@/lib/email/send";
+import { hasSmtpConfig, sendConnectionInviteEmail, sendConnectionReplyEmail, logEmailSend } from "@/lib/email/send";
 
 // Called by the connection_messages_notify_new_message trigger (migration
 // 077) via pg_net, fire-and-forget, every time a message is inserted into
@@ -63,8 +63,16 @@ export async function POST(request: NextRequest) {
   if (countError) {
     return NextResponse.json({ error: "Failed to count connection messages" }, { status: 500 });
   }
-  if ((messageCount || 0) > 1) {
-    return NextResponse.json({ skipped: "not the first message" });
+  // Simplify Connections, phase 5: also notify on the FIRST REPLY (the
+  // second message overall) -- distinct from the first-message case
+  // below, and still capped at exactly one email so an ordinary
+  // back-and-forth after that never turns into a running notification
+  // thread. Every message beyond the second is silently skipped.
+  if ((messageCount || 0) === 2) {
+    return await notifyFirstReply(supabase, connectionId, messageId, fromUserId, appUrl);
+  }
+  if ((messageCount || 0) > 2) {
+    return NextResponse.json({ skipped: "not the first message or first reply" });
   }
 
   const { data: message, error: messageError } = await supabase
@@ -124,6 +132,84 @@ export async function POST(request: NextRequest) {
     category: "connection_invite",
     to: email,
     subject: `${message.from_user_name} wants to connect with you`,
+    recipientUserId: recipientId,
+  });
+
+  return NextResponse.json({ sent: true });
+}
+
+// Notifies whoever sent the FIRST message that they just got a reply.
+// Own dedup type ("direct_message_reply") so it can never collide with
+// the first-message log row already written for this (connection,
+// recipient) pair above, or double-send if pg_net retries this call.
+async function notifyFirstReply(
+  supabase: any,
+  connectionId: string,
+  messageId: string,
+  fromUserId: string,
+  appUrl: string
+) {
+  const { data: message, error: messageError } = await supabase
+    .from("connection_messages")
+    .select("from_user_name")
+    .eq("id", messageId)
+    .single();
+
+  if (messageError || !message) {
+    return NextResponse.json({ error: "Message not found" }, { status: 404 });
+  }
+
+  const { data: connection, error: connectionError } = await supabase
+    .from("connections")
+    .select("user_id, partner_id")
+    .eq("id", connectionId)
+    .single();
+
+  if (connectionError || !connection) {
+    return NextResponse.json({ error: "Connection not found" }, { status: 404 });
+  }
+
+  // The recipient of THIS notification is whoever did NOT send this
+  // reply -- i.e. the original first-message sender.
+  const recipientId = connection.user_id === fromUserId ? connection.partner_id : connection.user_id;
+  if (!recipientId) {
+    return NextResponse.json({ error: "Could not resolve recipient" }, { status: 500 });
+  }
+
+  const { data: existing } = await supabase
+    .from("connection_notification_log")
+    .select("id")
+    .eq("connection_id", connectionId)
+    .eq("notified_user_id", recipientId)
+    .eq("notification_type", "direct_message_reply")
+    .maybeSingle();
+
+  if (existing) {
+    return NextResponse.json({ skipped: "already notified" });
+  }
+
+  const { data: userData, error: userError } = await supabase.auth.admin.getUserById(recipientId);
+  const email = userData?.user?.email;
+  if (userError || !email) {
+    return NextResponse.json({ skipped: "no email on file" });
+  }
+
+  await sendConnectionReplyEmail({
+    to: email,
+    replierName: message.from_user_name,
+    appUrl,
+  });
+
+  await supabase.from("connection_notification_log").insert({
+    connection_id: connectionId,
+    notified_user_id: recipientId,
+    notification_type: "direct_message_reply",
+  });
+
+  await logEmailSend(supabase, {
+    category: "connection_invite",
+    to: email,
+    subject: `${message.from_user_name} replied to you`,
     recipientUserId: recipientId,
   });
 

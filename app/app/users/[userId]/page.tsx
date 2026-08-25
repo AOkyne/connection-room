@@ -6,6 +6,11 @@ import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import Link from "next/link";
 import { getPublicProfile } from "@/lib/data/profiles";
+import { getSession } from "@/lib/session";
+import { sayHello } from "@/lib/data/connectionsDirect";
+import { trackConnectionEvent } from "@/lib/analytics/connectionEvents";
+import { useToast } from "@/lib/hooks/useToast";
+import { ToastContainer } from "@/components/Toast";
 
 interface UserProfile {
   id: string;
@@ -22,13 +27,21 @@ export default function UserProfilePage() {
   const router = useRouter();
   const userId = params.userId as string;
 
+  const { toasts, showToast, removeToast } = useToast();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [isSelf, setIsSelf] = useState(false);
+  const [showHelloBox, setShowHelloBox] = useState(false);
+  const [helloText, setHelloText] = useState("");
+  const [sendingHello, setSendingHello] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
       try {
+        const session = await getSession();
+        setIsSelf(!!session && session.supabaseUserId === userId);
+
         const data = await getPublicProfile(userId);
 
         if (!data) {
@@ -53,6 +66,21 @@ export default function UserProfilePage() {
 
     loadProfile();
   }, [userId]);
+
+  const handleSendHello = async () => {
+    if (!helloText.trim() || sendingHello) return;
+    setSendingHello(true);
+    const result = await sayHello(userId, helloText.trim());
+    setSendingHello(false);
+
+    if (result.error || !result.connectionId) {
+      showToast(result.error || "Could not send this message. Please try again.", "error");
+      return;
+    }
+
+    trackConnectionEvent({ eventType: "first_message_sent", relatedUserId: userId, connectionId: result.connectionId });
+    router.push(`/app/connections/${result.connectionId}`);
+  };
 
   if (loading) {
     return <div className="text-center py-8">Loading profile...</div>;
@@ -101,6 +129,42 @@ export default function UserProfilePage() {
               Member since {profile.joinedAt.toLocaleDateString()}
             </p>
           )}
+
+          {!isSelf && (
+            <div className="pt-2">
+              {!showHelloBox ? (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    trackConnectionEvent({ eventType: "say_hello_clicked", relatedUserId: userId });
+                    setShowHelloBox(true);
+                  }}
+                >
+                  👋 Say Hello
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <textarea
+                    value={helloText}
+                    onChange={(e) => setHelloText(e.target.value)}
+                    placeholder={`Say hello to ${profile.displayName}...`}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-[#1a0f0a]"
+                    autoFocus
+                  />
+                  <div className="flex gap-2">
+                    <Button variant="primary" size="sm" onClick={handleSendHello} disabled={sendingHello || !helloText.trim()}>
+                      {sendingHello ? "Sending..." : "Send"}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setShowHelloBox(false)}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </Card>
 
@@ -120,6 +184,8 @@ export default function UserProfilePage() {
           </div>
         </Card>
       )}
+
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

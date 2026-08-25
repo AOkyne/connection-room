@@ -1,37 +1,27 @@
 "use client";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useRef } from "react";
-import { getProfile, getProfilePhoto, getPublicProfile, type Profile } from "@/lib/data/profiles";
+import { useState, useEffect } from "react";
+import { getProfile, getPublicProfile, getProfileVisibilitySettings, updateProfileVisibilitySettings } from "@/lib/data/profiles";
 import {
   getConnectionPreferences,
   updateConnectionPreferences,
-  getCurrentConnection,
-  setCurrentConnection,
-  completeConnection,
-  skipConnection,
-  reportConnectionConcern,
-  getConnectionHistory,
-  addToConnectionHistory,
-  addToDeclinedUsers,
-  getDeclinedUsers,
-  getBlockedUsers,
-  createConfirmedConnection,
   getActiveConnections,
-  updateConnectionStatus,
   type Connection,
+  type MessagingPrivacy,
 } from "@/lib/data/connections";
+import { getConnectionsDirectory, type DirectoryFilter, type DirectoryMember } from "@/lib/data/connectionsDirect";
 import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { Avatar } from "@/components/Avatar";
-import { IconConnection, IconForYou } from "@/components/Icons";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import { findMatches } from "@/lib/matching";
-import { SuggestedConnections } from "@/components/connections/SuggestedConnections";
+import { SayHelloModal } from "@/components/connections/SayHelloModal";
+import { SomeoneYouMightWantToKnow } from "@/components/connections/SomeoneYouMightWantToKnow";
+import { trackConnectionEvent } from "@/lib/analytics/connectionEvents";
 import { IncomingRequests } from "@/components/connections/IncomingRequests";
-import { ConnectionProfileModal } from "@/components/connections/ConnectionProfileModal";
 import { ConnectionChat } from "@/components/connections/ConnectionChat";
 import { useToast } from "@/lib/hooks/useToast";
 import { ToastContainer } from "@/components/Toast";
@@ -40,164 +30,91 @@ import {
   getSentRequests,
   acceptConnectionRequest,
   declineConnectionRequest,
-  sendConnectionRequest,
   type ConnectionRequest,
 } from "@/lib/data/connectionRequests";
-import { isAsyncConnectionsEnabled } from "@/lib/data/featureFlags";
-import { getMyAsyncConnections, hasAnyAsyncConnectionActivity } from "@/lib/data/connectionAsync";
+import { addToDeclinedUsers } from "@/lib/data/connections";
+import { createConfirmedConnection } from "@/lib/data/connections";
+import { getMyAsyncConnections } from "@/lib/data/connectionAsync";
 import { GuidedExchangeSection } from "@/components/connections/GuidedExchangeSection";
-import { GuidedConnectionSuggestions } from "@/components/connections/GuidedConnectionSuggestions";
-import { LiveAvailabilityToggle } from "@/components/connections/LiveAvailabilityToggle";
-import { playNotificationSound } from "@/lib/utils/notificationSound";
-import type { AsyncConnection, ConnectionFormat } from "@/lib/types/connection";
+import type { AsyncConnection } from "@/lib/types/connection";
+import type { Profile } from "@/lib/data/profiles";
 
-const ASYNC_POLL_INTERVAL_MS = 15000;
-
-// A lightweight "did anything meaningful change" fingerprint per
-// connection -- status and round number cover every state transition that
-// actually matters to the member (invitation accepted, round revealed,
-// round advanced, exchange completed, live requested, etc.). Comparing
-// this instead of deep-equality avoids false "new activity" pings from
-// fields that change without anything actionable happening.
-function fingerprintAsyncConnections(connections: AsyncConnection[]): Map<string, string> {
-  return new Map(connections.map((c) => [c.id, `${c.status}:${c.currentRoundNumber}`]));
-}
-
-const FORMAT_OPTIONS: Array<{ id: ConnectionFormat; label: string }> = [
-  { id: "guided_message", label: "Guided message exchange" },
-  { id: "scheduled_live", label: "Scheduled 20-minute conversation" },
-  { id: "live_now", label: "Live now" },
-  { id: "any", label: "Open to any format" },
+const FILTERS: { id: DirectoryFilter; label: string }[] = [
+  { id: "everyone", label: "Everyone" },
+  { id: "near_me", label: "Near Me" },
+  { id: "new_members", label: "New Members" },
+  { id: "shared_interests", label: "Shared Interests" },
 ];
 
 export default function ConnectionsPage() {
   const router = useRouter();
   const { toasts, showToast, removeToast } = useToast();
-  const [profile, setProfile] = useState<any>(null);
-  // getProfile() deliberately omits profile_photo (a past perf/timeout
-  // fix), so it's always "" there -- fetched separately here since it's
-  // needed for real use: gating whether matching runs, and what gets
-  // attached to a sent connection request's from_user_photo.
-  const [profilePhoto, setProfilePhoto] = useState("");
-  const [preferences, setPreferences] = useState<any>(null);
-  const [currentConnection, setCurrentConnectionState] = useState<Connection | null>(null);
-  const [suggestedMatches, setSuggestedMatches] = useState<any[]>([]);
-  const [showReportForm, setShowReportForm] = useState(false);
-  const [reportConcern, setReportConcern] = useState("");
+
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [mounted, setMounted] = useState(false);
+
+  // Directory
+  const [filter, setFilter] = useState<DirectoryFilter>("everyone");
+  const [members, setMembers] = useState<DirectoryMember[]>([]);
+  const [loadingDirectory, setLoadingDirectory] = useState(true);
+  const [helloTarget, setHelloTarget] = useState<{ id: string; displayName: string } | null>(null);
+
+  // Connections settings -- reuses existing profile-visibility (show_in_
+  // discovery) and connection_preferences (messaging_privacy) plumbing,
+  // just surfaced here since this is where a member decides to be found.
+  const [openToMeeting, setOpenToMeeting] = useState(true);
+  const [messagingPrivacy, setMessagingPrivacy] = useState<MessagingPrivacy>("any_member");
+
+  // Existing conversations/activity -- preserved so a member with an
+  // in-flight legacy request or guided exchange never loses their entry
+  // point to it just because the browse experience changed around it.
   const [incomingRequests, setIncomingRequests] = useState<ConnectionRequest[]>([]);
   const [requesterProfiles, setRequesterProfiles] = useState<Record<string, Profile>>({});
   const [mutualUserIds, setMutualUserIds] = useState<Set<string>>(new Set());
-  const [loadingMatches, setLoadingMatches] = useState(false);
-  const [selectedProfile, setSelectedProfile] = useState<any>(null);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [connectionHistory, setConnectionHistory] = useState<any[]>([]);
   const [activeConnections, setActiveConnections] = useState<Connection[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
-  const [randomMatch, setRandomMatch] = useState<any>(null);
-  const [isRandomModalOpen, setIsRandomModalOpen] = useState(false);
-  const [randomRequestSent, setRandomRequestSent] = useState(false);
-  const [loadingRandomMatch, setLoadingRandomMatch] = useState(false);
-  const [asyncEnabled, setAsyncEnabled] = useState(false);
   const [asyncConnections, setAsyncConnections] = useState<AsyncConnection[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
-      // getProfile() and getProfilePhoto() are independent (photo resolves
-      // its own current-user session internally) -- fetched in parallel
-      // rather than sequentially.
-      const [p, realPhoto] = await Promise.all([getProfile(), getProfilePhoto()]);
+      const p = await getProfile();
       setProfile(p);
-      setProfilePhoto(realPhoto);
-
-      if (p) {
-        const prefs = await getConnectionPreferences(p.id);
-        setPreferences(prefs);
-
-        const connection = getCurrentConnection(p.id);
-        setCurrentConnectionState(connection);
-
-        const history = getConnectionHistory(p.id);
-        setConnectionHistory(history);
-
-        // Load suggested matches if no current connection and profile is
-        // complete. Gate on the real photo (fetched above), not
-        // p.profilePhoto -- that field is always "" on the object
-        // getProfile() returns, so this condition was never true for
-        // anyone; matching silently never ran.
-        const shouldFindMatches = !connection && p.completedOnboarding && realPhoto && p.interests?.length > 0;
-        if (shouldFindMatches) setLoadingMatches(true);
-
-        // The incoming-requests chain (requests -> sent/active -> each
-        // requester's profile) and the suggested-matches server call don't
-        // depend on each other at all -- previously run strictly
-        // sequentially (matches always last), now run in parallel so the
-        // page's total load time is roughly the slower of the two, not
-        // the sum of both.
-        const [requestsChain, matches] = await Promise.all([
-          (async () => {
-            const [requests, sent, active] = await Promise.all([
-              getIncomingRequests(p.id),
-              getSentRequests(p.id),
-              getActiveConnections(p.id),
-            ]);
-            const resolvedProfiles = await Promise.all(
-              requests.map(async (r) => [r.fromUserId, await getPublicProfile(r.fromUserId)] as const)
-            );
-            return { requests, sent, active, resolvedProfiles };
-          })(),
-          shouldFindMatches
-            ? (async () => {
-                const declined = Array.from(getDeclinedUsers(p.id));
-                const blocked = Array.from(await getBlockedUsers(p.id));
-                try {
-                  return await findMatches(p, prefs, history, declined, blocked, 5);
-                } catch (err) {
-                  console.error("Error loading matches:", err);
-                  return [] as Awaited<ReturnType<typeof findMatches>>;
-                }
-              })()
-            : Promise.resolve(null),
-        ]);
-
-        if (shouldFindMatches) setLoadingMatches(false);
-
-        const { requests, sent, active, resolvedProfiles } = requestsChain;
-        setIncomingRequests(requests);
-        setActiveConnections(active);
-
-        // Mutual: someone I already sent a pending request to also sent me one
-        const sentToIds = new Set(sent.map((r) => r.toUserId));
-        setMutualUserIds(new Set(requests.filter((r) => sentToIds.has(r.fromUserId)).map((r) => r.fromUserId)));
-
-        // Real profiles for each requester's card/modal
-        const profilesMap: Record<string, Profile> = {};
-        for (const [id, prof] of resolvedProfiles) {
-          if (prof) profilesMap[id] = prof;
-        }
-        setRequesterProfiles(profilesMap);
-
-        if (matches !== null) {
-          setSuggestedMatches(matches);
-        }
-
-        // A member who isn't on the beta list must still be able to see
-        // and respond to an async invitation someone else already sent
-        // them -- otherwise it's a one-way trap (confirmed live: exactly
-        // this happened). Once involved in an async connection at all,
-        // they get the full guided-connections experience, not a
-        // view-only subset -- simpler and avoids a confusing partial UI.
-        const [flagEnabled, hasActivity] = await Promise.all([
-          isAsyncConnectionsEnabled(p.id),
-          hasAnyAsyncConnectionActivity(p.id),
-        ]);
-        const enabled = flagEnabled || hasActivity;
-        setAsyncEnabled(enabled);
-        if (enabled) {
-          const asyncConns = await getMyAsyncConnections(p.id);
-          setAsyncConnections(asyncConns);
-        }
+      if (!p) {
+        setMounted(true);
+        return;
       }
+
+      const [prefs, visibility, requests, sent, active, asyncConns] = await Promise.all([
+        getConnectionPreferences(p.id),
+        getProfileVisibilitySettings(),
+        getIncomingRequests(p.id),
+        getSentRequests(p.id),
+        getActiveConnections(p.id),
+        // getMyAsyncConnections reads the connections table with no
+        // connection_type filter -- it already returns 'direct' rows
+        // (the new say-hello flow) alongside any legacy async/live rows.
+        // Not gated by the old feature_async_connections_enabled beta
+        // flag: that flag only ever controlled the OLD guided-exchange
+        // rollout, and must never hide a member's own new "direct"
+        // conversations just because they weren't on that beta list.
+        getMyAsyncConnections(p.id),
+      ]);
+
+      setMessagingPrivacy(prefs.messagingPrivacy);
+      if (visibility) setOpenToMeeting(visibility.showInDiscovery);
+
+      const resolvedProfiles = await Promise.all(
+        requests.map(async (r) => [r.fromUserId, await getPublicProfile(r.fromUserId)] as const)
+      );
+      setIncomingRequests(requests);
+      setActiveConnections(active);
+      const sentToIds = new Set(sent.map((r) => r.toUserId));
+      setMutualUserIds(new Set(requests.filter((r) => sentToIds.has(r.fromUserId)).map((r) => r.fromUserId)));
+      const profilesMap: Record<string, Profile> = {};
+      for (const [id, prof] of resolvedProfiles) if (prof) profilesMap[id] = prof;
+      setRequesterProfiles(profilesMap);
+
+      setAsyncConnections(asyncConns);
 
       setMounted(true);
     };
@@ -208,119 +125,45 @@ export default function ConnectionsPage() {
     });
   }, []);
 
-  // Lightweight polling for the async dashboard only -- re-running the
-  // whole loadData() above every interval would re-fetch preferences,
-  // legacy requests, matches, etc. for no reason and cause visible
-  // flicker. This just re-checks asyncConnections on its own, diffs
-  // against what was already on screen, and plays a sound the moment
-  // something actionable changes (a round revealed, an invitation
-  // accepted, an exchange advancing) -- confirmed live: without this, the
-  // page never reflected new activity until a manual reload.
-  const asyncConnectionsRef = useRef<AsyncConnection[]>([]);
   useEffect(() => {
-    asyncConnectionsRef.current = asyncConnections;
-  }, [asyncConnections]);
+    if (!mounted) return;
+    setLoadingDirectory(true);
+    getConnectionsDirectory(filter).then((result) => {
+      if (result.error) {
+        showToast(result.error, "error");
+        setMembers([]);
+      } else {
+        setMembers(result.members);
+        trackConnectionEvent({ eventType: "connections_directory_viewed", filter });
+      }
+      setLoadingDirectory(false);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, mounted]);
 
-  useEffect(() => {
-    if (!asyncEnabled || !profile?.id) return;
-
-    const interval = setInterval(async () => {
-      const fresh = await getMyAsyncConnections(profile.id);
-      const prevFingerprint = fingerprintAsyncConnections(asyncConnectionsRef.current);
-      const hasNewActivity = fresh.some((c) => {
-        const prevValue = prevFingerprint.get(c.id);
-        const newValue = `${c.status}:${c.currentRoundNumber}`;
-        return prevValue !== newValue;
-      });
-
-      if (hasNewActivity) playNotificationSound();
-      setAsyncConnections(fresh);
-    }, ASYNC_POLL_INTERVAL_MS);
-
-    return () => clearInterval(interval);
-  }, [asyncEnabled, profile?.id]);
-
-  if (!mounted || !profile || !preferences) {
-    return <LoadingScreen message="Getting ready for connections" subtitle="We're personalizing your experience. Just a moment..." />;
+  if (!mounted) {
+    return <LoadingScreen message="Getting ready for connections" subtitle="Just a moment..." />;
   }
 
-  const handleFrequencyChange = (frequency: string) => {
-    const updated = { ...preferences, frequency };
-    setPreferences(updated);
-    updateConnectionPreferences(profile.id, updated);
-  };
+  if (!profile) {
+    return <LoadingScreen message="Getting ready for connections" subtitle="Just a moment..." />;
+  }
 
-  const handleContactModeChange = (contactMode: string) => {
-    const updated = { ...preferences, contactMode };
-    setPreferences(updated);
-    updateConnectionPreferences(profile.id, updated);
-  };
-
-  const handleFormatsToggle = (format: ConnectionFormat) => {
-    const current: ConnectionFormat[] = preferences.formats || [];
-    const next = current.includes(format) ? current.filter((f) => f !== format) : [...current, format];
-    const updated = { ...preferences, formats: next.length > 0 ? next : ["guided_message"] };
-    setPreferences(updated);
-    updateConnectionPreferences(profile.id, updated);
-  };
-
-  // Picks one random real, eligible profile (from a wider pool than just
-  // the 5 shown under Suggested Connections -- it can be one of those 5,
-  // but isn't limited to them) and shows it in the same profile-view modal
-  // Suggested Connections uses. No request is sent yet; that only happens
-  // if the member clicks "Send Connection Request" inside the modal.
-  const handleGenerateConnection = async () => {
-    if (!profile) return;
-
-    setLoadingRandomMatch(true);
-    try {
-      const declined = Array.from(getDeclinedUsers(profile.id));
-      const blocked = Array.from(await getBlockedUsers(profile.id));
-      const pool = await findMatches(profile, preferences, connectionHistory, declined, blocked, 50);
-
-      if (pool.length === 0) {
-        showToast("No eligible members to connect with right now.", "info");
-        return;
-      }
-
-      const picked = pool[Math.floor(Math.random() * pool.length)];
-      setRandomMatch(picked);
-      setRandomRequestSent(false);
-      setIsRandomModalOpen(true);
-    } catch (err) {
-      console.error("Error finding a random match:", err);
-      showToast("Could not find a random match right now. Please try again.", "error");
-    } finally {
-      setLoadingRandomMatch(false);
+  const handleToggleOpenToMeeting = async (value: boolean) => {
+    setOpenToMeeting(value);
+    const ok = await updateProfileVisibilitySettings({ showInDiscovery: value });
+    if (!ok) {
+      setOpenToMeeting(!value);
+      showToast("Could not update this setting. Please try again.", "error");
     }
   };
 
-  const handleSendRandomRequest = async (partnerId: string) => {
-    if (!randomMatch || !profile) return;
-
-    const sent = await sendConnectionRequest(
-      profile.id,
-      profile.displayName,
-      profilePhoto,
-      partnerId,
-      randomMatch.profile.interests || [],
-      "What brought you here and what kind of connection are you practicing?"
-    );
-
-    if (sent) {
-      setRandomRequestSent(true);
-      setSuggestedMatches((prev) => prev.filter((m) => m.profile.id !== partnerId));
-      showToast(`Request sent to ${randomMatch.profile.displayName}! You'll be able to chat once they accept.`, "success");
-    } else {
-      showToast("Could not send a connection request. Please try again.", "error");
-    }
-  };
-
-  const handleRequestConnection = async (partnerId: string) => {
-    const match = suggestedMatches.find((m) => m.profile.id === partnerId);
-    if (match && profile) {
-      await sendConnectionRequest(profile.id, profile.displayName, profilePhoto, partnerId, match.profile.interests || []);
-      setSuggestedMatches(suggestedMatches.filter((m) => m.profile.id !== partnerId));
+  const handleMessagingPrivacyChange = async (value: MessagingPrivacy) => {
+    setMessagingPrivacy(value);
+    const prefs = await getConnectionPreferences(profile.id);
+    const ok = await updateConnectionPreferences(profile.id, { ...prefs, messagingPrivacy: value });
+    if (!ok) {
+      showToast("Could not update this setting. Please try again.", "error");
     }
   };
 
@@ -340,8 +183,6 @@ export default function ConnectionsPage() {
     if (connection) {
       setActiveConnections((prev) => [connection, ...prev]);
       setSelectedChatId(connection.id);
-      setCurrentConnectionState(connection);
-      setCurrentConnection(profile.id, connection);
       showToast(`Connected with ${request.fromUserName}!`, "success");
     } else {
       showToast("Request accepted, but the connection couldn't be fully set up. Please refresh.", "error");
@@ -361,422 +202,171 @@ export default function ConnectionsPage() {
     }
   };
 
-  const handleViewPartnerProfile = async () => {
-    if (!currentConnection) return;
-    const partnerProfile = await getPublicProfile(currentConnection.partnerId);
-    if (partnerProfile) {
-      setSelectedProfile(partnerProfile);
-      setIsProfileModalOpen(true);
-    }
-  };
-
-  const handleMarkComplete = async () => {
-    if (!currentConnection || !profile) return;
-
-    completeConnection(profile.id, currentConnection.id);
-    updateConnectionStatus(currentConnection.id, "completed");
-    addToConnectionHistory(profile.id, currentConnection);
-    setActiveConnections((prev) => prev.filter((c) => c.id !== currentConnection.id));
-    setCurrentConnectionState(null);
-
-    const updatedHistory = getConnectionHistory(profile.id);
-    setConnectionHistory(updatedHistory);
-
-    try {
-      const declined = Array.from(getDeclinedUsers(profile.id));
-      const blocked = Array.from(await getBlockedUsers(profile.id));
-      const realMatches = await findMatches(profile, preferences, updatedHistory, declined, blocked, 5);
-      setSuggestedMatches(realMatches);
-    } catch (err) {
-      console.error("Error refreshing matches:", err);
-      setSuggestedMatches([]);
-    }
-  };
-
-  const handleSkipConnection = () => {
-    if (!profile || !currentConnection) return;
-    updateConnectionStatus(currentConnection.id, "declined");
-    skipConnection(profile.id);
-    setActiveConnections((prev) => prev.filter((c) => c.id !== currentConnection.id));
-    setCurrentConnectionState(null);
-  };
-
-  const handleReportConcern = async () => {
-    if (!reportConcern.trim() || !currentConnection) return;
-
-    const ok = await reportConnectionConcern(profile.id, currentConnection.id, reportConcern);
-    if (ok) {
-      showToast("Concern reported. An admin will review it.", "success");
-      setReportConcern("");
-      setShowReportForm(false);
-    } else {
-      showToast("Could not submit your report. Please try again.", "error");
-    }
-  };
-
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="space-y-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-4xl text-[#1a0f0a]">Connections</h1>
-            <p className="text-lg text-[#1a0f0a] mt-2">
-              Structured conversations with other members
-            </p>
-          </div>
-          <button
-            onClick={() => router.back()}
-            className="text-[#d4a348] hover:text-[#c9956d] transition-colors"
-            aria-label="Go back"
-          >
-            ← Back
-          </button>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-4xl text-[#1a0f0a]">People You Might Like to Know</h1>
+          <p className="text-lg text-[#1a0f0a] mt-2">Browse members, view a profile, and say hello.</p>
         </div>
+        <button
+          onClick={() => router.back()}
+          className="text-[#d4a348] hover:text-[#c9956d] transition-colors"
+          aria-label="Go back"
+        >
+          ← Back
+        </button>
+      </div>
 
-        {/* What are Connections Section -- copy differs per flow so it never
-            describes a structure the member isn't actually using. */}
-        <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-[#d4a348]">
-          {asyncEnabled ? (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-[#1a0f0a]">What is a Guided Connection?</h3>
-              <p className="text-sm text-[#1a0f0a] leading-relaxed">
-                A guided connection is an invitation, mutual acceptance, and three rounds of shared reflection with another member -- each on your own time, no scheduling required. Once you've both answered a round, you'll see each other's responses together. A live 20-minute conversation is always optional, never required.
-              </p>
-              <div className="grid sm:grid-cols-3 gap-3 pt-2">
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-[#c97a2a] uppercase">Who</p>
-                  <p className="text-sm text-[#1a0f0a]">Invite someone, or accept an invitation</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-[#c97a2a] uppercase">What</p>
-                  <p className="text-sm text-[#1a0f0a]">Three rounds of guided reflection, at your own pace</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-[#c97a2a] uppercase">Why</p>
-                  <p className="text-sm text-[#1a0f0a]">Practice authentic connection without needing to be online at the same time</p>
-                </div>
-              </div>
-              <div className="border-t border-[#e8ddd2] pt-4">
-                <p className="text-sm text-[#1a0f0a]">
-                  <strong>This is not a dating platform.</strong> This is a structured exchange, not unrestricted messaging -- responses stay private until you've both answered, and you can end a connection any time.
-                </p>
-              </div>
+      {/* Connections settings -- who can find you, who can message you. */}
+      <Card>
+        <CardHeader title="Your Connections Settings" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={openToMeeting}
+              onChange={(e) => handleToggleOpenToMeeting(e.target.checked)}
+              className="w-5 h-5 mt-0.5"
+            />
+            <span>
+              <span className="block font-medium text-[#1a0f0a]">Open to meeting other members</span>
+              <span className="block text-sm text-[#a0704a]">
+                Turn this off and you won't appear in this directory or in suggestions.
+              </span>
+            </span>
+          </label>
+
+          <div>
+            <p className="font-medium text-[#1a0f0a] mb-2">Who can message me?</p>
+            <div className="space-y-1">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  checked={messagingPrivacy === "any_member"}
+                  onChange={() => handleMessagingPrivacyChange("any_member")}
+                  className="w-4 h-4"
+                />
+                <span className="text-[#1a0f0a] text-sm">Any member</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  checked={messagingPrivacy === "connect_first"}
+                  onChange={() => handleMessagingPrivacyChange("connect_first")}
+                  className="w-4 h-4"
+                />
+                <span className="text-[#1a0f0a] text-sm">Only people I accept a request from first</span>
+              </label>
             </div>
-          ) : (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-[#1a0f0a]">What are Connections?</h3>
-              <p className="text-sm text-[#1a0f0a] leading-relaxed">
-                A connection is a one-on-one, 20-minute structured conversation with another member. You'll respond to a shared prompt and practice authentic relating in a safe, contained format. It's designed to deepen your understanding of how you connect.
-              </p>
-              <div className="grid sm:grid-cols-3 gap-3 pt-2">
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-[#c97a2a] uppercase">Who</p>
-                  <p className="text-sm text-[#1a0f0a]">Matched based on shared interests</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-[#c97a2a] uppercase">What</p>
-                  <p className="text-sm text-[#1a0f0a]">20-minute guided conversation</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-[#c97a2a] uppercase">Why</p>
-                  <p className="text-sm text-[#1a0f0a]">Practice authentic connection in real time</p>
-                </div>
-              </div>
-              <div className="border-t border-[#e8ddd2] pt-4">
-                <p className="text-sm text-[#1a0f0a]">
-                  <strong>This is not a dating platform.</strong> Connections are structured conversations focused on authentic relating, deeper self-understanding, and practicing vulnerability in a safe space.
-                </p>
-              </div>
-            </div>
-          )}
+          </div>
+        </div>
+      </Card>
+
+      {!openToMeeting ? (
+        <Card className="text-center py-10">
+          <p className="text-[#1a0f0a] font-medium">Connections are turned off for your profile.</p>
+          <p className="text-sm text-[#a0704a] mt-1">You can turn them back on anytime above.</p>
         </Card>
-      </div>
+      ) : (
+        <>
+          <SomeoneYouMightWantToKnow weekly onSayHello={(m) => setHelloTarget({ id: m.id, displayName: m.displayName })} />
+          <SomeoneYouMightWantToKnow onSayHello={(m) => setHelloTarget({ id: m.id, displayName: m.displayName })} />
 
-      {/* Preferences Section -- placed right below the intro card so a
-          member sets their preferences before browsing/inviting, rather
-          than buried below the connections lists. */}
-      <div className="bg-[#f3ede5] rounded-lg p-4 border-l-4 border-[#c97a2a] mb-6">
-        <h3 className="text-base font-semibold text-[#1a0f0a] mb-2">Set Your Connection Preferences</h3>
-        <p className="text-sm text-[#1a0f0a]">
-          {asyncEnabled
-            ? "Choose which formats you're open to. You can change this any time."
-            : "Help us match you with people who share your connection style. Your preferences guide how often you want to connect and how you prefer to communicate."}
-        </p>
-      </div>
+          {/* Filters */}
+          <div className="flex flex-wrap gap-2">
+            {FILTERS.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  filter === f.id ? "bg-[#d4a348] text-white" : "bg-[#f3ede5] text-[#1a0f0a] hover:bg-[#e8ddd2]"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
 
-      {/* Preferences and Current Connection Grid -- single column when
-          async (nothing legacy-specific to pair it with), two columns on
-          the legacy path (preferences alongside the current-connection
-          card). */}
-      <div className={`grid grid-cols-1 ${asyncEnabled ? "" : "sm:grid-cols-2"} gap-6 mb-8`}>
-        {/* Preferences Card */}
-        <Card>
-          <CardHeader title="Your Preferences" icon={<IconForYou size={20} />} />
-          {!asyncEnabled && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-[#1a0f0a] mb-3">
-                  How often would you like to connect?
-                </label>
-                <div className="space-y-2">
-                  {[
-                    { id: "weekly", label: "connect me this week" },
-                    { id: "monthly", label: "connect me monthly" },
-                    { id: "pause", label: "Not at this time" },
-                  ].map((option) => (
-                    <label key={option.id} className="flex items-center gap-3 p-3 hover:bg-[#f3ede5] rounded cursor-pointer">
-                      <input
-                        type="radio"
-                        checked={preferences.frequency === option.id}
-                        onChange={() => handleFrequencyChange(option.id)}
-                        className="w-4 h-4"
-                      />
-                      <span className="text-[#1a0f0a]">{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#1a0f0a] mb-3">
-                  Preferred contact method
-                </label>
-                <div className="space-y-2">
-                  {[
-                    { id: "text", label: "Text-based only" },
-                    { id: "voice-video", label: "Voice or video call" },
-                    { id: "local", label: "Open to local/in-person if appropriate" },
-                  ].map((option) => (
-                    <label key={option.id} className="flex items-center gap-3 p-3 hover:bg-[#f3ede5] rounded cursor-pointer">
-                      <input
-                        type="radio"
-                        checked={preferences.contactMode === option.id}
-                        onChange={() => handleContactModeChange(option.id)}
-                        className="w-4 h-4"
-                      />
-                      <span className="text-[#1a0f0a]">{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className={asyncEnabled ? "" : "mt-6 pt-6 border-t border-[#e8ddd2]"}>
-            <label className="block text-sm font-medium text-[#1a0f0a] mb-3">Formats you're open to</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {FORMAT_OPTIONS.map((option) => (
-                <label key={option.id} className="flex items-center gap-3 p-2 hover:bg-[#f3ede5] rounded cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={preferences.formats?.includes(option.id) ?? option.id === "guided_message"}
-                    onChange={() => handleFormatsToggle(option.id)}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-[#1a0f0a] text-sm">{option.label}</span>
-                </label>
+          {/* Directory */}
+          {loadingDirectory ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="h-48 animate-pulse bg-[#f3ede5]">
+                  {null}
+                </Card>
               ))}
             </div>
-          </div>
-        </Card>
-
-        {/* Current Connection or Random Connection Card (legacy request/accept flow) */}
-        {asyncEnabled ? null : currentConnection ? (
-        <Card className="bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-2 border-[#d4a348]">
-          <CardHeader title="Your Connection This Week" icon={<IconConnection size={20} />} />
-          <div className="space-y-4">
-            {/* Partner Info */}
-            <button
-              onClick={handleViewPartnerProfile}
-              className="bg-white rounded-lg p-4 w-full text-left hover:bg-[#f8f6f2] transition-colors"
-            >
-              <p className="text-sm text-[#a0704a] uppercase tracking-wide">Your partner</p>
-              <div className="flex items-start gap-4 mt-3">
-                <Avatar
-                  name={`${currentConnection.partnerFirstName || currentConnection.partnerName} ${currentConnection.partnerLastName || ''}`}
-                  photo={currentConnection.partnerPhoto}
-                  size="2xl"
-                />
-                <div>
-                  <p className="text-2xl font-medium text-[#1a0f0a]">
-                    {currentConnection.partnerFirstName} {currentConnection.partnerLastName} {currentConnection.partnerPronouns && `(${currentConnection.partnerPronouns})`}
-                  </p>
-                </div>
-              </div>
-            </button>
-
-            {/* Shared Interests */}
-            <div>
-              <p className="text-sm text-[#1a0f0a] mb-2">Shared interests</p>
-              <div className="flex flex-wrap gap-2">
-                {currentConnection.partnerInterests.slice(0, 3).map((interest: string) => (
-                  <span key={interest} className="bg-[#e8ddd2] text-[#1a0f0a] px-3 py-1 rounded-full text-xs">
-                    {interest}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Suggested Prompt */}
-            <div className="bg-white rounded-lg p-4 italic text-[#1a0f0a]">
-              "{currentConnection.sharedPrompt}"
-            </div>
-
-            {/* 20-Minute Structure */}
-            <div className="bg-[#f3ede5] rounded-lg p-4 space-y-2 text-sm">
-              <p className="font-medium text-[#1a0f0a] mb-3">Suggested 20-Minute Structure</p>
-              <div className="space-y-2">
-                <p className="text-[#1a0f0a]">
-                  <strong>2 min:</strong> Arrive, breathe, say hello
-                </p>
-                <p className="text-[#1a0f0a]">
-                  <strong>5 min each:</strong> What brought you here & what connection you're practicing
-                </p>
-                <p className="text-[#1a0f0a]">
-                  <strong>5 min:</strong> Respond to the prompt together
-                </p>
-                <p className="text-[#1a0f0a]">
-                  <strong>3 min:</strong> Appreciation, reflection, close
-                </p>
-              </div>
-            </div>
-
-            {/* Consent & Safety */}
-            <div className="space-y-2 text-sm text-[#1a0f0a]">
-              <p className="flex items-start gap-2">
-                <span>✓</span>
-                <span>
-                  <strong>Consent:</strong> Either party can pause or end the connection anytime
-                </span>
-              </p>
-              <p className="flex items-start gap-2">
-                <span>✓</span>
-                <span>
-                  <strong>Safety:</strong> No contact info shared unless both explicitly agree
-                </span>
-              </p>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3 pt-4">
-              <Button variant="primary" size="md" onClick={handleMarkComplete}>
-                Mark Complete
-              </Button>
-              <Button variant="outline" size="md" onClick={handleSkipConnection}>
-                Skip This Connection
-              </Button>
-            </div>
-
-            {/* Report Concern */}
-            <div className="border-t border-[#e8ddd2] pt-4">
-              {!showReportForm ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowReportForm(true)}
-                  className="text-[#a84a2a]"
-                >
-                  Report a Concern
-                </Button>
-              ) : (
-                <div className="space-y-3">
-                  <textarea
-                    value={reportConcern}
-                    onChange={(e) => setReportConcern(e.target.value)}
-                    placeholder="Describe your concern (no judgment, all reports are reviewed)..."
-                    rows={3}
-                    className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#a84a2a] text-sm"
-                  />
-                  <div className="flex gap-2">
+          ) : members.length === 0 ? (
+            <Card className="text-center py-10">
+              <p className="text-[#1a0f0a] font-medium">No one here just yet.</p>
+              <p className="text-sm text-[#a0704a] mt-1">Try another filter, or check back as the community grows.</p>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {members.map((member) => (
+                <Card key={member.id} className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <Avatar name={member.displayName} photo={member.profilePhoto} size="lg" />
+                    <div className="min-w-0">
+                      <p className="font-semibold text-[#1a0f0a] truncate">
+                        {member.displayName}
+                        {member.ageRange && <span className="font-normal text-[#a0704a]">, {member.ageRange}</span>}
+                      </p>
+                      {member.location && <p className="text-xs text-[#a0704a] truncate">📍 {member.location}</p>}
+                    </div>
+                  </div>
+                  {member.tagline && <p className="text-sm text-[#1a0f0a] italic line-clamp-2">"{member.tagline}"</p>}
+                  {member.interests.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {member.interests.map((interest) => (
+                        <span key={interest} className="text-xs bg-[#f3ede5] text-[#1a0f0a] px-2 py-0.5 rounded-full">
+                          {interest}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-2 pt-1">
+                    <Link
+                      href={`/app/users/${member.id}`}
+                      className="flex-1"
+                      onClick={() => trackConnectionEvent({ eventType: "member_profile_opened_from_connections", relatedUserId: member.id })}
+                    >
+                      <Button variant="outline" size="sm" className="w-full">
+                        View Profile
+                      </Button>
+                    </Link>
                     <Button
                       variant="primary"
                       size="sm"
-                      onClick={handleReportConcern}
-                      disabled={!reportConcern.trim()}
-                      className="flex-1 bg-[#a84a2a] hover:bg-[#a85947]"
-                    >
-                      Submit Report
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setShowReportForm(false);
-                        setReportConcern("");
-                      }}
                       className="flex-1"
+                      onClick={() => {
+                        trackConnectionEvent({ eventType: "say_hello_clicked", relatedUserId: member.id });
+                        setHelloTarget(member);
+                      }}
                     >
-                      Cancel
+                      👋 Say Hello
                     </Button>
                   </div>
-                </div>
-              )}
+                </Card>
+              ))}
             </div>
-          </div>
-        </Card>
-        ) : (
-        <Card className="text-center py-8">
-          <p className="text-[#1a0f0a] mb-4">No active connection right now.</p>
-          {preferences.frequency !== "pause" ? (
-            <div className="space-y-3">
-              <p className="text-sm text-[#a0704a]">
-                {suggestedMatches.length > 0
-                  ? "Browse the suggested connections above, or view a random member's profile."
-                  : "Select a match from suggestions above, or view a random member's profile."}
-              </p>
-              <Button variant="primary" size="md" onClick={handleGenerateConnection} disabled={loadingRandomMatch}>
-                {loadingRandomMatch ? "Finding someone..." : "Random Connection"}
-              </Button>
-            </div>
-          ) : (
-            <p className="text-sm text-[#a0704a]">Connections are paused. Update your preferences to be paired.</p>
           )}
-        </Card>
-        )}
-      </div>
+        </>
+      )}
 
-      {/* Async Guided Connections -- the async-first replacement flow.
-          Gated per-user by feature_async_connections_enabled /
-          connection_async_beta_user_ids (see migration 079). While a
-          member is on the legacy path (asyncEnabled === false), none of
-          this renders and the request/accept/suggested-connections flow
-          below behaves exactly as it always has. */}
-      {asyncEnabled && (
-        <div className="space-y-6">
-          <h2 className="text-2xl font-semibold text-[#1a0f0a]">Guided Connections</h2>
+      {/* In-flight guided exchanges (existing rows, any connection_type) --
+          untouched: same component, same behavior, regardless of how the
+          connection started. */}
+      {asyncConnections.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold text-[#1a0f0a]">Your Conversations</h2>
           <GuidedExchangeSection connections={asyncConnections} myUserId={profile.id} />
-          <div>
-            <h3 className="text-lg font-semibold text-[#1a0f0a] mb-1">Start a new guided connection</h3>
-            <p className="text-sm text-[#a0704a] mb-3">
-              Choose someone below, view their profile, and send a connection request to begin.
-            </p>
-          </div>
-          <GuidedConnectionSuggestions
-            matches={suggestedMatches}
-            loading={loadingMatches}
-            onInvited={() => showToast("Invitation sent! We'll let you know when they respond.", "success")}
-            // duration: 0 -- errors here are exactly the kind of thing a
-            // member needs to read carefully or report back (confirmed
-            // live: the default 3s auto-dismiss was gone before it could
-            // even be screenshotted). Stays until manually dismissed via
-            // the toast's own "x" button.
-            onError={(message) => showToast(message, "error", 0)}
-            myUserId={profile.id}
-          />
-          <LiveAvailabilityToggle userId={profile.id} />
         </div>
       )}
 
-      {/* Incoming Requests (legacy request/accept flow) -- shown whenever
-          there's real data, regardless of the async flag. Confirmed live:
-          gating this on !asyncEnabled meant a legacy request FROM a
-          non-beta member TO an async-enabled member became just as
-          invisible as an async invitation to a non-beta recipient (the
-          exact mirrored version of a bug already fixed elsewhere on this
-          page) -- an async member simply never saw someone trying to
-          reach them the old way. Being on the new flow should never cost
-          you visibility into a real, existing interaction on the old one. */}
+      {/* Legacy pending requests -- preserved so an existing request never
+          silently disappears. */}
       {incomingRequests.length > 0 && (
         <IncomingRequests
           requests={incomingRequests}
@@ -788,11 +378,6 @@ export default function ConnectionsPage() {
         />
       )}
 
-      {/* Active Conversations (legacy live chat) -- same reasoning as
-          Incoming Requests above: shown whenever real data exists,
-          regardless of the async flag, so an actual accepted legacy
-          connection never silently disappears just because the member is
-          also using the new system. */}
       {activeConnections.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold text-[#1a0f0a]">Active Conversations</h2>
@@ -822,11 +407,7 @@ export default function ConnectionsPage() {
                         <p className="text-xs text-[#a0704a]">Connected • Ready to chat</p>
                       </div>
                     </div>
-                    <Button
-                      variant="primary"
-                      onClick={() => setSelectedChatId(connection.id)}
-                      className="w-full"
-                    >
+                    <Button variant="primary" onClick={() => setSelectedChatId(connection.id)} className="w-full">
                       Open Chat
                     </Button>
                   </Card>
@@ -837,116 +418,16 @@ export default function ConnectionsPage() {
         </div>
       )}
 
-      {/* Suggested Connections (legacy request/accept flow) */}
-      {!asyncEnabled && suggestedMatches.length > 0 && (
-        <div className="space-y-4">
-          <div className="bg-[#f3ede5] rounded-lg p-4 border-l-4 border-[#d4a348]">
-            <h3 className="text-base font-semibold text-[#1a0f0a] mb-2">Your Suggested Connections</h3>
-            <p className="text-sm text-[#1a0f0a] mb-3">
-              These matches are suggested based on shared interests and compatible connection styles. Click on any profile to learn more, then select someone to begin your conversation this week.
-            </p>
-            <p className="text-xs text-[#c97a2a]">
-              💡 Tip: The match percentage shows how many interests you share. Higher percentages suggest more natural conversation starters.
-            </p>
-          </div>
-          <SuggestedConnections
-            matches={suggestedMatches}
-            onSelectMatch={handleRequestConnection}
-            loading={loadingMatches}
-            currentUserId={profile.id}
-            currentUserName={profile.displayName}
-            currentUserPhoto={profilePhoto}
-          />
-        </div>
-      )}
-
-      {/* Info Section -- content differs per flow, same reasoning as the
-          top intro card: don't describe a structure the member isn't
-          actually using. */}
-      <Card className="bg-[#f3ede5]">
-        <CardHeader title="How This Works" icon="📖" />
-        {asyncEnabled ? (
-          <ul className="space-y-3 text-[#1a0f0a] text-sm">
-            <li className="flex items-start gap-3">
-              <span className="text-[#d4a348]">✓</span>
-              <span>Opt-in only -- an exchange begins only after you both accept the invitation</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-[#d4a348]">✓</span>
-              <span>Respond when you have space -- each round gives you 48 hours, with a one-time extension if you need it</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-[#d4a348]">✓</span>
-              <span>You'll both see each other's answers only after you've each responded</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-[#d4a348]">✓</span>
-              <span>A live 20-minute conversation is always optional, and either side can decline without ending the exchange</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-[#d4a348]">✓</span>
-              <span>It's okay to end a connection that no longer feels right, any time -- no reason required</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-[#d4a348]">✓</span>
-              <span>Report concerns anytime, no retaliation, no judgment</span>
-            </li>
-          </ul>
-        ) : (
-          <ul className="space-y-3 text-[#1a0f0a] text-sm">
-            <li className="flex items-start gap-3">
-              <span className="text-[#d4a348]">✓</span>
-              <span>Opt-in only—connections happen because you want them</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-[#d4a348]">✓</span>
-              <span>Matched on shared interests and comfort level preferences</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-[#d4a348]">✓</span>
-              <span>20-minute structured conversation with clear timing</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-[#d4a348]">✓</span>
-              <span>
-                Contact info only shared with mutual consent—you stay in control
-              </span>
-            </li>
-            <li className="flex items-start gap-3">
-              <span className="text-[#d4a348]">✓</span>
-              <span>Report concerns anytime, no retaliation, no judgment</span>
-            </li>
-          </ul>
-        )}
-      </Card>
-
-      {/* Phase 2 Note */}
-      <Card className="bg-[#fffbf7] border-2 border-[#d4a348]">
-        <CardHeader title="Coming in Phase 2" icon="🚀" />
-        <ul className="space-y-2 text-sm text-[#1a0f0a]">
-          <li>✓ Mutual contact exchange (email, phone, Zoom link)</li>
-          <li>✓ Couples connections (couples-to-couples, individual-to-couple options)</li>
-        </ul>
-      </Card>
-
-      {/* Profile Modal */}
-      <ConnectionProfileModal
-        profile={selectedProfile}
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-      />
-
-      {/* Random Connection Modal -- same view used by Suggested Connections;
-          sending a request only happens if the member clicks the button
-          inside it. */}
-      {randomMatch && (
-        <ConnectionProfileModal
-          profile={randomMatch.profile}
-          isOpen={isRandomModalOpen}
-          onClose={() => setIsRandomModalOpen(false)}
-          currentUserId={profile.id}
-          onSendRequest={handleSendRandomRequest}
-          requestPending={randomRequestSent}
+      {helloTarget && (
+        <SayHelloModal
+          toUserId={helloTarget.id}
+          toDisplayName={helloTarget.displayName}
+          onClose={() => setHelloTarget(null)}
+          onSent={(connectionId) => {
+            setHelloTarget(null);
+            router.push(`/app/connections/${connectionId}`);
+          }}
+          onError={(message) => showToast(message, "error")}
         />
       )}
 

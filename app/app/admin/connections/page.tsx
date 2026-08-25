@@ -34,6 +34,16 @@ function formatStatus(status: string): string {
   return STATUS_LABELS[status] || status;
 }
 
+const TYPE_LABELS: Record<string, string> = {
+  direct: "Say Hello",
+  async: "Guided Exchange (legacy)",
+  live: "Live (legacy)",
+};
+
+function formatType(connectionType: string): string {
+  return TYPE_LABELS[connectionType] || connectionType;
+}
+
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString("en-US", {
     month: "short",
@@ -113,10 +123,14 @@ export default function AdminConnectionsPage() {
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
             <Card className="text-center">
               <p className="text-3xl font-bold text-[#1a0f0a]">{overview.totalConnections}</p>
               <p className="text-sm text-[#a0704a] mt-1">Total (recent 500)</p>
+            </Card>
+            <Card className="text-center">
+              <p className="text-3xl font-bold text-[#1a0f0a]">{overview.typeCounts.direct || 0}</p>
+              <p className="text-sm text-[#a0704a] mt-1">Say Hello (new flow)</p>
             </Card>
             <Card className="text-center">
               <p className="text-3xl font-bold text-[#1a0f0a]">{sumStatuses(activeStatuses)}</p>
@@ -131,6 +145,27 @@ export default function AdminConnectionsPage() {
               <p className="text-sm text-[#a0704a] mt-1">Pending reports</p>
             </Card>
           </div>
+
+          <Card>
+            <CardHeader
+              title="Connection type breakdown"
+              subtitle="How much of Connections activity is on the new Say Hello flow vs. the older, frozen flow(s)"
+            />
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(overview.typeCounts)
+                .sort((a, b) => b[1] - a[1])
+                .map(([type, count]) => (
+                  <span
+                    key={type}
+                    className={`text-sm px-3 py-1.5 rounded-full ${
+                      type === "direct" ? "bg-[#d4a348] text-white" : "bg-[#f3ede5] text-[#1a0f0a]"
+                    }`}
+                  >
+                    {formatType(type)}: <strong>{count}</strong>
+                  </span>
+                ))}
+            </div>
+          </Card>
 
           <Card>
             <CardHeader title="Status breakdown" />
@@ -213,6 +248,7 @@ export default function AdminConnectionsPage() {
                   <tr className="text-left text-[#a0704a] border-b border-[#e8ddd2]">
                     <th className="py-2 pr-4 font-medium">Started</th>
                     <th className="py-2 pr-4 font-medium">Participants</th>
+                    <th className="py-2 pr-4 font-medium">Type</th>
                     <th className="py-2 pr-4 font-medium">Status</th>
                     <th className="py-2 font-medium">Round</th>
                   </tr>
@@ -222,6 +258,15 @@ export default function AdminConnectionsPage() {
                     <tr key={c.id} className="border-b border-[#f3ede5] last:border-0">
                       <td className="py-2 pr-4 whitespace-nowrap text-[#a0704a]">{formatDateTime(c.createdAt)}</td>
                       <td className="py-2 pr-4 text-[#1a0f0a]">{c.participants.join(" & ")}</td>
+                      <td className="py-2 pr-4">
+                        <span
+                          className={`text-xs px-2 py-1 rounded ${
+                            c.connectionType === "direct" ? "bg-[#d4a348] text-white" : "bg-[#f3ede5] text-[#a0704a]"
+                          }`}
+                        >
+                          {formatType(c.connectionType)}
+                        </span>
+                      </td>
                       <td className="py-2 pr-4">
                         <span
                           className={`text-xs px-2 py-1 rounded ${

@@ -11,6 +11,7 @@ async function getAuthHeader(): Promise<Record<string, string> | null> {
 export interface ConnectionsOverview {
   totalConnections: number;
   statusCounts: Record<string, number>;
+  typeCounts: Record<string, number>;
   pendingReportsCount: number;
   stuckRounds: { connectionId: string; roundNumber: number; deadlineMissedAt: string; participants: [string, string] }[];
   liveSessions: {

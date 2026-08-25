@@ -50,17 +50,28 @@ founding members are actively shaping direction, language, and features.
   `profiles` table and a separate, curated `public_profiles` table/view that
   only ever exposes what a member has chosen to share. See
   [`PRIVACY_SECURITY_MODEL.md`](PRIVACY_SECURITY_MODEL.md).
-- **Structured Connections** — an asynchronous-first "Guided Connection
-  Exchange" between members: invitation, mutual acceptance, three
-  structured async rounds (shared prompt, private response, reveal,
-  optional acknowledgment), and an optional 20-minute live conversation
-  once at least one round is complete. Server-side matching
-  (`app/api/matching/find`) never exposes private scoring fields to the
-  browser. Rolled out behind `feature_async_connections_enabled`; while off
-  for a given member, they see the original live-only 20-minute flow
-  instead. See [`docs/ASYNC_CONNECTIONS.md`](docs/ASYNC_CONNECTIONS.md).
-  (Historical migrations and a legacy, unused data file refer to this
-  system as "Pairings" — the current system and all current code use
+- **Connections** — member discovery plus direct, ordinary conversation,
+  not a structured or timed activity. `/app/connections` is a browsable
+  directory of members who've opted in (`public_profiles.show_in_discovery`),
+  with lightweight filters (Everyone / Near Me / New Members / Shared
+  Interests) and a "Someone You Might Want to Know" recommendation widget
+  (plus a weekly, deterministic "Connection of the Week" pick). "Say Hello"
+  opens a message straight away — no invitation/acceptance step, unless the
+  recipient has set their messaging privacy to "connect first," in which
+  case it becomes a lightweight request they can accept or decline. Once a
+  conversation exists, it's just messaging: optional in-chat "Conversation
+  Starter" prompts, no timer, no round structure. Server-side eligibility
+  (`app/api/connections/directory`, `app/api/connections/suggestions`)
+  excludes blocked, suspended, and deactivated members without exposing
+  private scoring fields to the browser. See
+  [`docs/ASYNC_CONNECTIONS.md`](docs/ASYNC_CONNECTIONS.md) for the earlier
+  "Guided Connection Exchange" (invitation → mutual acceptance → three
+  structured async rounds → optional live conversation) — that flow is
+  frozen, not removed: existing in-progress guided exchanges keep working
+  exactly as before, but no new one can be started; every new connection is
+  the simplified "direct" type described above.
+  (Historical migrations and a legacy, unused data file refer to an even
+  earlier version of this system as "Pairings" — current code uses
   "Connections.")
 - **Events and offers** — a calendar of workshops/circles/retreats with
   registration and interest tracking, plus an admin-managed "offers"

@@ -80,8 +80,14 @@ checks — see "Admin architecture" below): `overview`, `members`, `events`,
 **API routes** (`app/api/*`, all Route Handlers): `admin/broadcast-email`,
 `admin/email-templates`, `admin/members/delete`, `admin/members/email`,
 `admin/members/emails`, `admin/zoom/create-meeting`,
-`admin/zoom/delete-meeting`, `matching/find`, `invites/friends`,
-`report-bug`, `sync-substack`, `welcome-email`.
+`admin/zoom/delete-meeting`, `admin/connections/overview`,
+`admin/connections/[id]/content`, `connections/directory`,
+`connections/suggestions`, `invites/friends`, `report-bug`, `sync-substack`,
+`welcome-email`. (The legacy `matching/find` route, capped-random-sample
+scoring for the old Guided Connection Exchange's discovery grid, was
+removed once nothing called it anymore — replaced by
+`connections/directory`/`connections/suggestions`, real paginated/ranked
+lists rather than a shuffled 5-person sample.)
 
 **Cron routes** (`app/api/cron/*`, called by Vercel Cron or an external
 scheduler): `drip-emails`, `sync-substack`, `space-digest-emails`,

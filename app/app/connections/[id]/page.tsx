@@ -15,6 +15,7 @@ import { RoundResponseEditor } from "@/components/connections/RoundResponseEdito
 import { RevealPanel } from "@/components/connections/RevealPanel";
 import { AcknowledgmentPicker } from "@/components/connections/AcknowledgmentPicker";
 import { LiveScheduler } from "@/components/connections/LiveScheduler";
+import { DirectConversation } from "@/components/connections/DirectConversation";
 import { useToast } from "@/lib/hooks/useToast";
 import { ToastContainer } from "@/components/Toast";
 import {
@@ -28,6 +29,8 @@ import {
   reportAsyncConnection,
   requestLiveConversation,
   respondToLiveRequest,
+  acceptConnectionInvitation,
+  declineConnectionInvitation,
 } from "@/lib/data/connectionAsync";
 import { playNotificationSound } from "@/lib/utils/notificationSound";
 import type { AsyncConnection, ConnectionRound, RoundResponseView } from "@/lib/types/connection";
@@ -41,6 +44,7 @@ export default function ConnectionDetailPage() {
   const { toasts, showToast, removeToast } = useToast();
 
   const [userId, setUserId] = useState<string | null>(null);
+  const [myName, setMyName] = useState<string>("");
   const [connection, setConnection] = useState<AsyncConnection | null>(null);
   const [rounds, setRounds] = useState<ConnectionRound[]>([]);
   const [currentRound, setCurrentRound] = useState<ConnectionRound | null>(null);
@@ -59,6 +63,7 @@ export default function ConnectionDetailPage() {
       return;
     }
     setUserId(profile.id);
+    setMyName(profile.displayName);
 
     const conn = await getAsyncConnection(connectionId, profile.id);
     setConnection(conn);
@@ -189,6 +194,24 @@ export default function ConnectionDetailPage() {
     }
   };
 
+  const handleAcceptDirect = async () => {
+    const status = await acceptConnectionInvitation(connection.id);
+    if (status) {
+      await load();
+    } else {
+      showToast("Could not accept this. Please try again.", "error");
+    }
+  };
+
+  const handleDeclineDirect = async () => {
+    const ok = await declineConnectionInvitation(connection.id);
+    if (ok) {
+      router.push("/app/connections");
+    } else {
+      showToast("Could not decline this. Please try again.", "error");
+    }
+  };
+
   const handleRequestLive = async () => {
     const ok = await requestLiveConversation(connection.id);
     if (ok) {
@@ -207,6 +230,110 @@ export default function ConnectionDetailPage() {
   // experience it's supposed to be optional next-step after.
   const hasCompletedARound = rounds.some((r) => r.status === "completed");
   const canOfferLive = hasCompletedARound && !["live_requested", "live_scheduled", "completed", "ended", "expired", "declined", "cancelled", "reported"].includes(connection.status);
+
+  // Simplified Connections (migration 096): a 'direct' connection never
+  // has rounds/prompts/live-scheduling -- it's an ordinary conversation.
+  // Every other connection_type keeps rendering the exact Guided Exchange
+  // UI below, completely untouched, so an in-flight round-based exchange
+  // never breaks just because this route learned about a new type.
+  if (connection.connectionType === "direct") {
+    const iAmInvited = connection.myInvitationStatus === "invited";
+
+    return (
+      <div className="space-y-6">
+        <div>
+          <Link href="/app/connections" className="text-sm text-[#d4a348] hover:text-[#c9956d]">
+            ← Back to Connections
+          </Link>
+        </div>
+
+        {connection.status === "awaiting_acceptance" && iAmInvited ? (
+          <Card className="text-center py-8 space-y-4">
+            <Avatar name={connection.partnerName} photo={connection.partnerPhoto} size="xl" />
+            <p className="text-[#1a0f0a]">{connection.partnerName} would like to connect with you.</p>
+            <div className="flex justify-center gap-2">
+              <Button variant="primary" size="sm" onClick={handleAcceptDirect}>
+                Accept
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleDeclineDirect}>
+                Decline
+              </Button>
+            </div>
+          </Card>
+        ) : connection.status === "awaiting_acceptance" ? (
+          <Card className="text-center py-8">
+            <p className="text-[#1a0f0a]">Waiting for {connection.partnerName} to accept.</p>
+          </Card>
+        ) : ["declined", "expired", "ended", "cancelled"].includes(connection.status) ? (
+          <Card className="text-center py-8">
+            <p className="text-[#1a0f0a]">
+              {connection.status === "declined" && "This request was not accepted."}
+              {connection.status === "expired" && "This request has expired."}
+              {connection.status === "ended" && "This conversation has ended."}
+              {connection.status === "cancelled" && "This conversation was cancelled."}
+            </p>
+          </Card>
+        ) : (
+          <DirectConversation
+            connectionId={connection.id}
+            partnerId={connection.partnerId}
+            partnerName={connection.partnerName}
+            partnerPhoto={connection.partnerPhoto}
+            userId={userId}
+            userName={myName}
+          />
+        )}
+
+        {!["declined", "expired", "ended", "cancelled"].includes(connection.status) && (
+          <Card className="space-y-3">
+            <p className="text-sm text-[#1a0f0a]">It's okay to end a conversation that no longer feels right.</p>
+            <div className="flex gap-2">
+              {!showEndConfirm ? (
+                <Button variant="outline" size="sm" onClick={() => setShowEndConfirm(true)}>
+                  End conversation
+                </Button>
+              ) : (
+                <>
+                  <Button variant="primary" size="sm" onClick={handleEnd} className="bg-[#a84a2a] hover:bg-[#a85947]">
+                    Confirm end
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setShowEndConfirm(false)}>
+                    Cancel
+                  </Button>
+                </>
+              )}
+              {!showReportForm ? (
+                <Button variant="ghost" size="sm" onClick={() => setShowReportForm(true)} className="text-[#a84a2a]">
+                  Report a concern
+                </Button>
+              ) : null}
+            </div>
+            {showReportForm && (
+              <div className="space-y-2">
+                <textarea
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  placeholder="Describe your concern (all reports are reviewed)..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#a84a2a]"
+                />
+                <div className="flex gap-2">
+                  <Button variant="primary" size="sm" onClick={handleReport} disabled={!reportReason.trim()} className="bg-[#a84a2a] hover:bg-[#a85947]">
+                    Submit report
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setShowReportForm(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </Card>
+        )}
+
+        <ToastContainer toasts={toasts} onRemove={removeToast} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

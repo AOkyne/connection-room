@@ -230,14 +230,20 @@ exposed through the view.
   (`is_admin()` was an earlier, buggier iteration — see
   [`DATABASE_SCHEMA.md`](DATABASE_SCHEMA.md#migration-history-notes)).
 
-Server-side connection matching (`app/api/matching/find`) runs with the
-service-role key, since scoring legitimately needs `relationship_status`/
-`age_range`/`location` for compatibility — but the route only ever returns
-a safe subset built from `public_profiles_view`, so a match card respects
-each candidate's own visibility flags exactly like every other surface.
-`hidden` candidates are excluded from the pool entirely; `shared_spaces`
-candidates are excluded unless the caller actually shares a space with
-them.
+Server-side connection discovery (`app/api/connections/directory`,
+`app/api/connections/suggestions`) runs with the service-role key, since
+scoring legitimately needs private columns for eligibility -- but each
+route only ever returns a safe subset built from `public_profiles_view`,
+so a directory card or suggestion respects each candidate's own visibility
+flags exactly like every other surface. `hidden` candidates are excluded
+from the pool entirely; `shared_spaces` candidates are excluded unless the
+caller actually shares a space with them; both routes additionally
+cross-check the real `connection_blocks` table server-side (not a
+client-supplied list) and exclude suspended/deactivated accounts, a check
+that existed nowhere in the app before these routes were added. (The
+earlier `app/api/matching/find` route these replaced had none of the
+block/suspension checks below and was removed once the Simplify
+Connections work, migration 096+, left it with no remaining caller.)
 
 ## Admin access
 
@@ -253,10 +259,12 @@ so admin access to those specific tables works only because the
 application routes to them go through `requireAdmin()` with the
 service-role key, not through RLS admin policies at all.
 
-## Async Guided Connections (migration 078+)
+## Async Guided Connections (migration 078+) -- now legacy/frozen
 
-Full design in [`docs/ASYNC_CONNECTIONS.md`](docs/ASYNC_CONNECTIONS.md);
-security-relevant summary:
+Full design in [`docs/ASYNC_CONNECTIONS.md`](docs/ASYNC_CONNECTIONS.md).
+This flow can no longer be started (see "Simplified Connections" below);
+existing in-progress exchanges and their RLS/RPCs are untouched and this
+summary still applies to them:
 
 - Every new table (`connection_participants`, `connection_rounds`,
   `connection_responses`, `connection_acknowledgments`,
@@ -276,14 +284,35 @@ security-relevant summary:
 - `connection_blocks` is the first real, server-enforced block list in
   this app — `blockUser()`/`getBlockedUsers()` in `lib/data/connections.ts`
   were localStorage-only before this migration, meaning a block was
-  unenforceable server-side. The new `create_connection_invitation()` RPC
-  checks it in both directions; the legacy `/api/matching/find` route does
-  not yet cross-check it (still relies on a client-supplied
-  `blockedUserIds` array) — see `DATABASE_SCHEMA.md`'s "Known schema
-  risks."
+  unenforceable server-side. `create_connection_invitation()` and
+  `say_hello()` (migration 096) both check it in both directions;
+  `app/api/connections/directory` and `.../suggestions` also cross-check
+  it independently as a query-level exclusion.
 - Decline reasons and end reasons are private columns
   (`decline_reason_private`, `end_reason_private`) never selected or
   returned by any RPC to the other participant.
+
+## Simplified Connections (migration 096+)
+
+Discovery + direct messaging, replacing Guided Connections as the flow for
+new connections. Security summary:
+
+- `say_hello()` (migration 096) is `SECURITY DEFINER`, mirrors
+  `create_connection_invitation()`'s guard clauses (not self, blocked
+  either direction), and reuses the same `connections`/
+  `connection_participants`/`connection_messages` RLS unchanged — those
+  policies are participant-scoped, not scoped by `connection_type`, so a
+  `'direct'` row is exactly as protected as an `'async'` one.
+- Messaging privacy (`connection_preferences.messaging_privacy`) defaults
+  to `'any_member'`; `'connect_first'` holds the opening message in a
+  private `connections.pending_first_message` column (not delivered into
+  `connection_messages`, and not selectable by the recipient) until
+  `accept_connection_invitation()` flushes it in — the recipient can never
+  read an unaccepted hello's text before choosing to accept.
+- `connection_suggestion_dismissals` (migration 097) and
+  `connection_funnel_events` (migration 098) are both owner-scoped
+  insert-only RLS tables with no member-facing SELECT policy; the latter
+  has no message-content column at all.
 
 ## Anonymous and public-web access
 

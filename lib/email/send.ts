@@ -229,12 +229,29 @@ export async function sendConnectionInviteEmail(options: {
 }): Promise<void> {
   await sendBrandedEmail({
     to: options.to,
-    subject: `${options.fromUserName} wants to connect with you`,
+    subject: `${options.fromUserName} said hello`,
     paragraphs: [
-      `${options.fromUserName} just started a conversation with you in The Connection Room.`,
-      "Connections are 20-minute structured conversations focused on authentic relating -- no pressure, just a chance to be present with someone.",
-      "Reply whenever you're free.",
+      `${options.fromUserName} just said hello to you in The Connection Room.`,
+      "Reply whenever you're free -- no structure, no timer, just an ordinary conversation.",
     ],
+    appUrl: `${options.appUrl}/app/connections`,
+  });
+}
+
+// Sent once, the first time someone replies to a message they received --
+// not every message after that (see the webhook route's messageCount === 2
+// check). Distinct from sendConnectionInviteEmail() above: that one tells
+// the recipient someone said hello; this tells the original sender their
+// hello got a reply.
+export async function sendConnectionReplyEmail(options: {
+  to: string;
+  replierName: string;
+  appUrl: string;
+}): Promise<void> {
+  await sendBrandedEmail({
+    to: options.to,
+    subject: `${options.replierName} replied to you`,
+    paragraphs: [`${options.replierName} replied to your message in The Connection Room.`],
     appUrl: `${options.appUrl}/app/connections`,
   });
 }

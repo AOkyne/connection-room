@@ -206,6 +206,21 @@ column-level detail and the state machine are in
 [`docs/ASYNC_CONNECTIONS.md`](docs/ASYNC_CONNECTIONS.md) rather than
 duplicated here.
 
+### Simplified Connections tables/columns (migration 096+)
+No new tables for the core flow -- `connection_type` on `connections`
+gained a third value, `'direct'` (alongside the now-frozen `'async'`/
+`'live'`), and `connections` gained `pending_first_message` (holds a
+"connect first" hello's text until accepted). `connection_preferences`
+gained `messaging_privacy` (`'any_member'` default, or `'connect_first'`).
+The `say_hello()` RPC (mirrors `create_connection_invitation()`'s guard
+clauses) is the only way a `'direct'` connection is created; existing
+`connections`/`connection_participants`/`connection_messages` RLS applies
+unchanged, since none of it is type-scoped. Two new small tables:
+`connection_suggestion_dismissals` (migration 097, one row per "Not this
+one" click, owner-only RLS) and `connection_funnel_events` (migration 098,
+insert-only funnel analytics, no message-content column at all -- see
+`lib/analytics/connectionEvents.ts`).
+
 ### Legacy, unused connection-adjacent tables
 `pairings`, `pairing_preferences`, `pairing_reports` (defined only in the
 old, unused `lib/supabase/schema.sql`, not in any applied migration) and

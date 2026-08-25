@@ -90,8 +90,16 @@ export async function GET(request: NextRequest) {
   };
 
   const statusCounts: Record<string, number> = {};
+  const typeCounts: Record<string, number> = {};
   for (const c of connections) {
     statusCounts[c.status] = (statusCounts[c.status] || 0) + 1;
+    // connection_type: 'direct' is the new Simplify Connections flow
+    // (migration 096, say_hello()); 'async'/'live' is everything from
+    // before it -- both the Guided Exchange system (migration 078) and,
+    // since connection_type defaults to 'async', any pre-078 legacy row
+    // too. This breakdown is the admin-facing way to see how much of the
+    // Connections feature is now on the new flow vs the old one(s).
+    typeCounts[c.connection_type] = (typeCounts[c.connection_type] || 0) + 1;
   }
 
   const reportedConnectionIds = new Set(reports.filter((r) => r.status !== "resolved").map((r) => r.connection_id));
@@ -99,6 +107,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     totalConnections: connections.length,
     statusCounts,
+    typeCounts,
     pendingReportsCount: reports.filter((r) => r.status !== "resolved").length,
     stuckRounds: stuckRounds.map((round) => {
       const [nameA, nameB] = namesFor(round.connection_id);

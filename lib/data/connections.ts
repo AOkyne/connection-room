@@ -27,11 +27,16 @@ import { getPublicProfile } from "./profiles";
 import type { ConnectionRequest } from "./connectionRequests";
 import type { ConnectionFormat } from "@/lib/types/connection";
 
+export type MessagingPrivacy = "any_member" | "connect_first";
+
 export interface ConnectionPreferences {
   frequency: "weekly" | "monthly" | "pause";
   contactMode: "text" | "voice-video" | "local";
   optInToExchangeContact: boolean;
   formats: ConnectionFormat[];
+  // Migration 096: who can "Say Hello" without going through an
+  // accept-first request. Default is the low-friction path.
+  messagingPrivacy: MessagingPrivacy;
 }
 
 export interface Connection {
@@ -61,17 +66,18 @@ const DEFAULT_PREFERENCES: ConnectionPreferences = {
   contactMode: "text",
   optInToExchangeContact: false,
   formats: ["guided_message"],
+  messagingPrivacy: "any_member",
 };
 
 // Real `connection_preferences` row (migration 010 table, migration 078
-// `formats` column) -- see file header for why this stopped being
-// localStorage-only.
+// `formats` column, migration 096 `messaging_privacy` column) -- see file
+// header for why this stopped being localStorage-only.
 export async function getConnectionPreferences(userId: string): Promise<ConnectionPreferences> {
   if (!supabase) return DEFAULT_PREFERENCES;
 
   const { data, error } = await supabase
     .from("connection_preferences")
-    .select("frequency, contact_mode, opt_in_to_exchange_contact, formats")
+    .select("frequency, contact_mode, opt_in_to_exchange_contact, formats, messaging_privacy")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -82,6 +88,7 @@ export async function getConnectionPreferences(userId: string): Promise<Connecti
     contactMode: data.contact_mode || "text",
     optInToExchangeContact: data.opt_in_to_exchange_contact || false,
     formats: (data.formats && data.formats.length > 0 ? data.formats : ["guided_message"]) as ConnectionFormat[],
+    messagingPrivacy: (data.messaging_privacy || "any_member") as MessagingPrivacy,
   };
 }
 
@@ -97,6 +104,7 @@ export async function updateConnectionPreferences(userId: string, preferences: C
           contact_mode: preferences.contactMode,
           opt_in_to_exchange_contact: preferences.optInToExchangeContact,
           formats: preferences.formats,
+          messaging_privacy: preferences.messagingPrivacy,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "user_id" }
