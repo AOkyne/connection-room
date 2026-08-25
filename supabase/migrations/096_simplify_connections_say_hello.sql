@@ -230,6 +230,7 @@ BEGIN
       headers := jsonb_build_object(
         'Content-Type', 'application/json',
         'Authorization', 'Bearer 8e698d7d4a7802cc70d8a1b826a8c0a29abeb3c2d3fb6adca07ffd082088514e'
+      ),
       body := jsonb_build_object(
         'connectionId', NEW.id,
         'fromUserId', NEW.user_id,
@@ -240,16 +241,6 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
-
--- =====================================================================
--- MANUAL STEP REQUIRED BEFORE THIS TRIGGER CHANGE TAKES REAL EFFECT:
--- Same as migration 082 -- replace 'REPLACE_WITH_POST_NOTIFICATION_WEBHOOK_SECRET'
--- above with the real POST_NOTIFICATION_WEBHOOK_SECRET value before
--- relying on this in production. If migration 082's placeholder was
--- already replaced live in the database (not just in this file), this
--- CREATE OR REPLACE will silently reintroduce the placeholder unless the
--- real secret is substituted here too before running.
--- =====================================================================
 
 -- =====================================================================
 -- ROLLBACK NOTES
