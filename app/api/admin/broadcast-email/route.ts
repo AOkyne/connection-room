@@ -63,6 +63,12 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
+  // Narrowed to string just above, but re-bound to real `string`-typed
+  // consts so the sendToOneProfile() closure below doesn't see them as
+  // `unknown` -- TS can't carry a narrowing on a destructured object
+  // property into a nested function declared later in the same scope.
+  const validatedSubject: string = subject;
+  const validatedBodyHtml: string = bodyHtml;
 
   if (!hasSmtpConfig()) {
     return NextResponse.json(
@@ -112,13 +118,10 @@ export async function POST(request: NextRequest) {
   // single "campaign" with aggregate open/click stats (migration 095).
   const broadcastBatchId = crypto.randomUUID();
 
-  const results: EmailResult[] = [];
-
-  for (const profile of targetProfiles) {
+  async function sendToOneProfile(profile: (typeof targetProfiles)[number]): Promise<EmailResult> {
     const email = profile.user_id ? emailByUserId.get(profile.user_id) : undefined;
     if (!email) {
-      results.push({ id: profile.id, success: false, error: "No email on file" });
-      continue;
+      return { id: profile.id, success: false, error: "No email on file" };
     }
 
     // Logged BEFORE sending now, not after -- open/click tracking
@@ -130,16 +133,16 @@ export async function POST(request: NextRequest) {
     const trackingId = await logEmailSend(supabase, {
       category: "broadcast",
       to: email,
-      subject,
+      subject: validatedSubject,
       recipientUserId: profile.user_id,
       broadcastBatchId,
     });
 
     try {
       const firstName = profile.display_name?.split(" ")[0];
-      const personalizedBody = substituteMergeTags(bodyHtml, { firstName, appUrl });
-      await sendBroadcastEmail({ to: email, subject, bodyHtml: personalizedBody, trackingId });
-      results.push({ id: profile.id, success: true });
+      const personalizedBody = substituteMergeTags(validatedBodyHtml, { firstName, appUrl });
+      await sendBroadcastEmail({ to: email, subject: validatedSubject, bodyHtml: personalizedBody, trackingId });
+      return { id: profile.id, success: true };
     } catch (err) {
       // The send failed after a log row was already created for it --
       // remove that row (best-effort) so Email History doesn't show a
@@ -150,8 +153,25 @@ export async function POST(request: NextRequest) {
           () => {}
         );
       }
-      results.push({ id: profile.id, success: false, error: err instanceof Error ? err.message : String(err) });
+      return { id: profile.id, success: false, error: err instanceof Error ? err.message : String(err) };
     }
+  }
+
+  // Sent in concurrent batches, not one at a time -- a fully sequential
+  // loop over a real "All Members" list (100+ recipients, each a real SMTP
+  // round trip plus a Supabase insert) reliably exceeded this route's
+  // 60-second maxDuration partway through, silently truncating the
+  // broadcast with no clean error (confirmed live: 84 of 132 sent, then
+  // Vercel killed the function and the client saw a mangled generic
+  // error instead of a real one). BATCH_SIZE matches the nodemailer
+  // transporter's own maxConnections (lib/email/send.ts) so this doesn't
+  // ask the SMTP pool for more concurrent connections than it actually has.
+  const BATCH_SIZE = 10;
+  const results: EmailResult[] = [];
+  for (let i = 0; i < targetProfiles.length; i += BATCH_SIZE) {
+    const batch = targetProfiles.slice(i, i + BATCH_SIZE);
+    const batchResults = await Promise.all(batch.map(sendToOneProfile));
+    results.push(...batchResults);
   }
 
   const failed = results.filter((r) => !r.success);

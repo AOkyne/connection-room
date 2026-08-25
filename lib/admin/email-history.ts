@@ -72,3 +72,29 @@ export async function getBroadcastCampaigns(): Promise<{ campaigns: BroadcastCam
   }
   return { campaigns: data.campaigns || [] };
 }
+
+export interface UnsentRecipient {
+  id: string;
+  displayName: string;
+}
+
+// For a broadcast that got cut short partway through -- who among real
+// members does NOT yet have a sent_emails row for this specific batch.
+export async function getUnsentRecipients(
+  batchId: string
+): Promise<{ unsent: UnsentRecipient[]; totalMembers: number; alreadySentCount: number; error?: string }> {
+  const authHeader = await getAuthHeader();
+  if (!authHeader) {
+    return { unsent: [], totalMembers: 0, alreadySentCount: 0, error: "Not signed in with a real admin account." };
+  }
+
+  const response = await fetch(`/api/admin/broadcast-campaigns/${batchId}/unsent-recipients`, {
+    headers: authHeader,
+    cache: "no-store",
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    return { unsent: [], totalMembers: 0, alreadySentCount: 0, error: data.error || "Request failed" };
+  }
+  return { unsent: data.unsent || [], totalMembers: data.totalMembers || 0, alreadySentCount: data.alreadySentCount || 0 };
+}

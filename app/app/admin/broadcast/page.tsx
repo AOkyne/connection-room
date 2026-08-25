@@ -7,6 +7,7 @@ import { getAllProfilesLite, type Profile } from "@/lib/data/profiles";
 import { sendBroadcastEmail } from "@/lib/admin/broadcast";
 import { getAdminEvents } from "@/lib/admin/events";
 import { getAdminNewsletterQuestions } from "@/lib/admin/newsletter";
+import { getBroadcastCampaigns, getUnsentRecipients, type BroadcastCampaign } from "@/lib/admin/email-history";
 import {
   listBroadcastDrafts,
   createBroadcastDraft,
@@ -48,6 +49,9 @@ export default function AdminBroadcastPage() {
   const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [showDrafts, setShowDrafts] = useState(false);
+  const [campaigns, setCampaigns] = useState<BroadcastCampaign[]>([]);
+  const [selectedCampaignId, setSelectedCampaignId] = useState("");
+  const [isLoadingUnsent, setIsLoadingUnsent] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -59,11 +63,12 @@ export default function AdminBroadcastPage() {
 
       setAdminUserId(session.supabaseUserId || "");
 
-      const [profiles, adminEvents, adminQuestions, draftsResult] = await Promise.all([
+      const [profiles, adminEvents, adminQuestions, draftsResult, campaignsResult] = await Promise.all([
         getAllProfilesLite(),
         getAdminEvents(),
         getAdminNewsletterQuestions(),
         listBroadcastDrafts(),
+        getBroadcastCampaigns(),
       ]);
       // Broadcasts should never go to seeded demo profiles -- they have no
       // real inbox behind them.
@@ -80,6 +85,11 @@ export default function AdminBroadcastPage() {
         console.error("Error loading broadcast drafts:", draftsResult.error);
       } else {
         setDrafts(draftsResult.drafts);
+      }
+      if (campaignsResult.error) {
+        console.error("Error loading broadcast campaigns:", campaignsResult.error);
+      } else {
+        setCampaigns(campaignsResult.campaigns);
       }
       setMounted(true);
     };
@@ -163,6 +173,41 @@ export default function AdminBroadcastPage() {
     setDrafts((prev) => prev.filter((d) => d.id !== draft.id));
     if (currentDraftId === draft.id) setCurrentDraftId(null);
     showToast("Draft deleted", "success");
+  };
+
+  // For a broadcast that got cut short (e.g. the send route's own
+  // batching hitting its serverless time limit partway through a large
+  // "All Members" send) -- loads exactly the real members who don't yet
+  // have a sent_emails row for that specific campaign, so a follow-up
+  // send targets only whoever actually never got it, instead of
+  // double-emailing everyone who already did.
+  const handleLoadUnsentRecipients = async () => {
+    if (!selectedCampaignId) return;
+    const campaign = campaigns.find((c) => c.batchId === selectedCampaignId);
+    if (!campaign) return;
+
+    setIsLoadingUnsent(true);
+    const result = await getUnsentRecipients(selectedCampaignId);
+    setIsLoadingUnsent(false);
+
+    if (result.error) {
+      showToast(result.error, "error");
+      return;
+    }
+    if (result.unsent.length === 0) {
+      showToast("Everyone from that send already received it.", "info");
+      return;
+    }
+
+    setRecipientMode("select");
+    setSelectedIds(new Set(result.unsent.map((m) => m.id)));
+    setSubject(campaign.subject);
+    showToast(
+      `Loaded ${result.unsent.length} member${result.unsent.length === 1 ? "" : "s"} who didn't get "${campaign.subject}" yet. ` +
+        "The subject is filled in, but the message body isn't stored -- paste it back in below before sending.",
+      "info",
+      0
+    );
   };
 
   const handleSend = async () => {
@@ -281,6 +326,39 @@ export default function AdminBroadcastPage() {
               ))}
             </div>
           )}
+        </Card>
+      )}
+
+      {campaigns.length > 0 && (
+        <Card className="space-y-3 bg-[#f3ede5]">
+          <h2 className="text-base font-bold text-[#1a0f0a]">Resend to unsent recipients</h2>
+          <p className="text-sm text-[#a0704a]">
+            If a previous send got cut short partway through, pick it below to load just the members who never
+            received it -- not everyone.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <select
+              value={selectedCampaignId}
+              onChange={(e) => setSelectedCampaignId(e.target.value)}
+              className="flex-1 px-3 py-2 border border-[#e8ddd2] rounded-lg text-sm text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
+            >
+              <option value="">Select a previous send...</option>
+              {campaigns.map((c) => (
+                <option key={c.batchId} value={c.batchId}>
+                  {new Date(c.sentAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} --{" "}
+                  {c.subject} ({c.totalSent} sent)
+                </option>
+              ))}
+            </select>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLoadUnsentRecipients}
+              disabled={!selectedCampaignId || isLoadingUnsent}
+            >
+              {isLoadingUnsent ? "Loading..." : "Load unsent recipients"}
+            </Button>
+          </div>
         </Card>
       )}
 
