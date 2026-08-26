@@ -57,6 +57,7 @@ export default function ConnectionsPage() {
   const [filter, setFilter] = useState<DirectoryFilter>("everyone");
   const [members, setMembers] = useState<DirectoryMember[]>([]);
   const [loadingDirectory, setLoadingDirectory] = useState(true);
+  const [nearMeUnavailable, setNearMeUnavailable] = useState(false);
   const [helloTarget, setHelloTarget] = useState<{ id: string; displayName: string } | null>(null);
 
   // Connections settings -- reuses existing profile-visibility (show_in_
@@ -132,8 +133,10 @@ export default function ConnectionsPage() {
       if (result.error) {
         showToast(result.error, "error");
         setMembers([]);
+        setNearMeUnavailable(false);
       } else {
         setMembers(result.members);
+        setNearMeUnavailable(!!result.nearMeUnavailable);
         trackConnectionEvent({ eventType: "connections_directory_viewed", filter });
       }
       setLoadingDirectory(false);
@@ -287,6 +290,12 @@ export default function ConnectionsPage() {
               </button>
             ))}
           </div>
+
+          {filter === "near_me" && nearMeUnavailable && !loadingDirectory && (
+            <Card className="bg-[#f3ede5] text-sm text-[#1a0f0a]">
+              Add your location in your profile to sort members near you -- showing everyone for now.
+            </Card>
+          )}
 
           {/* Directory */}
           {loadingDirectory ? (

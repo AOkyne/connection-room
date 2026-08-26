@@ -117,13 +117,33 @@ export async function GET(request: NextRequest) {
       .length;
   };
 
-  if (filter === "near_me" && selfRow.location) {
-    const selfLocation = selfRow.location.toLowerCase();
-    visible = [...visible].sort((a, b) => {
-      const aMatch = a.location?.toLowerCase() === selfLocation ? 1 : 0;
-      const bMatch = b.location?.toLowerCase() === selfLocation ? 1 : 0;
-      return bMatch - aMatch;
-    });
+  // "Los Angeles, CA" vs. a candidate's plain "Los Angeles" (or "LA",
+  // "Los Angeles CA" with no comma) are the same real city but were never
+  // exactly equal as full strings -- confirmed live: an LA-based viewer's
+  // "Near Me" tab returned members from Austin, DC, and Indiana with no
+  // visible LA-based prioritization at all, because the previous
+  // comparison required byte-for-byte equality of the whole location
+  // string. Comparing just the part before the first comma (trimmed,
+  // lowercased) is a much more forgiving "same city" match given these
+  // are freeform text fields, not a structured city/state pair.
+  const cityOf = (location: string | null | undefined): string =>
+    (location || "").split(",")[0].trim().toLowerCase();
+
+  let nearMeUnavailable = false;
+  if (filter === "near_me") {
+    const selfCity = cityOf(selfRow.location);
+    if (!selfCity) {
+      // Nothing to sort by -- surfaced to the client so the UI can say so
+      // explicitly instead of silently showing the same order as "Everyone"
+      // with no indication the filter didn't actually do anything.
+      nearMeUnavailable = true;
+    } else {
+      visible = [...visible].sort((a, b) => {
+        const aMatch = cityOf(a.location) === selfCity ? 1 : 0;
+        const bMatch = cityOf(b.location) === selfCity ? 1 : 0;
+        return bMatch - aMatch;
+      });
+    }
   } else if (filter === "new_members") {
     visible = [...visible].sort((a, b) => {
       const aCreated = candidateByUserId.get(a.user_id)?.created_at || "";
@@ -151,5 +171,5 @@ export async function GET(request: NextRequest) {
     sharedInterestCount: sharedInterestCount(v.interests),
   }));
 
-  return NextResponse.json({ members, hasMore: start + pageSize < total, total });
+  return NextResponse.json({ members, hasMore: start + pageSize < total, total, nearMeUnavailable });
 }

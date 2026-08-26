@@ -37,7 +37,7 @@ async function getAuthHeader(): Promise<Record<string, string> | null> {
 export async function getConnectionsDirectory(
   filter: DirectoryFilter,
   page: number = 1
-): Promise<{ members: DirectoryMember[]; hasMore: boolean; error?: string }> {
+): Promise<{ members: DirectoryMember[]; hasMore: boolean; nearMeUnavailable?: boolean; error?: string }> {
   const authHeader = await getAuthHeader();
   if (!authHeader) {
     return { members: [], hasMore: false, error: "Not signed in." };
@@ -51,7 +51,7 @@ export async function getConnectionsDirectory(
   if (!response.ok) {
     return { members: [], hasMore: false, error: data.error || "Could not load members." };
   }
-  return { members: data.members || [], hasMore: !!data.hasMore };
+  return { members: data.members || [], hasMore: !!data.hasMore, nearMeUnavailable: !!data.nearMeUnavailable };
 }
 
 export interface ConnectionSuggestion {
