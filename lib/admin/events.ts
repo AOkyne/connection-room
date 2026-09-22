@@ -576,6 +576,54 @@ export async function updateEvent(id: string, event: Partial<Event>): Promise<Ev
   return updatedEvent;
 }
 
+// Duplicate event: creates a brand-new event pre-filled from an existing
+// one, via the same createEvent() path a manually-created event uses --
+// not a raw row copy. Deliberately drops everything that must be unique
+// or event-instance-specific rather than shared across a copy:
+//   - id/slug/createdAt/updatedAt/createdBy/updatedBy: a new event needs
+//     its own identity, not the source's.
+//   - registrationCount/spotsTaken: a copy has no registrants yet.
+//   - onlineUrl/zoomStartUrl: these point at the ORIGINAL's specific Zoom
+//     meeting -- reusing them would make two calendar entries join the
+//     exact same call, not two separate ones.
+//   - workshopId/checkinUrl/feedbackUrl: Workshop Ops records are
+//     per-event; createEvent() will fire its own creation webhook for
+//     the new event if it qualifies (in-person/hybrid), producing a
+//     fresh workshop rather than reusing the source's.
+// Title gets a "Copy of " prefix and status resets to "draft" so the
+// admin reviews/adjusts the date (copied as-is from the source, which is
+// very likely wrong for a duplicate) before publishing it; featured
+// resets to false so a copy doesn't silently inherit front-page
+// placement.
+export async function duplicateEvent(id: string): Promise<Event | null> {
+  const source = await getEvent(id);
+  if (!source) return null;
+
+  const {
+    id: _id,
+    slug: _slug,
+    createdAt: _createdAt,
+    updatedAt: _updatedAt,
+    createdBy: _createdBy,
+    updatedBy: _updatedBy,
+    registrationCount: _registrationCount,
+    spotsTaken: _spotsTaken,
+    onlineUrl: _onlineUrl,
+    zoomStartUrl: _zoomStartUrl,
+    workshopId: _workshopId,
+    checkinUrl: _checkinUrl,
+    feedbackUrl: _feedbackUrl,
+    ...copyableFields
+  } = source;
+
+  return createEvent({
+    ...copyableFields,
+    title: `Copy of ${source.title}`,
+    status: "draft",
+    featured: false,
+  });
+}
+
 // Delete event
 export async function deleteEvent(id: string): Promise<boolean> {
   // Get the event before deleting so we can retrieve workshopId

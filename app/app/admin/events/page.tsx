@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
-import { getAdminEvents, deleteEvent, cancelEvent, type Event } from "@/lib/admin/events";
+import { getAdminEvents, deleteEvent, cancelEvent, duplicateEvent, type Event } from "@/lib/admin/events";
 import { getEventCapacity, setEventCapacity, sendEventNotification } from "@/lib/admin/event-management";
 import {
   getAllEventRegistrations,
@@ -27,6 +27,7 @@ export default function AdminEventsPage() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState<string | null>(null);
+  const [duplicating, setDuplicating] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "published" | "draft">("all");
   // Events move here automatically once their end time (or start time, if
   // no end time is set) has passed -- purely a computed split on the
@@ -96,6 +97,21 @@ export default function AdminEventsPage() {
       showToast("Failed to cancel event", "error");
     }
     setCancelling(null);
+  };
+
+  const handleDuplicate = async (id: string) => {
+    setDuplicating(id);
+    const copy = await duplicateEvent(id);
+    setDuplicating(null);
+
+    if (!copy) {
+      showToast("Failed to duplicate event", "error");
+      return;
+    }
+
+    setEvents((prev) => [...prev, copy]);
+    showToast("Event duplicated as a draft -- update the date before publishing.", "success");
+    router.push(`/app/admin/events/${copy.id}/edit`);
   };
 
   const handleViewRegistrants = async (eventId: string) => {
@@ -344,6 +360,14 @@ export default function AdminEventsPage() {
                       ✎ Edit
                     </Button>
                   </Link>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDuplicate(event.id)}
+                    disabled={duplicating === event.id}
+                  >
+                    {duplicating === event.id ? "Duplicating..." : "⧉ Duplicate"}
+                  </Button>
                   {event.status !== "cancelled" && (
                     <button
                       onClick={() => handleCancel(event.id)}
