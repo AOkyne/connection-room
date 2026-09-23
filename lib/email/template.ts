@@ -115,6 +115,20 @@ function wrapTrackedLinks(html: string, trackingId: string): string {
   });
 }
 
+// Rewrites href="POLL_VOTE:{optionId}" placeholders (inserted at compose
+// time by lib/polls/generate.ts's renderPollHtml(), before any real
+// per-recipient tracking id exists) into the actual vote-recording URL.
+// Runs AFTER wrapTrackedLinks() above -- a placeholder isn't a parseable
+// http(s) URL, so isTrackableClickTarget() already leaves it untouched
+// there, and running this second avoids double-wrapping a poll link
+// through the generic click-redirect route as well.
+function wrapPollLinks(html: string, trackingId: string): string {
+  return html.replace(/href="POLL_VOTE:([^"]*)"/g, (_match, optionId) => {
+    const voteUrl = `${TRACKING_APP_URL}/api/email/poll-vote/${trackingId}?option=${encodeURIComponent(optionId)}`;
+    return `href="${voteUrl}"`;
+  });
+}
+
 // A single transparent pixel, invisible in every real email client --
 // its only purpose is that requesting it tells /api/email/open/{id} the
 // email was opened. Apple Mail Privacy Protection auto-loads this (and
@@ -138,7 +152,12 @@ function buildOpenTrackingPixel(trackingId: string): string {
 // is additive and must never be a reason a broadcast fails to send.
 export function buildBroadcastEmailHtml(bodyHtml: string, trackingId?: string | null): string {
   const styledBody = styleBroadcastBodyHtml(bodyHtml);
-  const trackedBody = trackingId ? wrapTrackedLinks(styledBody, trackingId) : styledBody;
+  let trackedBody = trackingId ? wrapTrackedLinks(styledBody, trackingId) : styledBody;
+  // No trackingId (a preview, or a send whose logging failed) means no
+  // per-recipient vote link can be built at all -- rewritten to "#" so a
+  // poll block in a preview renders inertly instead of as a literal,
+  // broken "POLL_VOTE:..." href.
+  trackedBody = trackingId ? wrapPollLinks(trackedBody, trackingId) : trackedBody.replace(/href="POLL_VOTE:[^"]*"/g, 'href="#"');
   const pixel = trackingId ? buildOpenTrackingPixel(trackingId) : "";
 
   return `<!DOCTYPE html>

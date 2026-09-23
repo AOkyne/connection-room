@@ -4,6 +4,8 @@ import { useRef, useEffect, useState } from "react";
 import { uploadBroadcastImage } from "@/lib/utils/storage";
 import { resizeAndCompressImage } from "@/lib/utils/image";
 import { buildQuestionUrl, renderQuestionHtml } from "@/lib/newsletter/generate";
+import { renderPollHtml } from "@/lib/polls/generate";
+import { createBroadcastPoll } from "@/lib/admin/polls";
 
 // The email template's content column is ~496px wide (560px card minus
 // padding) -- an inserted image is capped to fit it. Also used as the
@@ -27,6 +29,11 @@ export interface BroadcastQuestionOption {
   questionText: string;
 }
 
+export interface BroadcastSpaceOption {
+  id: string;
+  name: string;
+}
+
 interface BroadcastRichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -34,6 +41,7 @@ interface BroadcastRichTextEditorProps {
   adminUserId: string;
   events: BroadcastEventOption[];
   questions: BroadcastQuestionOption[];
+  spaces: BroadcastSpaceOption[];
   appUrl: string;
 }
 
@@ -62,6 +70,7 @@ export function BroadcastRichTextEditor({
   adminUserId,
   events,
   questions,
+  spaces,
   appUrl,
 }: BroadcastRichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
@@ -69,6 +78,7 @@ export function BroadcastRichTextEditor({
   const [isInit, setIsInit] = useState(false);
   const [showEventPicker, setShowEventPicker] = useState(false);
   const [showQuestionPicker, setShowQuestionPicker] = useState(false);
+  const [insertingPoll, setInsertingPoll] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [imageError, setImageError] = useState("");
   // Tracks the last HTML this editor itself produced (via typing or a
@@ -354,6 +364,57 @@ export function BroadcastRichTextEditor({
     insertHtml("{{firstName}}");
   };
 
+  // Prompt sequence (kept to this component's existing window.prompt()
+  // convention rather than introducing a modal just for this one button)
+  // -> create_poll_with_options equivalent via /api/admin/polls (real
+  // service-role insert, not the member-facing RPC, which is auth.uid()
+  // -keyed and can't be called from an admin route) -> insertHtml() with
+  // the poll's REAL option ids, since each option's placeholder href
+  // (rewritten to a real per-recipient vote link at send time, see
+  // lib/email/template.ts's wrapPollLinks()) has to reference a row that
+  // actually exists.
+  const handleInsertPoll = async () => {
+    const question = window.prompt("Poll question:");
+    if (!question) return;
+
+    const options: string[] = [];
+    while (options.length < 6) {
+      const option = window.prompt(
+        options.length < 2
+          ? `Option ${options.length + 1} (required):`
+          : `Option ${options.length + 1} (leave blank to finish):`
+      );
+      if (!option) {
+        if (options.length >= 2) break;
+        window.alert("A poll needs at least two options.");
+        continue;
+      }
+      options.push(option);
+    }
+    if (options.length < 2) return;
+
+    let spaceId: string | undefined;
+    if (spaces.length > 0 && window.confirm("Also post this poll into a space, so web members can vote too?")) {
+      const spaceList = spaces.map((s, i) => `${i + 1}. ${s.name}`).join("\n");
+      const choice = window.prompt(`Which space?\n${spaceList}`);
+      const index = choice ? parseInt(choice, 10) - 1 : -1;
+      if (index >= 0 && index < spaces.length) {
+        spaceId = spaces[index].id;
+      }
+    }
+
+    setInsertingPoll(true);
+    const result = await createBroadcastPoll(question, options, spaceId);
+    setInsertingPoll(false);
+
+    if (result.error || !result.pollId) {
+      window.alert(result.error || "Could not create the poll.");
+      return;
+    }
+
+    insertHtml(renderPollHtml(question, result.options));
+  };
+
   return (
     <div className="space-y-2">
       {/* sticky (not fixed): the app shell's main content area is its own
@@ -512,6 +573,17 @@ export function BroadcastRichTextEditor({
             </div>
           )}
         </div>
+
+        <button
+          type="button"
+          onMouseDown={preventBlur}
+          onClick={handleInsertPoll}
+          disabled={insertingPoll}
+          className={BUTTON_CLASS}
+          title="Insert a poll -- each option is a link recipients click to vote"
+        >
+          {insertingPoll ? "Creating..." : "📊 Poll"}
+        </button>
       </div>
 
       {imageError && <p className="text-xs text-red-600">{imageError}</p>}

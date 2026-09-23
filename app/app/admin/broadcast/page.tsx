@@ -7,6 +7,7 @@ import { getAllProfilesLite, type Profile } from "@/lib/data/profiles";
 import { sendBroadcastEmail } from "@/lib/admin/broadcast";
 import { getAdminEvents } from "@/lib/admin/events";
 import { getAdminNewsletterQuestions } from "@/lib/admin/newsletter";
+import { getSpaces } from "@/lib/data/spaces";
 import { getBroadcastCampaigns, getUnsentRecipients, type BroadcastCampaign } from "@/lib/admin/email-history";
 import {
   listBroadcastDrafts,
@@ -21,7 +22,7 @@ import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import { BroadcastRichTextEditor, type BroadcastEventOption, type BroadcastQuestionOption } from "@/components/BroadcastRichTextEditor";
+import { BroadcastRichTextEditor, type BroadcastEventOption, type BroadcastQuestionOption, type BroadcastSpaceOption } from "@/components/BroadcastRichTextEditor";
 import { useToast } from "@/lib/hooks/useToast";
 import { ToastContainer } from "@/components/Toast";
 
@@ -37,6 +38,7 @@ export default function AdminBroadcastPage() {
   const [adminUserId, setAdminUserId] = useState("");
   const [events, setEvents] = useState<BroadcastEventOption[]>([]);
   const [questions, setQuestions] = useState<BroadcastQuestionOption[]>([]);
+  const [spaces, setSpaces] = useState<BroadcastSpaceOption[]>([]);
   const [recipientMode, setRecipientMode] = useState<RecipientMode>("all");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [memberSearch, setMemberSearch] = useState("");
@@ -63,13 +65,15 @@ export default function AdminBroadcastPage() {
 
       setAdminUserId(session.supabaseUserId || "");
 
-      const [profiles, adminEvents, adminQuestions, draftsResult, campaignsResult] = await Promise.all([
+      const [profiles, adminEvents, adminQuestions, draftsResult, campaignsResult, adminSpaces] = await Promise.all([
         getAllProfilesLite(),
         getAdminEvents(),
         getAdminNewsletterQuestions(),
         listBroadcastDrafts(),
         getBroadcastCampaigns(),
+        getSpaces(),
       ]);
+      setSpaces(adminSpaces.map((s) => ({ id: s.id, name: s.name })));
       // Broadcasts should never go to seeded demo profiles -- they have no
       // real inbox behind them.
       setMembers(profiles.filter((p) => !p.is_demo_profile));
@@ -453,6 +457,7 @@ export default function AdminBroadcastPage() {
             placeholder="Write your announcement..."
             adminUserId={adminUserId}
             events={events}
+            spaces={spaces}
             questions={questions}
             appUrl={APP_URL}
           />
