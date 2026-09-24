@@ -11,6 +11,8 @@ import { sayHello } from "@/lib/data/connectionsDirect";
 import { trackConnectionEvent } from "@/lib/analytics/connectionEvents";
 import { useToast } from "@/lib/hooks/useToast";
 import { ToastContainer } from "@/components/Toast";
+import { photoFocusStyle } from "@/lib/utils/photo-focus";
+import { ExpandablePhoto } from "@/components/PhotoLightbox";
 
 interface UserProfile {
   id: string;
@@ -113,11 +115,14 @@ export default function UserProfilePage() {
       <Card>
         <div className="space-y-4">
           {profile.profilePhoto && (
-            <img
-              src={profile.profilePhoto}
-              alt={profile.displayName}
-              className="w-24 h-24 rounded-full"
-            />
+            <ExpandablePhoto src={profile.profilePhoto} alt={profile.displayName}>
+              <img
+                src={profile.profilePhoto}
+                style={photoFocusStyle(profile.profilePhoto)}
+                alt={profile.displayName}
+                className="w-32 h-32 rounded-full object-cover object-top"
+              />
+            </ExpandablePhoto>
           )}
           <div>
             <h1 className="text-4xl font-bold text-[#1a0f0a]">{profile.displayName}</h1>

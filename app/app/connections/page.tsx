@@ -38,6 +38,7 @@ import { getMyAsyncConnections } from "@/lib/data/connectionAsync";
 import { GuidedExchangeSection } from "@/components/connections/GuidedExchangeSection";
 import type { AsyncConnection } from "@/lib/types/connection";
 import type { Profile } from "@/lib/data/profiles";
+import { photoFocusStyle } from "@/lib/utils/photo-focus";
 
 const FILTERS: { id: DirectoryFilter; label: string }[] = [
   { id: "everyone", label: "Everyone" },
@@ -441,6 +442,7 @@ export default function ConnectionsPage() {
                       {connection.partnerPhoto && (
                         <img
                           src={connection.partnerPhoto}
+                          style={photoFocusStyle(connection.partnerPhoto)}
                           alt={connection.partnerName}
                           className="w-12 h-12 rounded-full object-cover"
                         />

@@ -96,7 +96,7 @@ export function DirectConversation({
   return (
     <Card className="space-y-3 flex flex-col h-[70vh] max-h-[700px]">
       <div className="flex items-center gap-3 border-b border-[#e8ddd2] pb-3">
-        <Avatar name={partnerName} photo={partnerPhoto} size="md" />
+        <Avatar name={partnerName} photo={partnerPhoto} size="md" expandable />
         <h3 className="font-semibold text-[#1a0f0a]">{partnerName}</h3>
       </div>
 

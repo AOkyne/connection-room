@@ -26,6 +26,7 @@ import { demoSafeWrite } from "@/lib/demo/demo-mode-guard";
 import { getPublicProfile } from "./profiles";
 import type { ConnectionRequest } from "./connectionRequests";
 import type { ConnectionFormat } from "@/lib/types/connection";
+import { resolveProfilePhotoRef } from "@/lib/utils/storage";
 
 export type MessagingPrivacy = "any_member" | "connect_first";
 
@@ -309,7 +310,7 @@ async function mapConnectionRow(row: any, viewerId: string): Promise<Connection>
     partnerFirstName = row.partner_first_name || undefined;
     partnerLastName = row.partner_last_name || undefined;
     partnerPronouns = row.partner_pronouns || undefined;
-    partnerPhoto = row.partner_photo || "";
+    partnerPhoto = resolveProfilePhotoRef(row.partner_photo);
     partnerInterests = row.partner_interests || [];
   } else {
     partnerId = row.user_id;

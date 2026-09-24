@@ -5,6 +5,7 @@ import { Card } from "@/components/Card";
 import Link from "next/link";
 import { getPublicProfile, type CommunityProfile } from "@/lib/data/profiles";
 import { ProfileModal } from "@/components/ProfileModal";
+import { photoFocusStyle } from "@/lib/utils/photo-focus";
 
 interface RecentReflection {
   id: string;
@@ -81,6 +82,7 @@ export function ReflectionsFromRoomCard({
                       {reflection.authorPhoto && (
                         <img
                           src={reflection.authorPhoto}
+                          style={photoFocusStyle(reflection.authorPhoto)}
                           alt={reflection.authorName}
                           className="w-10 h-10 rounded-full object-cover border border-[#e8ddd2]"
                         />

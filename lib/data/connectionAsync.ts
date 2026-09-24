@@ -25,6 +25,7 @@ import type {
   LiveSession,
   ConnectionFormat,
 } from "@/lib/types/connection";
+import { resolveProfilePhotoRef } from "@/lib/utils/storage";
 
 function rpcError(context: string, error: unknown): null {
   console.error(`[connectionAsync] ${context}:`, error);
@@ -109,7 +110,7 @@ async function mapAsyncConnectionRow(row: any, viewerId: string): Promise<AsyncC
   const myParticipant = (row.connection_participants || []).find((p: any) => p.user_id === viewerId);
 
   let partnerName = viewerIsOwner ? row.partner_name : "Member";
-  let partnerPhoto = viewerIsOwner ? row.partner_photo || "" : "";
+  let partnerPhoto = viewerIsOwner ? resolveProfilePhotoRef(row.partner_photo) : "";
 
   if (!viewerIsOwner) {
     const profile = await getPublicProfile(partnerId);

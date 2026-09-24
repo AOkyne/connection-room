@@ -6,6 +6,7 @@ import { Card, CardHeader } from "@/components/Card";
 import { ConnectionProfileModal } from "./ConnectionProfileModal";
 import type { ConnectionRequest } from "@/lib/data/connectionRequests";
 import type { CommunityProfile } from "@/lib/data/profiles";
+import { photoFocusStyle } from "@/lib/utils/photo-focus";
 
 interface IncomingRequestsProps {
   requests: ConnectionRequest[];
@@ -85,6 +86,7 @@ export function IncomingRequests({
                 >
                   <img
                     src={request.fromUserPhoto}
+                    style={photoFocusStyle(request.fromUserPhoto)}
                     alt={request.fromUserName}
                     className="w-full aspect-square object-cover"
                   />

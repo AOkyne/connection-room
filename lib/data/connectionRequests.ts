@@ -8,6 +8,7 @@
 
 import { supabase } from "@/lib/supabase/client";
 import { demoSafeWrite } from "@/lib/demo/demo-mode-guard";
+import { resolveProfilePhotoRef } from "@/lib/utils/storage";
 
 export interface ConnectionRequest {
   id: string;
@@ -26,7 +27,7 @@ function mapRequest(row: any): ConnectionRequest {
     id: row.id,
     fromUserId: row.from_user_id,
     fromUserName: row.from_user_name,
-    fromUserPhoto: row.from_user_photo || "",
+    fromUserPhoto: resolveProfilePhotoRef(row.from_user_photo),
     toUserId: row.to_user_id,
     createdAt: new Date(row.created_at),
     status: row.status,

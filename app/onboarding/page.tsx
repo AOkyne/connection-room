@@ -20,6 +20,7 @@ import { Card, CardHeader } from "@/components/Card";
 import { IconConnection, IconIntegration, IconProfile, IconCouples, IconReflection } from "@/components/Icons";
 import { WelcomeVideoStep } from "@/components/onboarding/WelcomeVideoStep";
 import Link from "next/link";
+import { photoFocusStyle } from "@/lib/utils/photo-focus";
 
 type Step = "welcome" | "agreements" | "member-type" | "basics" | "photo" | "interests" | "connections" | "couples" | "prompt" | "complete";
 
@@ -778,6 +779,7 @@ export default function OnboardingPage() {
                     <div className="mt-6 flex justify-center">
                       <img
                         src={profile.profilePhoto}
+                        style={photoFocusStyle(profile.profilePhoto)}
                         alt="Your photo preview"
                         className="w-24 h-24 rounded-lg object-cover"
                       />

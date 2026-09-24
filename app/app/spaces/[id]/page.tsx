@@ -41,6 +41,7 @@ import { spaceImageMap } from "@/lib/constants/spaceImages";
 import type { CommunityProfile } from "@/lib/data/profiles";
 import { createPollWithOptions, getPollForPost, getPollsForPosts, type Poll } from "@/lib/data/polls";
 import { PollCard } from "@/components/spaces/PollCard";
+import { photoFocusStyle } from "@/lib/utils/photo-focus";
 
 const MAX_POST_LENGTH = 2000;
 const MIN_POST_LENGTH = 10;
@@ -934,6 +935,7 @@ export default function SpaceDetailPage() {
             >
               <img
                 src={member.profilePhoto}
+                style={photoFocusStyle(member.profilePhoto)}
                 alt={member.displayName}
                 className="w-12 h-12 rounded-full hover:ring-2 hover:ring-[#d4a348] transition-all object-cover"
               />

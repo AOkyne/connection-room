@@ -7,6 +7,8 @@ import { getProfile, Profile, CommunityProfile, getPublicProfile } from "@/lib/d
 import { getSession } from "@/lib/session";
 import { getSpaces, Space } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
+import { photoFocusStyle } from "@/lib/utils/photo-focus";
+import { ExpandablePhoto } from "@/components/PhotoLightbox";
 
 export default function MemberProfilePage() {
   const params = useParams();
@@ -86,13 +88,16 @@ export default function MemberProfilePage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             {/* Photo */}
             <div className="sm:col-span-1 flex flex-col items-center sm:items-start">
-              <div className="w-32 h-32 rounded-lg overflow-hidden bg-[#f0e8e0] mb-4">
-                <img
-                  src={member.profilePhoto}
-                  alt={member.displayName}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              <ExpandablePhoto src={member.profilePhoto} alt={member.displayName} className="!rounded-lg mb-4">
+                <div className="w-32 h-32 rounded-lg overflow-hidden bg-[#f0e8e0]">
+                  <img
+                    src={member.profilePhoto}
+                    style={photoFocusStyle(member.profilePhoto)}
+                    alt={member.displayName}
+                    className="w-full h-full object-cover object-top"
+                  />
+                </div>
+              </ExpandablePhoto>
               {member.is_demo_profile && (
                 <span className="bg-[#e8ddd2] text-[#a0704a] text-xs font-normal px-2 py-0.5 rounded">
                   Sample

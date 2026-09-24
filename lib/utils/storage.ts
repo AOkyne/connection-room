@@ -54,6 +54,21 @@ export function buildProfilePhotoUrl(path: string): string {
 }
 
 /**
+ * Turns a stored photo reference into something an <img> can load.
+ * Snapshot columns filled by SQL (connections.partner_photo, via
+ * COALESCE(profile_photo_path, profile_photo) in migrations 081/096, and
+ * the weekly-pairings cron) hold a bare Storage path like
+ * "uuid/uuid-123.jpg", not a URL -- used directly as a src it resolved
+ * relative to the current page and 404'd, so the photo fell back to
+ * initials. Full URLs, data URLs and site-relative paths pass through.
+ */
+export function resolveProfilePhotoRef(ref: string | null | undefined): string {
+  if (!ref) return "";
+  if (/^(https?:|data:|blob:|\/)/.test(ref)) return ref;
+  return buildProfilePhotoUrl(ref);
+}
+
+/**
  * Upload a profile photo to Supabase Storage. Resizes/compresses to a JPEG
  * (max 800px, ~85% quality) before uploading -- this is what actually keeps
  * new uploads small, not just where the bytes end up; see

@@ -6,6 +6,7 @@ import { getInvitedFriends } from "@/lib/data/invites";
 import type { Profile } from "@/lib/data/profiles";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
+import { photoFocusStyle } from "@/lib/utils/photo-focus";
 
 interface FriendsInvitedProps {
   onOpenInvite?: () => void;
@@ -86,6 +87,7 @@ export function FriendsInvited({ onOpenInvite }: FriendsInvitedProps) {
                 <div className="mb-3">
                   <img
                     src={friend.profilePhoto}
+                    style={photoFocusStyle(friend.profilePhoto)}
                     alt={friend.displayName}
                     className="w-full h-32 object-cover rounded-lg"
                   />

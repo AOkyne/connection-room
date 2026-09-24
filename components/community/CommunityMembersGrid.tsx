@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { getDiscoverableMembers, type CommunityProfile } from "@/lib/data/profiles";
 import { ProfileModal } from "@/components/ProfileModal";
+import { photoFocusStyle } from "@/lib/utils/photo-focus";
 
 export function CommunityMembersGrid() {
   // Real, discoverable members -- this was hardcoded to a random sample of
@@ -39,6 +40,7 @@ export function CommunityMembersGrid() {
           >
             <img
               src={member.profilePhoto}
+              style={photoFocusStyle(member.profilePhoto)}
               alt={member.displayName}
               className="w-24 h-24 rounded-full object-cover border-2 border-[#e8ddd2] group-hover:border-[#d4a348] transition-colors"
             />

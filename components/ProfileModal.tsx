@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/Button";
 import { getInitials, getInitialColor } from "@/lib/utils/initials";
+import { photoFocusStyle } from "@/lib/utils/photo-focus";
+import { ExpandablePhoto } from "@/components/PhotoLightbox";
 
 interface ProfileModalProps {
   userId: string;
@@ -83,12 +85,15 @@ export function ProfileModal({
           <div className="text-center">
             <div className="flex justify-center mb-4">
               {profilePhoto && !photoError ? (
-                <img
-                  src={profilePhoto}
-                  alt={displayName}
-                  onError={() => setPhotoError(true)}
-                  className="w-24 h-24 rounded-full object-cover border-2 border-[#d4a348]"
-                />
+                <ExpandablePhoto src={profilePhoto} alt={displayName}>
+                  <img
+                    src={profilePhoto}
+                    style={photoFocusStyle(profilePhoto)}
+                    alt={displayName}
+                    onError={() => setPhotoError(true)}
+                    className="w-32 h-32 rounded-full object-cover object-top border-2 border-[#d4a348]"
+                  />
+                </ExpandablePhoto>
               ) : (
                 <div
                   style={{

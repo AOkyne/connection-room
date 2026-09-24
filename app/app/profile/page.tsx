@@ -22,6 +22,8 @@ import { FriendsInvited } from "@/components/invites/FriendsInvited";
 import { ProfileVisibilitySettings } from "@/components/members/ProfileVisibilitySettings";
 import { NotificationPreferencesSettings } from "@/components/members/NotificationPreferencesSettings";
 import { AccountDangerZone } from "@/components/members/AccountDangerZone";
+import { PhotoFramingEditor } from "@/components/members/PhotoFramingEditor";
+import { photoFocusStyle, withPhotoFocus } from "@/lib/utils/photo-focus";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -30,6 +32,8 @@ export default function ProfilePage() {
   const [badges, setBadges] = useState<any[]>([]);
   const [invitePanelOpen, setInvitePanelOpen] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  const [framingOpen, setFramingOpen] = useState(false);
+  const [framingChanged, setFramingChanged] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -204,6 +208,10 @@ export default function ProfilePage() {
       // signal to fall back to storing the image in Postgres (migration 064).
       const { publicUrl, path } = await uploadProfilePhoto(file, profile.id);
       setProfile({ ...profile, profilePhoto: publicUrl, profilePhotoPath: path });
+      setFramingChanged(false);
+      // A new photo starts with default framing -- offer the editor right
+      // away, since this is exactly when a member notices the crop.
+      setFramingOpen(true);
     } catch (err) {
       setPhotoError(err instanceof Error ? err.message : 'Failed to upload photo');
     }
@@ -253,11 +261,26 @@ export default function ProfilePage() {
               </label>
               <div className="flex gap-4 items-start">
                 {profile.profilePhoto && !profile.profilePhoto.includes("data:image/svg") && (
-                  <img
-                    src={profile.profilePhoto}
-                    alt="Profile"
-                    className="w-24 h-24 rounded-lg object-cover border border-[#e8e3db]"
-                  />
+                  <div className="flex flex-col items-center gap-1">
+                    <img
+                      src={profile.profilePhoto}
+                      alt="Profile"
+                      className="w-24 h-24 rounded-full object-cover object-top border border-[#e8e3db]"
+                      style={photoFocusStyle(profile.profilePhoto)}
+                    />
+                    {/* Framing is stored on profile_photo_path, so it's only
+                        offered for photos already in Storage (all but a
+                        handful of legacy base64 rows). */}
+                    {profile.profilePhotoPath && !framingOpen && (
+                      <button
+                        type="button"
+                        onClick={() => setFramingOpen(true)}
+                        className="text-xs text-[#8b6f47] hover:text-[#c9a876] underline"
+                      >
+                        Adjust framing
+                      </button>
+                    )}
+                  </div>
                 )}
                 <div className="flex-1">
                   <input
@@ -274,8 +297,30 @@ export default function ProfilePage() {
                       ❌ {photoError}
                     </p>
                   )}
+                  {framingChanged && !framingOpen && (
+                    <p className="text-xs text-[#8b6f47] mt-2 font-medium">
+                      New framing set. Click Save Profile below to keep it.
+                    </p>
+                  )}
                 </div>
               </div>
+              {framingOpen && profile.profilePhoto && profile.profilePhotoPath && (
+                <div className="mt-4">
+                  <PhotoFramingEditor
+                    photoUrl={profile.profilePhoto}
+                    onCancel={() => setFramingOpen(false)}
+                    onApply={(focus) => {
+                      setProfile({
+                        ...profile,
+                        profilePhoto: withPhotoFocus(profile.profilePhoto!, focus),
+                        profilePhotoPath: withPhotoFocus(profile.profilePhotoPath!, focus),
+                      });
+                      setFramingChanged(true);
+                      setFramingOpen(false);
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
             <div>

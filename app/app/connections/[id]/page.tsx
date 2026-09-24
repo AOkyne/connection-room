@@ -249,7 +249,7 @@ export default function ConnectionDetailPage() {
 
         {connection.status === "awaiting_acceptance" && iAmInvited ? (
           <Card className="text-center py-8 space-y-4">
-            <Avatar name={connection.partnerName} photo={connection.partnerPhoto} size="xl" />
+            <Avatar name={connection.partnerName} photo={connection.partnerPhoto} size="xl" expandable />
             <p className="text-[#1a0f0a]">{connection.partnerName} would like to connect with you.</p>
             <div className="flex justify-center gap-2">
               <Button variant="primary" size="sm" onClick={handleAcceptDirect}>
@@ -350,7 +350,7 @@ export default function ConnectionDetailPage() {
 
       <Card>
         <div className="flex items-center gap-4">
-          <Avatar name={connection.partnerName} photo={connection.partnerPhoto} size="xl" />
+          <Avatar name={connection.partnerName} photo={connection.partnerPhoto} size="xl" expandable />
           <div>
             <h2 className="text-xl font-semibold text-[#1a0f0a]">{connection.partnerName}</h2>
             {rounds.length > 0 && (

@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { getProfile, Profile, CommunityProfile, getPublicProfilesBySpace } from "@/lib/data/profiles";
 import { getSpace, Space } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
+import { photoFocusStyle } from "@/lib/utils/photo-focus";
 
 export default function SpaceMembersPage() {
   const router = useRouter();
@@ -95,6 +96,7 @@ export default function SpaceMembersPage() {
                   <div className="relative aspect-square overflow-hidden bg-[#f0e8e0]">
                     <img
                       src={member.profilePhoto}
+                      style={photoFocusStyle(member.profilePhoto)}
                       alt={member.displayName}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />

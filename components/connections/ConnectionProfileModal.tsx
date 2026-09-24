@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/Button";
 import type { CommunityProfile } from "@/lib/data/profiles";
+import { photoFocusStyle } from "@/lib/utils/photo-focus";
+import { ExpandablePhoto } from "@/components/PhotoLightbox";
 
 interface ConnectionProfileModalProps {
   profile: CommunityProfile | null;
@@ -52,11 +54,14 @@ export function ConnectionProfileModal({
         <div className="p-6 space-y-6">
           {/* Profile Photo */}
           {profile.profilePhoto && (
-            <img
-              src={profile.profilePhoto}
-              alt={profile.displayName}
-              className="w-32 h-32 rounded-2xl object-cover"
-            />
+            <ExpandablePhoto src={profile.profilePhoto} alt={profile.displayName} className="!rounded-2xl">
+              <img
+                src={profile.profilePhoto}
+                style={photoFocusStyle(profile.profilePhoto)}
+                alt={profile.displayName}
+                className="w-32 h-32 rounded-2xl object-cover object-top"
+              />
+            </ExpandablePhoto>
           )}
 
           {/* About Me */}
