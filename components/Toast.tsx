@@ -40,7 +40,12 @@ export function Toast({ message, type = "info", duration = 3000, onClose, action
     <div className={`${styles.bg} text-white px-4 py-3 rounded-lg shadow-lg max-w-sm z-50 animate-in fade-in slide-in-from-bottom flex items-start gap-3`}>
       <span className="text-lg font-bold flex-shrink-0 mt-0.5">{styles.icon}</span>
       <div className="flex-1">
-        <p className="text-sm">{message}</p>
+        {/* text-white set explicitly, not inherited from the container --
+            app/globals.css gives every <p> a dark `color: var(--text)`,
+            which overrode the inherited white and made the message
+            invisible on the dark "info" toast (only the icon and close
+            button, which aren't <p>s, still showed). */}
+        <p className="text-sm text-white">{message}</p>
       </div>
       <div className="flex gap-2 flex-shrink-0">
         {action && (
