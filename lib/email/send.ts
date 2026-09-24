@@ -20,7 +20,8 @@ export type EmailCategory =
   | "connection_lifecycle"
   | "broadcast"
   | "admin_direct"
-  | "weekly_pairing";
+  | "weekly_pairing"
+  | "password_reset";
 
 // Records a real send into sent_emails (migration 069) so the admin
 // email-history page has something to show. Called explicitly at each
@@ -129,6 +130,9 @@ export async function sendBrandedEmail(options: {
   paragraphs: string[];
   appUrl: string;
   signOff?: string;
+  // Button text -- defaults to "Visit The Connection Room" (see
+  // buildBrandedEmailHtml in ./template).
+  ctaLabel?: string;
   // Extra attachments (e.g. a calendar invite) on top of the fixed
   // branding images -- merged in, not a replacement for them.
   attachments?: Mail.Attachment[];
@@ -139,8 +143,8 @@ export async function sendBrandedEmail(options: {
     to: options.to,
     ...(options.cc ? { cc: options.cc } : {}),
     subject: options.subject,
-    text: buildBrandedEmailText(options.paragraphs, options.appUrl, options.signOff),
-    html: buildBrandedEmailHtml(options.paragraphs, options.appUrl, options.signOff),
+    text: buildBrandedEmailText(options.paragraphs, options.appUrl, options.signOff, options.ctaLabel),
+    html: buildBrandedEmailHtml(options.paragraphs, options.appUrl, options.signOff, options.ctaLabel),
     replyTo: REPLY_TO_ADDRESS,
     attachments: [...getBrandedAttachments(), ...(options.attachments || [])],
   });
@@ -236,6 +240,25 @@ export async function sendConnectionInviteEmail(options: {
       "Reply whenever you're free -- no structure, no timer, just an ordinary conversation.",
     ],
     appUrl: `${options.appUrl}/app/connections`,
+  });
+}
+
+// Password reset (app/api/auth/forgot-password). resetUrl carries a
+// one-time recovery token; it's only redeemed when the member submits a
+// new password on /auth/reset-password, never on page load, so an email
+// security scanner that auto-opens links can't use it up first. The
+// token's lifetime is Supabase's email OTP expiry (1 hour by default).
+export async function sendPasswordResetEmail(options: { to: string; resetUrl: string }): Promise<void> {
+  await sendBrandedEmail({
+    to: options.to,
+    subject: "Reset your Connection Room password",
+    paragraphs: [
+      "Someone -- hopefully you -- asked to reset the password for your Connection Room account.",
+      "Click the button below to choose a new password. The link works for one hour.",
+      "If you didn't ask for this, you can ignore this email. Your password won't change.",
+    ],
+    appUrl: options.resetUrl,
+    ctaLabel: "Reset my password",
   });
 }
 

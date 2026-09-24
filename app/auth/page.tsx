@@ -330,6 +330,13 @@ function BetaAuthContent() {
                   minLength={authMode === "password-signup" ? 8 : undefined}
                   className="w-full px-4 py-2 border border-[#e8e3db] rounded-lg text-[#1a1714] placeholder-[#9d9490] focus:outline-none focus:ring-2 focus:ring-[#c9a876]"
                 />
+                {authMode !== "password-signup" && (
+                  <div className="text-right mt-2">
+                    <Link href="/auth/forgot-password" className="text-sm text-[#8b6f47] hover:text-[#c9a876]">
+                      Forgot your password?
+                    </Link>
+                  </div>
+                )}
               </div>
 
               {authMode === "admin" && (

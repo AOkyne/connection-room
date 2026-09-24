@@ -25,11 +25,12 @@ function renderParagraphHtml(paragraph: string): string {
 export function buildBrandedEmailText(
   paragraphs: string[],
   appUrl: string,
-  signOff: string = "Warm hugs,"
+  signOff: string = "Warm hugs,",
+  ctaLabel: string = "Visit The Connection Room"
 ): string {
   return `${paragraphs.join("\n\n")}
 
-Visit The Connection Room: ${appUrl}
+${ctaLabel}: ${appUrl}
 
 ${signOff}
 
@@ -219,10 +220,14 @@ Founder, The Connection Room
 Touch Therapist and Intimacy Coach`;
 }
 
+// ctaLabel: the button's text -- defaults to the generic "Visit The
+// Connection Room" every existing email uses; a purpose-specific email
+// (e.g. a password reset) passes its own so the button says what it does.
 export function buildBrandedEmailHtml(
   paragraphs: string[],
   appUrl: string,
-  signOff: string = "Warm hugs,"
+  signOff: string = "Warm hugs,",
+  ctaLabel: string = "Visit The Connection Room"
 ): string {
   const bodyParagraphs = paragraphs
     .map(
@@ -249,7 +254,7 @@ export function buildBrandedEmailHtml(
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 28px;">
                   <tr>
                     <td align="center">
-                      <a href="${appUrl}" style="display:inline-block;background-color:#B8892F;color:#FFFDF8;text-decoration:none;padding:12px 28px;border-radius:999px;font-weight:600;font-size:15px;">Visit The Connection Room</a>
+                      <a href="${appUrl}" style="display:inline-block;background-color:#B8892F;color:#FFFDF8;text-decoration:none;padding:12px 28px;border-radius:999px;font-weight:600;font-size:15px;">${escapeHtml(ctaLabel)}</a>
                     </td>
                   </tr>
                 </table>
