@@ -19,7 +19,8 @@ export type EmailCategory =
   | "connection_invite"
   | "connection_lifecycle"
   | "broadcast"
-  | "admin_direct";
+  | "admin_direct"
+  | "weekly_pairing";
 
 // Records a real send into sent_emails (migration 069) so the admin
 // email-history page has something to show. Called explicitly at each
@@ -235,6 +236,29 @@ export async function sendConnectionInviteEmail(options: {
       "Reply whenever you're free -- no structure, no timer, just an ordinary conversation.",
     ],
     appUrl: `${options.appUrl}/app/connections`,
+  });
+}
+
+// Sent to each member of a new weekly pair (app/api/cron/weekly-pairings),
+// only ever to members who explicitly opted in. Links straight into the
+// conversation, and repeats the icebreaker so it's readable without
+// opening the app. Calm tone on purpose: no deadline, no "don't leave
+// them hanging" pressure -- an unanswered pairing simply lapses.
+export async function sendWeeklyPairingEmail(options: {
+  to: string;
+  partnerName: string;
+  prompt: string;
+  conversationUrl: string;
+}): Promise<void> {
+  await sendBrandedEmail({
+    to: options.to,
+    subject: `Meet your pair this week: ${options.partnerName}`,
+    paragraphs: [
+      `You and ${options.partnerName} have been paired up this week.`,
+      `Here's something to get you started:\n"${options.prompt}"`,
+      "Say hello whenever you're ready -- no timer, no pressure.",
+    ],
+    appUrl: options.conversationUrl,
   });
 }
 

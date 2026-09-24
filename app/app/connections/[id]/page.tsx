@@ -281,6 +281,7 @@ export default function ConnectionDetailPage() {
             partnerPhoto={connection.partnerPhoto}
             userId={userId}
             userName={myName}
+            icebreaker={connection.sharedPrompt}
           />
         )}
 

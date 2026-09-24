@@ -223,6 +223,11 @@ export default function AdminPage() {
             🔗 Connections Activity
           </Button>
         </Link>
+        <Link href="/app/admin/pairing-prompts">
+          <Button variant="outline" size="sm">
+            🤝 Weekly Pairing Prompts
+          </Button>
+        </Link>
         <Link href="/app/admin/daily-companion">
           <Button variant="outline" size="sm">
             ✨ Daily Content

@@ -65,6 +65,7 @@ export default function ConnectionsPage() {
   // just surfaced here since this is where a member decides to be found.
   const [openToMeeting, setOpenToMeeting] = useState(true);
   const [messagingPrivacy, setMessagingPrivacy] = useState<MessagingPrivacy>("any_member");
+  const [weeklyPairing, setWeeklyPairing] = useState(false);
 
   // Existing conversations/activity -- preserved so a member with an
   // in-flight legacy request or guided exchange never loses their entry
@@ -102,6 +103,7 @@ export default function ConnectionsPage() {
       ]);
 
       setMessagingPrivacy(prefs.messagingPrivacy);
+      setWeeklyPairing(prefs.weeklyPairingOptIn);
       if (visibility) setOpenToMeeting(visibility.showInDiscovery);
 
       const resolvedProfiles = await Promise.all(
@@ -167,6 +169,20 @@ export default function ConnectionsPage() {
     const ok = await updateConnectionPreferences(profile.id, { ...prefs, messagingPrivacy: value });
     if (!ok) {
       showToast("Could not update this setting. Please try again.", "error");
+    }
+  };
+
+  const handleWeeklyPairingChange = async (value: boolean) => {
+    setWeeklyPairing(value);
+    const prefs = await getConnectionPreferences(profile.id);
+    const ok = await updateConnectionPreferences(profile.id, { ...prefs, weeklyPairingOptIn: value });
+    if (!ok) {
+      setWeeklyPairing(!value);
+      showToast("Could not update this setting. Please try again.", "error");
+      return;
+    }
+    if (value) {
+      showToast("You're in! You'll be paired with someone new each week.", "success");
     }
   };
 
@@ -263,6 +279,24 @@ export default function ConnectionsPage() {
               </label>
             </div>
           </div>
+
+          <label className="flex items-start gap-3 cursor-pointer sm:col-span-2 pt-4 border-t border-[#e8ddd2]">
+            <input
+              type="checkbox"
+              checked={weeklyPairing}
+              onChange={(e) => handleWeeklyPairingChange(e.target.checked)}
+              disabled={!openToMeeting}
+              className="w-5 h-5 mt-0.5"
+            />
+            <span>
+              <span className="block font-medium text-[#1a0f0a]">Pair me with someone new each week</span>
+              <span className="block text-sm text-[#a0704a]">
+                {openToMeeting
+                  ? "Every Monday we'll introduce you to another member who's also opted in, with a question to get you started. No pressure to reply."
+                  : "Turn on \"Open to meeting other members\" to use weekly pairing."}
+              </span>
+            </span>
+          </label>
         </div>
       </Card>
 

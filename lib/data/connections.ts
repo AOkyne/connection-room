@@ -37,6 +37,9 @@ export interface ConnectionPreferences {
   // Migration 096: who can "Say Hello" without going through an
   // accept-first request. Default is the low-friction path.
   messagingPrivacy: MessagingPrivacy;
+  // Migration 100: opt-in to being paired with someone new each week.
+  // Defaults to false -- nobody is ever paired without asking.
+  weeklyPairingOptIn: boolean;
 }
 
 export interface Connection {
@@ -67,17 +70,19 @@ const DEFAULT_PREFERENCES: ConnectionPreferences = {
   optInToExchangeContact: false,
   formats: ["guided_message"],
   messagingPrivacy: "any_member",
+  weeklyPairingOptIn: false,
 };
 
 // Real `connection_preferences` row (migration 010 table, migration 078
-// `formats` column, migration 096 `messaging_privacy` column) -- see file
-// header for why this stopped being localStorage-only.
+// `formats` column, migration 096 `messaging_privacy` column, migration
+// 100 `weekly_pairing_opt_in` column) -- see file header for why this
+// stopped being localStorage-only.
 export async function getConnectionPreferences(userId: string): Promise<ConnectionPreferences> {
   if (!supabase) return DEFAULT_PREFERENCES;
 
   const { data, error } = await supabase
     .from("connection_preferences")
-    .select("frequency, contact_mode, opt_in_to_exchange_contact, formats, messaging_privacy")
+    .select("frequency, contact_mode, opt_in_to_exchange_contact, formats, messaging_privacy, weekly_pairing_opt_in")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -89,6 +94,7 @@ export async function getConnectionPreferences(userId: string): Promise<Connecti
     optInToExchangeContact: data.opt_in_to_exchange_contact || false,
     formats: (data.formats && data.formats.length > 0 ? data.formats : ["guided_message"]) as ConnectionFormat[],
     messagingPrivacy: (data.messaging_privacy || "any_member") as MessagingPrivacy,
+    weeklyPairingOptIn: !!data.weekly_pairing_opt_in,
   };
 }
 
@@ -105,6 +111,7 @@ export async function updateConnectionPreferences(userId: string, preferences: C
           opt_in_to_exchange_contact: preferences.optInToExchangeContact,
           formats: preferences.formats,
           messaging_privacy: preferences.messagingPrivacy,
+          weekly_pairing_opt_in: preferences.weeklyPairingOptIn,
           updated_at: new Date().toISOString(),
         },
         { onConflict: "user_id" }

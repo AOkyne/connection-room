@@ -19,6 +19,10 @@ interface DirectConversationProps {
   // disabled and a note explains why, rather than letting someone type
   // into a conversation that isn't accepted.
   pending?: boolean;
+  // Weekly pairings (migration 100) carry an icebreaker on
+  // connections.shared_prompt -- shown as a banner, never as a message,
+  // since it wasn't written by either person.
+  icebreaker?: string;
 }
 
 const POLL_INTERVAL_MS = 4000;
@@ -36,6 +40,7 @@ export function DirectConversation({
   userId,
   userName,
   pending,
+  icebreaker,
 }: DirectConversationProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
@@ -94,6 +99,13 @@ export function DirectConversation({
         <Avatar name={partnerName} photo={partnerPhoto} size="md" />
         <h3 className="font-semibold text-[#1a0f0a]">{partnerName}</h3>
       </div>
+
+      {icebreaker && (
+        <div className="bg-[#f3ede5] rounded-lg px-3 py-2">
+          <p className="text-xs font-medium text-[#c97a2a] uppercase">You two were paired up -- here&apos;s a place to start</p>
+          <p className="text-sm text-[#1a0f0a] italic mt-1">&ldquo;{icebreaker}&rdquo;</p>
+        </div>
+      )}
 
       {pending ? (
         <div className="flex-1 flex items-center justify-center text-center px-4">
