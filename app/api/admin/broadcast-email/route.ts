@@ -42,14 +42,14 @@ export async function POST(request: NextRequest) {
   }
   const { supabase } = auth;
 
-  let body: { recipientIds?: unknown; subject?: unknown; bodyHtml?: unknown };
+  let body: { recipientIds?: unknown; subject?: unknown; bodyHtml?: unknown; broadcastBatchId?: unknown };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const { recipientIds, subject, bodyHtml } = body;
+  const { recipientIds, subject, bodyHtml, broadcastBatchId: requestedBatchId } = body;
   const isAll = recipientIds === "all";
   if (
     (!isAll && (!Array.isArray(recipientIds) || recipientIds.length === 0 || !recipientIds.every((id) => typeof id === "string"))) ||
@@ -113,10 +113,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // One id shared across every recipient's sent_emails row from this
-  // request, so the admin Email History page can group them back into a
-  // single "campaign" with aggregate open/click stats (migration 095).
-  const broadcastBatchId = crypto.randomUUID();
+  // One id shared across every recipient's sent_emails row for this
+  // broadcast, so Email History groups them into a single "campaign"
+  // (migration 095). The composer now sends a large list as many small
+  // requests (lib/admin/broadcast.ts -- one 60s-capped request can't send
+  // 100+ emails through SMTP), so it supplies ONE id for all of them;
+  // only generated here when a caller doesn't pass one.
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const broadcastBatchId =
+    typeof requestedBatchId === "string" && UUID_RE.test(requestedBatchId) ? requestedBatchId : crypto.randomUUID();
 
   async function sendToOneProfile(profile: (typeof targetProfiles)[number]): Promise<EmailResult> {
     const email = profile.user_id ? emailByUserId.get(profile.user_id) : undefined;

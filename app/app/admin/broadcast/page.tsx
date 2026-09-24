@@ -46,6 +46,10 @@ export default function AdminBroadcastPage() {
   const [bodyHtml, setBodyHtml] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  // Sends go out in small chunks now (lib/admin/broadcast.ts) -- a big
+  // "All Members" send takes a few minutes, so show real progress instead
+  // of a button that just says "Sending..." the whole time.
+  const [sendProgress, setSendProgress] = useState<{ processed: number; total: number } | null>(null);
   const [sendError, setSendError] = useState("");
   const [drafts, setDrafts] = useState<BroadcastDraft[]>([]);
   const [currentDraftId, setCurrentDraftId] = useState<string | null>(null);
@@ -100,6 +104,20 @@ export default function AdminBroadcastPage() {
 
     load();
   }, [router]);
+
+  // The chunked send runs from this page -- closing or navigating away
+  // mid-send stops it partway (whoever was already sent to stays sent;
+  // "Resend to unsent recipients" finishes the rest). Warn before that
+  // happens by accident.
+  useEffect(() => {
+    if (!isSending) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [isSending]);
 
   const filteredMembers = useMemo(() => {
     const term = memberSearch.trim().toLowerCase();
@@ -225,8 +243,17 @@ export default function AdminBroadcastPage() {
     setIsSending(true);
     setSendError("");
     try {
-      const recipientIds = recipientMode === "all" ? "all" : Array.from(selectedIds);
-      const { sentCount, failedCount, errors, success } = await sendBroadcastEmail(recipientIds, subject, bodyHtml);
+      // "All Members" resolves to the exact list this page already shows
+      // (non-demo profiles) -- the chunked sender needs explicit ids to
+      // split into small requests.
+      const recipientIds = recipientMode === "all" ? members.map((m) => m.id) : Array.from(selectedIds);
+      setSendProgress({ processed: 0, total: recipientIds.length });
+      const { sentCount, failedCount, errors, success } = await sendBroadcastEmail(
+        recipientIds,
+        subject,
+        bodyHtml,
+        (processed, total) => setSendProgress({ processed, total })
+      );
 
       if (success) {
         showToast(sentCount === 1 ? "Email sent" : `Email sent to ${sentCount} members`, "success");
@@ -260,6 +287,7 @@ export default function AdminBroadcastPage() {
       setSendError(err instanceof Error ? err.message : "Failed to send email");
     } finally {
       setIsSending(false);
+      setSendProgress(null);
     }
   };
 
@@ -490,7 +518,11 @@ export default function AdminBroadcastPage() {
             onClick={handleSend}
             disabled={!subject.trim() || !bodyHtml.trim() || recipientCount === 0 || isSending}
           >
-            {isSending ? "Sending..." : `Send to ${recipientCount} Member${recipientCount === 1 ? "" : "s"}`}
+            {isSending
+              ? sendProgress
+                ? `Sending... ${sendProgress.processed} / ${sendProgress.total}`
+                : "Sending..."
+              : `Send to ${recipientCount} Member${recipientCount === 1 ? "" : "s"}`}
           </Button>
         </div>
 
