@@ -25,7 +25,12 @@ function BetaAuthContent() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [authMode, setAuthMode] = useState<"password-signup" | "password-signin" | "admin">("password-signup");
+  // Someone arriving with ?next= followed a link into the app (an email,
+  // an expired session) -- almost always an existing member, so open on
+  // Sign In rather than "Create a new account".
+  const [authMode, setAuthMode] = useState<"password-signup" | "password-signin" | "admin">(() =>
+    searchParams?.get("next") ? "password-signin" : "password-signup"
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -332,7 +337,7 @@ function BetaAuthContent() {
                 />
                 {authMode !== "password-signup" && (
                   <div className="text-right mt-2">
-                    <Link href="/auth/forgot-password" className="text-sm text-[#8b6f47] hover:text-[#c9a876]">
+                    <Link href={safeNext ? `/auth/forgot-password?next=${encodeURIComponent(safeNext)}` : "/auth/forgot-password"} className="text-sm text-[#8b6f47] hover:text-[#c9a876]">
                       Forgot your password?
                     </Link>
                   </div>

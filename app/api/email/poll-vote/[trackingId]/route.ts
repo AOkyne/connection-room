@@ -20,11 +20,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  // A vote failure must never show the recipient a broken page -- the
-  // fallback is always a normal redirect into the app, same principle as
-  // the click/open routes. Only ever upgraded to the poll's own results
-  // page once every step below actually succeeds.
-  let destination = FALLBACK_URL;
+  // A vote failure must never show the recipient a broken page. The
+  // fallback is the public poll page with no poll, which says the poll
+  // isn't available -- previously it was the app home page, which on a
+  // phone that isn't signed in meant a sign-in screen and no explanation
+  // (the reported "it took me to log in, not the poll"). Upgraded to the
+  // poll's results once every step below actually succeeds.
+  let destination = UUID_RE.test(trackingId) ? `${FALLBACK_URL}/poll-voted/${trackingId}` : FALLBACK_URL;
 
   if (UUID_RE.test(trackingId) && optionId && UUID_RE.test(optionId) && supabaseUrl && supabaseServiceKey) {
     try {
@@ -49,7 +51,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           p_option_id: optionId,
         });
         if (!error) {
-          destination = `${FALLBACK_URL}/app/polls/${option.poll_id}`;
+          // A public thank-you/results page, not the signed-in
+          // /app/polls page -- email links usually open in a browser that
+          // isn't signed in, and a login screen right after tapping an
+          // answer read as "my vote didn't work". See app/poll-voted.
+          destination = `${FALLBACK_URL}/poll-voted/${trackingId}?poll=${option.poll_id}`;
         } else {
           console.warn("Error recording email poll vote:", error);
         }

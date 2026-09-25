@@ -19,6 +19,7 @@ import {
 } from "@/lib/data/posts";
 import { getProfile, getProfilePhoto, type Profile } from "@/lib/data/profiles";
 import { getSession, clearSession, hasLiveSupabaseSession } from "@/lib/session";
+import { getPollForPost } from "@/lib/data/polls";
 import { trackNewsletterEvent } from "@/lib/analytics/events";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -119,6 +120,15 @@ export default function PostDetailPage() {
           return;
         }
         setState({ status: "post-not-found" });
+        return;
+      }
+
+      // Polls aren't discussion posts (no comments or reactions) -- a link
+      // to one (e.g. a new-post notification email) opens the poll's own
+      // page instead of a comment thread.
+      const poll = await getPollForPost(postId);
+      if (poll) {
+        router.replace(`/app/polls/${poll.id}`);
         return;
       }
 

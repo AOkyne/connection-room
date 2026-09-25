@@ -73,7 +73,9 @@ export default function PollResultsPage() {
       </Card>
 
       {poll.postId && spaceId && (
-        <Link href={`/app/spaces/${spaceId}/posts/${poll.postId}`}>
+        // The space itself, not the post's page -- that page redirects
+        // poll posts back here.
+        <Link href={`/app/spaces/${spaceId}`}>
           <Button variant="outline" className="w-full">
             View this in the space
           </Button>

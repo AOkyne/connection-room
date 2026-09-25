@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { hasSmtpConfig, sendPasswordResetEmail, logEmailSend } from "@/lib/email/send";
+import { getSafeNextPath } from "@/lib/utils/safe-redirect";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RESEND_COOLDOWN_MS = 2 * 60 * 1000;
 
 export async function POST(request: NextRequest) {
-  let body: { email?: unknown };
+  let body: { email?: unknown; next?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -70,7 +71,10 @@ export async function POST(request: NextRequest) {
     // Supabase's verify URL -- the token is only redeemed when the member
     // actually submits a new password there (see /auth/reset-password),
     // so a mail scanner that auto-opens links can't consume it first.
-    const resetUrl = `${appUrl}/auth/reset-password?token_hash=${encodeURIComponent(hashedToken)}&type=recovery`;
+    const safeNext = getSafeNextPath(typeof body.next === "string" ? body.next : null);
+    const resetUrl =
+      `${appUrl}/auth/reset-password?token_hash=${encodeURIComponent(hashedToken)}&type=recovery` +
+      (safeNext ? `&next=${encodeURIComponent(safeNext)}` : "");
 
     await sendPasswordResetEmail({ to: email, resetUrl });
     await logEmailSend(supabase, {

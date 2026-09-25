@@ -39,7 +39,7 @@ import Link from "next/link";
 import { ProfileModal } from "@/components/ProfileModal";
 import { spaceImageMap } from "@/lib/constants/spaceImages";
 import type { CommunityProfile } from "@/lib/data/profiles";
-import { createPollWithOptions, getPollForPost, getPollsForPosts, type Poll } from "@/lib/data/polls";
+import { getPollsForPosts, type Poll } from "@/lib/data/polls";
 import { PollCard } from "@/components/spaces/PollCard";
 import { photoFocusStyle } from "@/lib/utils/photo-focus";
 
@@ -67,14 +67,8 @@ export default function SpaceDetailPage() {
   const [comments, setComments] = useState<Record<string, Comment[]>>({});
   const [newPostContent, setNewPostContent] = useState("");
   const [pollsByPostId, setPollsByPostId] = useState<Map<string, Poll>>(new Map());
-  // "Add a poll" toggle on the composer -- addPoll gates the extra
-  // question/options fields; pollOptions always keeps at least 2 rows
-  // (a poll needs at least two choices, enforced again server-side by
-  // create_poll_with_options).
-  const [addPoll, setAddPoll] = useState(false);
-  const [pollQuestion, setPollQuestion] = useState("");
-  const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
-  const [pollAllowMultiple, setPollAllowMultiple] = useState(false);
+  // Polls live in their own section, not the post feed (see pollPosts).
+  const [showAllPolls, setShowAllPolls] = useState(false);
   const [newCommentContent, setNewCommentContent] = useState<Record<string, string>>({});
   const [mounted, setMounted] = useState(false);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
@@ -121,7 +115,17 @@ export default function SpaceDetailPage() {
   const isPastWeeklyPrompt = (post: Post) => !post.pinned && !!post.promptId?.startsWith("weekly:");
 
   // Filter and search posts
-  const filteredPosts = posts.filter((post) => !post.pinned && !isPastWeeklyPrompt(post)).filter((post) => {
+  // Polls (created from a broadcast email, with "post it in a space"
+  // chosen) aren't discussion posts: they get their own "Polls" section
+  // near the top, with voting and results only -- no comments or
+  // reactions -- and are kept out of the regular feed below. Newest first.
+  const pollPosts = posts
+    .filter((post) => !post.pinned && pollsByPostId.has(post.id))
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const VISIBLE_POLLS = 3;
+  const visiblePollPosts = showAllPolls ? pollPosts : pollPosts.slice(0, VISIBLE_POLLS);
+
+  const filteredPosts = posts.filter((post) => !post.pinned && !isPastWeeklyPrompt(post) && !pollsByPostId.has(post.id)).filter((post) => {
     // Search filter
     const matchesSearch = !searchQuery ||
       post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -167,9 +171,11 @@ export default function SpaceDetailPage() {
       setIsAdmin(session?.type === "admin");
 
       // Load posts
+      // Polls are fetched before the posts are shown, so poll posts never
+      // flash in the regular feed before moving to the Polls section.
       const spacePosts = await getPosts(spaceId);
-      setPosts(spacePosts);
       setPollsByPostId(await getPollsForPosts(spacePosts.map((sp) => sp.id)));
+      setPosts(spacePosts);
 
       // The pinned "Question of the Week" always shows its comment thread
       // (see render below -- no toggle to click), so its comments need to
@@ -245,54 +251,11 @@ export default function SpaceDetailPage() {
       return;
     }
 
-    // Validated up front, alongside the post-content checks above, rather
-    // than after the post is already created -- a poll that fails
-    // validation shouldn't leave behind a real post with no poll attached
-    // and no way to tell the member why.
-    const trimmedPollOptions = pollOptions.map((o) => o.trim()).filter(Boolean);
-    if (addPoll) {
-      if (!pollQuestion.trim()) {
-        showToast("Add a question for your poll, or turn off \"Add a poll.\"", "warning");
-        return;
-      }
-      if (trimmedPollOptions.length < 2) {
-        showToast("A poll needs at least two options.", "warning");
-        return;
-      }
-    }
-
     try {
       setIsSubmitting(true);
       setPostError(null);
       const newPost = await createPost(spaceId, profile.displayName, trimmedContent, false, undefined, profile.pronouns, profilePhoto || profile.profilePhoto);
       setPosts([newPost, ...posts]);
-
-      if (addPoll && trimmedPollOptions.length >= 2) {
-        const pollId = await createPollWithOptions(pollQuestion.trim(), trimmedPollOptions, newPost.id, pollAllowMultiple);
-        if (pollId) {
-          // Re-fetched rather than assembled from local state -- the
-          // option rows need their REAL database ids (submitPollVote()
-          // requires an actual poll_options.id, not a placeholder) to be
-          // votable immediately without a page reload.
-          const createdPoll = await getPollForPost(newPost.id);
-          if (createdPoll) {
-            setPollsByPostId((prev) => {
-              const next = new Map(prev);
-              next.set(newPost.id, createdPoll);
-              return next;
-            });
-          }
-        } else {
-          // The post itself is already live at this point -- a poll
-          // failure is a secondary, recoverable problem, not a reason to
-          // discard the post the member just wrote.
-          showToast("Your post was shared, but the poll couldn't be added.", "warning");
-        }
-        setAddPoll(false);
-        setPollQuestion("");
-        setPollOptions(["", ""]);
-        setPollAllowMultiple(false);
-      }
 
       setNewPostContent("");
       setPendingPostContent(null);
@@ -664,12 +627,6 @@ export default function SpaceDetailPage() {
                     </p>
                   )}
                   <p className={pinned ? "text-[#f3e6d4] text-lg leading-relaxed" : "text-[#1a0f0a]"}>{post.content}</p>
-                </div>
-              )}
-
-              {pollsByPostId.has(post.id) && (
-                <div className="mb-4">
-                  <PollCard poll={pollsByPostId.get(post.id)!} />
                 </div>
               )}
 
@@ -1110,6 +1067,37 @@ export default function SpaceDetailPage() {
           fixture rather than one post among many. */}
       {pinnedPost && renderPostCard(pinnedPost)}
 
+      {pollPosts.length > 0 && (
+        <Card>
+          <CardHeader title="📊 Polls" />
+          <div className="space-y-4">
+            {visiblePollPosts.map((post) => {
+              const poll = pollsByPostId.get(post.id)!;
+              // Older member-created polls carried their own post text;
+              // show it as an intro when it's more than the question.
+              const intro = post.content.trim() !== poll.question.trim() ? post.content : null;
+              return (
+                <div key={post.id} className="space-y-2">
+                  {intro && <p className="text-sm text-[#1a0f0a]">{intro}</p>}
+                  <PollCard poll={poll} />
+                  <p className="text-xs text-[#a0704a]">
+                    {post.authorName} &middot; {new Date(post.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+          {pollPosts.length > VISIBLE_POLLS && (
+            <button
+              onClick={() => setShowAllPolls((v) => !v)}
+              className="mt-4 text-sm font-medium text-[#d4a348] hover:text-[#8b6f47]"
+            >
+              {showAllPolls ? "Show fewer polls" : `Show older polls (${pollPosts.length - VISIBLE_POLLS})`}
+            </button>
+          )}
+        </Card>
+      )}
+
       {/* Create Post */}
       <Card id="create-post-section">
         <CardHeader title="Share Your Thoughts" icon={<IconIntegration size={20} />} />
@@ -1136,63 +1124,6 @@ export default function SpaceDetailPage() {
               <p className="text-xs text-[#d4a348]">Getting close to limit</p>
             )}
           </div>
-        </div>
-
-        <div className="mt-3">
-          <label className="flex items-center gap-2 text-sm text-[#1a0f0a] cursor-pointer">
-            <input type="checkbox" checked={addPoll} onChange={(e) => setAddPoll(e.target.checked)} className="w-4 h-4" />
-            Add a poll
-          </label>
-          {addPoll && (
-            <div className="mt-2 space-y-2 p-3 bg-[#f3ede5] rounded-lg">
-              <input
-                type="text"
-                value={pollQuestion}
-                onChange={(e) => setPollQuestion(e.target.value)}
-                placeholder="Ask a question..."
-                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg text-sm text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
-              />
-              {pollOptions.map((option, i) => (
-                <div key={i} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={option}
-                    onChange={(e) =>
-                      setPollOptions((prev) => prev.map((o, idx) => (idx === i ? e.target.value : o)))
-                    }
-                    placeholder={`Option ${i + 1}`}
-                    className="flex-1 px-3 py-2 border border-[#e8ddd2] rounded-lg text-sm text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
-                  />
-                  {pollOptions.length > 2 && (
-                    <button
-                      onClick={() => setPollOptions((prev) => prev.filter((_, idx) => idx !== i))}
-                      className="px-2 text-[#a0704a] hover:text-[#1a0f0a]"
-                      aria-label={`Remove option ${i + 1}`}
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              ))}
-              {pollOptions.length < 6 && (
-                <button
-                  onClick={() => setPollOptions((prev) => [...prev, ""])}
-                  className="text-sm text-[#d4a348] hover:underline"
-                >
-                  + Add option
-                </button>
-              )}
-              <label className="flex items-center gap-2 text-sm text-[#1a0f0a] cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={pollAllowMultiple}
-                  onChange={(e) => setPollAllowMultiple(e.target.checked)}
-                  className="w-4 h-4"
-                />
-                Let people choose more than one answer
-              </label>
-            </div>
-          )}
         </div>
 
         <div className="flex gap-3 mt-4">

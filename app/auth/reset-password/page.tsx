@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/Button";
 import { supabase } from "@/lib/supabase/client";
 import { clearSession } from "@/lib/session";
+import { getSafeNextPath } from "@/lib/utils/safe-redirect";
 
 const MIN_PASSWORD_LENGTH = 8; // same minimum as signup (app/auth/page.tsx)
 
@@ -73,7 +74,7 @@ function ResetPasswordContent() {
       }
 
       setDone(true);
-      setTimeout(() => router.push("/app"), 1500);
+      setTimeout(() => router.push(getSafeNextPath(searchParams?.get("next")) || "/app"), 1500);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
