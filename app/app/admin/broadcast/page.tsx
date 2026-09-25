@@ -40,6 +40,10 @@ export default function AdminBroadcastPage() {
   const [questions, setQuestions] = useState<BroadcastQuestionOption[]>([]);
   const [spaces, setSpaces] = useState<BroadcastSpaceOption[]>([]);
   const [recipientMode, setRecipientMode] = useState<RecipientMode>("all");
+  // In-page "are you sure" step before sending. Replaces a window.confirm(),
+  // which Safari was silently suppressing (returned false without ever
+  // showing the dialog), so clicking Send did nothing at all.
+  const [confirmingSend, setConfirmingSend] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [memberSearch, setMemberSearch] = useState("");
   const [subject, setSubject] = useState("");
@@ -235,11 +239,7 @@ export default function AdminBroadcastPage() {
   const handleSend = async () => {
     if (!subject.trim() || !bodyHtml.trim() || recipientCount === 0) return;
 
-    const confirmed = confirm(
-      `Send this email to ${recipientCount} member${recipientCount === 1 ? "" : "s"}? This cannot be undone.`
-    );
-    if (!confirmed) return;
-
+    setConfirmingSend(false);
     setIsSending(true);
     setSendError("");
     try {
@@ -515,8 +515,8 @@ export default function AdminBroadcastPage() {
           <Button
             variant="primary"
             size="sm"
-            onClick={handleSend}
-            disabled={!subject.trim() || !bodyHtml.trim() || recipientCount === 0 || isSending}
+            onClick={() => setConfirmingSend(true)}
+            disabled={!subject.trim() || !bodyHtml.trim() || recipientCount === 0 || isSending || confirmingSend}
           >
             {isSending
               ? sendProgress
@@ -525,6 +525,21 @@ export default function AdminBroadcastPage() {
               : `Send to ${recipientCount} Member${recipientCount === 1 ? "" : "s"}`}
           </Button>
         </div>
+
+        {confirmingSend && !isSending && (
+          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[#d4a348] bg-[#fdfaf5] p-3">
+            <p className="text-sm text-[#1a0f0a] flex-1 min-w-[200px]">
+              Send &ldquo;{subject.trim()}&rdquo; to {recipientCount} member{recipientCount === 1 ? "" : "s"}? This
+              can&apos;t be undone.
+            </p>
+            <Button variant="primary" size="sm" onClick={handleSend}>
+              Yes, send it
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setConfirmingSend(false)}>
+              Cancel
+            </Button>
+          </div>
+        )}
 
         {sendError && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">{sendError}</div>
