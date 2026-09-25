@@ -223,6 +223,11 @@ export default function AdminPage() {
             🔗 Connections Activity
           </Button>
         </Link>
+        <Link href="/app/admin/polls">
+          <Button variant="outline" size="sm">
+            📊 Poll Results
+          </Button>
+        </Link>
         <Link href="/app/admin/pairing-prompts">
           <Button variant="outline" size="sm">
             🤝 Weekly Pairing Prompts

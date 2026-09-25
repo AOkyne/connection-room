@@ -18,6 +18,15 @@ const EMAIL_CONTENT_WIDTH = 480;
 const MARKER_ATTR = "data-insert-marker";
 const MARKER_HTML_RE = /<span data-insert-marker="1"><\/span>/g;
 const MAX_POLL_OPTIONS = 6;
+const MAX_POLL_QUESTIONS = 10;
+
+interface PollDraft {
+  question: string;
+  options: string[];
+  allowMultiple: boolean;
+}
+
+const emptyPollDraft = (): PollDraft => ({ question: "", options: ["", ""], allowMultiple: false });
 
 export interface BroadcastEventOption {
   id: string;
@@ -85,7 +94,10 @@ export function BroadcastRichTextEditor({
   const [showEventPicker, setShowEventPicker] = useState(false);
   const [showQuestionPicker, setShowQuestionPicker] = useState(false);
   const [insertingPoll, setInsertingPoll] = useState(false);
-  const [pollForm, setPollForm] = useState<{ question: string; options: string[]; spaceId: string; allowMultiple: boolean } | null>(null);
+  // One or more questions, inserted together as one block (each is its
+  // own poll; the thank-you page after voting walks members through the
+  // rest -- see app/poll-voted).
+  const [pollForm, setPollForm] = useState<{ questions: PollDraft[]; spaceId: string } | null>(null);
   const [pollError, setPollError] = useState("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [imageError, setImageError] = useState("");
@@ -508,7 +520,7 @@ export function BroadcastRichTextEditor({
   // reference a row that actually exists.
   const openPollForm = () => {
     setPollError("");
-    setPollForm({ question: "", options: ["", ""], spaceId: "", allowMultiple: false });
+    setPollForm({ questions: [emptyPollDraft()], spaceId: "" });
   };
 
   const closePollForm = () => {
@@ -517,31 +529,66 @@ export function BroadcastRichTextEditor({
     removeInsertionMarkers();
   };
 
+  const updatePollQuestion = (index: number, patch: Partial<PollDraft>) => {
+    setPollForm((prev) =>
+      prev ? { ...prev, questions: prev.questions.map((q, i) => (i === index ? { ...q, ...patch } : q)) } : prev
+    );
+  };
+
+  // Creates each question as its own poll, in order, then inserts them all
+  // as one block. If one fails partway, the ones already created are
+  // still inserted (they exist and have working links) and the rest stay
+  // in the form with the error, ready to retry.
   const handleCreatePoll = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pollForm) return;
-    const question = pollForm.question.trim();
-    const options = pollForm.options.map((o) => o.trim()).filter(Boolean);
-    if (!question) {
-      setPollError("Add a question.");
-      return;
-    }
-    if (options.length < 2) {
-      setPollError("A poll needs at least two options.");
-      return;
+
+    const drafts = pollForm.questions.map((q) => ({
+      question: q.question.trim(),
+      options: q.options.map((o) => o.trim()).filter(Boolean),
+      allowMultiple: q.allowMultiple,
+    }));
+    const numbered = drafts.length > 1;
+    for (let i = 0; i < drafts.length; i++) {
+      const label = numbered ? `Question ${i + 1}: ` : "";
+      if (!drafts[i].question) {
+        setPollError(`${label}add the question.`);
+        return;
+      }
+      if (drafts[i].options.length < 2) {
+        setPollError(`${label}a poll needs at least two options.`);
+        return;
+      }
     }
 
     setInsertingPoll(true);
     setPollError("");
-    const result = await createBroadcastPoll(question, options, pollForm.spaceId || undefined, pollForm.allowMultiple);
+    const htmlParts: string[] = [];
+    let failedAt = -1;
+    let failure = "";
+    for (let i = 0; i < drafts.length; i++) {
+      const d = drafts[i];
+      const result = await createBroadcastPoll(d.question, d.options, pollForm.spaceId || undefined, d.allowMultiple);
+      if (result.error || !result.pollId) {
+        failedAt = i;
+        failure = result.error || "Could not create the poll.";
+        break;
+      }
+      htmlParts.push(renderPollHtml(d.question, result.options, { allowMultiple: d.allowMultiple }));
+    }
     setInsertingPoll(false);
 
-    if (result.error || !result.pollId) {
-      setPollError(result.error || "Could not create the poll.");
+    if (htmlParts.length > 0) insertHtml(htmlParts.join(""));
+
+    if (failedAt >= 0) {
+      setPollForm({ ...pollForm, questions: pollForm.questions.slice(failedAt) });
+      setPollError(
+        htmlParts.length > 0
+          ? `${htmlParts.length} question${htmlParts.length === 1 ? " was" : "s were"} added. The next one couldn't be created: ${failure}`
+          : failure
+      );
       return;
     }
-
-    insertHtml(renderPollHtml(question, result.options, { allowMultiple: pollForm.allowMultiple }));
     setPollForm(null);
   };
 
@@ -719,61 +766,91 @@ export function BroadcastRichTextEditor({
       {pollForm && (
         <form onSubmit={handleCreatePoll} className="space-y-3 rounded-lg border border-[#d4a348] bg-[#fdfaf5] p-4">
           <p className="text-sm font-semibold text-[#1a0f0a]">📊 New poll</p>
-          <p className="text-xs text-[#a0704a]">It will be placed where your cursor was in the email.</p>
-          <input
-            type="text"
-            autoFocus
-            value={pollForm.question}
-            onChange={(e) => setPollForm({ ...pollForm, question: e.target.value })}
-            placeholder="Question"
-            className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg text-sm text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
-          />
-          {pollForm.options.map((option, i) => (
-            <div key={i} className="flex gap-2">
+          <p className="text-xs text-[#a0704a]">
+            It will be placed where your cursor was in the email. Add more questions to send them together.
+          </p>
+
+          {pollForm.questions.map((q, qi) => (
+            <div key={qi} className="space-y-2 rounded-lg border border-[#e8ddd2] bg-white p-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#8b6f47]">
+                  {pollForm.questions.length > 1 ? `Question ${qi + 1}` : "Question"}
+                </p>
+                {pollForm.questions.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setPollForm({ ...pollForm, questions: pollForm.questions.filter((_, j) => j !== qi) })}
+                    className="text-xs text-[#a0704a] hover:text-[#1a0f0a]"
+                  >
+                    Remove question
+                  </button>
+                )}
+              </div>
               <input
                 type="text"
-                value={option}
-                onChange={(e) => {
-                  const options = [...pollForm.options];
-                  options[i] = e.target.value;
-                  setPollForm({ ...pollForm, options });
-                }}
-                placeholder={`Option ${i + 1}`}
-                className="flex-1 px-3 py-2 border border-[#e8ddd2] rounded-lg text-sm text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
+                autoFocus={qi === pollForm.questions.length - 1}
+                value={q.question}
+                onChange={(e) => updatePollQuestion(qi, { question: e.target.value })}
+                placeholder="Question"
+                className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg text-sm text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
               />
-              {pollForm.options.length > 2 && (
+              {q.options.map((option, i) => (
+                <div key={i} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={option}
+                    onChange={(e) =>
+                      updatePollQuestion(qi, { options: q.options.map((o, j) => (j === i ? e.target.value : o)) })
+                    }
+                    placeholder={`Option ${i + 1}`}
+                    className="flex-1 px-3 py-2 border border-[#e8ddd2] rounded-lg text-sm text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
+                  />
+                  {q.options.length > 2 && (
+                    <button
+                      type="button"
+                      onClick={() => updatePollQuestion(qi, { options: q.options.filter((_, j) => j !== i) })}
+                      className="px-2 text-[#a0704a] hover:text-[#1a0f0a]"
+                      aria-label={`Remove option ${i + 1}`}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+              {q.options.length < MAX_POLL_OPTIONS && (
                 <button
                   type="button"
-                  onClick={() => setPollForm({ ...pollForm, options: pollForm.options.filter((_, j) => j !== i) })}
-                  className="px-2 text-[#a0704a] hover:text-[#1a0f0a]"
-                  aria-label={`Remove option ${i + 1}`}
+                  onClick={() => updatePollQuestion(qi, { options: [...q.options, ""] })}
+                  className="text-sm text-[#8b6f47] hover:text-[#c9a876]"
                 >
-                  ✕
+                  + Add option
                 </button>
               )}
+              <label className="flex items-center gap-2 text-sm text-[#1a0f0a] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={q.allowMultiple}
+                  onChange={(e) => updatePollQuestion(qi, { allowMultiple: e.target.checked })}
+                  className="w-4 h-4"
+                />
+                Let people choose more than one answer
+              </label>
             </div>
           ))}
-          {pollForm.options.length < MAX_POLL_OPTIONS && (
+
+          {pollForm.questions.length < MAX_POLL_QUESTIONS && (
             <button
               type="button"
-              onClick={() => setPollForm({ ...pollForm, options: [...pollForm.options, ""] })}
-              className="text-sm text-[#8b6f47] hover:text-[#c9a876]"
+              onClick={() => setPollForm({ ...pollForm, questions: [...pollForm.questions, emptyPollDraft()] })}
+              className="text-sm font-medium text-[#8b6f47] hover:text-[#c9a876]"
             >
-              + Add option
+              + Add another question
             </button>
           )}
-          <label className="flex items-center gap-2 text-sm text-[#1a0f0a] cursor-pointer">
-            <input
-              type="checkbox"
-              checked={pollForm.allowMultiple}
-              onChange={(e) => setPollForm({ ...pollForm, allowMultiple: e.target.checked })}
-              className="w-4 h-4"
-            />
-            Let people choose more than one answer
-          </label>
+
           {spaces.length > 0 && (
             <label className="block text-sm text-[#1a0f0a]">
-              Also post it in a space, so members can vote in the app too
+              Also post {pollForm.questions.length > 1 ? "them" : "it"} in a space, so members can vote in the app too
               <select
                 value={pollForm.spaceId}
                 onChange={(e) => setPollForm({ ...pollForm, spaceId: e.target.value })}
@@ -795,7 +872,11 @@ export function BroadcastRichTextEditor({
               disabled={insertingPoll}
               className="px-4 py-2 rounded-lg bg-[#B8892F] text-white text-sm font-semibold disabled:opacity-50"
             >
-              {insertingPoll ? "Creating..." : "Insert poll"}
+              {insertingPoll
+                ? "Creating..."
+                : pollForm.questions.length > 1
+                  ? `Insert ${pollForm.questions.length} questions`
+                  : "Insert poll"}
             </button>
             <button
               type="button"

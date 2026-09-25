@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { renderPollHtml, pollVotePlaceholder } from "./generate";
+import { renderPollHtml, pollVotePlaceholder, extractPollOptionIds } from "./generate";
 
 describe("pollVotePlaceholder", () => {
   it("builds a POLL_VOTE: marker carrying the option id", () => {
@@ -41,5 +41,23 @@ describe("renderPollHtml", () => {
     const html = renderPollHtml("Q?", options);
     expect(html).not.toContain("<style");
     expect(html).not.toContain("<script");
+  });
+});
+
+describe("extractPollOptionIds", () => {
+  const a = "11111111-1111-4111-8111-111111111111";
+  const b = "22222222-2222-4222-8222-222222222222";
+  const c = "33333333-3333-4333-8333-333333333333";
+
+  it("finds option ids across several poll blocks, in order, without duplicates", () => {
+    const html =
+      renderPollHtml("First?", [{ id: a, label: "A" }, { id: b, label: "B" }]) +
+      "<p>between</p>" +
+      renderPollHtml("Second?", [{ id: c, label: "C" }, { id: a, label: "A again" }]);
+    expect(extractPollOptionIds(html)).toEqual([a, b, c]);
+  });
+
+  it("returns nothing for an email without polls", () => {
+    expect(extractPollOptionIds('<p>Hello <a href="https://example.com">link</a></p>')).toEqual([]);
   });
 });

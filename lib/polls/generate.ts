@@ -67,3 +67,17 @@ export function renderPollHtml(
   </tr>
 </table>`;
 }
+
+// Every poll option id referenced by POLL_VOTE: placeholders in a
+// composed broadcast body, in the order they appear -- how the vote
+// thank-you page (app/poll-voted) finds the other questions that were in
+// the same email.
+export function extractPollOptionIds(html: string): string[] {
+  const ids: string[] = [];
+  const re = /POLL_VOTE:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/gi;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(html)) !== null) {
+    if (!ids.includes(match[1])) ids.push(match[1]);
+  }
+  return ids;
+}

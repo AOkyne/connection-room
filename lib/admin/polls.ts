@@ -39,3 +39,31 @@ export async function createBroadcastPoll(
   }
   return { pollId: data.pollId, options: data.options || [] };
 }
+
+export interface AdminPollResult {
+  id: string;
+  question: string;
+  allowMultiple: boolean;
+  createdAt: string;
+  spaceId: string | null;
+  spaceName: string | null;
+  voterCount: number;
+  options: { id: string; label: string; voteCount: number }[];
+}
+
+// Every poll with its totals, for the admin Polls page.
+export async function listPollResults(): Promise<{ polls: AdminPollResult[]; error?: string }> {
+  const authHeader = await getAuthHeader();
+  if (!authHeader) return { polls: [], error: "Not signed in with a real admin account." };
+
+  const response = await fetch("/api/admin/polls", { headers: authHeader, cache: "no-store" });
+  const raw = await response.text();
+  let data: any = null;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    // Non-JSON (e.g. a platform error page) -- handled below.
+  }
+  if (!response.ok || !data) return { polls: [], error: data?.error || `Request failed (${response.status})` };
+  return { polls: data.polls || [] };
+}

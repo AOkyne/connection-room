@@ -16,6 +16,79 @@ export const dynamic = "force-dynamic";
 // (spaceId), so web members without email see and vote on the exact
 // same poll -- results merge across both audiences since they're the
 // same poll_id either way.
+// Admin "Polls" page: every poll, newest first, with totals per option.
+// Counts only -- never who voted for what (same privacy line as
+// get_poll_results(), migration 099). Service-role reads, since
+// poll_votes has no SELECT policy for anyone.
+export async function GET(request: NextRequest) {
+  const auth = await requireAdmin(request);
+  if (!auth.ok) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+  const { supabase } = auth;
+
+  const { data: polls, error: pollsError } = await supabase
+    .from("polls")
+    .select("id, question, post_id, allow_multiple, created_at")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (pollsError) {
+    return NextResponse.json({ error: pollsError.message }, { status: 500 });
+  }
+  if (!polls || polls.length === 0) {
+    return NextResponse.json({ polls: [] });
+  }
+
+  const pollIds = polls.map((p) => p.id);
+  const postIds = polls.map((p) => p.post_id).filter((id): id is string => !!id);
+
+  const [optionsResult, votesResult, postsResult] = await Promise.all([
+    supabase.from("poll_options").select("id, poll_id, label, position").in("poll_id", pollIds).order("position"),
+    supabase.from("poll_votes").select("poll_id, option_id, user_id").in("poll_id", pollIds).limit(50000),
+    postIds.length > 0
+      ? supabase.from("posts").select("id, space_id").in("id", postIds)
+      : Promise.resolve({ data: [] as { id: string; space_id: string }[], error: null }),
+  ]);
+  const firstError = optionsResult.error || votesResult.error || postsResult.error;
+  if (firstError) {
+    return NextResponse.json({ error: firstError.message }, { status: 500 });
+  }
+
+  const spaceIdByPost = new Map((postsResult.data || []).map((p) => [p.id, p.space_id as string]));
+  const spaceIds = Array.from(new Set(spaceIdByPost.values()));
+  const spaceNames = new Map<string, string>();
+  if (spaceIds.length > 0) {
+    const { data: spaces } = await supabase.from("spaces").select("id, name").in("id", spaceIds);
+    for (const sp of spaces || []) spaceNames.set(sp.id, sp.name);
+  }
+
+  const votesByOption = new Map<string, number>();
+  const votersByPoll = new Map<string, Set<string>>();
+  for (const v of votesResult.data || []) {
+    votesByOption.set(v.option_id, (votesByOption.get(v.option_id) || 0) + 1);
+    if (!votersByPoll.has(v.poll_id)) votersByPoll.set(v.poll_id, new Set());
+    votersByPoll.get(v.poll_id)!.add(v.user_id);
+  }
+
+  return NextResponse.json({
+    polls: polls.map((p) => {
+      const spaceId = p.post_id ? spaceIdByPost.get(p.post_id) : undefined;
+      return {
+        id: p.id,
+        question: p.question,
+        allowMultiple: !!p.allow_multiple,
+        createdAt: p.created_at,
+        spaceId: spaceId || null,
+        spaceName: spaceId ? spaceNames.get(spaceId) || spaceId : null,
+        voterCount: votersByPoll.get(p.id)?.size || 0,
+        options: (optionsResult.data || [])
+          .filter((o) => o.poll_id === p.id)
+          .map((o) => ({ id: o.id, label: o.label, voteCount: votesByOption.get(o.id) || 0 })),
+      };
+    }),
+  });
+}
+
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (!auth.ok) {

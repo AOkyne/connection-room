@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { extractPollOptionIds } from "@/lib/polls/generate";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,62 @@ interface VotedPoll {
   allowMultiple: boolean;
   voterCount: number;
   options: { id: string; label: string; voteCount: number; isMine: boolean }[];
+  // Every poll in the same email, in email order (including this one), so
+  // members can answer the rest here instead of going back to the email.
+  // Empty when the email's content wasn't saved (sent before migration
+  // 103) or it only had this one question.
+  emailPolls: EmailPoll[];
+}
+
+interface EmailPoll {
+  pollId: string;
+  question: string;
+  allowMultiple: boolean;
+  answered: boolean;
+  options: { id: string; label: string }[];
+}
+
+// The other questions in the same broadcast: the email's saved body
+// (broadcast_campaign_contents) -> its POLL_VOTE option ids -> their polls.
+async function loadEmailPolls(supabase: SupabaseClient, batchId: string | null, recipientId: string): Promise<EmailPoll[]> {
+  if (!batchId) return [];
+  const { data: content } = await supabase
+    .from("broadcast_campaign_contents")
+    .select("body_html")
+    .eq("broadcast_batch_id", batchId)
+    .maybeSingle();
+  const optionIds = content?.body_html ? extractPollOptionIds(content.body_html) : [];
+  if (optionIds.length === 0) return [];
+
+  const { data: referenced } = await supabase.from("poll_options").select("id, poll_id").in("id", optionIds);
+  const pollOfOption = new Map((referenced || []).map((o) => [o.id, o.poll_id as string]));
+  const pollIds: string[] = [];
+  for (const id of optionIds) {
+    const pid = pollOfOption.get(id);
+    if (pid && !pollIds.includes(pid)) pollIds.push(pid);
+  }
+  if (pollIds.length < 2) return [];
+
+  const [{ data: polls }, { data: options }, { data: myVotes }] = await Promise.all([
+    supabase.from("polls").select("id, question, allow_multiple").in("id", pollIds),
+    supabase.from("poll_options").select("id, poll_id, label, position").in("poll_id", pollIds).order("position"),
+    supabase.from("poll_votes").select("poll_id").in("poll_id", pollIds).eq("user_id", recipientId),
+  ]);
+  const answered = new Set((myVotes || []).map((v) => v.poll_id));
+  const byId = new Map((polls || []).map((p) => [p.id, p]));
+
+  return pollIds
+    .filter((id) => byId.has(id))
+    .map((id) => {
+      const p = byId.get(id)!;
+      return {
+        pollId: id,
+        question: p.question,
+        allowMultiple: !!p.allow_multiple,
+        answered: answered.has(id),
+        options: (options || []).filter((o) => o.poll_id === id).map((o) => ({ id: o.id, label: o.label })),
+      };
+    });
 }
 
 async function loadVotedPoll(trackingId: string, pollId: string): Promise<VotedPoll | null> {
@@ -41,7 +98,7 @@ async function loadVotedPoll(trackingId: string, pollId: string): Promise<VotedP
   const supabase = createClient(supabaseUrl, serviceKey);
 
   const [{ data: sentEmail }, { data: poll }, { data: options }, { data: votes }] = await Promise.all([
-    supabase.from("sent_emails").select("recipient_user_id").eq("id", trackingId).maybeSingle(),
+    supabase.from("sent_emails").select("recipient_user_id, broadcast_batch_id").eq("id", trackingId).maybeSingle(),
     supabase.from("polls").select("id, question, allow_multiple").eq("id", pollId).maybeSingle(),
     supabase.from("poll_options").select("id, label, position").eq("poll_id", pollId).order("position"),
     supabase.from("poll_votes").select("option_id, user_id").eq("poll_id", pollId),
@@ -59,7 +116,10 @@ async function loadVotedPoll(trackingId: string, pollId: string): Promise<VotedP
     if (v.user_id === recipientId) mine.add(v.option_id);
   }
 
+  const emailPolls = await loadEmailPolls(supabase, sentEmail?.broadcast_batch_id || null, recipientId);
+
   return {
+    emailPolls,
     pollId: poll.id,
     question: poll.question,
     allowMultiple: !!poll.allow_multiple,
@@ -86,6 +146,11 @@ export default async function PollVotedPage({
   const poll = await loadVotedPoll(trackingId, pollId);
   const votedAny = !!poll?.options.some((o) => o.isMine);
   const notChosen = poll?.options.filter((o) => !o.isMine) || [];
+  const emailPolls = poll?.emailPolls || [];
+  const position = emailPolls.findIndex((p) => p.pollId === poll?.pollId);
+  const nextQuestion = emailPolls.find((p) => !p.answered && p.pollId !== poll?.pollId);
+  const remainingAfterNext = emailPolls.filter((p) => !p.answered && p.pollId !== poll?.pollId).length - 1;
+  const allAnswered = emailPolls.length > 1 && emailPolls.every((p) => p.answered);
 
   return (
     <div className="min-h-screen bg-[#fdfbf7]">
@@ -118,6 +183,11 @@ export default async function PollVotedPage({
                 </h1>
                 {!votedAny && (
                   <p className="text-sm text-[#6b6460]">We couldn&apos;t record your answer. Please try the link again.</p>
+                )}
+                {votedAny && position >= 0 && emailPolls.length > 1 && (
+                  <p className="text-sm text-[#a0704a]">
+                    Question {position + 1} of {emailPolls.length}
+                  </p>
                 )}
               </div>
 
@@ -161,6 +231,33 @@ export default async function PollVotedPage({
                     </a>
                   ))}
                 </div>
+              )}
+
+              {votedAny && nextQuestion && (
+                <div className="space-y-2 rounded-lg border border-[#d4a348] bg-[#fdfaf5] p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[#8b6f47]">
+                    Next question{remainingAfterNext > 0 ? ` (${remainingAfterNext} more after this)` : ""}
+                  </p>
+                  <p className="text-lg font-medium text-[#1a0f0a]">{nextQuestion.question}</p>
+                  {nextQuestion.allowMultiple && (
+                    <p className="text-xs text-[#a0704a]">Choose all that apply. Tap one now; you can add more next.</p>
+                  )}
+                  {nextQuestion.options.map((o) => (
+                    <a
+                      key={o.id}
+                      href={`/api/email/poll-vote/${trackingId}?option=${o.id}`}
+                      className="block px-4 py-3 rounded-lg border border-[#e8ddd2] bg-white text-[#1a0f0a] hover:bg-[#f3ede5]"
+                    >
+                      {o.label}
+                    </a>
+                  ))}
+                </div>
+              )}
+
+              {votedAny && allAnswered && (
+                <p className="text-center text-sm font-medium text-[#1a0f0a]">
+                  ✓ You&apos;ve answered all {emailPolls.length} questions. Thank you!
+                </p>
               )}
 
               <div className="border-t border-[#e8e3db] pt-4 text-center space-y-2">
