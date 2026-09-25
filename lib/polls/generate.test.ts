@@ -32,6 +32,11 @@ describe("renderPollHtml", () => {
     expect(html).not.toContain('"Click" & <go>');
   });
 
+  it("adds a choose-all-that-apply hint only for multiple-choice polls", () => {
+    expect(renderPollHtml("Q?", options)).not.toContain("Choose all that apply");
+    expect(renderPollHtml("Q?", options, { allowMultiple: true })).toContain("Choose all that apply");
+  });
+
   it("has no <style> tag or script -- inline styles only, safe to paste into an email client", () => {
     const html = renderPollHtml("Q?", options);
     expect(html).not.toContain("<style");

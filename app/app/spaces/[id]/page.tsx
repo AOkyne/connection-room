@@ -74,6 +74,7 @@ export default function SpaceDetailPage() {
   const [addPoll, setAddPoll] = useState(false);
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
+  const [pollAllowMultiple, setPollAllowMultiple] = useState(false);
   const [newCommentContent, setNewCommentContent] = useState<Record<string, string>>({});
   const [mounted, setMounted] = useState(false);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
@@ -267,7 +268,7 @@ export default function SpaceDetailPage() {
       setPosts([newPost, ...posts]);
 
       if (addPoll && trimmedPollOptions.length >= 2) {
-        const pollId = await createPollWithOptions(pollQuestion.trim(), trimmedPollOptions, newPost.id);
+        const pollId = await createPollWithOptions(pollQuestion.trim(), trimmedPollOptions, newPost.id, pollAllowMultiple);
         if (pollId) {
           // Re-fetched rather than assembled from local state -- the
           // option rows need their REAL database ids (submitPollVote()
@@ -290,6 +291,7 @@ export default function SpaceDetailPage() {
         setAddPoll(false);
         setPollQuestion("");
         setPollOptions(["", ""]);
+        setPollAllowMultiple(false);
       }
 
       setNewPostContent("");
@@ -1180,6 +1182,15 @@ export default function SpaceDetailPage() {
                   + Add option
                 </button>
               )}
+              <label className="flex items-center gap-2 text-sm text-[#1a0f0a] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={pollAllowMultiple}
+                  onChange={(e) => setPollAllowMultiple(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                Let people choose more than one answer
+              </label>
             </div>
           )}
         </div>

@@ -16,6 +16,9 @@ export interface Poll {
   id: string;
   postId: string | null;
   question: string;
+  // "Choose all that apply" (migration 101) -- members can pick several
+  // options instead of exactly one.
+  allowMultiple: boolean;
   options: PollOption[];
 }
 
@@ -24,6 +27,10 @@ export interface PollResultOption {
   label: string;
   voteCount: number;
   isMyVote: boolean;
+  // Distinct members who answered the poll at all (same on every row).
+  // Percentages are voteCount / voterCount, which on a multiple-choice
+  // poll can add up to more than 100%.
+  voterCount: number;
 }
 
 function rpcError(context: string, error: unknown): null {
@@ -37,7 +44,8 @@ function rpcError(context: string, error: unknown): null {
 export async function createPollWithOptions(
   question: string,
   options: string[],
-  postId?: string
+  postId?: string,
+  allowMultiple = false
 ): Promise<string | null> {
   if (!supabase) return null;
 
@@ -47,6 +55,7 @@ export async function createPollWithOptions(
         p_question: question,
         p_options: options,
         p_post_id: postId || null,
+        p_allow_multiple: allowMultiple,
       }),
     { context: "createPollWithOptions" }
   );
@@ -63,7 +72,7 @@ export async function getPollForPost(postId: string): Promise<Poll | null> {
 
   const { data: pollRow, error: pollError } = await supabase
     .from("polls")
-    .select("id, post_id, question")
+    .select("id, post_id, question, allow_multiple")
     .eq("post_id", postId)
     .maybeSingle();
 
@@ -81,6 +90,7 @@ export async function getPollForPost(postId: string): Promise<Poll | null> {
     id: pollRow.id,
     postId: pollRow.post_id,
     question: pollRow.question,
+    allowMultiple: !!pollRow.allow_multiple,
     options: (optionRows || []).map((o) => ({ id: o.id, label: o.label, position: o.position })),
   };
 }
@@ -95,7 +105,7 @@ export async function getPollsForPosts(postIds: string[]): Promise<Map<string, P
 
   const { data: pollRows, error: pollsError } = await supabase
     .from("polls")
-    .select("id, post_id, question")
+    .select("id, post_id, question, allow_multiple")
     .in("post_id", postIds);
 
   if (pollsError || !pollRows || pollRows.length === 0) return byPostId;
@@ -121,6 +131,7 @@ export async function getPollsForPosts(postIds: string[]): Promise<Map<string, P
       id: p.id,
       postId: p.post_id,
       question: p.question,
+      allowMultiple: !!p.allow_multiple,
       options: optionsByPollId.get(p.id) || [],
     });
   }
@@ -143,6 +154,23 @@ export async function submitPollVote(pollId: string, optionId: string): Promise<
   return true;
 }
 
+// Sets the member's whole selection on a poll at once (the checkbox list
+// on a multiple-choice poll) -- replaces whatever they'd chosen before.
+export async function submitPollVotes(pollId: string, optionIds: string[]): Promise<boolean> {
+  if (!supabase) return false;
+
+  const { error } = await demoSafeWrite(
+    () => supabase!.rpc("submit_poll_votes", { p_poll_id: pollId, p_option_ids: optionIds }),
+    { context: "submitPollVotes" }
+  );
+
+  if (error) {
+    console.error("[polls] submitPollVotes:", error);
+    return false;
+  }
+  return true;
+}
+
 export async function getPollResults(pollId: string): Promise<PollResultOption[]> {
   if (!supabase) return [];
 
@@ -157,5 +185,34 @@ export async function getPollResults(pollId: string): Promise<PollResultOption[]
     label: r.label,
     voteCount: Number(r.vote_count) || 0,
     isMyVote: !!r.is_my_vote,
+    voterCount: Number(r.voter_count) || 0,
   }));
+}
+
+export async function getPollById(pollId: string): Promise<Poll | null> {
+  if (!supabase) return null;
+
+  const { data: pollRow, error: pollError } = await supabase
+    .from("polls")
+    .select("id, post_id, question, allow_multiple")
+    .eq("id", pollId)
+    .maybeSingle();
+
+  if (pollError || !pollRow) return null;
+
+  const { data: optionRows, error: optionsError } = await supabase
+    .from("poll_options")
+    .select("id, label, position")
+    .eq("poll_id", pollRow.id)
+    .order("position", { ascending: true });
+
+  if (optionsError) return rpcError("getPollById", optionsError);
+
+  return {
+    id: pollRow.id,
+    postId: pollRow.post_id,
+    question: pollRow.question,
+    allowMultiple: !!pollRow.allow_multiple,
+    options: (optionRows || []).map((o) => ({ id: o.id, label: o.label, position: o.position })),
+  };
 }

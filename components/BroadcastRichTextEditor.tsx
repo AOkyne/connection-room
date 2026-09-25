@@ -13,6 +13,12 @@ import { createBroadcastPoll } from "@/lib/admin/polls";
 // ever be displayed at, not just visually shrunk by CSS.
 const EMAIL_CONTENT_WIDTH = 480;
 
+// Invisible placeholder marking where a pending insert will go -- see
+// placeInsertionMarker(). Stripped from everything the editor emits.
+const MARKER_ATTR = "data-insert-marker";
+const MARKER_HTML_RE = /<span data-insert-marker="1"><\/span>/g;
+const MAX_POLL_OPTIONS = 6;
+
 export interface BroadcastEventOption {
   id: string;
   title: string;
@@ -79,6 +85,8 @@ export function BroadcastRichTextEditor({
   const [showEventPicker, setShowEventPicker] = useState(false);
   const [showQuestionPicker, setShowQuestionPicker] = useState(false);
   const [insertingPoll, setInsertingPoll] = useState(false);
+  const [pollForm, setPollForm] = useState<{ question: string; options: string[]; spaceId: string; allowMultiple: boolean } | null>(null);
+  const [pollError, setPollError] = useState("");
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [imageError, setImageError] = useState("");
   // Tracks the last HTML this editor itself produced (via typing or a
@@ -106,7 +114,7 @@ export function BroadcastRichTextEditor({
 
   const handleInput = () => {
     if (editorRef.current) {
-      const html = editorRef.current.innerHTML;
+      const html = editorRef.current.innerHTML.replace(MARKER_HTML_RE, "");
       lastEmittedValue.current = html;
       onChange(html);
     }
@@ -122,13 +130,17 @@ export function BroadcastRichTextEditor({
   // Toolbar buttons are mousedown-prevented so clicking one doesn't first
   // collapse the editor's text selection (a link/bold/etc needs the
   // selection that existed a moment ago, not "nothing selected").
-  //
-  // It also records where the caret is at that instant -- the moment the
-  // admin presses a toolbar button, before any prompt, file picker,
-  // dropdown or network wait can move it. See captureInsertionPoint().
-  const preventBlur = (e: React.MouseEvent) => {
+  const preventBlur = (e: React.MouseEvent) => e.preventDefault();
+
+  // Buttons that INSERT something (poll, image, button, event, question,
+  // merge tag) also drop an insertion marker at the caret on mousedown --
+  // the one moment the caret is guaranteed to still be where the admin
+  // put it. See placeInsertionMarker(). For the Event/Question pickers
+  // that's the button that opens the list; the item picked from the list
+  // must NOT re-place it (the selection may have moved by then).
+  const prepareInsert = (e: React.MouseEvent) => {
     e.preventDefault();
-    captureInsertionPoint();
+    placeInsertionMarker();
   };
 
   const applyFormat = (command: string, value?: string) => {
@@ -254,30 +266,26 @@ export function BroadcastRichTextEditor({
     handleInput();
   };
 
-  // Every insert that goes through window.prompt()/confirm()/alert(), a
-  // file picker, a dropdown, or a network await (polls, images, events,
-  // questions) loses the editor's caret along the way, and focusing the
-  // editor again with no selection puts the caret at the very start --
-  // which is why a poll always landed at the top of the email.
+  // Inserts that go through a prompt, file picker, dropdown, form or
+  // network wait (polls, images, events, questions, buttons) used to land
+  // at the very top of the email in Safari: by the time the content was
+  // ready, Safari had moved the selection to the start of the editor, and
+  // no amount of remembering a Range survived that reliably. So instead
+  // an invisible marker element is put into the email itself at the
+  // caret the moment an insert button is pressed; the finished content
+  // replaces that marker. A DOM node can't be moved by selection changes.
   //
-  // Two refs, because Safari fights a simpler approach: when a native
-  // dialog opens or the editor is re-focused it can MOVE the selection to
-  // the start of the editor (and report that as a normal selectionchange)
-  // rather than just clearing it. So:
-  //  - lastRangeRef follows the caret while the admin types/clicks, and
-  //  - insertionRangeRef freezes a copy of it the instant a toolbar button
-  //    is pressed; that frozen copy is what the insert uses, and is read
-  //    BEFORE the editor is re-focused.
+  // lastRangeRef still follows the caret while the admin types/clicks --
+  // it's the fallback for placing the marker if the live selection has
+  // already left the editor, and what Link (which needs the selected
+  // text, not a point) restores.
   const lastRangeRef = useRef<Range | null>(null);
-  const insertionRangeRef = useRef<Range | null>(null);
 
   useEffect(() => {
     const onSelectionChange = () => {
       const editor = editorRef.current;
       const sel = window.getSelection();
       if (!editor || !sel || sel.rangeCount === 0) return;
-      // Ignore selection moves while the editor doesn't have focus (a
-      // dialog/picker is open) -- those aren't the admin placing the caret.
       if (document.activeElement !== editor) return;
       const range = sel.getRangeAt(0);
       if (editor.contains(range.commonAncestorContainer)) {
@@ -288,35 +296,43 @@ export function BroadcastRichTextEditor({
     return () => document.removeEventListener("selectionchange", onSelectionChange);
   }, []);
 
-  const captureInsertionPoint = () => {
+  const removeInsertionMarkers = () => {
+    editorRef.current?.querySelectorAll(`[${MARKER_ATTR}]`).forEach((m) => m.remove());
+  };
+
+  const placeInsertionMarker = () => {
     const editor = editorRef.current;
+    if (!editor) return;
     const sel = window.getSelection();
-    if (editor && sel && sel.rangeCount > 0) {
-      const range = sel.getRangeAt(0);
-      if (editor.contains(range.commonAncestorContainer)) {
-        insertionRangeRef.current = range.cloneRange();
-        return;
-      }
+    let range: Range | null = null;
+    if (sel && sel.rangeCount > 0 && editor.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+      range = sel.getRangeAt(0).cloneRange();
+    } else if (lastRangeRef.current && editor.contains(lastRangeRef.current.commonAncestorContainer)) {
+      range = lastRangeRef.current.cloneRange();
     }
-    insertionRangeRef.current = lastRangeRef.current ? lastRangeRef.current.cloneRange() : null;
+
+    removeInsertionMarkers();
+    const marker = document.createElement("span");
+    marker.setAttribute(MARKER_ATTR, "1");
+    if (range) {
+      range.collapse(false);
+      range.insertNode(marker);
+    } else {
+      editor.appendChild(marker);
+    }
   };
 
   const restoreCaret = () => {
     const editor = editorRef.current;
     const sel = window.getSelection();
     if (!editor || !sel) return;
-    // Read the saved position before focus() -- focusing can itself move
-    // the selection (and, in Safari, the tracked range) to the start.
-    const saved = insertionRangeRef.current || lastRangeRef.current;
-    insertionRangeRef.current = null;
+    const saved = lastRangeRef.current;
     editor.focus();
     sel.removeAllRanges();
     if (saved && editor.contains(saved.commonAncestorContainer)) {
       sel.addRange(saved);
       return;
     }
-    // Never placed (or its nodes were replaced since): append at the end
-    // rather than the start.
     const end = document.createRange();
     end.selectNodeContents(editor);
     end.collapse(false);
@@ -324,8 +340,38 @@ export function BroadcastRichTextEditor({
   };
 
   const insertHtml = (html: string) => {
-    restoreCaret();
-    document.execCommand("insertHTML", false, html);
+    const editor = editorRef.current;
+    if (!editor) return;
+    const marker = editor.querySelector(`[${MARKER_ATTR}]`);
+    if (!marker) {
+      restoreCaret();
+      document.execCommand("insertHTML", false, html);
+      handleInput();
+      return;
+    }
+
+    // Select the marker itself (computed fresh from the node, after
+    // focus() has done whatever it does to the selection) and let
+    // insertHTML replace it -- execCommand handles splitting a paragraph
+    // around block content like the poll's table.
+    editor.focus();
+    const sel = window.getSelection();
+    let inserted = false;
+    if (sel) {
+      const range = document.createRange();
+      range.selectNode(marker);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      inserted = document.execCommand("insertHTML", false, html);
+    }
+    // Only if the browser refused the command, swap the content in
+    // directly. (An empty marker can survive a successful insertHTML --
+    // Chrome treats selecting it as a collapsed caret and inserts beside
+    // it -- so the marker still being there doesn't mean it failed.)
+    if (!inserted && marker.isConnected) {
+      marker.replaceWith(document.createRange().createContextualFragment(html));
+    }
+    removeInsertionMarkers();
     handleInput();
   };
 
@@ -343,7 +389,10 @@ export function BroadcastRichTextEditor({
   const handleImageFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
-    if (!file) return;
+    if (!file) {
+      removeInsertionMarkers();
+      return;
+    }
 
     setImageError("");
     setIsUploadingImage(true);
@@ -365,6 +414,7 @@ export function BroadcastRichTextEditor({
       const url = await uploadBroadcastImage(resizedFile, adminUserId);
       if (!url) {
         setImageError("Failed to upload image");
+        removeInsertionMarkers();
         return;
       }
       insertHtml(
@@ -372,6 +422,7 @@ export function BroadcastRichTextEditor({
       );
     } catch (err) {
       setImageError(err instanceof Error ? err.message : "Failed to upload image");
+      removeInsertionMarkers();
     } finally {
       setIsUploadingImage(false);
     }
@@ -379,9 +430,11 @@ export function BroadcastRichTextEditor({
 
   const handleInsertButton = () => {
     const label = window.prompt("Button text:", "Learn More");
-    if (!label) return;
-    const url = window.prompt("Button link:", "https://");
-    if (!url) return;
+    const url = label ? window.prompt("Button link:", "https://") : null;
+    if (!label || !url) {
+      removeInsertionMarkers();
+      return;
+    }
     insertHtml(
       `<a href="${url}" style="display:inline-block;background-color:#B8892F;color:#FFFDF8;text-decoration:none;padding:12px 28px;border-radius:999px;font-weight:600;font-size:15px;">${label}</a>`
     );
@@ -425,9 +478,13 @@ export function BroadcastRichTextEditor({
   const handleInsertQuestion = (question: BroadcastQuestionOption) => {
     setShowQuestionPicker(false);
     const buttonLabel = window.prompt("Button text:", "Join the Conversation");
-    if (!buttonLabel) return;
-    const campaign = window.prompt("Campaign tag (for tracking only, not shown to recipients):", new Date().toISOString().slice(0, 7));
-    if (!campaign) return;
+    const campaign = buttonLabel
+      ? window.prompt("Campaign tag (for tracking only, not shown to recipients):", new Date().toISOString().slice(0, 7))
+      : null;
+    if (!buttonLabel || !campaign) {
+      removeInsertionMarkers();
+      return;
+    }
 
     const url = buildQuestionUrl(question.postId, question.spaceId, campaign, appUrl);
     const html = renderQuestionHtml(
@@ -441,55 +498,51 @@ export function BroadcastRichTextEditor({
     insertHtml("{{firstName}}");
   };
 
-  // Prompt sequence (kept to this component's existing window.prompt()
-  // convention rather than introducing a modal just for this one button)
-  // -> create_poll_with_options equivalent via /api/admin/polls (real
-  // service-role insert, not the member-facing RPC, which is auth.uid()
-  // -keyed and can't be called from an admin route) -> insertHtml() with
-  // the poll's REAL option ids, since each option's placeholder href
-  // (rewritten to a real per-recipient vote link at send time, see
-  // lib/email/template.ts's wrapPollLinks()) has to reference a row that
-  // actually exists.
-  const handleInsertPoll = async () => {
-    const question = window.prompt("Poll question:");
-    if (!question) return;
+  // Poll form (in-page, not a chain of window.prompt()s -- native dialogs
+  // are what made Safari lose the caret) -> create_poll_with_options
+  // equivalent via /api/admin/polls (real service-role insert, not the
+  // member-facing RPC, which is auth.uid()-keyed and can't be called from
+  // an admin route) -> insertHtml() with the poll's REAL option ids, since
+  // each option's placeholder href (rewritten to a real per-recipient vote
+  // link at send time, see lib/email/template.ts's wrapPollLinks()) has to
+  // reference a row that actually exists.
+  const openPollForm = () => {
+    setPollError("");
+    setPollForm({ question: "", options: ["", ""], spaceId: "", allowMultiple: false });
+  };
 
-    const options: string[] = [];
-    while (options.length < 6) {
-      const option = window.prompt(
-        options.length < 2
-          ? `Option ${options.length + 1} (required):`
-          : `Option ${options.length + 1} (leave blank to finish):`
-      );
-      if (!option) {
-        if (options.length >= 2) break;
-        window.alert("A poll needs at least two options.");
-        continue;
-      }
-      options.push(option);
+  const closePollForm = () => {
+    setPollForm(null);
+    setPollError("");
+    removeInsertionMarkers();
+  };
+
+  const handleCreatePoll = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pollForm) return;
+    const question = pollForm.question.trim();
+    const options = pollForm.options.map((o) => o.trim()).filter(Boolean);
+    if (!question) {
+      setPollError("Add a question.");
+      return;
     }
-    if (options.length < 2) return;
-
-    let spaceId: string | undefined;
-    if (spaces.length > 0 && window.confirm("Also post this poll into a space, so web members can vote too?")) {
-      const spaceList = spaces.map((s, i) => `${i + 1}. ${s.name}`).join("\n");
-      const choice = window.prompt(`Which space?\n${spaceList}`);
-      const index = choice ? parseInt(choice, 10) - 1 : -1;
-      if (index >= 0 && index < spaces.length) {
-        spaceId = spaces[index].id;
-      }
-    }
-
-    setInsertingPoll(true);
-    const result = await createBroadcastPoll(question, options, spaceId);
-    setInsertingPoll(false);
-
-    if (result.error || !result.pollId) {
-      window.alert(result.error || "Could not create the poll.");
+    if (options.length < 2) {
+      setPollError("A poll needs at least two options.");
       return;
     }
 
-    insertHtml(renderPollHtml(question, result.options));
+    setInsertingPoll(true);
+    setPollError("");
+    const result = await createBroadcastPoll(question, options, pollForm.spaceId || undefined, pollForm.allowMultiple);
+    setInsertingPoll(false);
+
+    if (result.error || !result.pollId) {
+      setPollError(result.error || "Could not create the poll.");
+      return;
+    }
+
+    insertHtml(renderPollHtml(question, result.options, { allowMultiple: pollForm.allowMultiple }));
+    setPollForm(null);
   };
 
   return (
@@ -559,7 +612,7 @@ export function BroadcastRichTextEditor({
         </button>
         <button
           type="button"
-          onMouseDown={preventBlur}
+          onMouseDown={prepareInsert}
           onClick={handleInsertImageClick}
           disabled={isUploadingImage}
           className={`${BUTTON_CLASS} disabled:opacity-50`}
@@ -577,13 +630,13 @@ export function BroadcastRichTextEditor({
 
         <div className="border-l border-[#d4a348] mx-1 self-stretch" />
 
-        <button type="button" onMouseDown={preventBlur} onClick={handleInsertButton} className={BUTTON_CLASS} title="Insert a call-to-action button">
+        <button type="button" onMouseDown={prepareInsert} onClick={handleInsertButton} className={BUTTON_CLASS} title="Insert a call-to-action button">
           ⚡ Button
         </button>
         <div className="relative">
           <button
             type="button"
-            onMouseDown={preventBlur}
+            onMouseDown={prepareInsert}
             onClick={() => setShowEventPicker((v) => !v)}
             className={BUTTON_CLASS}
             title="Insert an event"
@@ -613,7 +666,7 @@ export function BroadcastRichTextEditor({
             </div>
           )}
         </div>
-        <button type="button" onMouseDown={preventBlur} onClick={handleInsertMergeTag} className={BUTTON_CLASS} title="Insert the recipient's first name">
+        <button type="button" onMouseDown={prepareInsert} onClick={handleInsertMergeTag} className={BUTTON_CLASS} title="Insert the recipient's first name">
           {"{}"} Merge
         </button>
 
@@ -622,7 +675,7 @@ export function BroadcastRichTextEditor({
         <div className="relative">
           <button
             type="button"
-            onMouseDown={preventBlur}
+            onMouseDown={prepareInsert}
             onClick={() => setShowQuestionPicker((v) => !v)}
             className={BUTTON_CLASS}
             title="Insert a Question of the Week"
@@ -653,15 +706,108 @@ export function BroadcastRichTextEditor({
 
         <button
           type="button"
-          onMouseDown={preventBlur}
-          onClick={handleInsertPoll}
-          disabled={insertingPoll}
+          onMouseDown={prepareInsert}
+          onClick={openPollForm}
+          disabled={insertingPoll || pollForm !== null}
           className={BUTTON_CLASS}
           title="Insert a poll -- each option is a link recipients click to vote"
         >
           {insertingPoll ? "Creating..." : "📊 Poll"}
         </button>
       </div>
+
+      {pollForm && (
+        <form onSubmit={handleCreatePoll} className="space-y-3 rounded-lg border border-[#d4a348] bg-[#fdfaf5] p-4">
+          <p className="text-sm font-semibold text-[#1a0f0a]">📊 New poll</p>
+          <p className="text-xs text-[#a0704a]">It will be placed where your cursor was in the email.</p>
+          <input
+            type="text"
+            autoFocus
+            value={pollForm.question}
+            onChange={(e) => setPollForm({ ...pollForm, question: e.target.value })}
+            placeholder="Question"
+            className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg text-sm text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
+          />
+          {pollForm.options.map((option, i) => (
+            <div key={i} className="flex gap-2">
+              <input
+                type="text"
+                value={option}
+                onChange={(e) => {
+                  const options = [...pollForm.options];
+                  options[i] = e.target.value;
+                  setPollForm({ ...pollForm, options });
+                }}
+                placeholder={`Option ${i + 1}`}
+                className="flex-1 px-3 py-2 border border-[#e8ddd2] rounded-lg text-sm text-[#1a0f0a] focus:outline-none focus:ring-2 focus:ring-[#d4a348]"
+              />
+              {pollForm.options.length > 2 && (
+                <button
+                  type="button"
+                  onClick={() => setPollForm({ ...pollForm, options: pollForm.options.filter((_, j) => j !== i) })}
+                  className="px-2 text-[#a0704a] hover:text-[#1a0f0a]"
+                  aria-label={`Remove option ${i + 1}`}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+          {pollForm.options.length < MAX_POLL_OPTIONS && (
+            <button
+              type="button"
+              onClick={() => setPollForm({ ...pollForm, options: [...pollForm.options, ""] })}
+              className="text-sm text-[#8b6f47] hover:text-[#c9a876]"
+            >
+              + Add option
+            </button>
+          )}
+          <label className="flex items-center gap-2 text-sm text-[#1a0f0a] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={pollForm.allowMultiple}
+              onChange={(e) => setPollForm({ ...pollForm, allowMultiple: e.target.checked })}
+              className="w-4 h-4"
+            />
+            Let people choose more than one answer
+          </label>
+          {spaces.length > 0 && (
+            <label className="block text-sm text-[#1a0f0a]">
+              Also post it in a space, so members can vote in the app too
+              <select
+                value={pollForm.spaceId}
+                onChange={(e) => setPollForm({ ...pollForm, spaceId: e.target.value })}
+                className="mt-1 w-full px-3 py-2 border border-[#e8ddd2] rounded-lg text-sm text-[#1a0f0a] bg-white"
+              >
+                <option value="">Email only</option>
+                {spaces.map((space) => (
+                  <option key={space.id} value={space.id}>
+                    {space.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {pollError && <p className="text-xs text-red-600">{pollError}</p>}
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={insertingPoll}
+              className="px-4 py-2 rounded-lg bg-[#B8892F] text-white text-sm font-semibold disabled:opacity-50"
+            >
+              {insertingPoll ? "Creating..." : "Insert poll"}
+            </button>
+            <button
+              type="button"
+              onClick={closePollForm}
+              disabled={insertingPoll}
+              className="px-4 py-2 rounded-lg border border-[#e8ddd2] text-sm text-[#1a0f0a]"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
 
       {imageError && <p className="text-xs text-red-600">{imageError}</p>}
 

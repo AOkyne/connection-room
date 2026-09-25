@@ -7,7 +7,8 @@ import { Card, CardHeader } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { supabase } from "@/lib/supabase/client";
-import { getPollResults, type PollResultOption } from "@/lib/data/polls";
+import { getPollById, type Poll } from "@/lib/data/polls";
+import { PollCard } from "@/components/spaces/PollCard";
 
 // Reachable from an email poll link's vote redirect, or directly. Sits
 // under app/app/*, so the shared layout (app/app/layout.tsx) already
@@ -18,9 +19,7 @@ export default function PollResultsPage() {
   const params = useParams();
   const pollId = params?.id as string;
 
-  const [question, setQuestion] = useState<string | null>(null);
-  const [results, setResults] = useState<PollResultOption[] | null>(null);
-  const [postId, setPostId] = useState<string | null>(null);
+  const [poll, setPoll] = useState<Poll | null>(null);
   const [spaceId, setSpaceId] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
 
@@ -31,20 +30,17 @@ export default function PollResultsPage() {
         return;
       }
 
-      const { data: poll } = await supabase.from("polls").select("question, post_id").eq("id", pollId).maybeSingle();
-      if (!poll) {
+      const loaded = await getPollById(pollId);
+      if (!loaded) {
         setNotFound(true);
         return;
       }
-      setQuestion(poll.question);
-      setPostId(poll.post_id);
 
-      if (poll.post_id) {
-        const { data: post } = await supabase.from("posts").select("space_id").eq("id", poll.post_id).maybeSingle();
+      if (loaded.postId) {
+        const { data: post } = await supabase.from("posts").select("space_id").eq("id", loaded.postId).maybeSingle();
         setSpaceId(post?.space_id || null);
       }
-
-      setResults(await getPollResults(pollId));
+      setPoll(loaded);
     };
 
     load();
@@ -61,46 +57,23 @@ export default function PollResultsPage() {
     );
   }
 
-  if (!question || !results) {
+  if (!poll) {
     return <LoadingScreen message="Loading poll results" subtitle="Just a moment..." />;
   }
 
-  const totalVotes = results.reduce((sum, r) => sum + r.voteCount, 0);
-
+  // Same card as in Spaces: shows the results with the member's own
+  // answers ticked, and lets them change their vote -- the only way to
+  // remove an answer on a multiple-choice poll voted from email, where
+  // every tap adds one.
   return (
     <div className="max-w-lg mx-auto space-y-6">
       <Card>
         <CardHeader title="Poll Results" />
-        <p className="text-lg font-medium text-[#1a0f0a] mb-4">{question}</p>
-        <div className="space-y-3">
-          {results.map((r) => {
-            const pct = totalVotes > 0 ? Math.round((r.voteCount / totalVotes) * 100) : 0;
-            return (
-              <div key={r.optionId}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className={r.isMyVote ? "font-semibold text-[#1a0f0a]" : "text-[#1a0f0a]"}>
-                    {r.label}
-                    {r.isMyVote && " ✓ (your vote)"}
-                  </span>
-                  <span className="text-[#a0704a]">{pct}%</span>
-                </div>
-                <div className="h-2 bg-[#f3ede5] rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full ${r.isMyVote ? "bg-[#d4a348]" : "bg-[#e8ddd2]"}`}
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <p className="text-xs text-[#a0704a] mt-4">
-          {totalVotes} vote{totalVotes === 1 ? "" : "s"}
-        </p>
+        <PollCard poll={poll} />
       </Card>
 
-      {postId && spaceId && (
-        <Link href={`/app/spaces/${spaceId}/posts/${postId}`}>
+      {poll.postId && spaceId && (
+        <Link href={`/app/spaces/${spaceId}/posts/${poll.postId}`}>
           <Button variant="outline" className="w-full">
             View this in the space
           </Button>

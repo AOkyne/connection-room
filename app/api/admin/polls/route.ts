@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   }
   const { supabase, userId } = auth;
 
-  let body: { question?: unknown; options?: unknown; spaceId?: unknown };
+  let body: { question?: unknown; options?: unknown; spaceId?: unknown; allowMultiple?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
   }
 
   const { question, options, spaceId } = body;
+  const allowMultiple = body.allowMultiple === true;
   if (
     typeof question !== "string" ||
     !question.trim() ||
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
 
   const { data: poll, error: pollError } = await supabase
     .from("polls")
-    .insert({ post_id: postId, question: question.trim(), created_by: userId })
+    .insert({ post_id: postId, question: question.trim(), created_by: userId, allow_multiple: allowMultiple })
     .select("id")
     .single();
 

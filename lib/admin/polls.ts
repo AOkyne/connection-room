@@ -20,7 +20,8 @@ export interface CreatedPollOption {
 export async function createBroadcastPoll(
   question: string,
   options: string[],
-  spaceId?: string
+  spaceId?: string,
+  allowMultiple = false
 ): Promise<{ pollId: string; options: CreatedPollOption[]; error?: string }> {
   const authHeader = await getAuthHeader();
   if (!authHeader) {
@@ -30,7 +31,7 @@ export async function createBroadcastPoll(
   const response = await fetch("/api/admin/polls", {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeader },
-    body: JSON.stringify({ question, options, spaceId }),
+    body: JSON.stringify({ question, options, spaceId, allowMultiple }),
   });
   const data = await response.json();
   if (!response.ok) {
