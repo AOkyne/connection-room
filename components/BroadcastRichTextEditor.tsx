@@ -247,8 +247,54 @@ export function BroadcastRichTextEditor({
     handleInput();
   };
 
+  // Every insert that goes through window.prompt()/confirm()/alert(), a
+  // file picker, a dropdown, or a network await (polls, images, events,
+  // questions) loses the editor's caret along the way -- Safari in
+  // particular clears the selection when a native dialog opens. Focusing
+  // the editor with no selection puts the caret at the very start, which
+  // is why a poll always landed at the top of the email. So the caret is
+  // tracked continuously while it's inside the editor, and insertHtml()
+  // puts it back before inserting.
+  const lastRangeRef = useRef<Range | null>(null);
+
+  useEffect(() => {
+    const onSelectionChange = () => {
+      const editor = editorRef.current;
+      const sel = window.getSelection();
+      if (!editor || !sel || sel.rangeCount === 0) return;
+      const range = sel.getRangeAt(0);
+      if (editor.contains(range.commonAncestorContainer)) {
+        lastRangeRef.current = range.cloneRange();
+      }
+    };
+    document.addEventListener("selectionchange", onSelectionChange);
+    return () => document.removeEventListener("selectionchange", onSelectionChange);
+  }, []);
+
+  const restoreCaret = () => {
+    const editor = editorRef.current;
+    const sel = window.getSelection();
+    if (!editor || !sel) return;
+    editor.focus();
+    const saved = lastRangeRef.current;
+    if (saved && editor.contains(saved.commonAncestorContainer)) {
+      sel.removeAllRanges();
+      sel.addRange(saved);
+      return;
+    }
+    // Never placed (or its nodes were replaced since): append at the end
+    // rather than the start.
+    if (!sel.rangeCount || !editor.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+      const end = document.createRange();
+      end.selectNodeContents(editor);
+      end.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(end);
+    }
+  };
+
   const insertHtml = (html: string) => {
-    editorRef.current?.focus();
+    restoreCaret();
     document.execCommand("insertHTML", false, html);
     handleInput();
   };
@@ -256,6 +302,7 @@ export function BroadcastRichTextEditor({
   const handleInsertLink = () => {
     const url = window.prompt("Link URL:", "https://");
     if (!url) return;
+    restoreCaret();
     applyFormat("createLink", url);
   };
 
