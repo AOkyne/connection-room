@@ -112,9 +112,9 @@ function BetaAuthContent() {
         return;
       }
 
-      createAdminSession(profile.display_name || "Admin");
+      createAdminSession(profile.display_name || "Admin", undefined, user?.id);
       setTimeout(() => {
-        router.push("/app/admin");
+        router.push(safeNext || "/app/admin");
       }, 100);
     } catch (err) {
       console.error("Admin login error:", err);

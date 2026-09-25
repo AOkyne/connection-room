@@ -18,7 +18,7 @@ import {
   type Comment,
 } from "@/lib/data/posts";
 import { getProfile, getProfilePhoto, type Profile } from "@/lib/data/profiles";
-import { getSession } from "@/lib/session";
+import { getSession, clearSession, hasLiveSupabaseSession } from "@/lib/session";
 import { trackNewsletterEvent } from "@/lib/analytics/events";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
@@ -106,6 +106,18 @@ export default function PostDetailPage() {
 
       const foundPost = await getPostById(postId);
       if (!foundPost || foundPost.spaceId !== spaceId) {
+        // Posts are only readable by signed-in members (RLS), so a cached
+        // app session whose Supabase sign-in has lapsed sees every post
+        // as missing. Covers admin sessions created before they carried a
+        // supabaseUserId (which the layout's own check can't validate):
+        // send them to sign in and straight back here, instead of saying
+        // the post doesn't exist.
+        if (!(await hasLiveSupabaseSession())) {
+          await clearSession();
+          const here = window.location.pathname + window.location.search;
+          router.push(`/auth?sessionExpired=1&next=${encodeURIComponent(here)}`);
+          return;
+        }
         setState({ status: "post-not-found" });
         return;
       }

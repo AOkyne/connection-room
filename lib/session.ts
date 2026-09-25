@@ -159,13 +159,25 @@ export function createMemberSession(name: string = "Demo Member", profilePhoto?:
   return session;
 }
 
-// Create demo admin session (don't track as signup)
-export function createAdminSession(name: string = "Demo Admin", profilePhoto?: string): AppSession {
+// Create admin session (don't track as signup). supabaseUserId is passed
+// only by the real "Admin Account" login (a real Supabase account with
+// role = 'admin'); the demo admin logins have no Supabase account behind
+// them and leave it unset. Having it lets app/app/layout.tsx confirm the
+// real admin's Supabase sign-in is still live, same as for members --
+// without it, an expired admin sign-in kept showing "signed in" while
+// every query ran anonymously and RLS hid real content (e.g. a reply
+// email's post link showing "This question isn't available").
+export function createAdminSession(
+  name: string = "Demo Admin",
+  profilePhoto?: string,
+  supabaseUserId?: string
+): AppSession {
   const session: AppSession = {
     id: `session-${Date.now()}`,
     type: "admin",
     name,
     profilePhoto,
+    ...(supabaseUserId ? { supabaseUserId } : {}),
     isBeta: false,
     createdAt: new Date(),
   };

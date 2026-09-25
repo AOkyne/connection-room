@@ -75,11 +75,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
     // block the fast cached-session render; forces a real re-sign-in
     // (with a clear reason) the moment it finds the cache is lying.
     const validateLiveSession = async (s: AppSession) => {
-      if (s.type !== "member" || !s.supabaseUserId) return;
+      // Real admin logins carry a supabaseUserId too (createAdminSession);
+      // demo admin sessions don't, and are skipped here as before.
+      if (!s.supabaseUserId) return;
       const live = await hasLiveSupabaseSession();
       if (!live) {
         await clearSession();
-        router.push("/auth?sessionExpired=1");
+        const here = window.location.pathname + window.location.search;
+        router.push(`/auth?sessionExpired=1&next=${encodeURIComponent(here)}`);
       }
     };
 
