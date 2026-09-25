@@ -122,7 +122,14 @@ export function BroadcastRichTextEditor({
   // Toolbar buttons are mousedown-prevented so clicking one doesn't first
   // collapse the editor's text selection (a link/bold/etc needs the
   // selection that existed a moment ago, not "nothing selected").
-  const preventBlur = (e: React.MouseEvent) => e.preventDefault();
+  //
+  // It also records where the caret is at that instant -- the moment the
+  // admin presses a toolbar button, before any prompt, file picker,
+  // dropdown or network wait can move it. See captureInsertionPoint().
+  const preventBlur = (e: React.MouseEvent) => {
+    e.preventDefault();
+    captureInsertionPoint();
+  };
 
   const applyFormat = (command: string, value?: string) => {
     document.execCommand(command, false, value);
@@ -249,19 +256,29 @@ export function BroadcastRichTextEditor({
 
   // Every insert that goes through window.prompt()/confirm()/alert(), a
   // file picker, a dropdown, or a network await (polls, images, events,
-  // questions) loses the editor's caret along the way -- Safari in
-  // particular clears the selection when a native dialog opens. Focusing
-  // the editor with no selection puts the caret at the very start, which
-  // is why a poll always landed at the top of the email. So the caret is
-  // tracked continuously while it's inside the editor, and insertHtml()
-  // puts it back before inserting.
+  // questions) loses the editor's caret along the way, and focusing the
+  // editor again with no selection puts the caret at the very start --
+  // which is why a poll always landed at the top of the email.
+  //
+  // Two refs, because Safari fights a simpler approach: when a native
+  // dialog opens or the editor is re-focused it can MOVE the selection to
+  // the start of the editor (and report that as a normal selectionchange)
+  // rather than just clearing it. So:
+  //  - lastRangeRef follows the caret while the admin types/clicks, and
+  //  - insertionRangeRef freezes a copy of it the instant a toolbar button
+  //    is pressed; that frozen copy is what the insert uses, and is read
+  //    BEFORE the editor is re-focused.
   const lastRangeRef = useRef<Range | null>(null);
+  const insertionRangeRef = useRef<Range | null>(null);
 
   useEffect(() => {
     const onSelectionChange = () => {
       const editor = editorRef.current;
       const sel = window.getSelection();
       if (!editor || !sel || sel.rangeCount === 0) return;
+      // Ignore selection moves while the editor doesn't have focus (a
+      // dialog/picker is open) -- those aren't the admin placing the caret.
+      if (document.activeElement !== editor) return;
       const range = sel.getRangeAt(0);
       if (editor.contains(range.commonAncestorContainer)) {
         lastRangeRef.current = range.cloneRange();
@@ -271,26 +288,39 @@ export function BroadcastRichTextEditor({
     return () => document.removeEventListener("selectionchange", onSelectionChange);
   }, []);
 
+  const captureInsertionPoint = () => {
+    const editor = editorRef.current;
+    const sel = window.getSelection();
+    if (editor && sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      if (editor.contains(range.commonAncestorContainer)) {
+        insertionRangeRef.current = range.cloneRange();
+        return;
+      }
+    }
+    insertionRangeRef.current = lastRangeRef.current ? lastRangeRef.current.cloneRange() : null;
+  };
+
   const restoreCaret = () => {
     const editor = editorRef.current;
     const sel = window.getSelection();
     if (!editor || !sel) return;
+    // Read the saved position before focus() -- focusing can itself move
+    // the selection (and, in Safari, the tracked range) to the start.
+    const saved = insertionRangeRef.current || lastRangeRef.current;
+    insertionRangeRef.current = null;
     editor.focus();
-    const saved = lastRangeRef.current;
+    sel.removeAllRanges();
     if (saved && editor.contains(saved.commonAncestorContainer)) {
-      sel.removeAllRanges();
       sel.addRange(saved);
       return;
     }
     // Never placed (or its nodes were replaced since): append at the end
     // rather than the start.
-    if (!sel.rangeCount || !editor.contains(sel.getRangeAt(0).commonAncestorContainer)) {
-      const end = document.createRange();
-      end.selectNodeContents(editor);
-      end.collapse(false);
-      sel.removeAllRanges();
-      sel.addRange(end);
-    }
+    const end = document.createRange();
+    end.selectNodeContents(editor);
+    end.collapse(false);
+    sel.addRange(end);
   };
 
   const insertHtml = (html: string) => {
