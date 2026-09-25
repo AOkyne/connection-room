@@ -8,7 +8,7 @@ import { sendBroadcastEmail } from "@/lib/admin/broadcast";
 import { getAdminEvents } from "@/lib/admin/events";
 import { getAdminNewsletterQuestions } from "@/lib/admin/newsletter";
 import { getSpaces } from "@/lib/data/spaces";
-import { getBroadcastCampaigns, getUnsentRecipients, type BroadcastCampaign } from "@/lib/admin/email-history";
+import { getBroadcastCampaigns, getUnsentRecipients, getBroadcastCampaignContent, type BroadcastCampaign } from "@/lib/admin/email-history";
 import {
   listBroadcastDrafts,
   createBroadcastDraft,
@@ -62,6 +62,10 @@ export default function AdminBroadcastPage() {
   const [campaigns, setCampaigns] = useState<BroadcastCampaign[]>([]);
   const [selectedCampaignId, setSelectedCampaignId] = useState("");
   const [isLoadingUnsent, setIsLoadingUnsent] = useState(false);
+  const [isLoadingReuse, setIsLoadingReuse] = useState(false);
+  // In-page "this will replace what you're writing" step for Use again
+  // (no window.confirm -- Safari suppresses it; see the Send button).
+  const [confirmingReuse, setConfirmingReuse] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -201,6 +205,58 @@ export default function AdminBroadcastPage() {
     showToast("Draft deleted", "success");
   };
 
+  // "Use again": loads a past broadcast's subject, body (when it was
+  // saved) and the exact members it went to back into the composer, to
+  // edit and send again. Asks first (in-page) if it would replace
+  // something already being written.
+  const handleUseAgain = async (confirmed = false) => {
+    if (!selectedCampaignId) return;
+    if (!confirmed && (subject.trim() || bodyHtml.trim())) {
+      setConfirmingReuse(true);
+      return;
+    }
+    setConfirmingReuse(false);
+
+    setIsLoadingReuse(true);
+    const { content, error } = await getBroadcastCampaignContent(selectedCampaignId);
+    setIsLoadingReuse(false);
+    if (error || !content) {
+      showToast(error || "Couldn't load that email.", "error");
+      return;
+    }
+
+    // Only members still on the list (someone who has since left can't
+    // be emailed). If that's everyone, use "All Members" so the count
+    // reads naturally.
+    const memberIds = new Set(members.map((m) => m.id));
+    const recipients = content.recipientIds.filter((id) => memberIds.has(id));
+    if (recipients.length === members.length) {
+      setRecipientMode("all");
+      setSelectedIds(new Set());
+    } else {
+      setRecipientMode("select");
+      setSelectedIds(new Set(recipients));
+    }
+
+    setCurrentDraftId(null);
+    setSubject(content.subject);
+    if (content.bodyHtml) {
+      setBodyHtml(content.bodyHtml);
+      showToast(
+        `Loaded "${content.subject}" and its ${recipients.length} recipient${recipients.length === 1 ? "" : "s"}. Edit anything you like, then send.`,
+        "success",
+        6000
+      );
+    } else {
+      setBodyHtml("");
+      showToast(
+        `Loaded the subject and ${recipients.length} recipient${recipients.length === 1 ? "" : "s"}. This email was sent before messages were saved, so write or paste the body below.`,
+        "info",
+        0
+      );
+    }
+  };
+
   // For a broadcast that got cut short (e.g. the send route's own
   // batching hitting its serverless time limit partway through a large
   // "All Members" send) -- loads exactly the real members who don't yet
@@ -225,15 +281,25 @@ export default function AdminBroadcastPage() {
       return;
     }
 
+    // The body is filled in too when this broadcast's content was saved
+    // (migration 103 -- sends from then on); older ones only have a subject.
+    const { content } = await getBroadcastCampaignContent(selectedCampaignId);
+
     setRecipientMode("select");
     setSelectedIds(new Set(result.unsent.map((m) => m.id)));
-    setSubject(campaign.subject);
-    showToast(
-      `Loaded ${result.unsent.length} member${result.unsent.length === 1 ? "" : "s"} who didn't get "${campaign.subject}" yet. ` +
-        "The subject is filled in, but the message body isn't stored -- paste it back in below before sending.",
-      "info",
-      0
-    );
+    setSubject(content?.subject || campaign.subject);
+    setCurrentDraftId(null);
+    const who = `${result.unsent.length} member${result.unsent.length === 1 ? "" : "s"} who didn't get "${campaign.subject}" yet`;
+    if (content?.bodyHtml) {
+      setBodyHtml(content.bodyHtml);
+      showToast(`Loaded ${who}, with the original message. Review it, then send.`, "info", 0);
+    } else {
+      showToast(
+        `Loaded ${who}. The subject is filled in, but this email was sent before messages were saved -- paste the body back in below before sending.`,
+        "info",
+        0
+      );
+    }
   };
 
   const handleSend = async () => {
@@ -363,10 +429,11 @@ export default function AdminBroadcastPage() {
 
       {campaigns.length > 0 && (
         <Card className="space-y-3 bg-[#f3ede5]">
-          <h2 className="text-base font-bold text-[#1a0f0a]">Resend to unsent recipients</h2>
+          <h2 className="text-base font-bold text-[#1a0f0a]">Past emails</h2>
           <p className="text-sm text-[#a0704a]">
-            If a previous send got cut short partway through, pick it below to load just the members who never
-            received it -- not everyone.
+            Pick a previous send. <strong>Use again</strong> loads it into the composer with the same recipients so
+            you can edit and resend it. <strong>Load unsent recipients</strong> picks only the members a cut-short
+            send never reached.
           </p>
           <div className="flex flex-col sm:flex-row gap-2">
             <select
@@ -383,6 +450,14 @@ export default function AdminBroadcastPage() {
               ))}
             </select>
             <Button
+              variant="primary"
+              size="sm"
+              onClick={() => handleUseAgain()}
+              disabled={!selectedCampaignId || isLoadingReuse || confirmingReuse}
+            >
+              {isLoadingReuse ? "Loading..." : "Use again"}
+            </Button>
+            <Button
               variant="outline"
               size="sm"
               onClick={handleLoadUnsentRecipients}
@@ -391,6 +466,19 @@ export default function AdminBroadcastPage() {
               {isLoadingUnsent ? "Loading..." : "Load unsent recipients"}
             </Button>
           </div>
+          {confirmingReuse && (
+            <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[#d4a348] bg-white p-3">
+              <p className="text-sm text-[#1a0f0a] flex-1 min-w-[200px]">
+                This will replace the subject, message and recipients you have in the composer now.
+              </p>
+              <Button variant="primary" size="sm" onClick={() => handleUseAgain(true)}>
+                Replace it
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setConfirmingReuse(false)}>
+                Cancel
+              </Button>
+            </div>
+          )}
         </Card>
       )}
 

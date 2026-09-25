@@ -98,3 +98,37 @@ export async function getUnsentRecipients(
   }
   return { unsent: data.unsent || [], totalMembers: data.totalMembers || 0, alreadySentCount: data.alreadySentCount || 0 };
 }
+
+export interface BroadcastCampaignContent {
+  subject: string;
+  // null for broadcasts sent before their content was saved (migration 103).
+  bodyHtml: string | null;
+  recipientIds: string[];
+}
+
+// "Use again": a past broadcast's subject, body (when saved) and the
+// members it went to, ready to load back into the composer.
+export async function getBroadcastCampaignContent(
+  batchId: string
+): Promise<{ content: BroadcastCampaignContent | null; error?: string }> {
+  const authHeader = await getAuthHeader();
+  if (!authHeader) {
+    return { content: null, error: "Not signed in with a real admin account." };
+  }
+
+  const response = await fetch(`/api/admin/broadcast-campaigns/${batchId}/content`, {
+    headers: authHeader,
+    cache: "no-store",
+  });
+  const raw = await response.text();
+  let data: any = null;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    // Non-JSON (e.g. a platform error page) -- handled below.
+  }
+  if (!response.ok || !data) {
+    return { content: null, error: data?.error || `Request failed (${response.status})` };
+  }
+  return { content: { subject: data.subject || "", bodyHtml: data.bodyHtml ?? null, recipientIds: data.recipientIds || [] } };
+}

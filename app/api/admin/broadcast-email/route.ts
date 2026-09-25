@@ -123,6 +123,18 @@ export async function POST(request: NextRequest) {
   const broadcastBatchId =
     typeof requestedBatchId === "string" && UUID_RE.test(requestedBatchId) ? requestedBatchId : crypto.randomUUID();
 
+  // Keep a copy of this broadcast's content (migration 103) for "Use
+  // again" on the broadcast page. Every chunk of one send shares this
+  // batch id, so the first request writes it and the rest are no-ops.
+  // Best-effort: a failure here must never block the send itself.
+  const { error: contentError } = await supabase
+    .from("broadcast_campaign_contents")
+    .upsert(
+      { broadcast_batch_id: broadcastBatchId, subject: validatedSubject, body_html: validatedBodyHtml, created_by: auth.userId },
+      { onConflict: "broadcast_batch_id", ignoreDuplicates: true }
+    );
+  if (contentError) console.warn("[broadcast-email] couldn't save campaign content:", contentError.message);
+
   async function sendToOneProfile(profile: (typeof targetProfiles)[number]): Promise<EmailResult> {
     const email = profile.user_id ? emailByUserId.get(profile.user_id) : undefined;
     if (!email) {
