@@ -43,6 +43,7 @@ import { getPollsForPosts, type Poll } from "@/lib/data/polls";
 import { PollCard } from "@/components/spaces/PollCard";
 import { photoFocusStyle } from "@/lib/utils/photo-focus";
 import { AutoGrowTextarea } from "@/components/AutoGrowTextarea";
+import { useDraft, loadDraft, saveDraft } from "@/lib/utils/drafts";
 
 const MAX_POST_LENGTH = 2000;
 const MIN_POST_LENGTH = 10;
@@ -71,7 +72,26 @@ export default function SpaceDetailPage() {
   // Polls live in their own section, not the post feed (see pollPosts).
   const [showAllPolls, setShowAllPolls] = useState(false);
   const [newCommentContent, setNewCommentContent] = useState<Record<string, string>>({});
+  // Posts whose answer box was refilled from a saved draft (lib/utils/drafts).
+  const [restoredCommentDrafts, setRestoredCommentDrafts] = useState<Set<string>>(new Set());
   const [mounted, setMounted] = useState(false);
+  const postDraftRestored = useDraft(spaceId ? `space:${spaceId}:post` : null, newPostContent, setNewPostContent);
+
+  // Answer/response drafts, one per post, keyed the same way as on the
+  // question's own page (post:{id}:response) so a draft started in one
+  // place is there in the other. Saved a moment after typing stops;
+  // cleared at once when a box is emptied (e.g. after posting).
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      Object.entries(newCommentContent).forEach(([postId, text]) => {
+        if (text.trim()) saveDraft(`post:${postId}:response`, text);
+      });
+    }, 400);
+    Object.entries(newCommentContent).forEach(([postId, text]) => {
+      if (!text.trim()) saveDraft(`post:${postId}:response`, "");
+    });
+    return () => clearTimeout(timer);
+  }, [newCommentContent]);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -177,6 +197,17 @@ export default function SpaceDetailPage() {
       const spacePosts = await getPosts(spaceId);
       setPollsByPostId(await getPollsForPosts(spacePosts.map((sp) => sp.id)));
       setPosts(spacePosts);
+
+      // Put back any unsent answers saved on this device.
+      const drafts: Record<string, string> = {};
+      spacePosts.forEach((sp) => {
+        const d = loadDraft(`post:${sp.id}:response`);
+        if (d) drafts[sp.id] = d;
+      });
+      if (Object.keys(drafts).length > 0) {
+        setNewCommentContent((prev) => ({ ...drafts, ...prev }));
+        setRestoredCommentDrafts(new Set(Object.keys(drafts)));
+      }
 
       // The pinned "Question of the Week" always shows its comment thread
       // (see render below -- no toggle to click), so its comments need to
@@ -815,6 +846,7 @@ export default function SpaceDetailPage() {
                     <div className="flex justify-between items-center">
                       <p className={`text-xs ${pinned ? "text-[#a08a70]" : "text-[#a0704a]"}`}>
                         {(newCommentContent[post.id] || "").length} / {MAX_COMMENT_LENGTH}
+                        {restoredCommentDrafts.has(post.id) && (newCommentContent[post.id] || "").trim() && " · Draft restored"}
                       </p>
                     </div>
                     <Button
@@ -1120,6 +1152,7 @@ export default function SpaceDetailPage() {
           <div className="flex justify-between items-center">
             <p className="text-xs text-[#a0704a]">
               {newPostContent.length} / {MAX_POST_LENGTH} characters
+              {postDraftRestored && " · Draft restored"}
             </p>
             {newPostContent.length > MAX_POST_LENGTH * 0.9 && (
               <p className="text-xs text-[#d4a348]">Getting close to limit</p>

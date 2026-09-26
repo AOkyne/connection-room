@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase/client";
 import { buildProfilePhotoUrl } from "@/lib/utils/storage";
+import { clearAllDrafts } from "@/lib/utils/drafts";
 
 export interface AppSession {
   id: string;
@@ -198,6 +199,9 @@ export async function clearSession(): Promise<void> {
   }
   if (typeof window !== "undefined") {
     localStorage.removeItem(SESSION_STORAGE_KEY);
+    // Unsent post/answer drafts belong to whoever was signed in -- don't
+    // leave them for the next person on a shared device.
+    clearAllDrafts();
   }
 }
 

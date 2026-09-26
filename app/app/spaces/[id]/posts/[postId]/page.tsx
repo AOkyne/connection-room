@@ -30,6 +30,7 @@ import { ToastContainer } from "@/components/Toast";
 import { useToast } from "@/lib/hooks/useToast";
 import Link from "next/link";
 import { AutoGrowTextarea } from "@/components/AutoGrowTextarea";
+import { useDraft } from "@/lib/utils/drafts";
 
 const MAX_COMMENT_LENGTH = 500;
 const MIN_COMMENT_LENGTH = 1;
@@ -62,6 +63,10 @@ export default function PostDetailPage() {
   const [submittingResponse, setSubmittingResponse] = useState(false);
   const [replyToId, setReplyToId] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
+  // Unsent writing kept on this device (lib/utils/drafts). The response
+  // key matches the space page's answer box, so a draft follows the post.
+  const responseDraftRestored = useDraft(postId ? `post:${postId}:response` : null, newResponse, setNewResponse);
+  useDraft(replyToId ? `comment:${replyToId}:reply` : null, replyContent, setReplyContent);
   const [submittingReply, setSubmittingReply] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
@@ -578,7 +583,10 @@ export default function PostDetailPage() {
             className="w-full px-4 py-2.5 border border-[#ede6e0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-sm text-[#1a0f0a] resize-none"
           />
           <div className="flex justify-between items-center">
-            <p className="text-xs text-[#a0704a]">{newResponse.length} / {MAX_COMMENT_LENGTH}</p>
+            <p className="text-xs text-[#a0704a]">
+              {newResponse.length} / {MAX_COMMENT_LENGTH}
+              {responseDraftRestored && " · Draft restored"}
+            </p>
             <Button variant="primary" size="sm" onClick={handleSubmitResponse} disabled={!newResponse.trim() || submittingResponse}>
               {submittingResponse ? "Posting..." : "Post Response"}
             </Button>
