@@ -29,6 +29,7 @@ import { ReactionBar } from "@/components/posts/ReactionBar";
 import { ToastContainer } from "@/components/Toast";
 import { useToast } from "@/lib/hooks/useToast";
 import Link from "next/link";
+import { AutoGrowTextarea } from "@/components/AutoGrowTextarea";
 
 const MAX_COMMENT_LENGTH = 500;
 const MIN_COMMENT_LENGTH = 1;
@@ -459,7 +460,7 @@ export default function PostDetailPage() {
 
             {editingCommentId === comment.id && (
               <div className="mt-3 space-y-2">
-                <textarea
+                <AutoGrowTextarea
                   value={editingContent}
                   onChange={(e) => setEditingContent(e.target.value)}
                   maxLength={MAX_COMMENT_LENGTH}
@@ -486,7 +487,7 @@ export default function PostDetailPage() {
         {replyToId === comment.id && (
           <div className="mt-3 space-y-2">
             <label htmlFor={`reply-${comment.id}`} className="sr-only">Reply to {comment.authorName}</label>
-            <textarea
+            <AutoGrowTextarea
               id={`reply-${comment.id}`}
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
@@ -566,13 +567,13 @@ export default function PostDetailPage() {
 
         <div className="mt-6 pt-4 border-t border-[#e8ddd2] space-y-2">
           <label htmlFor="new-response" className="sr-only">Your response</label>
-          <textarea
+          <AutoGrowTextarea
             id="new-response"
             value={newResponse}
             onChange={(e) => setNewResponse(e.target.value)}
             onFocus={handleResponseFocus}
             placeholder="Share your response..."
-            rows={3}
+            rows={post.pinned ? 5 : 3}
             maxLength={MAX_COMMENT_LENGTH}
             className="w-full px-4 py-2.5 border border-[#ede6e0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#d4a348] text-sm text-[#1a0f0a] resize-none"
           />

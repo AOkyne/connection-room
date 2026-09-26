@@ -42,6 +42,7 @@ import type { CommunityProfile } from "@/lib/data/profiles";
 import { getPollsForPosts, type Poll } from "@/lib/data/polls";
 import { PollCard } from "@/components/spaces/PollCard";
 import { photoFocusStyle } from "@/lib/utils/photo-focus";
+import { AutoGrowTextarea } from "@/components/AutoGrowTextarea";
 
 const MAX_POST_LENGTH = 2000;
 const MIN_POST_LENGTH = 10;
@@ -589,7 +590,7 @@ export default function SpaceDetailPage() {
 
               {editingPostId === post.id ? (
                 <div className="space-y-2 mb-4">
-                  <textarea
+                  <AutoGrowTextarea
                     value={editingPostContent}
                     onChange={(e) => setEditingPostContent(e.target.value)}
                     maxLength={MAX_POST_LENGTH}
@@ -742,7 +743,7 @@ export default function SpaceDetailPage() {
                       )}
                       {editingCommentId === comment.id && (
                         <div className="mt-3 space-y-2">
-                          <textarea
+                          <AutoGrowTextarea
                             value={editingCommentContent}
                             onChange={(e) => setEditingCommentContent(e.target.value)}
                             maxLength={MAX_COMMENT_LENGTH}
@@ -799,11 +800,11 @@ export default function SpaceDetailPage() {
 
                   {/* Add Comment */}
                   <div className="space-y-2">
-                    <textarea
+                    <AutoGrowTextarea
                       value={newCommentContent[post.id] || ""}
                       onChange={(e) => setNewCommentContent({ ...newCommentContent, [post.id]: e.target.value })}
                       placeholder={pinned ? "Share your answer..." : "Add your response..."}
-                      rows={pinned ? 3 : 2}
+                      rows={pinned ? 5 : 2}
                       maxLength={MAX_COMMENT_LENGTH}
                       className={
                         pinned
@@ -1108,7 +1109,7 @@ export default function SpaceDetailPage() {
         </div>
 
         <div className="space-y-2">
-          <textarea
+          <AutoGrowTextarea
             value={newPostContent}
             onChange={(e) => setNewPostContent(e.target.value)}
             placeholder="What's on your mind? Share authentically..."
