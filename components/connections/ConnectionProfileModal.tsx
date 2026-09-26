@@ -29,8 +29,8 @@ export function ConnectionProfileModal({
   if (!isOpen || !profile) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90dvh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-gradient-to-br from-[#f3ede5] to-[#fffbf7] border-b border-[#e8ddd2] p-6 flex justify-between items-start">
           <div>

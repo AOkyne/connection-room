@@ -607,8 +607,8 @@ export default function AdminMembersPage() {
 
       {/* Edit Modal */}
       {showEditModal && selectedMember && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <Card className="max-w-2xl w-full max-h-[90dvh] overflow-y-auto">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-[#1a0f0a]">
@@ -799,7 +799,7 @@ export default function AdminMembersPage() {
 
       {/* Delete Confirmation Modal */}
       {deleteTargets && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
           <Card className="max-w-md w-full">
             <div className="space-y-4">
               <h2 className="text-xl font-bold text-red-600">
@@ -866,8 +866,8 @@ export default function AdminMembersPage() {
 
       {/* Email Compose Modal */}
       {emailTargets && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <Card className="max-w-lg w-full max-h-[90dvh] overflow-y-auto">
             <div className="space-y-4">
               <h2 className="text-xl font-bold text-[#1a0f0a]">
                 Email {emailTargets.length === 1 ? emailTargets[0].displayName : `${emailTargets.length} Members`}

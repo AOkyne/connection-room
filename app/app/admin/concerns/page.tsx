@@ -335,8 +335,8 @@ export default function AdminConcernsPage() {
 
       {/* Detail Modal */}
       {showDetailModal && selectedConcern && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="max-w-2xl w-full max-h-[85vh] overflow-y-auto">
+        <div className="modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <Card className="max-w-2xl w-full max-h-[85dvh] overflow-y-auto">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-[#1a0f0a]">

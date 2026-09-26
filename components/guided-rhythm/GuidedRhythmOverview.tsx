@@ -174,7 +174,7 @@ export function GuidedRhythmOverview() {
       {showIntentionModal && (
         <dialog
           open
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/20"
+          className="modal-overlay fixed inset-0 z-[60] flex items-center justify-center bg-black/20"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               setShowIntentionModal(false);

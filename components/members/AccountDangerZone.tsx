@@ -113,7 +113,7 @@ export function AccountDangerZone() {
 
       {/* Deactivate Confirmation Modal */}
       {showDeactivateConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
           <Card className="max-w-md w-full">
             <div className="space-y-4">
               <h2 className="text-xl font-bold text-[#1a0f0a]">Deactivate your account?</h2>
@@ -148,7 +148,7 @@ export function AccountDangerZone() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
           <Card className="max-w-md w-full">
             <div className="space-y-4">
               <h2 className="text-xl font-bold text-red-600">Delete your account?</h2>

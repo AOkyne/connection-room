@@ -161,7 +161,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   ];
 
   return (
-    // h-screen (not min-h-screen): this wrapper needs a FIXED height, not
+    // A fixed height (not min-h-screen): this wrapper needs a FIXED height, not
     // just a minimum, for the "sticky header + independently-scrolling
     // content pane" layout below to actually work. With min-h-screen, a
     // page whose content is taller than the viewport made this whole
@@ -173,14 +173,26 @@ export default function AppLayout({ children }: AppLayoutProps) {
     // while debugging a sticky toolbar in the broadcast composer that
     // wouldn't stick at all -- same root cause would have affected any
     // other sticky element added inside this shell.
-    <div className="h-screen bg-[#fdfbf7] flex flex-col relative overflow-x-hidden">
-      {/* Warm subtle background texture */}
-      <div className="fixed inset-0 pointer-events-none opacity-50 z-0"
-        style={{
-          backgroundImage: `radial-gradient(circle at 20% 50%, rgba(212, 165, 116, 0.03) 0%, transparent 50%),
-                            radial-gradient(circle at 80% 80%, rgba(159, 127, 92, 0.03) 0%, transparent 50%)`,
-        }}
-      />
+    // h-dvh, not h-screen: on iPhone, 100vh is the height with Safari's
+    // toolbars HIDDEN, so with them showing the bottom of this shell --
+    // and of the scrolling content pane inside it -- sat behind the
+    // toolbar and bounced back when scrolled to (reported: "I can see the
+    // x/leave button but the page bounces back so I can't tap it"). dvh
+    // is the height actually visible.
+    //
+    // The warm background texture is painted on this wrapper itself. It
+    // used to be a separate fixed layer, which needed the content below
+    // to sit in its own z-10 layer to stay on top -- and that layer
+    // trapped every pop-up opened from a page BENEATH the sticky header
+    // and the mobile bottom nav, so a pop-up's close button could end up
+    // under the header and its bottom buttons under the nav.
+    <div
+      className="h-dvh bg-[#fdfbf7] flex flex-col relative overflow-x-hidden"
+      style={{
+        backgroundImage: `radial-gradient(circle at 20% 50%, rgba(212, 165, 116, 0.015) 0%, transparent 50%),
+                          radial-gradient(circle at 80% 80%, rgba(159, 127, 92, 0.015) 0%, transparent 50%)`,
+      }}
+    >
 
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white border-b border-[#e8e3db]">
@@ -205,7 +217,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden relative z-10">
+      <div className="flex flex-1 overflow-hidden relative">
         {/* Desktop Sidebar - Fixed Navigation */}
         <nav className="hidden md:flex fixed left-0 top-40 w-64 flex-col px-4 py-6 space-y-2 bg-white z-40 border-r border-[#e8e3db] h-[calc(100vh-160px)] overflow-y-auto">
           {navItems.map((item) => (

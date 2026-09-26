@@ -66,7 +66,7 @@ export function PhotoRequirementPrompt({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
       <div className="bg-white rounded-xl max-w-md w-full p-6 space-y-6">
         <div>
           <h2 className="text-2xl font-semibold text-[#1a0f0a] mb-2">

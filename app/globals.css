@@ -143,3 +143,27 @@ button {
   font-family: var(--font-sans);
   font-size: inherit;
 }
+
+/* Pop-up windows (profile, Say Hello, settings, confirmations...). A
+   pop-up taller than the screen scrolls inside its dark backdrop, and
+   auto margins keep it centered when it fits but pin its top -- and its
+   close button -- in reach when it doesn't (plain flex centering pushes
+   the top of an overflowing pop-up off-screen where it can't be scrolled
+   to). overscroll-behavior stops the scroll from bouncing through to the
+   page behind on iPhone. */
+.modal-overlay {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.modal-overlay > * {
+  margin-top: auto;
+  margin-bottom: auto;
+}
+/* Bottom-sheet pop-ups (items-end, e.g. the invite panel) stay attached
+   to the bottom on phones instead of being centered by the rule above. */
+@media (max-width: 767px) {
+  .modal-overlay.items-end > * {
+    margin-bottom: 0;
+  }
+}

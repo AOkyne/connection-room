@@ -18,14 +18,14 @@ export function PostTemplateSelector({
   return (
     <dialog
       open
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/20"
+      className="modal-overlay fixed inset-0 z-[60] flex items-center justify-center bg-black/20"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onSkip();
         }
       }}
     >
-      <Card className="w-full max-w-2xl mx-4 max-h-[80vh] overflow-y-auto">
+      <Card className="w-full max-w-2xl mx-4 max-h-[80dvh] overflow-y-auto">
         <div className="space-y-4">
           {/* Header */}
           <div>

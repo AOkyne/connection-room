@@ -393,8 +393,8 @@ export default function AdminEventsPage() {
 
       {/* Registrants Modal */}
       {showRegistrants && selectedEventId && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <Card className="max-w-3xl w-full max-h-[90dvh] overflow-y-auto">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-bold text-[#1a0f0a]">

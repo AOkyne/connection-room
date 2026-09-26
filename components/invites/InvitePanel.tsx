@@ -108,14 +108,14 @@ export function InvitePanel({ isOpen, onClose }: InvitePanelProps) {
     <>
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black/40 z-50"
+        className="fixed inset-0 bg-black/40 z-[60]"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4">
+      <div className="modal-overlay fixed inset-0 z-[60] flex items-end md:items-center justify-center p-4">
         <div
-          className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-[#FDFBF6]"
+          className="w-full max-w-md max-h-[90dvh] overflow-y-auto rounded-2xl bg-[#FDFBF6]"
           style={{
             boxShadow: "0 20px 60px rgba(60, 45, 20, 0.2)",
           }}
