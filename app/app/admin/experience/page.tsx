@@ -98,6 +98,8 @@ export default function AdminExperiencePage() {
         waveIntervalDays: s.wave_interval_days,
         staggerDays: s.stagger_days,
         perQuestionCap: s.per_question_cap,
+        maxWaveSharePercent: s.max_wave_share_percent ?? 25,
+        singleQuestionPerWave: s.single_question_per_wave ?? true,
         attributionDays: s.attribution_days,
         timezone: s.timezone,
         testRecipients: (s.test_recipients || []).join(", "),
@@ -223,9 +225,20 @@ export default function AdminExperiencePage() {
                 <span className="block font-medium text-[#1a0f0a]">Delivery spread (days, 1–7)</span>
                 <input type="number" min={1} max={7} value={form.staggerDays} onChange={(e) => setForm({ ...form, staggerDays: e.target.value })} className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg" />
               </label>
+              <label className="flex items-start gap-2 sm:col-span-2">
+                <input type="checkbox" checked={!!form.singleQuestionPerWave} onChange={(e) => setForm({ ...form, singleQuestionPerWave: e.target.checked })} className="mt-1 w-4 h-4" />
+                <span>
+                  <span className="block font-medium text-[#1a0f0a]">Same question for the whole wave</span>
+                  <span className="block text-xs text-[#6b6460]">Each wave sends one question to everyone it invites. Members who can&apos;t get that question (already answered it, asked it, or haven&apos;t chosen its topic) wait for a later wave. When off, a wave spreads across questions using the per-question limit below.</span>
+                </span>
+              </label>
               <label className="space-y-1">
-                <span className="block font-medium text-[#1a0f0a]">Max recipients per question per wave</span>
+                <span className="block font-medium text-[#1a0f0a]">Max recipients per question per wave (when spreading)</span>
                 <input type="number" min={1} max={50} value={form.perQuestionCap} onChange={(e) => setForm({ ...form, perQuestionCap: e.target.value })} className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg" />
+              </label>
+              <label className="space-y-1">
+                <span className="block font-medium text-[#1a0f0a]">Max share of members per wave (%)</span>
+                <input type="number" min={1} max={100} value={form.maxWaveSharePercent} onChange={(e) => setForm({ ...form, maxWaveSharePercent: e.target.value })} className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg" />
               </label>
               <label className="space-y-1">
                 <span className="block font-medium text-[#1a0f0a]">Attribution window (days)</span>
@@ -296,6 +309,11 @@ export default function AdminExperiencePage() {
                   {dryRun.planned} invitations planned from {dryRun.eligibleQuestions} eligible questions, across{" "}
                   {dryRun.members} members ({dryRun.phase === "bootstrap" ? "bootstrap rules" : "post-bootstrap rules"}).
                 </p>
+                {dryRun.waveQuestion && (
+                  <p className="text-sm text-[#1a0f0a]">
+                    This wave&apos;s question: <strong>&ldquo;{dryRun.waveQuestion}&rdquo;</strong>
+                  </p>
+                )}
                 <div className="grid sm:grid-cols-2 gap-4">
                   <ReasonTable title="Members skipped, by reason" data={dryRun.memberExclusions} />
                   <ReasonTable title="Questions not used, by reason" data={dryRun.questionExclusions} />

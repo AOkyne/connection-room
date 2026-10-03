@@ -32,6 +32,9 @@ export function mapSettings(row: any): ExperienceSettings {
     waveIntervalDays: row.wave_interval_days,
     staggerDays: row.stagger_days,
     perQuestionCap: row.per_question_cap,
+    // Default until migration 105 adds the column.
+    maxWaveSharePercent: row.max_wave_share_percent ?? 25,
+    singleQuestionPerWave: row.single_question_per_wave ?? true,
     sendWindowStartHour: row.send_window_start_hour,
     sendWindowEndHour: row.send_window_end_hour,
     attributionDays: row.attribution_days,

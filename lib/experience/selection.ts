@@ -8,7 +8,9 @@
 // - member questions before seeds; within a tier, spread the wave across
 //   questions (fewest assigned this wave first), then prefer unanswered /
 //   lightly answered, then questions that have had less attention;
-// - at most `perQuestionCap` recipients per question per wave;
+// - at most `maxWaveSharePercent` of all members per wave; and EITHER one
+//   question for the whole wave (singleQuestionPerWave, the default) OR a
+//   spread across questions with at most `perQuestionCap` each;
 // - members ordered fairly: never invited first, then longest since their
 //   last invitation (never "most active first");
 // - one pending invitation per member; a member whose month cap / 30-day
@@ -68,6 +70,8 @@ export interface WavePlan {
   questionExclusions: Record<string, number>;
   /** per excluded member, the reason (for the admin dry run) */
   memberExclusionDetail: Array<{ userId: string; reason: string }>;
+  /** Single-question waves: the question everyone in this wave gets. */
+  waveQuestionId?: string | null;
 }
 
 /** FNV-1a 32-bit -- stable across runs and machines. */
@@ -174,10 +178,55 @@ export function planWave(input: PlanningInput): WavePlan {
     return stableHash(`${input.waveId}:order:${a.userId}`) - stableHash(`${input.waveId}:order:${b.userId}`);
   });
 
-  // 3. Assign.
+  // 3. Assign, up to the wave's share of the whole membership.
+  const waveLimit = Math.max(1, Math.floor((input.members.length * settings.maxWaveSharePercent) / 100));
   const assignedThisWave = new Map<string, number>();
   const tier = (q: Question) => (q.source === "member" ? 0 : 1);
+
+  // "Same question for the whole wave": pick the ONE question the most
+  // members can actually receive (up to the wave limit); member questions
+  // win ties, then the least-answered, then the least-sent. Members who
+  // can't get it (already answered / invited / author / topic) skip this
+  // wave. The per-question cap doesn't apply -- the wave limit does.
+  let questionPool = eligibleQuestions;
+  let perQuestionCap = settings.perQuestionCap;
+  if (settings.singleQuestionPerWave) {
+    let chosen: Question | null = null;
+    let chosenKey: number[] = [];
+    for (const q of eligibleQuestions) {
+      let reach = 0;
+      for (const m of candidates) {
+        if (reach >= waveLimit) break;
+        if (pairBlock(m, q, input.pair)) continue;
+        const earliest = earliestAllowedSend(input.sendHistory.get(m.userId) || [], settings.timezone);
+        if (!dueTimeFor(m.userId, input.waveId, now, windowEndsAt, earliest, m.prefs.timezone, settings)) continue;
+        reach += 1;
+      }
+      if (reach === 0) continue;
+      const key = [
+        -reach,
+        tier(q),
+        input.responseCounts.get(q.id) || 0,
+        input.invitationCounts.get(q.id) || 0,
+        stableHash(`${input.waveId}:${q.id}`),
+      ];
+      if (!chosen || compareKeys(key, chosenKey) < 0) {
+        chosen = q;
+        chosenKey = key;
+      }
+    }
+    questionPool = chosen ? [chosen] : [];
+    perQuestionCap = waveLimit;
+    plan.waveQuestionId = chosen?.id || null;
+  }
+
   for (const m of candidates) {
+    if (plan.assignments.length >= waveLimit) {
+      // Fair order means these members are first in line next wave.
+      bump(memberExclusions, "wave_size_limit");
+      memberExclusionDetail.push({ userId: m.userId, reason: "wave_size_limit" });
+      continue;
+    }
     const earliest = earliestAllowedSend(input.sendHistory.get(m.userId) || [], settings.timezone);
     const dueAt = dueTimeFor(m.userId, input.waveId, now, windowEndsAt, earliest, m.prefs.timezone, settings);
     if (!dueAt) {
@@ -190,8 +239,8 @@ export function planWave(input: PlanningInput): WavePlan {
     let best: Question | null = null;
     let bestKey: number[] = [];
     const pairReasons = new Set<string>();
-    for (const q of eligibleQuestions) {
-      if ((assignedThisWave.get(q.id) || 0) >= settings.perQuestionCap) {
+    for (const q of questionPool) {
+      if ((assignedThisWave.get(q.id) || 0) >= perQuestionCap) {
         pairReasons.add("question_cap_reached");
         continue;
       }

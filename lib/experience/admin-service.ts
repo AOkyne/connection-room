@@ -199,6 +199,7 @@ export async function runDryRun(supabase: SupabaseClient, actorId: string) {
     eligibleQuestions: plan.eligibleQuestionIds.length,
     members: snapshot.members.length,
     planned: plan.assignments.length,
+    waveQuestion: plan.waveQuestionId ? text.get(plan.waveQuestionId)?.text || null : null,
     questionExclusions: plan.questionExclusions,
     memberExclusions: plan.memberExclusions,
     assignments: plan.assignments.map((a) => ({
@@ -252,6 +253,8 @@ export async function saveSettings(supabase: SupabaseClient, actorId: string, in
   if (input.waveIntervalDays !== undefined) patch.wave_interval_days = int(input.waveIntervalDays, 14, 21, "Wave interval");
   if (input.staggerDays !== undefined) patch.stagger_days = int(input.staggerDays, 1, 7, "Delivery window");
   if (input.perQuestionCap !== undefined) patch.per_question_cap = int(input.perQuestionCap, 1, 50, "Recipients per question");
+  if (input.maxWaveSharePercent !== undefined) patch.max_wave_share_percent = int(input.maxWaveSharePercent, 1, 100, "Wave size");
+  if (input.singleQuestionPerWave !== undefined) patch.single_question_per_wave = input.singleQuestionPerWave === true;
   if (input.attributionDays !== undefined) patch.attribution_days = int(input.attributionDays, 1, 60, "Attribution window");
   if (input.timezone !== undefined) {
     if (row?.launched_at) throw new Error("The timezone is locked after launch.");

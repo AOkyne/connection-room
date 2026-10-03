@@ -40,7 +40,7 @@ async function simulate(mode: PostBootstrapMode) {
   });
   const seedTopics = ["friendship", "loneliness", "belonging", "dating", "affection"];
   const questions = Array.from({ length: 14 }, (_, i) => makeSeed(`seed${i}`, seedTopics[i % seedTopics.length]));
-  const store = makeStore(launch, { members, questions, settings: { postBootstrapMode: mode } });
+  const store = makeStore(launch, { members, questions, settings: { postBootstrapMode: mode, maxWaveSharePercent: 25, singleQuestionPerWave: true } });
   const mailer = new FakeMailer();
   const bootstrapEnd = store.settings.bootstrapEndsAt!;
 
@@ -116,13 +116,19 @@ describe(`offline simulation (${DAYS} days, hourly ticks)`, () => {
       const pairs = counting.map((i) => `${i.userId}:${i.questionId}`);
       expect(new Set(pairs).size).toBe(pairs.length);
 
-      // 3. Per-question cap per wave.
-      const perWaveQuestion = new Map<string, number>();
+      // 3. Single-question waves: one question per wave, at most 25% of members.
+      const waveLimit = Math.floor((sim.members.length * store.settings.maxWaveSharePercent) / 100);
+      const perWave = new Map<string, { count: number; questions: Set<string> }>();
       for (const inv of store.invitations) {
-        const k = `${inv.waveId}:${inv.questionId}`;
-        perWaveQuestion.set(k, (perWaveQuestion.get(k) || 0) + 1);
+        const w = perWave.get(inv.waveId!) || { count: 0, questions: new Set<string>() };
+        w.count += 1;
+        w.questions.add(inv.questionId);
+        perWave.set(inv.waveId!, w);
       }
-      expect(Math.max(...perWaveQuestion.values())).toBeLessThanOrEqual(store.settings.perQuestionCap);
+      for (const w of perWave.values()) {
+        expect(w.questions.size).toBe(1);
+        expect(w.count).toBeLessThanOrEqual(waveLimit);
+      }
 
       // 4. Source policy after bootstrap.
       for (const s of mailer.sent) {

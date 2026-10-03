@@ -34,6 +34,10 @@ export interface ExperienceSettings {
   waveIntervalDays: number;
   staggerDays: number;
   perQuestionCap: number;
+  /** No wave invites more than this % of all members (default 25). */
+  maxWaveSharePercent: number;
+  /** Everyone in a wave gets the same question (default true). */
+  singleQuestionPerWave: boolean;
   sendWindowStartHour: number;
   sendWindowEndHour: number;
   attributionDays: number;

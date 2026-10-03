@@ -306,3 +306,47 @@ describe("changes between assignment and dispatch", () => {
     expect(store.waves.length).toBe(0);
   });
 });
+
+describe("wave size", () => {
+  it("never invites more than 25% of members in one wave, and rotates the rest into later waves", async () => {
+    const store = makeStore(launch, { members: members(40), questions: seeds(30), settings: { maxWaveSharePercent: 25 } });
+    const mailer = new FakeMailer();
+    await everyHours(launch, new Date(launch.getTime() + 64 * DAY_MS), 1, (now) => runExperienceTick(store, mailer, now).then(() => {}));
+    const perWave = new Map<string, number>();
+    for (const inv of store.invitations) perWave.set(inv.waveId!, (perWave.get(inv.waveId!) || 0) + 1);
+    expect(Math.max(...perWave.values())).toBeLessThanOrEqual(10);
+    // Fair rotation: 10 per wave, and nobody is invited twice before
+    // everyone has been invited once (4 waves x 10 = all 40 members).
+    expect(store.waves.length).toBe(4);
+    expect(store.invitations.length).toBe(40);
+    expect(new Set(store.invitations.map((i) => i.userId)).size).toBe(40);
+  });
+});
+
+describe("single question per wave", () => {
+  it("gives everyone in a wave the same question, up to 25% of members", async () => {
+    const store = makeStore(launch, {
+      members: members(40),
+      questions: seeds(6),
+      settings: { maxWaveSharePercent: 25, singleQuestionPerWave: true },
+    });
+    await runExperienceTick(store, new FakeMailer(), launch);
+    expect(store.invitations.length).toBe(10);
+    expect(new Set(store.invitations.map((i) => i.questionId)).size).toBe(1);
+  });
+
+  it("picks the question the most members can receive, and skips members who can't get it", async () => {
+    const chose = (id: string) => makeMember(id, { prefs: { optedOut: false, paused: false, topics: ["dating"], timezone: null } });
+    const store = makeStore(launch, {
+      members: [chose("d1"), chose("d2"), ...members(6)],
+      questions: [makeSeed("dating-q", "dating"), makeSeed("general-q", "friendship")],
+      settings: { maxWaveSharePercent: 100, singleQuestionPerWave: true },
+    });
+    store.addAnswer("general-q", "m000");
+    await runExperienceTick(store, new FakeMailer(), launch);
+    // 5 of the general members can take general-q (m000 already answered);
+    // only 2 could take dating-q. Everyone invited gets general-q.
+    expect(new Set(store.invitations.map((i) => i.questionId))).toEqual(new Set(["general-q"]));
+    expect(store.invitations.map((i) => i.userId).sort()).toEqual(["m001", "m002", "m003", "m004", "m005"]);
+  });
+});

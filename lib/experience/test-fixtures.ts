@@ -26,6 +26,9 @@ export function makeSettings(launchedAt: Date, overrides: Partial<ExperienceSett
     waveIntervalDays: 21,
     staggerDays: 7,
     perQuestionCap: 5,
+    // Tests that aren't about wave size use no share limit.
+    maxWaveSharePercent: 100,
+    singleQuestionPerWave: false,
     sendWindowStartHour: 9,
     sendWindowEndHour: 18,
     attributionDays: 14,
