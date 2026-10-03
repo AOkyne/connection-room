@@ -15,7 +15,7 @@ Occasional, low-pressure email invitations that bring members back to answer a q
 | Email link → thread | `app/r/experience/[invitationId]` (logs a visit, redirects) |
 | Unsubscribe | `app/experience/unsubscribe` (page) + `app/api/experience/unsubscribe` (POST / one-click) |
 | Bounces & complaints | `app/api/webhooks/email-events` (SMTP2GO) |
-| Member pages | `/app/experience`, `/app/experience/[id]`, `/app/experience/preferences`, home card, nav "Experience" |
+| Member pages | `/app/experience`, `/app/experience/[id]`, `/app/experience/preferences`, home card, nav "Been There" |
 | Admin | `/app/admin/experience` |
 | Tests + 200-day simulation | `lib/experience/*.test.ts` (`npx vitest run lib/experience`) |
 
