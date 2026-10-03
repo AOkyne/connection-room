@@ -10,11 +10,11 @@
 
 import type { QuestionSource } from "./types";
 
-export const INVITATION_SUBJECT = "Your experience is welcome in The Connection Room";
+export const INVITATION_SUBJECT = "Your experience is invited in The Connection Room";
 const PREVIEW_TEXT = "A question from the community, if you'd like to share.";
 
 export const SOURCE_INTRO: Record<QuestionSource, string> = {
-  seed: "Here's a community question you might relate to:",
+  seed: "Here's a community question we thought you might have some input on:",
   member: "A member has invited others to share their experience:",
 };
 

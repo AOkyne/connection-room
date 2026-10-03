@@ -22,7 +22,7 @@ describe("invitation email", () => {
   });
 
   it("labels seeds as community questions and member questions as from a member", () => {
-    expect(renderInvitationEmail(base).text).toContain("Here's a community question you might relate to:");
+    expect(renderInvitationEmail(base).text).toContain("Hi Marcus,\n\nHere's a community question we thought you might have some input on:");
     const member = renderInvitationEmail({ ...base, source: "member" });
     expect(member.text).toContain("A member has invited others to share their experience:");
     expect(member.text).not.toContain("community question");

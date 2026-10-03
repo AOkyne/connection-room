@@ -70,7 +70,7 @@ Everything in rule 8 is checked again at send time. An invitation that's no long
 
 ## Email
 
-- **Subject:** "Your experience is welcome in The Connection Room". The subject and preview text never contain the question.
+- **Subject:** "Your experience is invited in The Connection Room". The subject and preview text never contain the question.
 - **Body:** HTML-escaped, with a plain-text version.
 - **Footer:** links to manage invitations and unsubscribe, plus `List-Unsubscribe` one-click headers.
 - **Link:** `/r/experience/{invitationId}`. It logs a visit, then opens `/app/experience/{questionId}?respond=1`. Signed-out members sign in and land back on the same thread with the response box open.
