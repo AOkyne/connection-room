@@ -49,7 +49,10 @@ export const experienceApi = {
   overview: () =>
     call<{ questions: PublicQuestion[]; invitations: MyInvitation[]; topics: TopicOption[] }>("GET", "/api/experience/questions"),
   question: (id: string) =>
-    call<{ question: (PublicQuestion & { myAnonymousCommentIds: string[] }) | null }>("GET", `/api/experience/questions/${id}`),
+    call<{ question: (PublicQuestion & { myAnonymousCommentIds: string[] }) | null; adminPreview?: boolean }>(
+      "GET",
+      `/api/experience/questions/${id}`
+    ),
   submit: (input: { text: string; topic: string; context: string; anonymous: boolean; emailPermission: boolean }) =>
     call<{ questionId: string }>("POST", "/api/experience/questions", input),
   updateOwn: (id: string, patch: { emailPermission?: boolean; text?: string; context?: string; remove?: boolean }) =>

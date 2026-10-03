@@ -46,7 +46,7 @@ export default function ExperienceThreadPage() {
   const respond = searchParams?.get("respond") === "1";
   const highlight = searchParams?.get("comment");
 
-  const [state, setState] = useState<"loading" | "ready" | "unavailable">("loading");
+  const [state, setState] = useState<"loading" | "ready" | "unavailable" | "preview">("loading");
   const [question, setQuestion] = useState<ThreadQuestion | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [myId, setMyId] = useState<string | null>(null);
@@ -69,10 +69,13 @@ export default function ExperienceThreadPage() {
     setComments(await getComments(postId));
   }, []);
 
+  const previewRef = useRef(false);
+
   const reloadQuestion = useCallback(async () => {
     const r = await experienceApi.question(questionId);
     const q = r.data?.question || null;
     setQuestion(q);
+    previewRef.current = !!r.data?.adminPreview;
     return q;
   }, [questionId]);
 
@@ -81,6 +84,10 @@ export default function ExperienceThreadPage() {
       const [q, id, p] = await Promise.all([reloadQuestion(), currentUserId(), getProfile().catch(() => null)]);
       setMyId(id);
       if (p) setProfile({ displayName: p.displayName, pronouns: p.pronouns, profilePhoto: p.profilePhoto });
+      if (q && previewRef.current) {
+        setState("preview");
+        return;
+      }
       if (!q || !q.threadPostId || q.status === "removed") {
         setState("unavailable");
         return;
@@ -100,6 +107,31 @@ export default function ExperienceThreadPage() {
   }, [state, respond, highlight]);
 
   if (state === "loading") return <LoadingScreen message="Loading conversation" subtitle="Just a moment..." />;
+
+  if (state === "preview" && question) {
+    return (
+      <div className="space-y-6 max-w-3xl">
+        <div className="rounded-lg border border-[#d4a348] bg-[#fdfaf5] p-4 text-sm text-[#1a0f0a]">
+          <strong>Admin preview.</strong> This question hasn&apos;t been sent to any member yet, so its conversation
+          doesn&apos;t exist and members can&apos;t see this page. When it&apos;s first sent for real, members who tap the
+          email button land here with the response box open.
+        </div>
+        <Card className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-block text-[11px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#f3ede5] text-[#8b6f47]">
+              {question.label}
+            </span>
+            <span className="text-xs text-[#a0704a]">{question.topic.label}</span>
+          </div>
+          <h1 className="text-2xl font-semibold text-[#1a0f0a]">{question.text}</h1>
+          <p className="text-sm text-[#6b6460]">{COMPOSER_REMINDER}</p>
+        </Card>
+        <Link href="/app/admin/experience">
+          <Button variant="outline">Back to the admin page</Button>
+        </Link>
+      </div>
+    );
+  }
 
   if (state === "unavailable" || !question || !question.threadPostId) {
     return (

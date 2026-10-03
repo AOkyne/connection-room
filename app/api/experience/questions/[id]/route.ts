@@ -13,8 +13,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { id } = await params;
   if (!UUID_RE.test(id)) return NextResponse.json({ question: null });
   const question = await getPublicQuestion(auth.supabase, id, auth.userId);
-  // Removed (or not yet activated) questions read as unavailable to everyone but their author.
-  if (!question || (!question.viewerIsAuthor && (question.status === "removed" || !question.threadPostId))) {
+  if (!question) return NextResponse.json({ question: null });
+  // Removed (or not yet activated) questions read as unavailable to members
+  // other than their author. Admins get a read-only preview of a question
+  // that hasn't been sent yet (e.g. from a test email), without publishing it.
+  if (!question.viewerIsAuthor && (question.status === "removed" || !question.threadPostId)) {
+    const { data: viewer } = await auth.supabase.from("profiles").select("role").eq("user_id", auth.userId).maybeSingle();
+    if (viewer?.role === "admin" && !question.threadPostId && question.status !== "removed") {
+      return NextResponse.json({ question, adminPreview: true });
+    }
     return NextResponse.json({ question: null });
   }
   return NextResponse.json({ question });
