@@ -172,6 +172,12 @@ export default function SpaceDetailPage() {
 
   useEffect(() => {
     const loadData = async () => {
+      // "Your Experience Wanted" has its own pages.
+      if (spaceId === "your-experience") {
+        router.replace("/app/experience");
+        return;
+      }
+
       // Track this space visit
       await trackSpaceVisit(spaceId);
 

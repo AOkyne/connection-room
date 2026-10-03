@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { hasSmtpConfig, sendCommentReplyNotificationEmail, sendPostCommentNotificationEmail, logEmailSend } from "@/lib/email/send";
+import {
+  ANONYMOUS_FOLLOWUP_AUTHOR_NAME,
+  EXPERIENCE_SPACE_ID,
+  findQuestionByThreadPost,
+  realAuthorsOfComments,
+} from "@/lib/experience/threads";
 
 // Called by the comments_notify_new_reply trigger via pg_net,
 // fire-and-forget, on every comment insert (migration 093 widened this
@@ -82,13 +88,28 @@ export async function POST(request: NextRequest) {
   const { data: space } = await supabase.from("spaces").select("name").eq("id", post.space_id).maybeSingle();
   const spaceName = space?.name || "the community";
 
+  // "Your Experience Wanted" threads: community-prompt and anonymous
+  // threads are stored under the system account, and an anonymous
+  // author's own follow-ups are too. Resolve the REAL people here (server
+  // side only) so notifications reach them -- never the system account --
+  // without ever naming an anonymous author.
+  const experienceQuestion =
+    post.space_id === EXPERIENCE_SPACE_ID ? await findQuestionByThreadPost(supabase, postId) : null;
+  const realAuthors = experienceQuestion
+    ? await realAuthorsOfComments(supabase, [commentId, parentCommentId, rootCommentId])
+    : new Map<string, string>();
+  const actualReplierId = realAuthors.get(commentId) || replierId;
+  const replierIsAnonymousAuthor = realAuthors.has(commentId);
+
   const candidateIds = new Set<string>();
   const isTopLevelComment = !parentCommentId;
 
   if (isTopLevelComment) {
     // A brand new comment directly on the post -- notify the post's
     // author, full stop.
-    candidateIds.add(post.user_id);
+    if (!experienceQuestion) candidateIds.add(post.user_id);
+    else if (experienceQuestion.source === "member" && experienceQuestion.authorId) candidateIds.add(experienceQuestion.authorId);
+    // Community prompts have no member author to notify.
   } else {
     const { data: parentComment, error: parentError } = await supabase
       .from("comments")
@@ -104,19 +125,22 @@ export async function POST(request: NextRequest) {
     // rootCommentId equals parentCommentId when replying directly to a
     // top-level comment, so the Set below naturally collapses that case
     // to one recipient.
-    candidateIds.add(parentComment.user_id);
+    candidateIds.add(realAuthors.get(parentCommentId) || parentComment.user_id);
     if (rootCommentId && rootCommentId !== parentCommentId) {
       const { data: rootComment } = await supabase
         .from("comments")
         .select("user_id")
         .eq("id", rootCommentId)
         .maybeSingle();
-      if (rootComment?.user_id) candidateIds.add(rootComment.user_id);
+      if (rootComment?.user_id) candidateIds.add(realAuthors.get(rootCommentId) || rootComment.user_id);
     }
   }
   candidateIds.delete(replierId); // never self-notify
+  candidateIds.delete(actualReplierId);
 
-  const replyUrl = `${appUrl}/app/spaces/${post.space_id}/posts/${postId}?comment=${commentId}`;
+  const replyUrl = experienceQuestion
+    ? `${appUrl}/app/experience/${experienceQuestion.id}?comment=${commentId}`
+    : `${appUrl}/app/spaces/${post.space_id}/posts/${postId}?comment=${commentId}`;
   const results: Record<string, string> = {};
 
   for (const recipientId of candidateIds) {
@@ -148,7 +172,9 @@ export async function POST(request: NextRequest) {
       continue;
     }
 
-    const commenterName = replier.display_name || "A member";
+    const commenterName = replierIsAnonymousAuthor
+      ? `The ${ANONYMOUS_FOLLOWUP_AUTHOR_NAME.toLowerCase()}`
+      : replier.display_name || "A member";
     const subject = isTopLevelComment
       ? `${commenterName} replied to your post`
       : `${commenterName} replied to your comment in ${spaceName}`;

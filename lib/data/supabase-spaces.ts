@@ -17,6 +17,9 @@ export async function getSupabaseSpaces(): Promise<Space[]> {
     const { data, error } = await supabase
       .from("spaces")
       .select("*")
+      // The "Your Experience Wanted" threads live in an internal space
+      // with its own pages (/app/experience); it isn't a browsable space.
+      .neq("id", "your-experience")
       .order("name", { ascending: true });
 
     if (error) {

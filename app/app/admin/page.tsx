@@ -223,6 +223,11 @@ export default function AdminPage() {
             🔗 Connections Activity
           </Button>
         </Link>
+        <Link href="/app/admin/experience">
+          <Button variant="outline" size="sm">
+            💬 Your Experience Wanted
+          </Button>
+        </Link>
         <Link href="/app/admin/polls">
           <Button variant="outline" size="sm">
             📊 Poll Results

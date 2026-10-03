@@ -79,6 +79,15 @@ export default function PostDetailPage() {
 
   useEffect(() => {
     const load = async () => {
+      // "Your Experience Wanted" threads open on their own page (labels,
+      // anonymous authorship, the composer reminder, reporting).
+      if (spaceId === "your-experience") {
+        const p = await getPostById(postId);
+        const qid = p?.promptId?.startsWith("experience:") ? p.promptId.slice("experience:".length) : null;
+        router.replace(qid && qid !== "member" ? `/app/experience/${qid}` : "/app/experience");
+        return;
+      }
+
       const session = await getSession();
       if (!session) {
         const target = typeof window !== "undefined" ? window.location.pathname + window.location.search : "";

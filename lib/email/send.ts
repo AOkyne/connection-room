@@ -21,7 +21,9 @@ export type EmailCategory =
   | "broadcast"
   | "admin_direct"
   | "weekly_pairing"
-  | "password_reset";
+  | "password_reset"
+  | "experience_invitation"
+  | "experience_test";
 
 // Records a real send into sent_emails (migration 069) so the admin
 // email-history page has something to show. Called explicitly at each
@@ -403,4 +405,62 @@ export async function sendBroadcastEmail(options: {
     replyTo: REPLY_TO_ADDRESS,
     attachments: getBrandedAttachments(),
   });
+}
+
+// ---------------------------------------------------------------------
+// "Your Experience Wanted" invitations (lib/experience)
+// ---------------------------------------------------------------------
+
+export type ExperienceSendResult =
+  | { kind: "accepted"; providerMessageId: string | null }
+  | { kind: "rejected"; error: string }
+  | { kind: "ambiguous"; error: string };
+
+// SMTP connection-level failures that happen before the server could have
+// accepted the message -- definitively not sent, safe to retry.
+const PRE_ACCEPTANCE_ERROR_CODES = new Set(["ECONNECTION", "EDNS", "EAUTH", "ETLS", "EENVELOPE", "EMESSAGE"]);
+
+/**
+ * Sends one invitation and classifies the outcome for the ledger:
+ * - accepted: the SMTP server returned 250 for the message (what the
+ *   frequency limits count, even if it later bounces);
+ * - rejected: the server refused it, or we never got far enough to hand
+ *   it over -- definitively not sent;
+ * - ambiguous: anything else (e.g. a timeout after the message was
+ *   handed over). Never resent automatically; flagged for review.
+ *
+ * SMTP2GO over SMTP has no idempotency key, so the stable Message-ID is
+ * what ties provider webhooks back to the invitation.
+ */
+export async function sendExperienceEmail(options: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+  messageId: string;
+  headers?: Record<string, string>;
+  fromName?: string;
+}): Promise<ExperienceSendResult> {
+  try {
+    const info = await getTransporter().sendMail({
+      from: `${options.fromName || "The Connection Room"} <trevor@trevorjamesla.com>`,
+      to: options.to,
+      subject: options.subject,
+      text: options.text,
+      html: options.html,
+      replyTo: REPLY_TO_ADDRESS,
+      messageId: options.messageId,
+      headers: options.headers,
+      attachments: [getBrandedAttachments()[0]],
+    });
+    const rejected = (info as { rejected?: unknown[] }).rejected || [];
+    if (rejected.length > 0) return { kind: "rejected", error: "recipient rejected by server" };
+    return { kind: "accepted", providerMessageId: (info as { messageId?: string }).messageId || options.messageId };
+  } catch (err) {
+    const e = err as { responseCode?: number; code?: string; message?: string };
+    const message = (e.message || "send failed").slice(0, 300);
+    if (typeof e.responseCode === "number" && e.responseCode >= 400) return { kind: "rejected", error: message };
+    if (e.code && PRE_ACCEPTANCE_ERROR_CODES.has(e.code)) return { kind: "rejected", error: message };
+    return { kind: "ambiguous", error: message };
+  }
 }

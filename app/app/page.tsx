@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { getProfile, type Profile } from "@/lib/data/profiles";
 import { getSpaces, sortSpacesByPreference } from "@/lib/data/spaces";
 import { DashboardTodaySection } from "@/components/dashboard/DashboardTodaySection";
+import { ExperienceHomeCard } from "@/components/experience/ExperienceHomeCard";
 import { WelcomeBackBanner } from "@/components/dashboard/WelcomeBackBanner";
 import { DashboardContinueSection } from "@/components/dashboard/DashboardContinueSection";
 import { DashboardExploreSection } from "@/components/dashboard/DashboardExploreSection";
@@ -114,6 +115,8 @@ export default function AppHome() {
         userId={profile.id}
         profilePhoto={profile.profilePhoto}
       />
+
+      <ExperienceHomeCard />
 
       {/* TIER 2: CONTINUE (Secondary content) - Non-blocking */}
       <DashboardContinueSection

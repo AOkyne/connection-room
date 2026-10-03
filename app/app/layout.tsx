@@ -153,6 +153,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const navItems = [
     { href: "/app", label: "Home", icon: IconHome },
     { href: "/app/spaces", label: "Spaces", icon: null },
+    { href: "/app/experience", label: "Experience", icon: IconConnectionsNav },
     { href: "/app/journey", label: "My Journey", icon: IconJourney },
     { href: "/app/connections", label: "Connections", icon: IconConnectionsNav },
     { href: "/app/articles", label: "Articles", icon: IconReflection },

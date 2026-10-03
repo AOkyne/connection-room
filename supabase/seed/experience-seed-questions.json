@@ -1,0 +1,368 @@
+{
+  "version": 1,
+  "description": "Your Experience Wanted seed bank: 60 original editorial community prompts. Invitations to share lived experience, not claims about a recipient and not quotations from members. Sensitive topics require the member's explicit topic selection before email delivery. Stable ids: never renumber or reuse an id.",
+  "topics": [
+    {
+      "slug": "loneliness",
+      "label": "Loneliness",
+      "sensitive": false
+    },
+    {
+      "slug": "friendship",
+      "label": "Friendship",
+      "sensitive": false
+    },
+    {
+      "slug": "affection",
+      "label": "Affection",
+      "sensitive": true
+    },
+    {
+      "slug": "vulnerability",
+      "label": "Vulnerability",
+      "sensitive": false
+    },
+    {
+      "slug": "boundaries",
+      "label": "Boundaries",
+      "sensitive": false
+    },
+    {
+      "slug": "dating",
+      "label": "Dating",
+      "sensitive": true
+    },
+    {
+      "slug": "relationships",
+      "label": "Relationships",
+      "sensitive": true
+    },
+    {
+      "slug": "body_aging",
+      "label": "Body and aging",
+      "sensitive": true
+    },
+    {
+      "slug": "belonging",
+      "label": "Belonging",
+      "sensitive": false
+    },
+    {
+      "slug": "sexuality_shame",
+      "label": "Sexuality and shame",
+      "sensitive": true
+    },
+    {
+      "slug": "receiving_care",
+      "label": "Receiving care",
+      "sensitive": false
+    },
+    {
+      "slug": "change_loss",
+      "label": "Change and loss",
+      "sensitive": true
+    }
+  ],
+  "questions": [
+    {
+      "id": "seed-loneliness-01",
+      "topic": "loneliness",
+      "text": "When your phone stays quiet unless you reach out first, how do you handle it?"
+    },
+    {
+      "id": "seed-loneliness-02",
+      "topic": "loneliness",
+      "text": "What has helped you feel less alone on a weekend with no plans?"
+    },
+    {
+      "id": "seed-loneliness-03",
+      "topic": "loneliness",
+      "text": "Have you ever felt lonely in a room full of people? What made connection easier?"
+    },
+    {
+      "id": "seed-loneliness-04",
+      "topic": "loneliness",
+      "text": "When working from home leaves you barely speaking to anyone, what helps you find company?"
+    },
+    {
+      "id": "seed-loneliness-05",
+      "topic": "loneliness",
+      "text": "How have you told someone you could use some company without feeling you were imposing?"
+    },
+    {
+      "id": "seed-friendship-01",
+      "topic": "friendship",
+      "text": "How have you turned a pleasant acquaintance into an actual friendship?"
+    },
+    {
+      "id": "seed-friendship-02",
+      "topic": "friendship",
+      "text": "If groups leave you uncomfortable but you enjoy one-to-one conversation, how do you meet friends?"
+    },
+    {
+      "id": "seed-friendship-03",
+      "topic": "friendship",
+      "text": "What helped you make friends after moving somewhere you knew nobody?"
+    },
+    {
+      "id": "seed-friendship-04",
+      "topic": "friendship",
+      "text": "How do you approach a friendship when you are almost always the one making plans?"
+    },
+    {
+      "id": "seed-friendship-05",
+      "topic": "friendship",
+      "text": "Have you reconnected with a friend after a long silence? What helped you send that first message?"
+    },
+    {
+      "id": "seed-affection-01",
+      "topic": "affection",
+      "text": "How do you let someone know you would appreciate a hug?"
+    },
+    {
+      "id": "seed-affection-02",
+      "topic": "affection",
+      "text": "When you miss everyday affection more than dating, what helps you find connection?"
+    },
+    {
+      "id": "seed-affection-03",
+      "topic": "affection",
+      "text": "What has helped you feel comfortable receiving affection without feeling you owe something back?"
+    },
+    {
+      "id": "seed-affection-04",
+      "topic": "affection",
+      "text": "How have you talked about wanting affectionate touch that is not an invitation to sex?"
+    },
+    {
+      "id": "seed-affection-05",
+      "topic": "affection",
+      "text": "If you grew up with very little affection, what has helped you become more comfortable with it?"
+    },
+    {
+      "id": "seed-vulnerability-01",
+      "topic": "vulnerability",
+      "text": "When someone asks how you are, what helps you say more than “fine”?"
+    },
+    {
+      "id": "seed-vulnerability-02",
+      "topic": "vulnerability",
+      "text": "Have you ever regretted opening up simply because you felt exposed afterward? What helped?"
+    },
+    {
+      "id": "seed-vulnerability-03",
+      "topic": "vulnerability",
+      "text": "How do you decide who has earned enough trust to hear something personal?"
+    },
+    {
+      "id": "seed-vulnerability-04",
+      "topic": "vulnerability",
+      "text": "If you are usually the dependable one, how do you let others see that you need support too?"
+    },
+    {
+      "id": "seed-vulnerability-05",
+      "topic": "vulnerability",
+      "text": "What helps you stay in a conversation when your instinct is to make a joke or change the subject?"
+    },
+    {
+      "id": "seed-boundaries-01",
+      "topic": "boundaries",
+      "text": "What has helped you say no without giving a long explanation?"
+    },
+    {
+      "id": "seed-boundaries-02",
+      "topic": "boundaries",
+      "text": "How do you notice that you have agreed to something mainly to avoid disappointing someone?"
+    },
+    {
+      "id": "seed-boundaries-03",
+      "topic": "boundaries",
+      "text": "Have you changed your mind after saying yes? How did you communicate it?"
+    },
+    {
+      "id": "seed-boundaries-04",
+      "topic": "boundaries",
+      "text": "How do you handle the guilt that can follow setting a reasonable boundary?"
+    },
+    {
+      "id": "seed-boundaries-05",
+      "topic": "boundaries",
+      "text": "What helps you respond when someone says no and you feel rejected?"
+    },
+    {
+      "id": "seed-dating-01",
+      "topic": "dating",
+      "text": "How do you stop a promising new connection from taking over your thoughts?"
+    },
+    {
+      "id": "seed-dating-02",
+      "topic": "dating",
+      "text": "What helps you keep your sense of worth when someone stops replying?"
+    },
+    {
+      "id": "seed-dating-03",
+      "topic": "dating",
+      "text": "How have you told someone you want more than occasional contact without apologizing for it?"
+    },
+    {
+      "id": "seed-dating-04",
+      "topic": "dating",
+      "text": "When dating starts to feel like an audition, what helps you feel like yourself again?"
+    },
+    {
+      "id": "seed-dating-05",
+      "topic": "dating",
+      "text": "How do you distinguish enjoying someone from being relieved that they chose you?"
+    },
+    {
+      "id": "seed-relationships-01",
+      "topic": "relationships",
+      "text": "How have you brought up feeling lonely within a relationship?"
+    },
+    {
+      "id": "seed-relationships-02",
+      "topic": "relationships",
+      "text": "What has helped you reconnect when most of your conversations have become practical arrangements?"
+    },
+    {
+      "id": "seed-relationships-03",
+      "topic": "relationships",
+      "text": "When one person wants to talk immediately and the other needs space, what has worked for you?"
+    },
+    {
+      "id": "seed-relationships-04",
+      "topic": "relationships",
+      "text": "How do you ask for more affection without making your partner feel criticized?"
+    },
+    {
+      "id": "seed-relationships-05",
+      "topic": "relationships",
+      "text": "After an argument, what small gesture has helped you begin finding your way back to each other?"
+    },
+    {
+      "id": "seed-body-aging-01",
+      "topic": "body_aging",
+      "text": "What helps you feel comfortable being seen when you are self-conscious about your body?"
+    },
+    {
+      "id": "seed-body-aging-02",
+      "topic": "body_aging",
+      "text": "How have you handled feeling overlooked as you get older?"
+    },
+    {
+      "id": "seed-body-aging-03",
+      "topic": "body_aging",
+      "text": "When comparing yourself with other men leaves you feeling inadequate, what helps you step back?"
+    },
+    {
+      "id": "seed-body-aging-04",
+      "topic": "body_aging",
+      "text": "Has your idea of what makes you attractive changed with age or experience?"
+    },
+    {
+      "id": "seed-body-aging-05",
+      "topic": "body_aging",
+      "text": "What has helped you enjoy movement or being in your body without turning it into another improvement project?"
+    },
+    {
+      "id": "seed-belonging-01",
+      "topic": "belonging",
+      "text": "Have you felt out of place in a community you expected to belong to? Where did you find a better fit?"
+    },
+    {
+      "id": "seed-belonging-02",
+      "topic": "belonging",
+      "text": "What helps you enter a social space where everyone seems to know one another already?"
+    },
+    {
+      "id": "seed-belonging-03",
+      "topic": "belonging",
+      "text": "How do you handle the feeling that you have to be more entertaining to be included?"
+    },
+    {
+      "id": "seed-belonging-04",
+      "topic": "belonging",
+      "text": "Have you found meaningful friendship with men whose lives look very different from yours? How did it start?"
+    },
+    {
+      "id": "seed-belonging-05",
+      "topic": "belonging",
+      "text": "What has someone done that made you feel welcome without putting you on the spot?"
+    },
+    {
+      "id": "seed-sexuality-shame-01",
+      "topic": "sexuality_shame",
+      "text": "What has helped you speak about desire without immediately feeling embarrassed?"
+    },
+    {
+      "id": "seed-sexuality-shame-02",
+      "topic": "sexuality_shame",
+      "text": "How have you made room for parts of your sexuality that you once felt you had to hide?"
+    },
+    {
+      "id": "seed-sexuality-shame-03",
+      "topic": "sexuality_shame",
+      "text": "When old messages about sex still show up in your thoughts, what helps you respond more kindly to yourself?"
+    },
+    {
+      "id": "seed-sexuality-shame-04",
+      "topic": "sexuality_shame",
+      "text": "What has helped you tell a partner that you are unsure what you enjoy and would like to explore slowly?"
+    },
+    {
+      "id": "seed-sexuality-shame-05",
+      "topic": "sexuality_shame",
+      "text": "How do you stay connected to your own comfort when you worry about disappointing someone sexually?"
+    },
+    {
+      "id": "seed-receiving-care-01",
+      "topic": "receiving_care",
+      "text": "What helps you accept an offer of help without immediately trying to repay it?"
+    },
+    {
+      "id": "seed-receiving-care-02",
+      "topic": "receiving_care",
+      "text": "How do you respond to a compliment when your first instinct is to dismiss it?"
+    },
+    {
+      "id": "seed-receiving-care-03",
+      "topic": "receiving_care",
+      "text": "If you are used to caring for everyone else, how do you figure out what you need?"
+    },
+    {
+      "id": "seed-receiving-care-04",
+      "topic": "receiving_care",
+      "text": "What has helped you believe someone enjoys your company even when you are not doing anything for them?"
+    },
+    {
+      "id": "seed-receiving-care-05",
+      "topic": "receiving_care",
+      "text": "How have you asked a friend to listen when you did not want advice or solutions?"
+    },
+    {
+      "id": "seed-change-loss-01",
+      "topic": "change_loss",
+      "text": "After a breakup, what helped you rebuild the ordinary routines you used to share?"
+    },
+    {
+      "id": "seed-change-loss-02",
+      "topic": "change_loss",
+      "text": "How have you made room for new friendships when old ones have drifted away?"
+    },
+    {
+      "id": "seed-change-loss-03",
+      "topic": "change_loss",
+      "text": "When a major life change leaves you unsure who you are outside your old role, what helps?"
+    },
+    {
+      "id": "seed-change-loss-04",
+      "topic": "change_loss",
+      "text": "What has helped you stay connected to people when you have less energy to socialize than before?"
+    },
+    {
+      "id": "seed-change-loss-05",
+      "topic": "change_loss",
+      "text": "When you miss someone who used to be your first call, who or what helps you through that moment?"
+    }
+  ]
+}
