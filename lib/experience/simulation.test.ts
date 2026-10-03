@@ -117,6 +117,8 @@ describe(`offline simulation (${DAYS} days, hourly ticks)`, () => {
       expect(new Set(pairs).size).toBe(pairs.length);
 
       // 3. Single-question waves: one question per wave, at most 25% of members.
+      // Qualified members vary over the run (opt-outs, suspensions), so the
+      // cap is at most 25% of the starting membership.
       const waveLimit = Math.floor((sim.members.length * store.settings.maxWaveSharePercent) / 100);
       const perWave = new Map<string, { count: number; questions: Set<string> }>();
       for (const inv of store.invitations) {

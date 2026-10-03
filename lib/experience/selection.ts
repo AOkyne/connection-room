@@ -8,7 +8,7 @@
 // - member questions before seeds; within a tier, spread the wave across
 //   questions (fewest assigned this wave first), then prefer unanswered /
 //   lightly answered, then questions that have had less attention;
-// - at most `maxWaveSharePercent` of all members per wave; and EITHER one
+// - at most `maxWaveSharePercent` of QUALIFIED members per wave; and EITHER one
 //   question for the whole wave (singleQuestionPerWave, the default) OR a
 //   spread across questions with at most `perQuestionCap` each;
 // - members ordered fairly: never invited first, then longest since their
@@ -178,8 +178,12 @@ export function planWave(input: PlanningInput): WavePlan {
     return stableHash(`${input.waveId}:order:${a.userId}`) - stableHash(`${input.waveId}:order:${b.userId}`);
   });
 
-  // 3. Assign, up to the wave's share of the whole membership.
-  const waveLimit = Math.max(1, Math.floor((input.members.length * settings.maxWaveSharePercent) / 100));
+  // 3. Assign, up to the wave's share of QUALIFIED members: those who could
+  // receive an invitation at all (complete profile, verified email, active
+  // account, not opted out/paused, notification emails on, not suppressed).
+  // Incomplete profiles and opted-out members don't inflate the wave.
+  const qualifiedCount = input.members.filter((m) => !memberBlock(m, input.suppressedEmails)).length;
+  const waveLimit = Math.max(1, Math.floor((qualifiedCount * settings.maxWaveSharePercent) / 100));
   const assignedThisWave = new Map<string, number>();
   const tier = (q: Question) => (q.source === "member" ? 0 : 1);
 

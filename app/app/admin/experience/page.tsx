@@ -237,7 +237,7 @@ export default function AdminExperiencePage() {
                 <input type="number" min={1} max={50} value={form.perQuestionCap} onChange={(e) => setForm({ ...form, perQuestionCap: e.target.value })} className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg" />
               </label>
               <label className="space-y-1">
-                <span className="block font-medium text-[#1a0f0a]">Max share of members per wave (%)</span>
+                <span className="block font-medium text-[#1a0f0a]">Max share of qualified members per wave (%)</span>
                 <input type="number" min={1} max={100} value={form.maxWaveSharePercent} onChange={(e) => setForm({ ...form, maxWaveSharePercent: e.target.value })} className="w-full px-3 py-2 border border-[#e8ddd2] rounded-lg" />
               </label>
               <label className="space-y-1">

@@ -350,3 +350,17 @@ describe("single question per wave", () => {
     expect(store.invitations.map((i) => i.userId).sort()).toEqual(["m001", "m002", "m003", "m004", "m005"]);
   });
 });
+
+describe("wave size counts qualified members only", () => {
+  it("bases the 25% on members who can receive invitations, not incomplete profiles", async () => {
+    const incomplete = Array.from({ length: 20 }, (_, i) => makeMember(`inc${i}`, { completedOnboarding: false }));
+    const store = makeStore(launch, {
+      members: [...members(20), ...incomplete],
+      questions: seeds(5),
+      settings: { maxWaveSharePercent: 25, singleQuestionPerWave: true },
+    });
+    await runExperienceTick(store, new FakeMailer(), launch);
+    // 25% of the 20 qualified members = 5 (not 25% of all 40 = 10).
+    expect(store.invitations.length).toBe(5);
+  });
+});
