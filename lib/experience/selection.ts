@@ -187,9 +187,11 @@ export function planWave(input: PlanningInput): WavePlan {
   const assignedThisWave = new Map<string, number>();
   const tier = (q: Question) => (q.source === "member" ? 0 : 1);
 
-  // "Same question for the whole wave": pick the ONE question the most
-  // members can actually receive (up to the wave limit); member questions
-  // win ties, then the least-answered, then the least-sent. Members who
+  // "Same question for the whole wave": member questions always come first
+  // -- any member question that at least one member can receive beats every
+  // community prompt. Within the same kind, pick the one the most members
+  // can receive (up to the wave limit), then the least-answered, then the
+  // least-sent. Members who
   // can't get it (already answered / invited / author / topic) skip this
   // wave. The per-question cap doesn't apply -- the wave limit does.
   let questionPool = eligibleQuestions;
@@ -208,8 +210,8 @@ export function planWave(input: PlanningInput): WavePlan {
       }
       if (reach === 0) continue;
       const key = [
-        -reach,
         tier(q),
+        -reach,
         input.responseCounts.get(q.id) || 0,
         input.invitationCounts.get(q.id) || 0,
         stableHash(`${input.waveId}:${q.id}`),

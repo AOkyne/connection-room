@@ -335,6 +335,19 @@ describe("single question per wave", () => {
     expect(new Set(store.invitations.map((i) => i.questionId)).size).toBe(1);
   });
 
+  it("a member question supersedes community prompts even if fewer members can receive it", async () => {
+    const store = makeStore(launch, {
+      members: members(10),
+      questions: [makeSeed("s0"), makeMemberQuestion("mq", "m000")],
+      settings: { maxWaveSharePercent: 100, singleQuestionPerWave: true },
+    });
+    for (const u of ["m001", "m002", "m003", "m004", "m005", "m006"]) store.addAnswer("mq", u);
+    await runExperienceTick(store, new FakeMailer(), launch);
+    // Only 3 members can take mq (author m000 and 6 answerers excluded), but it still wins.
+    expect(new Set(store.invitations.map((i) => i.questionId))).toEqual(new Set(["mq"]));
+    expect(store.invitations.length).toBe(3);
+  });
+
   it("picks the question the most members can receive, and skips members who can't get it", async () => {
     const chose = (id: string) => makeMember(id, { prefs: { optedOut: false, paused: false, topics: ["dating"], timezone: null } });
     const store = makeStore(launch, {
