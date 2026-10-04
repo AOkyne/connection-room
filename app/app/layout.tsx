@@ -7,7 +7,7 @@ import { getProfile, type Profile } from "@/lib/data/profiles";
 import { supabase } from "@/lib/supabase/client";
 import { recordAppVisit, getTotalNewPostCount } from "@/lib/data/spaces";
 import { Button } from "@/components/Button";
-import { IconHome, IconJourney, IconConnectionsNav, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming, IconReflection, IconWelcome } from "@/components/Icons";
+import { IconHome, IconJourney, IconConnectionsNav, IconBeenThere, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming, IconReflection, IconWelcome } from "@/components/Icons";
 import { BugReportWidget } from "@/components/BugReportWidget";
 import { PhotoRequirementPrompt } from "@/components/PhotoRequirementPrompt";
 import Link from "next/link";
@@ -153,7 +153,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const navItems = [
     { href: "/app", label: "Home", icon: IconHome },
     { href: "/app/spaces", label: "Spaces", icon: null },
-    { href: "/app/experience", label: "Been There", icon: IconConnectionsNav },
+    { href: "/app/experience", label: "Been There", icon: IconBeenThere },
     { href: "/app/journey", label: "My Journey", icon: IconJourney },
     { href: "/app/connections", label: "Connections", icon: IconConnectionsNav },
     { href: "/app/articles", label: "Articles", icon: IconReflection },

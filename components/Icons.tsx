@@ -234,6 +234,16 @@ export function IconConnectionsNav({ className = "", size = 24 }: IconProps) {
   );
 }
 
+// Been There - two overlapping speech bubbles (members sharing experience)
+export function IconBeenThere({ className = "", size = 24 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} style={{ color: "currentColor" }}>
+      <path d="M14 9V5.5C14 4.67 13.33 4 12.5 4H4.5C3.67 4 3 4.67 3 5.5V11C3 11.83 3.67 12.5 4.5 12.5H5.5V15L8.5 12.5H10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <path d="M11.5 9H19.5C20.33 9 21 9.67 21 10.5V16C21 16.83 20.33 17.5 19.5 17.5H18.5V20L15.5 17.5H11.5C10.67 17.5 10 16.83 10 16V10.5C10 9.67 10.67 9 11.5 9Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+    </svg>
+  );
+}
+
 // Profile - person
 export function IconProfileNav({ className = "", size = 24 }: IconProps) {
   return (
