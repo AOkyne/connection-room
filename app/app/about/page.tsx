@@ -22,12 +22,12 @@ const LINKS = [
     description: "The vision behind The Connection Room brand.",
   },
   {
-    href: "https://www.trevorjamesla.com/terms-of-service",
+    href: "/terms",
     label: "Terms of Service",
     description: "The legal terms that govern using The Connection Room.",
   },
   {
-    href: "https://www.trevorjamesla.com/privacy-policy",
+    href: "/privacy",
     label: "Privacy Policy",
     description: "How your information is collected, used, and protected.",
   },

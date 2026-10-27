@@ -228,6 +228,11 @@ export default function AdminPage() {
             💬 Your Experience Wanted
           </Button>
         </Link>
+        <Link href="/app/admin/legal">
+          <Button variant="outline" size="sm">
+            ⚖️ Terms &amp; Privacy
+          </Button>
+        </Link>
         <Link href="/app/admin/polls">
           <Button variant="outline" size="sm">
             📊 Poll Results
