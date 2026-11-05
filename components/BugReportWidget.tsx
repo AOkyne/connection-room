@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { usePathname } from "next/navigation";
 
 interface BugReportWidgetProps {
   // Pre-fills the submitter fields when the widget is mounted somewhere a
@@ -18,6 +19,8 @@ export function BugReportWidget({ defaultName, defaultEmail }: BugReportWidgetPr
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
   const [screenshotError, setScreenshotError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // The Lento Room is a separate, quieter space with its own look.
+  const pathname = usePathname();
 
   const MAX_SCREENSHOT_SIZE_MB = 5;
   const MAX_SCREENSHOT_SIZE_BYTES = MAX_SCREENSHOT_SIZE_MB * 1024 * 1024;
@@ -125,6 +128,8 @@ export function BugReportWidget({ defaultName, defaultEmail }: BugReportWidgetPr
 
   const notesLength = formData.notes.length;
   const charsRemaining = 4000 - notesLength;
+
+  if (pathname?.startsWith("/lento-room")) return null;
 
   return (
     <>
