@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { AutoGrowTextarea } from "@/components/AutoGrowTextarea";
+import { LentoLogo } from "./LentoLogo";
 import type { PublicMessage } from "@/lib/lento/room";
 import {
   AGREEMENTS,
@@ -215,14 +216,17 @@ export function LentoRoom({ host = false }: { host?: boolean }) {
     <div className="min-h-dvh" style={{ background: C.ivory, color: C.ink }}>
       <header className="sticky top-0 z-20 border-b" style={{ background: C.chocolate, borderColor: C.chocolate }}>
         <div className="mx-auto max-w-2xl px-4 py-3 flex items-center justify-between gap-3">
-          <div>
-            <h1 className="text-lg font-semibold" style={{ color: C.ivory, fontFamily: "var(--font-serif)" }}>
-              The Lento Room
-            </h1>
-            <p className="text-xs" style={{ color: C.caramel }}>
-              You’re here as {me.displayName}
-              {me.isHost ? " · Host" : ""}
-            </p>
+          <div className="flex items-center gap-3 min-w-0">
+            <LentoLogo variant="light" width={64} className="shrink-0" />
+            <div className="min-w-0">
+              <h1 className="text-lg font-semibold" style={{ color: C.ivory, fontFamily: "var(--font-serif)" }}>
+                The Lento Room
+              </h1>
+              <p className="text-xs" style={{ color: C.caramel }}>
+                You’re here as {me.displayName}
+                {me.isHost ? " · Host" : ""}
+              </p>
+            </div>
           </div>
           <div className="flex gap-1 text-sm">
             <button type="button" onClick={() => setPanel(panel === "agreements" ? null : "agreements")} className="px-2.5 py-1.5 rounded" style={{ color: C.ivory }}>
@@ -280,6 +284,7 @@ export function LentoRoom({ host = false }: { host?: boolean }) {
               message={m}
               open={openThread === m.id}
               onToggleThread={() => setOpenThread(openThread === m.id ? null : m.id)}
+              onOpenThread={() => setOpenThread(m.id)}
               onChanged={() => loadLatest("newer")}
             />
           </div>
@@ -300,9 +305,10 @@ export function LentoRoom({ host = false }: { host?: boolean }) {
 
 // ---------------------------------------------------------------- pieces
 
-function Frame({ children }: { children: React.ReactNode }) {
+function Frame({ children, logo = "plain" }: { children: React.ReactNode; logo?: "plain" | "tagline" }) {
   return (
-    <div className="min-h-dvh flex items-center justify-center px-4" style={{ background: C.ivory, color: C.ink }}>
+    <div className="min-h-dvh flex flex-col items-center justify-center gap-6 px-4 py-10" style={{ background: C.ivory, color: C.ink }}>
+      <LentoLogo variant={logo} width={logo === "tagline" ? 240 : 150} priority />
       <div className="max-w-md w-full rounded-2xl border p-6 space-y-4" style={{ background: C.card, borderColor: C.hairline }}>
         {children}
       </div>
@@ -380,7 +386,7 @@ function Welcome({ api, suggested, onDone }: { api: Fetcher; suggested: string |
   };
 
   return (
-    <Frame>
+    <Frame logo={step === 0 ? "tagline" : "plain"}>
       {step === 0 && (
         <>
           <h1 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-serif)", color: C.chocolate }}>
@@ -703,15 +709,24 @@ function MessageCard({
   message: m,
   open,
   onToggleThread,
+  onOpenThread,
   onChanged,
 }: {
   api: Fetcher;
   message: PublicMessage;
   open: boolean;
   onToggleThread: () => void;
+  onOpenThread: () => void;
   onChanged: () => void;
 }) {
   const isPrompt = m.kind === "prompt";
+  // Bumped after an answer is posted so an open thread reloads with it.
+  const [threadVersion, setThreadVersion] = useState(0);
+  const toggleLabel = open
+    ? isPrompt ? "Hide answers" : "Hide replies"
+    : m.replyCount > 0
+      ? `${m.replyCount} ${isPrompt ? (m.replyCount === 1 ? "answer" : "answers") : m.replyCount === 1 ? "reply" : "replies"}`
+      : isPrompt ? "" : "Reply";
   return (
     <Card tone={isPrompt ? "prompt" : "card"}>
       <div className="space-y-2.5">
@@ -734,20 +749,83 @@ function MessageCard({
         ) : (
           <MessageBody m={m} />
         )}
+        {isPrompt && (
+          <PromptAnswer
+            api={api}
+            id={m.id}
+            onPosted={() => {
+              setThreadVersion((v) => v + 1);
+              onOpenThread();
+              onChanged();
+            }}
+          />
+        )}
         {!m.deleted && <Reactions key={`${m.id}:${m.myReactions.join()}:${Object.values(m.reactions).join()}`} api={api} m={m} onChanged={onChanged} />}
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <button type="button" onClick={onToggleThread} className="text-sm font-medium" style={{ color: C.chocolate }}>
-            {open ? "Hide replies" : m.replyCount > 0 ? `${m.replyCount} ${m.replyCount === 1 ? "reply" : "replies"}` : isPrompt ? "Join the conversation" : "Reply"}
-          </button>
-          <OwnActions api={api} m={m} onChanged={onChanged} />
-        </div>
-        {open && <Thread api={api} id={m.id} onChanged={onChanged} />}
+        {(toggleLabel || !isPrompt) && (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            {toggleLabel ? (
+              <button type="button" onClick={onToggleThread} className="text-sm font-medium" style={{ color: C.chocolate }}>
+                {toggleLabel}
+              </button>
+            ) : (
+              <span />
+            )}
+            <OwnActions api={api} m={m} onChanged={onChanged} />
+          </div>
+        )}
+        {open && <Thread key={threadVersion} api={api} id={m.id} onChanged={onChanged} composer={!isPrompt} />}
       </div>
     </Card>
   );
 }
 
-function Thread({ api, id, onChanged }: { api: Fetcher; id: string; onChanged: () => void }) {
+/** The answer box shown right under a prompt's question. */
+function PromptAnswer({ api, id, onPosted }: { api: Fetcher; id: string; onPosted: () => void }) {
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const send = async () => {
+    setBusy(true);
+    setError("");
+    const res = await api<{ error?: string }>("/api/lento-room/messages", { body: { parentId: id, body: text } });
+    setBusy(false);
+    if (!res.ok) return setError(res.data.error || "Please try again.");
+    setText("");
+    onPosted();
+  };
+
+  return (
+    <div className="space-y-2">
+      <AutoGrowTextarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={2}
+        maxLength={4000}
+        placeholder="Write your answer"
+        aria-label="Write your answer"
+        className="w-full rounded-xl border px-3 py-2 text-[15px]"
+        style={{ borderColor: C.hairline, background: "#fff" }}
+      />
+      {error && <p className="text-sm text-red-700">{error}</p>}
+      {text.trim() && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={send}
+            className="rounded-full px-4 py-1.5 text-sm font-semibold disabled:opacity-40"
+            style={{ background: C.gold, color: C.chocolate }}
+          >
+            {busy ? "Sharing…" : "Share"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Thread({ api, id, onChanged, composer = true }: { api: Fetcher; id: string; onChanged: () => void; composer?: boolean }) {
   const [replies, setReplies] = useState<PublicMessage[] | null>(null);
   const [following, setFollowing] = useState(false);
   const [text, setText] = useState("");
@@ -796,29 +874,33 @@ function Thread({ api, id, onChanged }: { api: Fetcher; id: string; onChanged: (
           <OwnActions api={api} m={r} onChanged={load} />
         </div>
       ))}
-      <AutoGrowTextarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        rows={2}
-        maxLength={4000}
-        placeholder="Write a reply"
-        className="w-full rounded-xl border px-3 py-2 text-[15px]"
-        style={{ borderColor: C.hairline, background: "#fff" }}
-      />
+      {composer && (
+        <AutoGrowTextarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={2}
+          maxLength={4000}
+          placeholder="Write a reply"
+          className="w-full rounded-xl border px-3 py-2 text-[15px]"
+          style={{ borderColor: C.hairline, background: "#fff" }}
+        />
+      )}
       {error && <p className="text-sm text-red-700">{error}</p>}
       <div className="flex items-center justify-between gap-2">
         <button type="button" onClick={toggleFollow} className="text-xs underline" style={{ color: C.muted }}>
           {following ? "Following this conversation" : "Follow this conversation"}
         </button>
-        <button
-          type="button"
-          disabled={busy || !text.trim()}
-          onClick={send}
-          className="rounded-full px-4 py-1.5 text-sm font-semibold disabled:opacity-40"
-          style={{ background: C.gold, color: C.chocolate }}
-        >
-          {busy ? "Sending…" : "Reply"}
-        </button>
+        {composer && (
+          <button
+            type="button"
+            disabled={busy || !text.trim()}
+            onClick={send}
+            className="rounded-full px-4 py-1.5 text-sm font-semibold disabled:opacity-40"
+            style={{ background: C.gold, color: C.chocolate }}
+          >
+            {busy ? "Sending…" : "Reply"}
+          </button>
+        )}
       </div>
     </div>
   );
