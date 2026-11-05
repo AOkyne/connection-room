@@ -7,40 +7,10 @@
 // frequency or a partner's satisfaction as a measure of success; nothing
 // that needs a particular Lento lesson or season.
 
-export type PromptSlot = "weekly" | "midweek" | "learning";
+import type { PromptCategory, PromptSlot } from "./prompt-labels";
 
-export const PROMPT_CATEGORIES = [
-  "performance-anxiety",
-  "overthinking",
-  "body-awareness",
-  "shame-self-acceptance",
-  "partner-communication",
-  "pleasure-without-pressure",
-  "vulnerability",
-  "setbacks-self-compassion",
-  "intimacy-connection",
-  "humor-everyday",
-] as const;
-export type PromptCategory = (typeof PROMPT_CATEGORIES)[number];
-
-export const CATEGORY_LABELS: Record<PromptCategory, string> = {
-  "performance-anxiety": "Performance anxiety",
-  overthinking: "Overthinking",
-  "body-awareness": "Body awareness",
-  "shame-self-acceptance": "Shame and self-acceptance",
-  "partner-communication": "Partner communication",
-  "pleasure-without-pressure": "Pleasure without pressure",
-  vulnerability: "Emotional vulnerability",
-  "setbacks-self-compassion": "Setbacks and self-compassion",
-  "intimacy-connection": "Intimacy and connection",
-  "humor-everyday": "Humor, curiosity and everyday life",
-};
-
-export const SLOT_LABELS: Record<PromptSlot, string> = {
-  weekly: "The Weekly Conversation",
-  midweek: "Midweek Check-In",
-  learning: "Something I’m Learning",
-};
+export { CATEGORY_LABELS, PROMPT_CATEGORIES, SLOT_LABELS } from "./prompt-labels";
+export type { PromptCategory, PromptSlot } from "./prompt-labels";
 
 export interface SeedPrompt {
   seedId: string;

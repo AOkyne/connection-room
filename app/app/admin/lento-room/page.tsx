@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase/client";
 import { Card } from "@/components/Card";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { LoadingScreen } from "@/components/LoadingScreen";
-import { CATEGORY_LABELS, SLOT_LABELS, type PromptCategory, type PromptSlot } from "@/lib/lento/prompt-seed";
+import { CATEGORY_LABELS, SLOT_LABELS, type PromptCategory, type PromptSlot } from "@/lib/lento/prompt-labels";
 
 // Lento Room admin: overview (aggregates only), schedule, moderation, the
 // prompt bank and privacy-conscious entry diagnostics. Confirmations are
