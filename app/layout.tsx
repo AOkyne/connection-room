@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Inter, Playfair_Display, Dancing_Script } from "next/font/google";
 import { appConfig } from "@/lib/config";
 import { BugReportWidget } from "@/components/BugReportWidget";
+import { InstallPromptListener } from "@/components/install/InstallPromptListener";
 import "./globals.css";
 import "./tcr-content.css";
 
@@ -47,12 +48,23 @@ export const metadata: Metadata = {
     "couples",
     "coaching",
   ],
-  viewport: "width=device-width, initial-scale=1",
   authors: [{ name: "Trevor James" }],
   icons: {
     icon: "/favicon.ico",
-    apple: "/trevor-james-favicon.png",
+    apple: "/icons/apple-touch-icon.png",
   },
+  // iPhone "Add to Home Screen": opens full-screen with this name under the icon.
+  appleWebApp: {
+    capable: true,
+    title: "Connection Room",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#faf7f2",
 };
 
 export default function RootLayout({
@@ -65,12 +77,10 @@ export default function RootLayout({
       lang="en"
       className={`${cormorant.variable} ${inter.variable} ${playfair.variable} ${dancingScript.variable} h-full antialiased`}
     >
-      <head>
-        <meta name="theme-color" content="#c9a876" />
-      </head>
       <body className="min-h-full flex flex-col bg-[#fdfbf7] text-[#1a1714]">
         {children}
         <BugReportWidget />
+        <InstallPromptListener />
       </body>
     </html>
   );

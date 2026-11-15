@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { GetAppButton } from "@/components/install/GetAppButton";
 
 export default function LandingPage() {
   return (
@@ -757,6 +758,64 @@ export default function LandingPage() {
           margin-top: 20px;
         }
 
+        /* Get the app buttons */
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .header-app {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: #FFFDF8;
+          background: var(--gold-deep);
+          border: 1px solid var(--gold-deep);
+          padding: 9px 16px;
+          border-radius: 999px;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+        .header-app:hover {
+          background: var(--gold);
+          border-color: var(--gold);
+        }
+        .btn-app {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          font-size: 1rem;
+          font-weight: 600;
+          color: var(--gold-deep);
+          background: var(--card);
+          border: 1.5px solid var(--gold);
+          padding: 13px 30px;
+          border-radius: 999px;
+          cursor: pointer;
+          transition: background 0.2s, color 0.2s;
+        }
+        .btn-app:hover {
+          background: var(--gold-deep);
+          border-color: var(--gold-deep);
+          color: #FFFDF8;
+        }
+        .founding-card .founding-app {
+          margin-top: 14px;
+        }
+        footer .footer-app {
+          font-weight: 600;
+          font-size: 0.95rem;
+        }
+        /* Small phones: the hero's Get the app button is on the first screen */
+        @media (max-width: 600px) {
+          .header-app {
+            display: none;
+          }
+        }
+
         /* footer */
         footer {
           border-top: 1px solid var(--line);
@@ -818,7 +877,10 @@ export default function LandingPage() {
             <img src="/connection-room-logo.svg" alt="The Connection Room" />
             <span className="name">The Connection Room<span className="by">by Trevor James</span></span>
           </Link>
-          <Link className="header-cta" href="/auth?mode=member">Enter the Community</Link>
+          <div className="header-actions">
+            <GetAppButton variant="plain" className="header-app" />
+            <Link className="header-cta" href="/auth?mode=member">Enter the Community</Link>
+          </div>
         </div>
       </header>
 
@@ -837,6 +899,7 @@ export default function LandingPage() {
           </p>
           <div className="cta-row">
             <Link className="btn-primary" href="/auth?mode=member">Step Inside</Link>
+            <GetAppButton variant="plain" className="btn-app" />
             <a className="link-secondary" href="https://trevorjamesla.as.me/free-consult">Or talk to Trevor first &rarr;</a>
           </div>
           <p className="fine-print">Private beta. Joining takes about 90 seconds, roughly the time it takes to overthink a text.</p>
@@ -1062,6 +1125,7 @@ export default function LandingPage() {
           <div className="founding-card">
             <p className="serif">For men and couples who still believe queer connection can be sensual, honest, playful, tender, and <em>real.</em></p>
             <Link className="btn-primary" href="/auth?mode=member">Step Inside</Link><br />
+            <GetAppButton variant="plain" className="btn-app founding-app" label="Get the app on your phone" /><br />
             <a className="link-secondary" href="https://trevorjamesla.as.me/free-consult">Prefer to talk to Trevor first? Book a free Clarity Call &rarr;</a>
             <p className="fine-print">Private. Moderated. No unsolicited anything.</p>
           </div>
@@ -1071,6 +1135,7 @@ export default function LandingPage() {
       <footer>
         <div className="wrap">
           <p>The Connection Room is part of the <a href="https://www.trevorjamesla.com">Trevor James</a> ecosystem · Hollywood, Los Angeles</p>
+          <p style={{marginTop: '8px'}}><Link href="/get-app" className="footer-app">Get The Connection Room app on your phone</Link></p>
           <p style={{marginTop: '8px'}}>© 2026 Trevor James LA. A private community. What happens in the room stays in the room.</p>
         </div>
       </footer>

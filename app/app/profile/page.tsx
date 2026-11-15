@@ -22,6 +22,7 @@ import { FriendsInvited } from "@/components/invites/FriendsInvited";
 import { ProfileVisibilitySettings } from "@/components/members/ProfileVisibilitySettings";
 import { NotificationPreferencesSettings } from "@/components/members/NotificationPreferencesSettings";
 import { AccountDangerZone } from "@/components/members/AccountDangerZone";
+import { GetAppBanner } from "@/components/install/GetAppBanner";
 import { PhotoFramingEditor } from "@/components/members/PhotoFramingEditor";
 import { photoFocusStyle, withPhotoFocus } from "@/lib/utils/photo-focus";
 
@@ -477,6 +478,9 @@ export default function ProfilePage() {
         </p>
         <ProfileVisibilitySettings />
       </Card>
+
+      {/* Get the app (hidden inside the installed app) */}
+      <GetAppBanner dismissible={false} />
 
       {/* Notification Preferences */}
       <Card>

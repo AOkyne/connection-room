@@ -10,6 +10,7 @@ import { Button } from "@/components/Button";
 import { IconHome, IconJourney, IconConnectionsNav, IconBeenThere, IconProfileNav, IconAdmin, IconSpaces, IconUpcoming, IconReflection, IconWelcome } from "@/components/Icons";
 import { BugReportWidget } from "@/components/BugReportWidget";
 import { PhotoRequirementPrompt } from "@/components/PhotoRequirementPrompt";
+import { GetAppButton } from "@/components/install/GetAppButton";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -203,12 +204,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
               <img
                 src="/connection-room-logo.svg"
                 alt="The Connection Room"
-                className="h-20 w-auto sm:h-28 lg:h-32"
+                className="h-14 w-auto sm:h-28 lg:h-32"
               />
             </Link>
             {session && (
-              <div className="flex items-center gap-4">
-                <span className="text-sm text-[#1a0f0a]">{session.name}</span>
+              <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+                <GetAppButton variant="pill" shortLabel="App" />
+                <span className="hidden sm:inline text-sm text-[#1a0f0a]">{session.name}</span>
                 <Button variant="ghost" size="sm" onClick={handleLogout}>
                   Sign Out
                 </Button>
@@ -251,7 +253,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
           )}
 
           {/* About: Philosophy, House Rules, Brand Vision, Terms, Privacy */}
-          <div className="border-t border-[#e8e3db] mt-4 pt-4">
+          <div className="border-t border-[#e8e3db] mt-4 pt-4 space-y-2">
+            <GetAppButton variant="sidebar" />
             <Link
               href="/app/about"
               className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#6b6460] hover:bg-[#f8f6f2] transition-colors"

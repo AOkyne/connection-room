@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { GetAppBanner } from "@/components/install/GetAppBanner";
 import { getProfile, type Profile } from "@/lib/data/profiles";
 import { getSpaces, sortSpacesByPreference } from "@/lib/data/spaces";
 import { DashboardTodaySection } from "@/components/dashboard/DashboardTodaySection";
@@ -106,6 +107,9 @@ export default function AppHome() {
 
       {/* Welcome back -- surfaces the same unread count already shown in the nav badges */}
       <WelcomeBackBanner firstName={profile.firstName} />
+
+      {/* Get the app (hidden inside the installed app; "Not now" hides it for two weeks) */}
+      <GetAppBanner />
 
       {/* THREE-TIER DASHBOARD HIERARCHY */}
 
