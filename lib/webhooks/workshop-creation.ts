@@ -1,3 +1,4 @@
+import { getAuthHeader } from "./auth-header";
 // Workshop creation webhook integration
 // Fires when a new event is created to automatically create a matching workshop,
 // via our own /api/webhooks/workshop-ops proxy which holds the real API key server-side.
@@ -24,9 +25,15 @@ export async function sendWorkshopCreationWebhook(
   payload: WorkshopCreationPayload
 ): Promise<WorkshopCreationResponse | null> {
   try {
+    const authHeader = await getAuthHeader();
+    if (!authHeader) {
+      console.warn("[Workshop Webhook] Skipped: no signed-in session");
+      return null;
+    }
+
     const response = await fetch(PROXY_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeader },
       body: JSON.stringify({ action: "create", payload }),
     });
 

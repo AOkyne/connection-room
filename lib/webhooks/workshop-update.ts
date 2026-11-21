@@ -1,3 +1,4 @@
+import { getAuthHeader } from "./auth-header";
 // Workshop update webhook integration
 // Fires when an event is updated to sync changes to the workshop,
 // via our own /api/webhooks/workshop-ops proxy which holds the real API key server-side.
@@ -27,9 +28,15 @@ export async function sendWorkshopUpdateWebhook(
     if (payload.location !== undefined) body.location = payload.location;
     if (payload.description !== undefined) body.description = payload.description;
 
+    const authHeader = await getAuthHeader();
+    if (!authHeader) {
+      console.warn("[Workshop Webhook] Skipped: no signed-in session");
+      return false;
+    }
+
     const response = await fetch(PROXY_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeader },
       body: JSON.stringify({ action: "update", payload: body }),
     });
 

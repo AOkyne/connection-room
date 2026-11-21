@@ -1,3 +1,4 @@
+import { getAuthHeader } from "./auth-header";
 // Workshop deletion webhook integration
 // Fires when an event is deleted to remove the matching workshop,
 // via our own /api/webhooks/workshop-ops proxy which holds the real API key server-side.
@@ -6,9 +7,15 @@ const PROXY_URL = "/api/webhooks/workshop-ops";
 
 export async function sendWorkshopDeletionWebhook(eventId: string): Promise<boolean> {
   try {
+    const authHeader = await getAuthHeader();
+    if (!authHeader) {
+      console.warn("[Workshop Webhook] Skipped: no signed-in session");
+      return false;
+    }
+
     const response = await fetch(PROXY_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...authHeader },
       body: JSON.stringify({ action: "delete", payload: { eventId } }),
     });
 
