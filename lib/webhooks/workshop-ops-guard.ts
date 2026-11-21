@@ -95,11 +95,43 @@ export function cleanPayload(action: ProxyAction, raw: unknown): Checked {
   };
 }
 
-/** A non-admin may only send registrations whose email is their own account email. */
-export function registrationsAllowed(isAdmin: boolean, callerEmail: string | null | undefined, payload: Record<string, unknown>): boolean {
-  if (isAdmin) return true;
-  const mine = (callerEmail ?? "").trim().toLowerCase();
-  if (!mine) return false;
-  const regs = Array.isArray(payload.registrations) ? (payload.registrations as Array<{ email?: string }>) : [];
-  return regs.length > 0 && regs.every((r) => (r.email ?? "").toLowerCase() === mine);
+/**
+ * For a non-admin member the browser's registration list is NOT trusted. The browser sends the whole
+ * event's list (including other people), and could send anything. Instead the server looks up the
+ * member's own registration in the database and forwards just that. This pulls the event id (and the
+ * title and date, used only to find the right workshop) out of whatever the browser sent.
+ */
+export function memberRegistrationRequest(raw: unknown): { ok: true; eventId: string; eventTitle: string; eventDate: string } | { ok: false; error: string } {
+  if (!raw || typeof raw !== "object") return { ok: false, error: "Missing payload" };
+  const p = raw as Record<string, unknown>;
+  const eventId = str(p.eventId, 100);
+  if (!eventId) return { ok: false, error: "eventId is required" };
+  const eventDate = str(p.eventDate, 10) ?? "";
+  return { ok: true, eventId, eventTitle: str(p.eventTitle, 200) ?? "", eventDate: /^\d{4}-\d{2}-\d{2}$/.test(eventDate) ? eventDate : "" };
+}
+
+export interface OwnRegistrationRow {
+  id?: string | null;
+  name?: string | null;
+  email?: string | null;
+  status?: string | null;
+  registered_at?: string | null;
+}
+
+/** Builds the single registration Workshop Ops receives for a member, from their own database row. */
+export function ownRegistrationPayload(
+  req: { eventId: string; eventTitle: string; eventDate: string },
+  row: OwnRegistrationRow
+): Record<string, unknown> | null {
+  const status = (row.status ?? "").trim();
+  if (!REGISTRATION_STATUSES.has(status)) return null;
+  const email = (row.email ?? "").trim().toLowerCase();
+  const name = (row.name ?? "").trim().slice(0, 200);
+  if (!email && !name) return null;
+  return {
+    eventId: req.eventId,
+    eventTitle: req.eventTitle,
+    eventDate: req.eventDate,
+    registrations: [{ id: String(row.id ?? "").slice(0, 100), name, email: email.slice(0, 254), phone: "", status, registeredAt: String(row.registered_at ?? "").slice(0, 40) }],
+  };
 }

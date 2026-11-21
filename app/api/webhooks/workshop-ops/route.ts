@@ -5,7 +5,8 @@ import {
   PROXY_ENDPOINTS,
   cleanPayload,
   isProxyAction,
-  registrationsAllowed,
+  memberRegistrationRequest,
+  ownRegistrationPayload,
 } from "@/lib/webhooks/workshop-ops-guard";
 
 export const dynamic = "force-dynamic";
@@ -41,16 +42,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }
 
-    const checked = cleanPayload(action, body?.payload);
-    if (!checked.ok) {
-      return NextResponse.json({ error: checked.error }, { status: 400 });
-    }
+    let outgoing: Record<string, unknown>;
 
     if (action === "registrations" && !isAdmin) {
-      const { data: userData } = await auth.supabase.auth.admin.getUserById(auth.userId);
-      if (!registrationsAllowed(false, userData?.user?.email, checked.payload)) {
+      // Members: ignore the list the browser sent (it holds everyone's registrations and could be
+      // forged). Look up this member's own registration and send only that.
+      const reqInfo = memberRegistrationRequest(body?.payload);
+      if (!reqInfo.ok) {
+        return NextResponse.json({ error: reqInfo.error }, { status: 400 });
+      }
+      const { data: row } = await auth.supabase
+        .from("event_registrations")
+        .select("id, name, email, status, registered_at")
+        .eq("event_id", reqInfo.eventId)
+        .eq("profile_id", auth.userId)
+        .maybeSingle();
+      const own = row ? ownRegistrationPayload(reqInfo, row) : null;
+      if (!own) {
         return NextResponse.json({ error: "You can only send your own registration" }, { status: 403 });
       }
+      outgoing = own;
+    } else {
+      const checked = cleanPayload(action, body?.payload);
+      if (!checked.ok) {
+        return NextResponse.json({ error: checked.error }, { status: 400 });
+      }
+      outgoing = checked.payload;
     }
 
     const apiKey = process.env.WORKSHOP_API_KEY;
@@ -65,7 +82,7 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify(checked.payload),
+      body: JSON.stringify(outgoing),
     });
 
     const text = await upstream.text();
