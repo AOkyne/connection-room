@@ -7,6 +7,7 @@ import { getSession } from "@/lib/session";
 import { getAdminEvents, deleteEvent, cancelEvent, duplicateEvent, type Event } from "@/lib/admin/events";
 import { getEventCapacity, setEventCapacity, sendEventNotification } from "@/lib/admin/event-management";
 import {
+  getEventRegistrations,
   getAllEventRegistrations,
   getEventRegistrationStats,
   updateRegistrationStatus,
@@ -18,6 +19,7 @@ import { Button } from "@/components/Button";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { useToast } from "@/lib/hooks/useToast";
+import { resyncRegistrationsToWorkshopOps } from "@/lib/webhooks/resync";
 
 export default function AdminEventsPage() {
   const router = useRouter();
@@ -40,6 +42,7 @@ export default function AdminEventsPage() {
   const [capacity, setCapacity] = useState<number | undefined>(undefined);
   const [newCapacity, setNewCapacity] = useState<string>("");
   const [eventStats, setEventStats] = useState<any>(null);
+  const [resyncing, setResyncing] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -127,6 +130,30 @@ export default function AdminEventsPage() {
     setEventStats(stats);
     setNewCapacity(cap?.toString() || "");
     setShowRegistrants(true);
+  };
+
+  // Re-send everyone currently registered for this event to Workshop Ops (admin only).
+  const handleResyncToWorkshopOps = async () => {
+    if (!selectedEventId || resyncing) return;
+    const ev = events.find((e) => e.id === selectedEventId);
+    if (!ev || !ev.startAt) {
+      showToast("This event needs a date before it can be sent to Workshop Ops.", "error");
+      return;
+    }
+    setResyncing(true);
+    try {
+      const active = await getEventRegistrations(selectedEventId);
+      const eventDate = new Date(ev.startAt).toISOString().split("T")[0];
+      const result = await resyncRegistrationsToWorkshopOps(
+        selectedEventId,
+        ev.title,
+        eventDate,
+        active.map((r) => ({ id: r.id, name: r.name, email: r.email, status: r.status, registeredAt: r.registeredAt }))
+      );
+      showToast(result.message, result.ok ? "success" : "error");
+    } finally {
+      setResyncing(false);
+    }
   };
 
   const handleUpdateCapacity = () => {
@@ -437,6 +464,16 @@ export default function AdminEventsPage() {
                   </div>
                 </div>
               )}
+
+              {/* Send to Workshop Ops */}
+              <div className="flex items-center justify-between gap-3 p-3 border border-[#e8ddd2] rounded-lg">
+                <p className="text-xs text-[#a0704a]">
+                  Re-send everyone registered for this event to Workshop Ops. Safe to repeat: nobody is added twice.
+                </p>
+                <Button variant="outline" size="sm" onClick={handleResyncToWorkshopOps} disabled={resyncing}>
+                  {resyncing ? "Sending..." : "Resync to Workshop Ops"}
+                </Button>
+              </div>
 
               {/* Capacity Management */}
               <div className="space-y-2">
