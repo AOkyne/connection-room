@@ -81,7 +81,7 @@ interface ToastContainerProps {
 
 export function ToastContainer({ toasts, onRemove }: ToastContainerProps) {
   return (
-    <div className="fixed bottom-4 right-4 space-y-2 pointer-events-none z-50">
+    <div className="fixed bottom-4 right-4 space-y-2 pointer-events-none z-[100]">
       {toasts.map((toast, index) => (
         <div
           key={index}

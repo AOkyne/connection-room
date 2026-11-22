@@ -19,6 +19,7 @@ import { Button } from "@/components/Button";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { useToast } from "@/lib/hooks/useToast";
+import { ToastContainer } from "@/components/Toast";
 import { resyncRegistrationsToWorkshopOps } from "@/lib/webhooks/resync";
 
 export default function AdminEventsPage() {
@@ -571,6 +572,7 @@ export default function AdminEventsPage() {
           </Card>
         </div>
       )}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }
