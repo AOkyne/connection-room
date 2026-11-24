@@ -1,21 +1,8 @@
-import { supabase } from "@/lib/supabase/client";
+import { forgetJourneyCache, getSignedInUserId, loadJourneyState, saveJourneyField } from "@/lib/data/journey-store";
 import { GuidedRhythmProgress, Month } from "@/lib/types/guided-rhythm";
 import { guidedRhythm } from "@/lib/content/guided-rhythm";
 
 const GUIDED_RHYTHM_STORAGE_KEY = "connection-room:guided-rhythm";
-
-// Get current authenticated user ID
-async function getCurrentUserId(): Promise<string | null> {
-  if (typeof window === "undefined" || !supabase) return null;
-  try {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    return session?.user?.id || null;
-  } catch (err) {
-    return null;
-  }
-}
 
 // Calculate current month and week based on calendar
 export function getCurrentMonthAndWeek(): { month: number; week: number } {
@@ -44,111 +31,72 @@ export function initializeGuidedRhythm(): GuidedRhythmProgress {
   };
 }
 
-// Get user's guided rhythm progress
+function parseRhythm(raw: Record<string, unknown>): GuidedRhythmProgress {
+  const { month, week } = getCurrentMonthAndWeek();
+  return {
+    userId: String(raw.userId || ""),
+    currentMonth: month,
+    currentWeek: week,
+    privateReflections: (raw.privateReflections as Record<string, string>) || {},
+    monthlyIntegrations: (raw.monthlyIntegrations as Record<number, string>) || {},
+    monthlyIntentions: (raw.monthlyIntentions as Record<number, string>) || {},
+    startedAt: new Date((raw.startedAt as string) || Date.now()),
+    updatedAt: new Date((raw.updatedAt as string) || Date.now()),
+  };
+}
+
+function readLocalRhythm(): GuidedRhythmProgress | null {
+  try {
+    const stored = localStorage.getItem(GUIDED_RHYTHM_STORAGE_KEY);
+    return stored ? parseRhythm(JSON.parse(stored)) : null;
+  } catch {
+    console.warn("Error parsing guided rhythm from localStorage");
+    return null;
+  }
+}
+
+// Get user's guided rhythm progress: from the member's account when signed
+// in (rescuing any copy this browser kept from before saving was fixed),
+// otherwise -- demo mode, or the account can't be reached -- this browser.
 export async function getGuidedRhythmProgress(): Promise<GuidedRhythmProgress | null> {
   if (typeof window === "undefined") return null;
 
-  const userId = await getCurrentUserId();
-  const { month, week } = getCurrentMonthAndWeek();
-
-  // Try Supabase first if authenticated
-  if (userId && supabase) {
-    try {
-      const { data, error } = await supabase
-        .from("guided_rhythm_progress")
-        .select("*")
-        .eq("user_id", userId);
-
-      if (error) {
-        console.warn("Error fetching guided rhythm from Supabase:", error);
-      }
-
-      if (data && data.length > 0) {
-        const rhythmData = data[0];
-        return {
-          userId: rhythmData.user_id,
-          currentMonth: month,
-          currentWeek: week,
-          privateReflections: rhythmData.private_reflections || {},
-          monthlyIntegrations: rhythmData.monthly_integrations || {},
-          monthlyIntentions: rhythmData.monthly_intentions || {},
-          startedAt: new Date(rhythmData.started_at),
-          updatedAt: new Date(rhythmData.updated_at),
-        };
-      }
-    } catch (err) {
-      console.warn("Supabase guided rhythm fetch failed, falling back to localStorage");
-    }
+  const userId = await getSignedInUserId();
+  if (userId) {
+    const remote = await loadJourneyState(userId, "guided_rhythm", GUIDED_RHYTHM_STORAGE_KEY);
+    if (remote !== undefined) return remote ? parseRhythm({ ...remote, userId }) : null;
   }
-
-  // Fall back to localStorage
-  const stored = localStorage.getItem(GUIDED_RHYTHM_STORAGE_KEY);
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored);
-      return {
-        ...parsed,
-        currentMonth: month,
-        currentWeek: week,
-        startedAt: new Date(parsed.startedAt),
-        updatedAt: new Date(parsed.updatedAt),
-      };
-    } catch (e) {
-      console.warn("Error parsing guided rhythm from localStorage");
-    }
-  }
-
-  return null;
+  return readLocalRhythm();
 }
 
-// Save guided rhythm progress
+// Save guided rhythm progress. Signed-in members' reflections go to their
+// account; this throws if that fails, so the screen can say it wasn't saved.
+// A copy is kept in this browser as well.
 export async function saveGuidedRhythmProgress(
   progress: GuidedRhythmProgress
 ): Promise<void> {
   if (typeof window === "undefined") return;
 
-  const userId = await getCurrentUserId();
+  const userId = await getSignedInUserId();
   const { month, week } = getCurrentMonthAndWeek();
-
-  // Update to current month/week
   progress.currentMonth = month;
   progress.currentWeek = week;
   progress.updatedAt = new Date();
+  if (userId) progress.userId = userId;
 
-  // Try to save to Supabase if authenticated
-  if (userId && supabase) {
-    try {
-      const { error } = await supabase
-        .from("guided_rhythm_progress")
-        .upsert({
-          user_id: userId,
-          current_month: progress.currentMonth,
-          current_week: progress.currentWeek,
-          private_reflections: progress.privateReflections,
-          monthly_integrations: progress.monthlyIntegrations,
-          monthly_intentions: progress.monthlyIntentions,
-          started_at: progress.startedAt.toISOString(),
-          updated_at: new Date().toISOString(),
-        });
-
-      if (error) {
-        console.warn("Error saving guided rhythm to Supabase:", error);
-        saveToLocalStorage(progress);
-      }
-      return;
-    } catch (err) {
-      console.warn("Supabase save failed, falling back to localStorage");
-      saveToLocalStorage(progress);
-      return;
-    }
-  }
-
-  // Save to localStorage
   saveToLocalStorage(progress);
+  if (userId) {
+    forgetJourneyCache(userId, "guided_rhythm");
+    await saveJourneyField(userId, "guided_rhythm", JSON.parse(JSON.stringify(progress)));
+  }
 }
 
 function saveToLocalStorage(progress: GuidedRhythmProgress): void {
-  localStorage.setItem(GUIDED_RHYTHM_STORAGE_KEY, JSON.stringify(progress));
+  try {
+    localStorage.setItem(GUIDED_RHYTHM_STORAGE_KEY, JSON.stringify(progress));
+  } catch {
+    // storage unavailable (private browsing): the account copy is what counts
+  }
 }
 
 // Save private reflection for a specific week
@@ -224,7 +172,7 @@ export async function ensureGuidedRhythmExists(): Promise<GuidedRhythmProgress> 
   let progress = await getGuidedRhythmProgress();
 
   if (!progress) {
-    const userId = await getCurrentUserId();
+    const userId = await getSignedInUserId();
     progress = {
       userId: userId || "guest",
       currentMonth: 1,
@@ -235,7 +183,12 @@ export async function ensureGuidedRhythmExists(): Promise<GuidedRhythmProgress> 
       startedAt: new Date(),
       updatedAt: new Date(),
     };
-    await saveGuidedRhythmProgress(progress);
+    try {
+      await saveGuidedRhythmProgress(progress);
+    } catch (e) {
+      // Still show the rhythm; the next save tries the account again.
+      console.warn("Couldn't save new rhythm to the account:", e);
+    }
   }
 
   return progress;

@@ -207,6 +207,18 @@ export default function JourneyPage() {
         </button>
       </div>
 
+      {/* All of this member's private reflections */}
+      <Link
+        href="/app/reflections"
+        className="flex items-center justify-between gap-3 rounded-2xl border border-[#ecd9b0] bg-[#fbf3e2] px-5 py-4 hover:bg-[#f5e8cc] transition-colors"
+      >
+        <span>
+          <span className="block font-semibold text-[#1a0f0a]">My Private Reflections</span>
+          <span className="block text-sm text-[#6b6460]">Everything you’ve written privately, in one place. Only you can see it.</span>
+        </span>
+        <span aria-hidden className="text-[#8b6f47] text-xl">→</span>
+      </Link>
+
       {/* Event Reminders */}
       <EventReminderBanner />
 

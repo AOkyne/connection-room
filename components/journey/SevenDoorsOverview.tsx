@@ -16,6 +16,7 @@ import { ProfileFormModal } from "./ProfileFormModal";
 import { Card } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { DoorCompletionFeedback, PrivateReflectionFeedback } from "@/components/feedback";
+import { SaveErrorNotice, SAVE_ERROR_TEXT } from "./SaveErrorNotice";
 
 export function SevenDoorsOverview() {
   const [progress, setProgress] = useState<any>(null);
@@ -26,6 +27,7 @@ export function SevenDoorsOverview() {
   const [completedDoorFeedback, setCompletedDoorFeedback] = useState<number | null>(null);
   const [savedReflectionFeedback, setSavedReflectionFeedback] = useState<number | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
     loadProgress();
@@ -67,6 +69,7 @@ export function SevenDoorsOverview() {
       }
     } catch (error) {
       console.error("Error completing door:", error);
+      setSaveError("That step didn’t save. Please check your connection and try again.");
     }
   }
 
@@ -80,6 +83,8 @@ export function SevenDoorsOverview() {
       setSavedReflectionFeedback(doorNumber);
     } catch (error) {
       console.warn("Error saving reflection:", error);
+      setSaveError(SAVE_ERROR_TEXT);
+      throw error;
     }
   }
 
@@ -93,6 +98,7 @@ export function SevenDoorsOverview() {
       setShowIntentionModal(false);
     } catch (error) {
       console.error("Error setting intention:", error);
+      setSaveError("Your intention didn’t save. Please check your connection and try again.");
     }
   }
 
@@ -120,6 +126,8 @@ export function SevenDoorsOverview() {
 
   return (
     <div className="space-y-8">
+      {saveError && <SaveErrorNotice message={saveError} onClose={() => setSaveError("")} />}
+
       {/* Reflection Saved Feedback */}
       {savedReflectionFeedback && (
         <PrivateReflectionFeedback

@@ -132,7 +132,7 @@ export function DailyCompanionDashboard({ displayName, userId, profilePhoto }: D
       {/* My Reflections Panel */}
       {userId && (
         <div className="border-t border-[#e8ddd2] pt-8">
-          <MyReflectionsPanel userId={userId} />
+          <MyReflectionsPanel userId={userId} showAllLink />
         </div>
       )}
     </div>

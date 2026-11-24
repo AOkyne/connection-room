@@ -18,6 +18,7 @@ import { Button } from "@/components/Button";
 import { MonthlyThemeCard } from "./MonthlyThemeCard";
 import { WeeklyPromptCard } from "./WeeklyPromptCard";
 import { PrivateReflectionBox } from "./PrivateReflectionBox";
+import { SaveErrorNotice, SAVE_ERROR_TEXT } from "@/components/journey/SaveErrorNotice";
 import { CommunityInvitationCard } from "./CommunityInvitationCard";
 import { PrivateReflectionFeedback } from "@/components/feedback";
 
@@ -30,6 +31,7 @@ export function GuidedRhythmOverview() {
   const [showIntentionModal, setShowIntentionModal] = useState(false);
   const [customIntention, setCustomIntention] = useState("");
   const [reflectionSavedFeedback, setReflectionSavedFeedback] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   const { month, week } = getCurrentMonthAndWeek();
   const currentMonth = rhythmContent.find((m) => m.monthNumber === month);
@@ -76,13 +78,20 @@ export function GuidedRhythmOverview() {
       setReflectionSavedFeedback(true);
     } catch (error) {
       console.warn("Error saving weekly reflection:", error);
+      setSaveError(SAVE_ERROR_TEXT);
+      throw error; // so the reflection box doesn't show "Saved"
     }
   }
 
   async function handleSetIntention(intention: string) {
-    await setMonthlyIntention(month, intention);
-    setSelectedIntention(intention);
-    setShowIntentionModal(false);
+    try {
+      await setMonthlyIntention(month, intention);
+      setSelectedIntention(intention);
+      setShowIntentionModal(false);
+    } catch (error) {
+      console.warn("Error saving intention:", error);
+      setSaveError("Your intention didn’t save. Please check your connection and try again.");
+    }
   }
 
   if (loading) {
@@ -103,6 +112,8 @@ export function GuidedRhythmOverview() {
 
   return (
     <div className="space-y-8">
+      {saveError && <SaveErrorNotice message={saveError} onClose={() => setSaveError("")} />}
+
       {/* Reflection Saved Feedback */}
       {reflectionSavedFeedback && (
         <PrivateReflectionFeedback

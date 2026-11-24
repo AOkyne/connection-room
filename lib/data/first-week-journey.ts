@@ -1,7 +1,8 @@
 // First Week Journey progress tracking
-// Works with both localStorage (demo) and Supabase (authenticated)
+// Saved to the member's account (member_journey_progress, migration 108);
+// localStorage only in demo mode or as a backup copy.
 
-import { supabase } from "@/lib/supabase/client";
+import { forgetJourneyCache, getSignedInUserId, loadJourneyState, saveJourneyField } from "@/lib/data/journey-store";
 
 export interface JourneyProgress {
   userId: string;
@@ -16,19 +17,6 @@ export interface JourneyProgress {
 
 const JOURNEY_STORAGE_KEY = "connection-room:journey-progress";
 
-// Get current authenticated user ID
-async function getCurrentUserId(): Promise<string | null> {
-  if (typeof window === "undefined" || !supabase) return null;
-  try {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    return session?.user?.id || null;
-  } catch (err) {
-    return null;
-  }
-}
-
 // Initialize journey for new user
 export function initializeJourney(): JourneyProgress {
   return {
@@ -41,103 +29,64 @@ export function initializeJourney(): JourneyProgress {
   };
 }
 
-// Get user's journey progress
+function parseJourney(raw: Record<string, unknown>): JourneyProgress {
+  return {
+    userId: String(raw.userId || ""),
+    currentDoor: Number(raw.currentDoor) || 1,
+    completedDoors: (raw.completedDoors as number[]) || [],
+    privateReflections: (raw.privateReflections as Record<number, string>) || {},
+    selectedIntention: (raw.selectedIntention as string) || undefined,
+    startedAt: new Date((raw.startedAt as string) || Date.now()),
+    completedAt: raw.completedAt ? new Date(raw.completedAt as string) : undefined,
+    updatedAt: new Date((raw.updatedAt as string) || Date.now()),
+  };
+}
+
+function readLocalJourney(): JourneyProgress | null {
+  try {
+    const stored = localStorage.getItem(JOURNEY_STORAGE_KEY);
+    return stored ? parseJourney(JSON.parse(stored)) : null;
+  } catch {
+    console.warn("Error parsing journey progress from localStorage");
+    return null;
+  }
+}
+
+// Get user's journey progress: from the member's account when signed in
+// (rescuing any copy this browser kept from before saving was fixed),
+// otherwise -- demo mode, or the account can't be reached -- this browser.
 export async function getJourneyProgress(): Promise<JourneyProgress | null> {
   if (typeof window === "undefined") return null;
 
-  const userId = await getCurrentUserId();
-
-  // Try Supabase first if authenticated
-  if (userId && supabase) {
-    try {
-      const { data, error } = await supabase
-        .from("first_week_journey_progress")
-        .select("*")
-        .eq("user_id", userId);
-
-      if (error) {
-        console.warn("Error fetching journey progress from Supabase:", error);
-      }
-
-      if (data && data.length > 0) {
-        const journeyData = data[0];
-        return {
-          userId: journeyData.user_id,
-          currentDoor: journeyData.current_door || 1,
-          completedDoors: journeyData.completed_doors || [],
-          privateReflections: journeyData.private_reflections || {},
-          selectedIntention: journeyData.selected_intention,
-          startedAt: new Date(journeyData.started_at),
-          completedAt: journeyData.completed_at ? new Date(journeyData.completed_at) : undefined,
-          updatedAt: new Date(journeyData.updated_at),
-        };
-      }
-    } catch (err) {
-      console.warn("Supabase journey fetch failed, falling back to localStorage");
-    }
+  const userId = await getSignedInUserId();
+  if (userId) {
+    const remote = await loadJourneyState(userId, "first_week", JOURNEY_STORAGE_KEY);
+    if (remote !== undefined) return remote ? parseJourney({ ...remote, userId }) : null;
   }
-
-  // Fall back to localStorage
-  const stored = localStorage.getItem(JOURNEY_STORAGE_KEY);
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored);
-      return {
-        ...parsed,
-        startedAt: new Date(parsed.startedAt),
-        completedAt: parsed.completedAt ? new Date(parsed.completedAt) : undefined,
-        updatedAt: new Date(parsed.updatedAt),
-      };
-    } catch (e) {
-      console.warn("Error parsing journey progress from localStorage");
-    }
-  }
-
-  // Return null if no progress found
-  return null;
+  return readLocalJourney();
 }
 
-// Save journey progress
+// Save journey progress. Signed-in members' progress (and private
+// reflections) goes to their account; this throws if that fails, so the
+// screen can say it wasn't saved. A copy is kept in this browser as well.
 export async function saveJourneyProgress(progress: JourneyProgress): Promise<void> {
   if (typeof window === "undefined") return;
 
-  const userId = await getCurrentUserId();
-
-  // Try to save to Supabase if authenticated
-  if (userId && supabase) {
-    try {
-      const { error } = await supabase
-        .from("first_week_journey_progress")
-        .upsert({
-          user_id: userId,
-          current_door: progress.currentDoor,
-          completed_doors: progress.completedDoors,
-          private_reflections: progress.privateReflections,
-          selected_intention: progress.selectedIntention,
-          started_at: progress.startedAt.toISOString(),
-          completed_at: progress.completedAt?.toISOString(),
-          updated_at: new Date().toISOString(),
-        });
-
-      if (error) {
-        console.warn("Error saving journey to Supabase:", error);
-        // Fall back to localStorage
-        saveToLocalStorage(progress);
-      }
-      return;
-    } catch (err) {
-      console.warn("Supabase save failed, falling back to localStorage");
-      saveToLocalStorage(progress);
-      return;
-    }
-  }
-
-  // Save to localStorage
+  const userId = await getSignedInUserId();
+  if (userId) progress.userId = userId;
   saveToLocalStorage(progress);
+  if (userId) {
+    forgetJourneyCache(userId, "first_week");
+    await saveJourneyField(userId, "first_week", JSON.parse(JSON.stringify(progress)));
+  }
 }
 
 function saveToLocalStorage(progress: JourneyProgress): void {
-  localStorage.setItem(JOURNEY_STORAGE_KEY, JSON.stringify(progress));
+  try {
+    localStorage.setItem(JOURNEY_STORAGE_KEY, JSON.stringify(progress));
+  } catch {
+    // storage unavailable (private browsing): the account copy is what counts
+  }
 }
 
 // Mark a door as completed
@@ -219,7 +168,7 @@ export async function ensureJourneyExists(): Promise<JourneyProgress> {
   let progress = await getJourneyProgress();
 
   if (!progress) {
-    const userId = await getCurrentUserId();
+    const userId = await getSignedInUserId();
     progress = {
       userId: userId || "guest",
       currentDoor: 1,
@@ -228,7 +177,12 @@ export async function ensureJourneyExists(): Promise<JourneyProgress> {
       startedAt: new Date(),
       updatedAt: new Date(),
     };
-    await saveJourneyProgress(progress);
+    try {
+      await saveJourneyProgress(progress);
+    } catch (e) {
+      // Still show the journey; the next save tries the account again.
+      console.warn("Couldn't save new journey to the account:", e);
+    }
   }
 
   return progress;

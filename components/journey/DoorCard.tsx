@@ -13,7 +13,7 @@ interface DoorCardProps {
   isCurrentDoor: boolean;
   onActionClick: (action: DoorAction) => void;
   onComplete: () => void;
-  onReflectionSave: (reflection: string) => void;
+  onReflectionSave: (reflection: string) => Promise<void> | void;
   savedReflection?: string;
 }
 
@@ -31,9 +31,13 @@ export function DoorCard({
   const [showPostModal, setShowPostModal] = useState(false);
   const [postContent, setPostContent] = useState("");
 
-  const handleSaveReflection = () => {
-    onReflectionSave(reflectionText);
-    setShowReflection(false);
+  const handleSaveReflection = async () => {
+    try {
+      await onReflectionSave(reflectionText);
+      setShowReflection(false);
+    } catch {
+      // Keep the box open with the text; the journey shows what went wrong.
+    }
   };
 
   const handlePostAction = (action: DoorAction) => {
