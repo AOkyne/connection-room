@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { buildProfilePhotoUrl } from "@/lib/utils/storage";
+import { dailyShuffle } from "@/lib/utils/daily-shuffle";
 
 export const dynamic = "force-dynamic";
 
@@ -155,10 +156,10 @@ export async function GET(request: NextRequest) {
     reason: buildReason(s),
   });
 
-  if (weekly) {
-    // Deterministic per (user, ISO week) so the same pick holds for the
-    // whole week and only changes when the pool changes or the week
-    // rolls over -- not a random pick on every page load.
+  // Your Connection of the Week: deterministic per (user, ISO week) so the
+  // same pick holds for the whole week and only changes when the pool
+  // changes or the week rolls over -- not a random pick on every page load.
+  const weeklyIndex = (): number => {
     const now = new Date();
     const isoYear = now.getUTCFullYear();
     const jan1 = new Date(Date.UTC(isoYear, 0, 1));
@@ -170,9 +171,21 @@ export async function GET(request: NextRequest) {
     for (let i = 0; i < hashInput.length; i++) {
       hash = (hash * 31 + hashInput.charCodeAt(i)) >>> 0;
     }
-    const index = hash % scored.length;
-    return NextResponse.json({ suggestions: [toSuggestion(scored[index])] });
+    return hash % scored.length;
+  };
+
+  if (weekly) {
+    return NextResponse.json({ suggestions: [toSuggestion(scored[weeklyIndex()])] });
   }
 
-  return NextResponse.json({ suggestions: scored.slice(0, 3).map(toSuggestion) });
+  // Someone You Might Want to Know: 3 of this member's 12 best matches,
+  // chosen fresh each day (same 3 all day), so it doesn't show the same
+  // faces for weeks. Leaves out this week's Connection of the Week, which
+  // already has its own card above.
+  const weeklyPick = scored[weeklyIndex()]?.row.user_id;
+  const pool = scored.filter((s) => s.row.user_id !== weeklyPick).slice(0, 12);
+  const todays = dailyShuffle(pool, userId, "suggestions")
+    .slice(0, 3)
+    .sort((a, b) => b.score - a.score);
+  return NextResponse.json({ suggestions: todays.map(toSuggestion) });
 }

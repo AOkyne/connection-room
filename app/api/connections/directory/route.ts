@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { buildProfilePhotoUrl } from "@/lib/utils/storage";
+import { dailyShuffle } from "@/lib/utils/daily-shuffle";
 
 export const dynamic = "force-dynamic";
 
@@ -129,6 +130,12 @@ export async function GET(request: NextRequest) {
   const cityOf = (location: string | null | undefined): string =>
     (location || "").split(",")[0].trim().toLowerCase();
 
+  // Start from a fresh order each day, different for each member, so the
+  // same people aren't always at the top. It holds all day, so "Load more"
+  // never repeats or skips anyone; the sorts below are stable, so ties
+  // (same city, same number of shared interests) rotate too.
+  visible = dailyShuffle(visible, userId, "directory");
+
   let nearMeUnavailable = false;
   if (filter === "near_me") {
     const selfCity = cityOf(selfRow.location);
@@ -153,7 +160,7 @@ export async function GET(request: NextRequest) {
   } else if (filter === "shared_interests") {
     visible = [...visible].sort((a, b) => sharedInterestCount(b.interests) - sharedInterestCount(a.interests));
   }
-  // "everyone" (default): natural order from the query, no re-sort.
+  // "everyone" (default): today's shuffled order, no re-sort.
 
   const total = visible.length;
   const start = (page - 1) * pageSize;
