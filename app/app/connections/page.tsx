@@ -238,6 +238,73 @@ export default function ConnectionsPage() {
         </button>
       </div>
 
+      {/* Conversations first, so members see who's waiting on them before
+          browsing new people. */}
+
+      {/* In-flight guided exchanges (existing rows, any connection_type) --
+          untouched: same component, same behavior, regardless of how the
+          connection started. */}
+      {asyncConnections.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold text-[#1a0f0a]">Your Conversations</h2>
+          <GuidedExchangeSection connections={asyncConnections} myUserId={profile.id} />
+        </div>
+      )}
+
+      {/* Legacy pending requests -- preserved so an existing request never
+          silently disappears. */}
+      {incomingRequests.length > 0 && (
+        <IncomingRequests
+          requests={incomingRequests}
+          onAccept={handleAcceptRequest}
+          onDecline={handleDeclineRequest}
+          currentUserId={profile.id}
+          requesterProfiles={requesterProfiles}
+          mutualUserIds={mutualUserIds}
+        />
+      )}
+
+      {activeConnections.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold text-[#1a0f0a]">Active Conversations</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {activeConnections.map((connection) => (
+              <div key={connection.id} className="space-y-3">
+                {selectedChatId === connection.id ? (
+                  <ConnectionChat
+                    connectionId={connection.id}
+                    partnerId={connection.partnerId}
+                    partnerName={connection.partnerName}
+                    userId={profile.id}
+                    userName={profile.displayName}
+                  />
+                ) : (
+                  <Card className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      {connection.partnerPhoto && (
+                        <img
+                          src={connection.partnerPhoto}
+                          style={photoFocusStyle(connection.partnerPhoto)}
+                          alt={connection.partnerName}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-[#1a0f0a]">{connection.partnerName}</h3>
+                        <p className="text-xs text-[#a0704a]">Connected • Ready to chat</p>
+                      </div>
+                    </div>
+                    <Button variant="primary" onClick={() => setSelectedChatId(connection.id)} className="w-full">
+                      Open Chat
+                    </Button>
+                  </Card>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Connections settings -- who can find you, who can message you. */}
       <Card>
         <CardHeader title="Your Connections Settings" />
@@ -397,70 +464,6 @@ export default function ConnectionsPage() {
             </div>
           )}
         </>
-      )}
-
-      {/* In-flight guided exchanges (existing rows, any connection_type) --
-          untouched: same component, same behavior, regardless of how the
-          connection started. */}
-      {asyncConnections.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-2xl font-semibold text-[#1a0f0a]">Your Conversations</h2>
-          <GuidedExchangeSection connections={asyncConnections} myUserId={profile.id} />
-        </div>
-      )}
-
-      {/* Legacy pending requests -- preserved so an existing request never
-          silently disappears. */}
-      {incomingRequests.length > 0 && (
-        <IncomingRequests
-          requests={incomingRequests}
-          onAccept={handleAcceptRequest}
-          onDecline={handleDeclineRequest}
-          currentUserId={profile.id}
-          requesterProfiles={requesterProfiles}
-          mutualUserIds={mutualUserIds}
-        />
-      )}
-
-      {activeConnections.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-2xl font-semibold text-[#1a0f0a]">Active Conversations</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {activeConnections.map((connection) => (
-              <div key={connection.id} className="space-y-3">
-                {selectedChatId === connection.id ? (
-                  <ConnectionChat
-                    connectionId={connection.id}
-                    partnerId={connection.partnerId}
-                    partnerName={connection.partnerName}
-                    userId={profile.id}
-                    userName={profile.displayName}
-                  />
-                ) : (
-                  <Card className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      {connection.partnerPhoto && (
-                        <img
-                          src={connection.partnerPhoto}
-                          style={photoFocusStyle(connection.partnerPhoto)}
-                          alt={connection.partnerName}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                      )}
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-[#1a0f0a]">{connection.partnerName}</h3>
-                        <p className="text-xs text-[#a0704a]">Connected • Ready to chat</p>
-                      </div>
-                    </div>
-                    <Button variant="primary" onClick={() => setSelectedChatId(connection.id)} className="w-full">
-                      Open Chat
-                    </Button>
-                  </Card>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
       )}
 
       {helloTarget && (
