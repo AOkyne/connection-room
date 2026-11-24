@@ -236,7 +236,10 @@ export default function ConnectionDetailPage() {
   // Every other connection_type keeps rendering the exact Guided Exchange
   // UI below, completely untouched, so an in-flight round-based exchange
   // never breaks just because this route learned about a new type.
-  if (connection.connectionType === "direct") {
+  // A 'live' connection is the old request-and-accept chat (before
+  // migration 096). It has no rounds; its messages are the same
+  // connection_messages a direct conversation uses, so it opens the same way.
+  if (connection.connectionType === "direct" || connection.connectionType === "live") {
     const iAmInvited = connection.myInvitationStatus === "invited";
 
     return (

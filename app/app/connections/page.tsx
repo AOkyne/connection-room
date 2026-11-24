@@ -9,8 +9,6 @@ import { getProfile, getPublicProfile, getProfileVisibilitySettings, updateProfi
 import {
   getConnectionPreferences,
   updateConnectionPreferences,
-  getActiveConnections,
-  type Connection,
   type MessagingPrivacy,
 } from "@/lib/data/connections";
 import { getConnectionsDirectory, type DirectoryFilter, type DirectoryMember } from "@/lib/data/connectionsDirect";
@@ -22,7 +20,6 @@ import { SayHelloModal } from "@/components/connections/SayHelloModal";
 import { SomeoneYouMightWantToKnow } from "@/components/connections/SomeoneYouMightWantToKnow";
 import { trackConnectionEvent } from "@/lib/analytics/connectionEvents";
 import { IncomingRequests } from "@/components/connections/IncomingRequests";
-import { ConnectionChat } from "@/components/connections/ConnectionChat";
 import { useToast } from "@/lib/hooks/useToast";
 import { ToastContainer } from "@/components/Toast";
 import {
@@ -38,7 +35,6 @@ import { getMyAsyncConnections } from "@/lib/data/connectionAsync";
 import { GuidedExchangeSection } from "@/components/connections/GuidedExchangeSection";
 import type { AsyncConnection } from "@/lib/types/connection";
 import type { Profile } from "@/lib/data/profiles";
-import { photoFocusStyle } from "@/lib/utils/photo-focus";
 
 const FILTERS: { id: DirectoryFilter; label: string }[] = [
   { id: "everyone", label: "Everyone" },
@@ -74,8 +70,6 @@ export default function ConnectionsPage() {
   const [incomingRequests, setIncomingRequests] = useState<ConnectionRequest[]>([]);
   const [requesterProfiles, setRequesterProfiles] = useState<Record<string, Profile>>({});
   const [mutualUserIds, setMutualUserIds] = useState<Set<string>>(new Set());
-  const [activeConnections, setActiveConnections] = useState<Connection[]>([]);
-  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [asyncConnections, setAsyncConnections] = useState<AsyncConnection[]>([]);
 
   useEffect(() => {
@@ -87,12 +81,11 @@ export default function ConnectionsPage() {
         return;
       }
 
-      const [prefs, visibility, requests, sent, active, asyncConns] = await Promise.all([
+      const [prefs, visibility, requests, sent, asyncConns] = await Promise.all([
         getConnectionPreferences(p.id),
         getProfileVisibilitySettings(),
         getIncomingRequests(p.id),
         getSentRequests(p.id),
-        getActiveConnections(p.id),
         // getMyAsyncConnections reads the connections table with no
         // connection_type filter -- it already returns 'direct' rows
         // (the new say-hello flow) alongside any legacy async/live rows.
@@ -111,7 +104,6 @@ export default function ConnectionsPage() {
         requests.map(async (r) => [r.fromUserId, await getPublicProfile(r.fromUserId)] as const)
       );
       setIncomingRequests(requests);
-      setActiveConnections(active);
       const sentToIds = new Set(sent.map((r) => r.toUserId));
       setMutualUserIds(new Set(requests.filter((r) => sentToIds.has(r.fromUserId)).map((r) => r.fromUserId)));
       const profilesMap: Record<string, Profile> = {};
@@ -201,9 +193,8 @@ export default function ConnectionsPage() {
 
     const connection = await createConfirmedConnection(profile.id, accepted);
     if (connection) {
-      setActiveConnections((prev) => [connection, ...prev]);
-      setSelectedChatId(connection.id);
       showToast(`Connected with ${request.fromUserName}!`, "success");
+      router.push(`/app/connections/${connection.id}`);
     } else {
       showToast("Request accepted, but the connection couldn't be fully set up. Please refresh.", "error");
     }
@@ -237,73 +228,6 @@ export default function ConnectionsPage() {
           ← Back
         </button>
       </div>
-
-      {/* Conversations first, so members see who's waiting on them before
-          browsing new people. */}
-
-      {/* In-flight guided exchanges (existing rows, any connection_type) --
-          untouched: same component, same behavior, regardless of how the
-          connection started. */}
-      {asyncConnections.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-2xl font-semibold text-[#1a0f0a]">Your Conversations</h2>
-          <GuidedExchangeSection connections={asyncConnections} myUserId={profile.id} />
-        </div>
-      )}
-
-      {/* Legacy pending requests -- preserved so an existing request never
-          silently disappears. */}
-      {incomingRequests.length > 0 && (
-        <IncomingRequests
-          requests={incomingRequests}
-          onAccept={handleAcceptRequest}
-          onDecline={handleDeclineRequest}
-          currentUserId={profile.id}
-          requesterProfiles={requesterProfiles}
-          mutualUserIds={mutualUserIds}
-        />
-      )}
-
-      {activeConnections.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-2xl font-semibold text-[#1a0f0a]">Active Conversations</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {activeConnections.map((connection) => (
-              <div key={connection.id} className="space-y-3">
-                {selectedChatId === connection.id ? (
-                  <ConnectionChat
-                    connectionId={connection.id}
-                    partnerId={connection.partnerId}
-                    partnerName={connection.partnerName}
-                    userId={profile.id}
-                    userName={profile.displayName}
-                  />
-                ) : (
-                  <Card className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      {connection.partnerPhoto && (
-                        <img
-                          src={connection.partnerPhoto}
-                          style={photoFocusStyle(connection.partnerPhoto)}
-                          alt={connection.partnerName}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                      )}
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-[#1a0f0a]">{connection.partnerName}</h3>
-                        <p className="text-xs text-[#a0704a]">Connected • Ready to chat</p>
-                      </div>
-                    </div>
-                    <Button variant="primary" onClick={() => setSelectedChatId(connection.id)} className="w-full">
-                      Open Chat
-                    </Button>
-                  </Card>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Connections settings -- who can find you, who can message you. */}
       <Card>
@@ -374,8 +298,37 @@ export default function ConnectionsPage() {
           <p className="text-sm text-[#a0704a] mt-1">You can turn them back on anytime above.</p>
         </Card>
       ) : (
+        <SomeoneYouMightWantToKnow weekly onSayHello={(m) => setHelloTarget({ id: m.id, displayName: m.displayName })} />
+      )}
+
+      {/* Conversations come before "Someone you might know" and the
+          directory, so members see who's waiting on them before browsing
+          new people. */}
+      {/* In-flight guided exchanges (existing rows, any connection_type) --
+          untouched: same component, same behavior, regardless of how the
+          connection started. */}
+      {asyncConnections.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-semibold text-[#1a0f0a]">Your Conversations</h2>
+          <GuidedExchangeSection connections={asyncConnections} myUserId={profile.id} />
+        </div>
+      )}
+
+      {/* Legacy pending requests -- preserved so an existing request never
+          silently disappears. */}
+      {incomingRequests.length > 0 && (
+        <IncomingRequests
+          requests={incomingRequests}
+          onAccept={handleAcceptRequest}
+          onDecline={handleDeclineRequest}
+          currentUserId={profile.id}
+          requesterProfiles={requesterProfiles}
+          mutualUserIds={mutualUserIds}
+        />
+      )}
+
+      {openToMeeting && (
         <>
-          <SomeoneYouMightWantToKnow weekly onSayHello={(m) => setHelloTarget({ id: m.id, displayName: m.displayName })} />
           <SomeoneYouMightWantToKnow onSayHello={(m) => setHelloTarget({ id: m.id, displayName: m.displayName })} />
 
           {/* Filters */}
