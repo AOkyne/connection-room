@@ -26,6 +26,11 @@ const LIVE_STATUSES: AsyncConnectionStatus[] = ["live_requested", "live_schedule
 const COMPLETED_STATUSES: AsyncConnectionStatus[] = ["exchange_complete", "completed"];
 const TERMINAL_STATUSES: AsyncConnectionStatus[] = ["expired", "ended", "declined", "cancelled", "reported"];
 
+/** Expired, ended, declined, cancelled or reported: no longer shown on Connections. */
+export function isEndedConnection(connection: Pick<AsyncConnection, "status">): boolean {
+  return TERMINAL_STATUSES.includes(connection.status);
+}
+
 export function bucketForConnection(
   connection: Pick<AsyncConnection, "status" | "myInvitationStatus">,
   roundState: CurrentRoundStateLike | undefined

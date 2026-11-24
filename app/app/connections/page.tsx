@@ -33,6 +33,7 @@ import { addToDeclinedUsers } from "@/lib/data/connections";
 import { createConfirmedConnection } from "@/lib/data/connections";
 import { getMyAsyncConnections } from "@/lib/data/connectionAsync";
 import { GuidedExchangeSection } from "@/components/connections/GuidedExchangeSection";
+import { isEndedConnection } from "@/lib/utils/connectionDashboardBuckets";
 import type { AsyncConnection } from "@/lib/types/connection";
 import type { Profile } from "@/lib/data/profiles";
 
@@ -110,7 +111,8 @@ export default function ConnectionsPage() {
       for (const [id, prof] of resolvedProfiles) if (prof) profilesMap[id] = prof;
       setRequesterProfiles(profilesMap);
 
-      setAsyncConnections(asyncConns);
+      // Ended connections (expired, ended, declined...) aren't shown at all.
+      setAsyncConnections(asyncConns.filter((c) => !isEndedConnection(c)));
 
       setMounted(true);
     };

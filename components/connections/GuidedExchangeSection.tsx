@@ -96,7 +96,9 @@ export function GuidedExchangeSection({ connections, myUserId }: { connections: 
     }
   };
 
-  const order: DashboardBucket[] = ["invitations", "readyToReveal", "waitingForYou", "active", "live", "waitingForThem", "completed", "expiredEnded"];
+  // "Expired or ended" is deliberately left out: ended connections aren't
+  // shown on the page at all (a declined invitation disappears at once).
+  const order: DashboardBucket[] = ["invitations", "readyToReveal", "waitingForYou", "active", "live", "waitingForThem", "completed"];
 
   return (
     <div className="space-y-6">
